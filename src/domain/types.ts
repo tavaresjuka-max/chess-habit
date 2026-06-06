@@ -62,6 +62,26 @@ export type PlanResourceStage = 'explain' | 'guided' | 'retrieval' | 'transfer' 
 
 export type PlanBlockFeedback = 'easy' | 'good' | 'hard';
 
+export type LichessOAuthScope = 'puzzle:read' | 'study:write';
+
+export type LichessOAuthToken = {
+  accessToken: string;
+  tokenType: 'Bearer';
+  scopes: LichessOAuthScope[];
+  obtainedAt: string;
+  expiresAt: string;
+};
+
+export type LichessStudyLink = {
+  id: string;
+  date: string;
+  studyId: string;
+  url: string;
+  visibility: 'private' | 'unlisted';
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type WeeklyFocus = {
   tag: WeaknessTag;
   title: string;

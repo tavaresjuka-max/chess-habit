@@ -45,7 +45,12 @@ export function App() {
       {shouldShowConfig ? (
         <Config
           profile={appState.profile}
+          lichessToken={appState.lichessToken}
+          lichessConnectionState={appState.lichessConnectionState}
+          lichessMessage={appState.lichessMessage}
           onSave={appState.saveProfile}
+          onConnectLichess={appState.connectLichess}
+          onDisconnectLichess={appState.disconnectLichess}
           onImportKnownManualSignals={appState.importKnownManualSignals}
           onExport={appState.exportBackup}
           onClear={appState.clearAllData}
@@ -59,9 +64,15 @@ export function App() {
           weaknesses={appState.weaknesses}
           diagnosisState={appState.diagnosisState}
           diagnosisMessage={appState.diagnosisMessage}
+          lichessConnectionState={appState.lichessConnectionState}
+          lichessMessage={appState.lichessMessage}
+          lichessStudyLink={appState.lichessStudyLink}
           onSessionMinutesChange={appState.regeneratePlan}
           onCreateNextSession={appState.createNextSession}
           onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
+          onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
+          onReconcileLichessResults={appState.reconcileLichessResults}
+          onCreateLichessStudy={appState.createLichessStudy}
           onStartBlockTraining={appState.startBlockTraining}
           onCompleteBlockTraining={appState.completeBlockTraining}
           onSkipBlockTraining={appState.skipBlockTraining}

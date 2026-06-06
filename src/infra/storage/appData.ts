@@ -1,8 +1,18 @@
-import type { DailyPlan, LearnerProfile, Signal, SourceId, TrainingLog, Weakness } from '../../domain';
+import type {
+  DailyPlan,
+  LearnerProfile,
+  LichessOAuthToken,
+  LichessStudyLink,
+  Signal,
+  SourceId,
+  TrainingLog,
+  Weakness,
+} from '../../domain';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
-import { db, type ProfileRecord, type SignalRecord, type WeaknessRecord } from './db';
+import { db, type LichessOAuthTokenRecord, type ProfileRecord, type SignalRecord, type WeaknessRecord } from './db';
 
 const defaultProfileId: ProfileRecord['id'] = 'default';
+const lichessTokenId: LichessOAuthTokenRecord['id'] = 'lichess';
 
 export async function loadProfile(): Promise<LearnerProfile | undefined> {
   const record = await db.profile.get(defaultProfileId);
@@ -86,6 +96,35 @@ export async function saveChesscomMonthCache(record: ChesscomMonthCache): Promis
   await db.chesscomMonthSignals.put(record);
 }
 
+export async function loadLichessOAuthToken(nowIso = new Date().toISOString()): Promise<LichessOAuthToken | undefined> {
+  const record = await db.lichessOAuthTokens.get(lichessTokenId);
+
+  if (record === undefined || record.expiresAt <= nowIso) {
+    return undefined;
+  }
+
+  return fromLichessOAuthTokenRecord(record);
+}
+
+export async function saveLichessOAuthToken(token: LichessOAuthToken): Promise<void> {
+  await db.lichessOAuthTokens.put({
+    ...token,
+    id: lichessTokenId,
+  });
+}
+
+export async function clearLichessOAuthToken(): Promise<void> {
+  await db.lichessOAuthTokens.delete(lichessTokenId);
+}
+
+export async function getLichessStudyLink(date: string): Promise<LichessStudyLink | undefined> {
+  return db.lichessStudies.get(date);
+}
+
+export async function saveLichessStudyLink(link: LichessStudyLink): Promise<void> {
+  await db.lichessStudies.put(link);
+}
+
 export async function exportAllAsJson(): Promise<string> {
   const payload = {
     profile: await db.profile.toArray(),
@@ -101,7 +140,16 @@ export async function exportAllAsJson(): Promise<string> {
 export async function clearAll(): Promise<void> {
   await db.transaction(
     'rw',
-    [db.profile, db.plans, db.logs, db.signals, db.weaknesses, db.chesscomMonthSignals],
+    [
+      db.profile,
+      db.plans,
+      db.logs,
+      db.signals,
+      db.weaknesses,
+      db.chesscomMonthSignals,
+      db.lichessOAuthTokens,
+      db.lichessStudies,
+    ],
     async () => {
       await db.profile.clear();
       await db.plans.clear();
@@ -109,8 +157,20 @@ export async function clearAll(): Promise<void> {
       await db.signals.clear();
       await db.weaknesses.clear();
       await db.chesscomMonthSignals.clear();
+      await db.lichessOAuthTokens.clear();
+      await db.lichessStudies.clear();
     },
   );
+}
+
+function fromLichessOAuthTokenRecord(record: LichessOAuthTokenRecord): LichessOAuthToken {
+  return {
+    accessToken: record.accessToken,
+    tokenType: record.tokenType,
+    scopes: record.scopes,
+    obtainedAt: record.obtainedAt,
+    expiresAt: record.expiresAt,
+  };
 }
 
 function toSignalRecord(signal: Signal, index: number): SignalRecord {

@@ -5,6 +5,7 @@ import {
   getPlanSessionSummaries,
   getPlanTotalMinutes,
   type DailyPlan,
+  type LichessStudyLink,
   type PlanBlock,
   type PlanBlockFeedback,
   type SessionMinutes,
@@ -12,7 +13,7 @@ import {
   type TrainingRoadmapItem,
   type Weakness,
 } from '../domain';
-import type { DiagnosisState } from '../app/state';
+import type { DiagnosisState, LichessConnectionState } from '../app/state';
 
 type TodayProps = {
   plan: DailyPlan | undefined;
@@ -22,9 +23,15 @@ type TodayProps = {
   weaknesses: Weakness[];
   diagnosisState: DiagnosisState;
   diagnosisMessage: string | undefined;
+  lichessConnectionState: LichessConnectionState;
+  lichessMessage: string | undefined;
+  lichessStudyLink: LichessStudyLink | undefined;
   onSessionMinutesChange: (minutes: SessionMinutes) => Promise<void>;
   onCreateNextSession: (minutes: SessionMinutes) => Promise<void>;
   onSyncChesscomDiagnosis: () => Promise<void>;
+  onSyncLichessDiagnosis: () => Promise<void>;
+  onReconcileLichessResults: () => Promise<void>;
+  onCreateLichessStudy: () => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
   onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
@@ -40,9 +47,15 @@ export function Today({
   weaknesses,
   diagnosisState,
   diagnosisMessage,
+  lichessConnectionState,
+  lichessMessage,
+  lichessStudyLink,
   onSessionMinutesChange,
   onCreateNextSession,
   onSyncChesscomDiagnosis,
+  onSyncLichessDiagnosis,
+  onReconcileLichessResults,
+  onCreateLichessStudy,
   onStartBlockTraining,
   onCompleteBlockTraining,
   onSkipBlockTraining,
@@ -135,17 +148,57 @@ export function Today({
       </div>
 
       <div className="diagnosis-strip" aria-live="polite">
-        <button
-          type="button"
-          className="secondary-button"
-          disabled={diagnosisState === 'syncing'}
-          onClick={() => {
-            void onSyncChesscomDiagnosis();
-          }}
-        >
-          {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
-        </button>
-        {diagnosisMessage !== undefined ? <p>{diagnosisMessage}</p> : null}
+        <div className="diagnosis-actions">
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={diagnosisState === 'syncing'}
+            onClick={() => {
+              void onSyncChesscomDiagnosis();
+            }}
+          >
+            {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={lichessConnectionState === 'syncing'}
+            onClick={() => {
+              void onSyncLichessDiagnosis();
+            }}
+          >
+            {lichessConnectionState === 'syncing' ? 'Lichess...' : 'Atualizar Lichess'}
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={lichessConnectionState === 'syncing'}
+            onClick={() => {
+              void onReconcileLichessResults();
+            }}
+          >
+            Reconciliar puzzles
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={lichessConnectionState === 'syncing'}
+            onClick={() => {
+              void onCreateLichessStudy();
+            }}
+          >
+            Gerar Study
+          </button>
+        </div>
+        <div className="diagnosis-messages">
+          {diagnosisMessage !== undefined ? <p>{diagnosisMessage}</p> : null}
+          {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
+          {lichessStudyLink !== undefined ? (
+            <a className="button-link secondary-link" href={lichessStudyLink.url} target="_blank" rel="noreferrer">
+              Abrir Study do dia
+            </a>
+          ) : null}
+        </div>
       </div>
 
       {weaknesses.length > 0 ? (

@@ -1,5 +1,13 @@
 import Dexie, { type Table } from 'dexie';
-import type { DailyPlan, LearnerProfile, Signal, TrainingLog, Weakness } from '../../domain';
+import type {
+  DailyPlan,
+  LearnerProfile,
+  LichessOAuthToken,
+  LichessStudyLink,
+  Signal,
+  TrainingLog,
+  Weakness,
+} from '../../domain';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
 
 export const storageDatabaseName = 'lichess-tutor' as const;
@@ -22,6 +30,12 @@ export type WeaknessRecord = Weakness & {
 
 export type ChesscomMonthSignalCacheRecord = ChesscomMonthCache;
 
+export type LichessOAuthTokenRecord = LichessOAuthToken & {
+  id: 'lichess';
+};
+
+export type LichessStudyLinkRecord = LichessStudyLink;
+
 export class TutorDatabase extends Dexie {
   profile!: Table<ProfileRecord, string>;
   plans!: Table<PlanRecord, string>;
@@ -29,6 +43,8 @@ export class TutorDatabase extends Dexie {
   signals!: Table<SignalRecord, string>;
   weaknesses!: Table<WeaknessRecord, string>;
   chesscomMonthSignals!: Table<ChesscomMonthSignalCacheRecord, string>;
+  lichessOAuthTokens!: Table<LichessOAuthTokenRecord, string>;
+  lichessStudies!: Table<LichessStudyLinkRecord, string>;
 
   constructor(name = storageDatabaseName) {
     super(name);
@@ -43,6 +59,11 @@ export class TutorDatabase extends Dexie {
 
     this.version(2).stores({
       chesscomMonthSignals: 'id, username, updatedAt, expiresAt',
+    });
+
+    this.version(3).stores({
+      lichessOAuthTokens: 'id, expiresAt',
+      lichessStudies: 'id, date, studyId, updatedAt',
     });
   }
 }

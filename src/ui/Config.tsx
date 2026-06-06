@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { createDefaultProfile } from '../app/state';
-import type { LearnerBand, LearnerProfile, SessionMinutes } from '../domain';
+import { createDefaultProfile, type LichessConnectionState } from '../app/state';
+import type { LearnerBand, LearnerProfile, LichessOAuthToken, SessionMinutes } from '../domain';
 
 type ConfigProps = {
   profile: LearnerProfile | undefined;
+  lichessToken: LichessOAuthToken | undefined;
+  lichessConnectionState: LichessConnectionState;
+  lichessMessage: string | undefined;
   onSave: (profile: LearnerProfile) => Promise<void>;
+  onConnectLichess: () => Promise<void>;
+  onDisconnectLichess: () => Promise<void>;
   onImportKnownManualSignals: () => Promise<number>;
   onExport: () => Promise<string>;
   onClear: () => Promise<void>;
@@ -12,7 +17,18 @@ type ConfigProps = {
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
 
-export function Config({ profile, onSave, onImportKnownManualSignals, onExport, onClear }: ConfigProps) {
+export function Config({
+  profile,
+  lichessToken,
+  lichessConnectionState,
+  lichessMessage,
+  onSave,
+  onConnectLichess,
+  onDisconnectLichess,
+  onImportKnownManualSignals,
+  onExport,
+  onClear,
+}: ConfigProps) {
   const initialProfile = profile ?? createDefaultProfile();
   const [lichessUsername, setLichessUsername] = useState(initialProfile.lichessUsername ?? 'jukasparov');
   const [chesscomUsername, setChesscomUsername] = useState(initialProfile.chesscomUsername ?? 'jukatavares');
@@ -137,7 +153,56 @@ export function Config({ profile, onSave, onImportKnownManualSignals, onExport, 
           </button>
         </div>
       </form>
+
+      <section className="connection-box" aria-labelledby="lichess-connection-title" aria-live="polite">
+        <div>
+          <h2 id="lichess-connection-title">Lichess OAuth</h2>
+          <p>{formatLichessConnection(lichessToken, lichessConnectionState)}</p>
+          {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
+        </div>
+        <div className="button-row">
+          <button
+            type="button"
+            disabled={lichessConnectionState === 'syncing'}
+            onClick={() => {
+              void onConnectLichess();
+            }}
+          >
+            {lichessToken === undefined ? 'Conectar Lichess' : 'Reconectar Lichess'}
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={lichessToken === undefined || lichessConnectionState === 'syncing'}
+            onClick={() => {
+              void onDisconnectLichess();
+            }}
+          >
+            Remover conexao
+          </button>
+        </div>
+      </section>
+
       {statusMessage !== undefined ? <p className="status-message">{statusMessage}</p> : null}
     </section>
   );
+}
+
+function formatLichessConnection(
+  token: LichessOAuthToken | undefined,
+  state: LichessConnectionState,
+): string {
+  if (state === 'syncing') {
+    return 'Sincronizando com o Lichess.';
+  }
+
+  if (state === 'error') {
+    return 'Conexao Lichess precisa de atencao.';
+  }
+
+  if (token === undefined) {
+    return 'Desconectado. Conectar habilita reconciliar puzzles e criar o Study do dia.';
+  }
+
+  return `Conectado com escopos: ${token.scopes.join(', ')}.`;
 }

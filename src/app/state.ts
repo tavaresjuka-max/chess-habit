@@ -9,9 +9,12 @@ import {
   generatePlan,
   getNextPlanSessionNumber,
   normalizePlanDestinations,
+  reconcileTrainingLogResult,
   skipTrainingLog,
   type DailyPlan,
   type LearnerProfile,
+  type LichessOAuthToken,
+  type LichessStudyLink,
   type PlanBlock,
   type PlanBlockFeedback,
   type SessionMinutes,
@@ -20,12 +23,25 @@ import {
   type Weakness,
 } from '../domain';
 import { ChesscomRateLimitError, importChesscomSignals } from '../infra/chesscom/chesscomClient';
+import { importLichessSignals } from '../infra/lichess/games';
+import {
+  createLichessOAuthRequest,
+  exchangeLichessOAuthCode,
+  parseLichessOAuthCallback,
+  revokeLichessOAuthToken,
+  stripOAuthQuery,
+} from '../infra/lichess/oauth';
+import { fetchPuzzleActivity, LichessRateLimitError, summarizePuzzleActivity } from '../infra/lichess/puzzleActivity';
+import { createDailyStudy } from '../infra/lichess/study';
 import {
   clearAll,
+  clearLichessOAuthToken,
   exportAllAsJson,
+  getLichessStudyLink,
   getPlan,
   getTrainingLog,
   loadChesscomMonthCache,
+  loadLichessOAuthToken,
   loadProfile,
   loadSignals,
   loadTrainingLogsForDate,
@@ -33,6 +49,8 @@ import {
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
+  saveLichessOAuthToken,
+  saveLichessStudyLink,
   savePlan,
   saveProfile as saveStoredProfile,
   saveTrainingLog,
@@ -42,6 +60,7 @@ export type AppView = 'today' | 'config';
 
 export type LoadState = 'loading' | 'ready' | 'error';
 export type DiagnosisState = 'idle' | 'syncing' | 'success' | 'error';
+export type LichessConnectionState = 'disconnected' | 'connected' | 'syncing' | 'error';
 
 export type AppState = {
   readonly activeView: AppView;
@@ -49,6 +68,10 @@ export type AppState = {
   readonly profile: LearnerProfile | undefined;
   readonly todayPlan: DailyPlan | undefined;
   readonly roadmap: TrainingRoadmapItem[];
+  readonly lichessToken: LichessOAuthToken | undefined;
+  readonly lichessStudyLink: LichessStudyLink | undefined;
+  readonly lichessConnectionState: LichessConnectionState;
+  readonly lichessMessage: string | undefined;
   readonly sessionMinutes: SessionMinutes;
   readonly trainingLogs: TrainingLog[];
   readonly weaknesses: Weakness[];
@@ -61,6 +84,11 @@ export type AppState = {
   readonly createNextSession: (minutes: SessionMinutes) => Promise<void>;
   readonly importKnownManualSignals: () => Promise<number>;
   readonly syncChesscomDiagnosis: () => Promise<void>;
+  readonly connectLichess: () => Promise<void>;
+  readonly disconnectLichess: () => Promise<void>;
+  readonly syncLichessDiagnosis: () => Promise<void>;
+  readonly reconcileLichessResults: () => Promise<void>;
+  readonly createLichessStudy: () => Promise<void>;
   readonly startBlockTraining: (block: PlanBlock) => Promise<void>;
   readonly completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   readonly skipBlockTraining: (blockId: string) => Promise<void>;
@@ -78,6 +106,10 @@ export function useAppState(): AppState {
   const [weaknesses, setWeaknesses] = useState<Weakness[]>([]);
   const [diagnosisState, setDiagnosisState] = useState<DiagnosisState>('idle');
   const [diagnosisMessage, setDiagnosisMessage] = useState<string | undefined>(undefined);
+  const [lichessToken, setLichessToken] = useState<LichessOAuthToken | undefined>(undefined);
+  const [lichessStudyLink, setLichessStudyLink] = useState<LichessStudyLink | undefined>(undefined);
+  const [lichessConnectionState, setLichessConnectionState] = useState<LichessConnectionState>('disconnected');
+  const [lichessMessage, setLichessMessage] = useState<string | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -85,10 +117,21 @@ export function useAppState(): AppState {
 
     async function loadAppData() {
       try {
+        const oauthToken = await completeLichessOAuthIfNeeded();
         const storedProfile = await loadProfile();
 
         if (!isMounted) {
           return;
+        }
+
+        if (oauthToken !== undefined) {
+          setLichessToken(oauthToken);
+          setLichessConnectionState('connected');
+          setLichessMessage('Lichess conectado.');
+        } else {
+          const storedToken = await loadLichessOAuthToken();
+          setLichessToken(storedToken);
+          setLichessConnectionState(storedToken === undefined ? 'disconnected' : 'connected');
         }
 
         if (storedProfile === undefined) {
@@ -101,6 +144,7 @@ export function useAppState(): AppState {
         const storedWeaknesses = await loadWeaknesses();
         const storedPlan = await getPlan(date);
         const storedTrainingLogs = await loadTrainingLogsForDate(date);
+        const storedStudyLink = await getLichessStudyLink(date);
         const plan =
           storedPlan === undefined
             ? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date)
@@ -114,6 +158,7 @@ export function useAppState(): AppState {
         setSessionMinutes(toSessionMinutes(plan.sessionMinutes, storedProfile.defaultSessionMinutes));
         setTrainingLogs(storedTrainingLogs);
         setWeaknesses(storedWeaknesses);
+        setLichessStudyLink(storedStudyLink);
         setTodayPlan(plan);
         setLoadState('ready');
       } catch (error) {
@@ -270,6 +315,152 @@ export function useAppState(): AppState {
     return manualSignals.length;
   }, [profile, sessionMinutes]);
 
+  const connectLichess = useCallback(async () => {
+    const redirectUri = getOAuthRedirectUri();
+    const request = await createLichessOAuthRequest({
+      clientId: oauthClientId,
+      redirectUri,
+      username: profile?.lichessUsername,
+    });
+
+    sessionStorage.setItem(oauthSessionStorageKey, JSON.stringify(request));
+    window.location.assign(request.authorizationUrl);
+  }, [profile]);
+
+  const disconnectLichess = useCallback(async () => {
+    const token = await loadLichessOAuthToken();
+
+    if (token !== undefined) {
+      await revokeLichessOAuthToken({ token: token.accessToken });
+    }
+
+    await clearLichessOAuthToken();
+    setLichessToken(undefined);
+    setLichessConnectionState('disconnected');
+    setLichessMessage('Conexao Lichess removida.');
+  }, []);
+
+  const syncLichessDiagnosis = useCallback(async () => {
+    if (profile === undefined) {
+      setActiveView('config');
+      return;
+    }
+
+    if (profile.lichessUsername === undefined || profile.lichessUsername.trim() === '') {
+      setLichessConnectionState('error');
+      setLichessMessage('Informe seu usuario Lichess na Config.');
+      setActiveView('config');
+      return;
+    }
+
+    setLichessConnectionState('syncing');
+    setLichessMessage('Atualizando diagnostico Lichess.');
+
+    try {
+      const token = await loadLichessOAuthToken();
+      const signals = await importLichessSignals({
+        username: profile.lichessUsername,
+        token: token?.accessToken,
+      });
+
+      await replaceSignalsForSource('lichess', signals);
+
+      const allSignals = await loadSignals();
+      const nextWeaknesses = detectWeaknesses(allSignals);
+      const date = getTodayDate();
+      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, { previousPlan: todayPlan });
+
+      await replaceWeaknesses(nextWeaknesses);
+      await savePlan(plan);
+
+      setWeaknesses(nextWeaknesses);
+      setTodayPlan(plan);
+      setLichessConnectionState(token === undefined ? 'disconnected' : 'connected');
+      setLichessMessage(
+        signals.length === 0
+          ? 'Lichess atualizado, mas ainda sem sinais suficientes.'
+          : `Lichess atualizado com ${String(signals.length)} sinais derivados.`,
+      );
+    } catch (error) {
+      setLichessConnectionState('error');
+      setLichessMessage(toLichessErrorMessage(error));
+    }
+  }, [profile, sessionMinutes, todayPlan]);
+
+  const reconcileLichessResults = useCallback(async () => {
+    const token = await loadLichessOAuthToken();
+
+    if (token === undefined) {
+      setLichessConnectionState('error');
+      setLichessMessage('Conecte o Lichess para buscar resultado real dos puzzles.');
+      return;
+    }
+
+    setLichessConnectionState('syncing');
+    setLichessMessage('Buscando resultados de puzzles no Lichess.');
+
+    try {
+      const reconciledLogs = await reconcileLogsWithLichessPuzzleActivity(trainingLogs, token.accessToken);
+
+      for (const log of reconciledLogs) {
+        await saveTrainingLog(log);
+      }
+
+      setTrainingLogs(mergeTrainingLogs(trainingLogs, reconciledLogs));
+      setLichessConnectionState('connected');
+      setLichessMessage(
+        reconciledLogs.length === 0
+          ? 'Nenhum resultado novo de puzzle encontrado.'
+          : `${String(reconciledLogs.length)} bloco(s) reconciliado(s) com o Lichess.`,
+      );
+    } catch (error) {
+      setLichessConnectionState('error');
+      setLichessMessage(toLichessErrorMessage(error));
+    }
+  }, [trainingLogs]);
+
+  const createLichessStudy = useCallback(async () => {
+    if (todayPlan === undefined) {
+      return;
+    }
+
+    const existingLink = await getLichessStudyLink(todayPlan.date);
+
+    if (existingLink !== undefined) {
+      setLichessStudyLink(existingLink);
+      setLichessMessage('Study do dia ja existe.');
+      window.open(existingLink.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const token = await loadLichessOAuthToken();
+
+    if (token === undefined) {
+      setLichessConnectionState('error');
+      setLichessMessage('Conecte o Lichess para criar o Study do dia.');
+      return;
+    }
+
+    setLichessConnectionState('syncing');
+    setLichessMessage('Criando Study privado no Lichess.');
+
+    try {
+      const studyLink = await createDailyStudy({
+        token: token.accessToken,
+        plan: todayPlan,
+      });
+
+      await saveLichessStudyLink(studyLink);
+      setLichessStudyLink(studyLink);
+      setLichessConnectionState('connected');
+      setLichessMessage('Study do dia criado no Lichess.');
+      window.open(studyLink.url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      setLichessConnectionState('error');
+      setLichessMessage(toLichessErrorMessage(error));
+    }
+  }, [todayPlan]);
+
   const startBlockTraining = useCallback(
     async (block: PlanBlock) => {
       if (todayPlan === undefined) {
@@ -318,9 +509,10 @@ export function useAppState(): AppState {
             completedAt: updatedAt,
             feedback,
           });
+          const reconciledLog = await reconcileLogIfPossible(completedLog);
 
-          await saveTrainingLog(completedLog);
-          setTrainingLogs(upsertTrainingLog(trainingLogs, completedLog));
+          await saveTrainingLog(reconciledLog);
+          setTrainingLogs(upsertTrainingLog(trainingLogs, reconciledLog));
         }
       }
 
@@ -369,6 +561,10 @@ export function useAppState(): AppState {
     setSessionMinutes(15);
     setTrainingLogs([]);
     setWeaknesses([]);
+    setLichessToken(undefined);
+    setLichessStudyLink(undefined);
+    setLichessConnectionState('disconnected');
+    setLichessMessage(undefined);
     setDiagnosisState('idle');
     setDiagnosisMessage(undefined);
     setActiveView('config');
@@ -389,6 +585,10 @@ export function useAppState(): AppState {
             activePlan: todayPlan,
             sessionMinutes,
           }),
+    lichessToken,
+    lichessStudyLink,
+    lichessConnectionState,
+    lichessMessage,
     sessionMinutes,
     trainingLogs,
     weaknesses,
@@ -401,6 +601,11 @@ export function useAppState(): AppState {
     createNextSession,
     importKnownManualSignals,
     syncChesscomDiagnosis,
+    connectLichess,
+    disconnectLichess,
+    syncLichessDiagnosis,
+    reconcileLichessResults,
+    createLichessStudy,
     startBlockTraining,
     completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) =>
       updateBlockStatusWithTrainingLog(blockId, 'done', feedback),
@@ -421,6 +626,147 @@ export function createDefaultProfile(): LearnerProfile {
   };
 }
 
+const oauthClientId = 'lichess-tutor-local';
+const oauthSessionStorageKey = 'lichess-tutor:oauth-pending';
+
+type StoredOAuthRequest = {
+  state: string;
+  codeVerifier: string;
+  redirectUri: string;
+  scopes: LichessOAuthToken['scopes'];
+};
+
+async function completeLichessOAuthIfNeeded(): Promise<LichessOAuthToken | undefined> {
+  const callback = parseLichessOAuthCallback(window.location.href);
+
+  if (callback === undefined) {
+    return undefined;
+  }
+
+  const pending = readPendingOAuthRequest();
+
+  if (pending === undefined || pending.state !== callback.state) {
+    throw new Error('Retorno OAuth Lichess nao confere com a solicitacao local.');
+  }
+
+  const token = await exchangeLichessOAuthCode({
+    code: callback.code,
+    codeVerifier: pending.codeVerifier,
+    redirectUri: pending.redirectUri,
+    clientId: oauthClientId,
+    scopes: pending.scopes,
+    nowIso: new Date().toISOString(),
+  });
+
+  await saveLichessOAuthToken(token);
+  sessionStorage.removeItem(oauthSessionStorageKey);
+  window.history.replaceState(null, document.title, stripOAuthQuery(window.location.href));
+
+  return token;
+}
+
+function readPendingOAuthRequest(): StoredOAuthRequest | undefined {
+  const raw = sessionStorage.getItem(oauthSessionStorageKey);
+
+  if (raw === null) {
+    return undefined;
+  }
+
+  const parsed = JSON.parse(raw) as unknown;
+
+  if (!isStoredOAuthRequest(parsed)) {
+    return undefined;
+  }
+
+  return parsed;
+}
+
+function getOAuthRedirectUri(): string {
+  return `${window.location.origin}${window.location.pathname}`;
+}
+
+async function reconcileLogIfPossible(log: TrainingLog): Promise<TrainingLog> {
+  if (!isPuzzleTrainingLog(log)) {
+    return log;
+  }
+
+  try {
+    const token = await loadLichessOAuthToken();
+
+    if (token === undefined) {
+      return log;
+    }
+
+    const until = log.completedAt ?? new Date().toISOString();
+    const activities = await fetchPuzzleActivity({
+      token: token.accessToken,
+      since: log.startedAt,
+      until,
+      max: 50,
+    });
+
+    if (activities.length === 0) {
+      return log;
+    }
+
+    return reconcileTrainingLogResult({
+      log,
+      result: summarizePuzzleActivity({
+        activities,
+        fetchedAt: new Date().toISOString(),
+        since: log.startedAt,
+        until,
+      }),
+    });
+  } catch {
+    return log;
+  }
+}
+
+async function reconcileLogsWithLichessPuzzleActivity(logs: TrainingLog[], token: string): Promise<TrainingLog[]> {
+  const reconciledLogs: TrainingLog[] = [];
+
+  for (const log of logs) {
+    if (!isPuzzleTrainingLog(log) || log.result !== undefined) {
+      continue;
+    }
+
+    const until = log.completedAt ?? new Date().toISOString();
+    const activities = await fetchPuzzleActivity({
+      token,
+      since: log.startedAt,
+      until,
+      max: 50,
+    });
+
+    if (activities.length === 0) {
+      continue;
+    }
+
+    reconciledLogs.push(
+      reconcileTrainingLogResult({
+        log,
+        result: summarizePuzzleActivity({
+          activities,
+          fetchedAt: new Date().toISOString(),
+          since: log.startedAt,
+          until,
+        }),
+      }),
+    );
+  }
+
+  return reconciledLogs;
+}
+
+function isPuzzleTrainingLog(log: TrainingLog): boolean {
+  return log.destinationLabel.includes('Puzzles') || log.destinationLabel.includes('Puzzle');
+}
+
+function mergeTrainingLogs(currentLogs: TrainingLog[], nextLogs: TrainingLog[]): TrainingLog[] {
+  return nextLogs.reduce(upsertTrainingLog, currentLogs);
+}
+
 function getTodayDate(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -435,11 +781,19 @@ function toErrorMessage(error: unknown): string {
 }
 
 function toDiagnosisErrorMessage(error: unknown): string {
-  if (error instanceof ChesscomRateLimitError) {
+  if (error instanceof ChesscomRateLimitError || error instanceof LichessRateLimitError) {
     return error.message;
   }
 
   return error instanceof Error ? error.message : 'Nao foi possivel atualizar o diagnostico Chess.com.';
+}
+
+function toLichessErrorMessage(error: unknown): string {
+  if (error instanceof LichessRateLimitError) {
+    return error.message;
+  }
+
+  return error instanceof Error ? error.message : 'Nao foi possivel atualizar o Lichess.';
 }
 
 function upsertTrainingLog(logs: TrainingLog[], nextLog: TrainingLog): TrainingLog[] {
@@ -462,4 +816,29 @@ function toSessionMinutes(minutes: number, fallback: SessionMinutes): SessionMin
     default:
       return fallback;
   }
+}
+
+function isStoredOAuthRequest(value: unknown): value is StoredOAuthRequest {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const candidate = value as {
+    state?: unknown;
+    codeVerifier?: unknown;
+    redirectUri?: unknown;
+    scopes?: unknown;
+  };
+
+  return (
+    typeof candidate.state === 'string' &&
+    typeof candidate.codeVerifier === 'string' &&
+    typeof candidate.redirectUri === 'string' &&
+    Array.isArray(candidate.scopes) &&
+    candidate.scopes.every(isLichessOAuthScope)
+  );
+}
+
+function isLichessOAuthScope(scope: unknown): scope is LichessOAuthToken['scopes'][number] {
+  return scope === 'puzzle:read' || scope === 'study:write';
 }

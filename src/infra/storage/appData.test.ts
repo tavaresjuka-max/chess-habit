@@ -4,9 +4,12 @@ import { generatePlan } from '../../domain';
 import type { LearnerProfile, Signal, Weakness } from '../../domain';
 import {
   clearAll,
+  clearLichessOAuthToken,
   exportAllAsJson,
+  getLichessStudyLink,
   getPlan,
   getTrainingLog,
+  loadLichessOAuthToken,
   loadProfile,
   loadSignals,
   loadTrainingLogsForDate,
@@ -14,6 +17,8 @@ import {
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
+  saveLichessOAuthToken,
+  saveLichessStudyLink,
   savePlan,
   saveProfile,
   loadChesscomMonthCache,
@@ -141,5 +146,44 @@ describe('appData storage', () => {
 
     expect(cached?.signals).toEqual([signal]);
     expect(JSON.stringify(cached)).not.toContain('1. e4');
+  });
+
+  it('stores Lichess OAuth token locally outside backup export', async () => {
+    await saveLichessOAuthToken({
+      accessToken: 'lio_secret',
+      tokenType: 'Bearer',
+      scopes: ['puzzle:read', 'study:write'],
+      obtainedAt: '2026-06-06T00:00:00.000Z',
+      expiresAt: '2027-06-06T00:00:00.000Z',
+    });
+
+    await expect(loadLichessOAuthToken('2026-06-06T12:00:00.000Z')).resolves.toMatchObject({
+      accessToken: 'lio_secret',
+    });
+
+    const exported = await exportAllAsJson();
+
+    expect(exported).not.toContain('lio_secret');
+
+    await clearLichessOAuthToken();
+    await expect(loadLichessOAuthToken()).resolves.toBeUndefined();
+  });
+
+  it('stores Lichess study links outside backup export', async () => {
+    await saveLichessStudyLink({
+      id: '2026-06-06',
+      date: '2026-06-06',
+      studyId: 'abc12345',
+      url: 'https://lichess.org/study/abc12345',
+      visibility: 'private',
+      createdAt: '2026-06-06T10:00:00.000Z',
+      updatedAt: '2026-06-06T10:00:00.000Z',
+    });
+
+    await expect(getLichessStudyLink('2026-06-06')).resolves.toMatchObject({
+      studyId: 'abc12345',
+    });
+
+    expect(await exportAllAsJson()).not.toContain('abc12345');
   });
 });

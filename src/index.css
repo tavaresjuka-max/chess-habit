@@ -148,6 +148,19 @@ select {
   margin-top: 4px;
 }
 
+.connection-box {
+  border-top: 1px solid #cdd7cf;
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 18px;
+}
+
+.connection-box h2 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
 .section-heading {
   display: flex;
   align-items: start;
@@ -193,14 +206,34 @@ select {
 
 .diagnosis-strip {
   display: grid;
-  align-items: center;
+  align-items: start;
   gap: 10px;
-  grid-template-columns: max-content 1fr;
   margin-bottom: 14px;
 }
 
 .diagnosis-strip p {
   margin: 0;
+}
+
+.diagnosis-actions,
+.diagnosis-messages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diagnosis-messages {
+  align-items: center;
+}
+
+.secondary-link {
+  border-color: #718096;
+  background: #fff;
+  color: #22303c;
+}
+
+.secondary-link:hover {
+  background: #e7ece8;
 }
 
 .weakness-row {
@@ -373,6 +406,7 @@ select {
   }
 
   .button-row > *,
+  .diagnosis-actions > *,
   .session-actions,
   .compact-field,
   .diagnosis-strip > * {
