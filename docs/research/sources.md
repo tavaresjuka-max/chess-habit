@@ -39,12 +39,15 @@ Pesquisa executada antes de preparar a reconciliacao de resultados de treino em 
 
 ## Pesquisa Pontual Em 2026-06-06: Destino De Abertura P2
 
-Pesquisa executada apos observar que `https://lichess.org/learn` era generico demais para o bloco
-"principios de abertura".
+Pesquisa executada apos observar que `https://lichess.org/learn` era generico demais e que o
+explorador em `https://lichess.org/analysis#explorer` era uma ferramenta livre, nao uma aula guiada,
+para o bloco "principios de abertura".
 
 - [Lichess Features](https://lichess.org/features): confirmou que o Lichess oferece ferramentas
-  especificas de `Analysis board` e `Openings`, mais adequadas para revisar principios de abertura
-  do que a pagina generica de basicos (`/learn`).
+  especificas de `Analysis board`, `Openings` e `Video library`.
+- [Lichess beginner + opening videos](https://lichess.org/video?tags=beginner%2Fopening): confirmou
+  uma pagina filtrada de aulas de abertura para iniciantes, incluindo conteudo de principios/ideias de
+  abertura, mais adequada para o bloco de "principios de abertura" que o explorador livre.
 
 ## Pesquisa Externa Em 2026-06-06: Auditoria Global Estrategica
 

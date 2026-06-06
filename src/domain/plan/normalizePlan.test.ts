@@ -29,11 +29,50 @@ describe('normalizePlanDestinations', () => {
       ],
     };
 
-    expect(normalizePlanDestinations(plan).blocks[0]?.destination).toEqual({
+    const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
+
+    expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
-      label: 'Lichess Analysis: principios e explorador de abertura',
-      url: 'https://lichess.org/analysis#explorer',
+      label: 'Lichess Videos: aulas de abertura para iniciantes',
+      url: 'https://lichess.org/video?tags=beginner%2Fopening',
     });
+    expect(normalizedBlock?.task).toBe(
+      'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.',
+    );
+  });
+
+  it('updates stored opening-principles blocks that still point to analysis explorer', () => {
+    const plan: DailyPlan = {
+      date: '2026-06-06',
+      sessionMinutes: 15,
+      generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+      blocks: [
+        {
+          id: 'block-1',
+          title: 'Tema do dia: principios de abertura',
+          source: 'lichess',
+          destination: {
+            source: 'lichess',
+            label: 'Lichess Analysis: principios e explorador de abertura',
+            url: 'https://lichess.org/analysis#explorer',
+          },
+          estimatedMinutes: 10,
+          task: 'Revise principios.',
+          stopRule: 'Pare no tempo.',
+          reason: 'Sinal possivel.',
+          coachNote: 'Calma.',
+          status: 'pending',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
+
+    expect(normalizedBlock?.destination.url).toBe('https://lichess.org/video?tags=beginner%2Fopening');
+    expect(normalizedBlock?.task).toBe(
+      'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.',
+    );
   });
 
   it('keeps equivalent plans unchanged by value when no destination changes', () => {

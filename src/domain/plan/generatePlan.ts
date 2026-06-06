@@ -161,7 +161,7 @@ function getThemeTask(tag: WeaknessTag): string {
     case 'back-rank':
       return 'Treine mates curtos e fale a ameaca antes de clicar no primeiro lance.';
     case 'opening-principles':
-      return 'Revise principios de abertura e procure desenvolvimento, centro e seguranca do rei.';
+      return 'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.';
     case 'time-trouble':
       return 'Revise uma partida terminada e marque onde o relogio passou a mandar na decisao.';
     case 'endgame-pawn':

@@ -2,8 +2,8 @@ import type { Destination, WeaknessTag } from '../types';
 
 const openingPrinciplesDestination = {
   source: 'lichess',
-  label: 'Lichess Analysis: principios e explorador de abertura',
-  url: 'https://lichess.org/analysis#explorer',
+  label: 'Lichess Videos: aulas de abertura para iniciantes',
+  url: 'https://lichess.org/video?tags=beginner%2Fopening',
 } satisfies Destination;
 
 export const lichessDestinationsByWeakness = {
@@ -80,7 +80,10 @@ export function getDestinationForWeakness(tag: WeaknessTag): Destination {
 }
 
 export function normalizeDestination(destination: Destination): Destination {
-  if (destination.url === 'https://lichess.org/learn' && destination.label.includes('abertura')) {
+  if (
+    destination.label.includes('abertura') &&
+    (destination.url === 'https://lichess.org/learn' || destination.url === 'https://lichess.org/analysis#explorer')
+  ) {
     return openingPrinciplesDestination;
   }
 
