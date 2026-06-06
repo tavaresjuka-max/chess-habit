@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lichessDestinationsByWeakness, normalizeDestination } from './destinations';
+import { getDestinationForWeakness, lichessDestinationsByWeakness, normalizeDestination } from './destinations';
 
 const allowedLichessUrl =
   /^https:\/\/lichess\.org\/(analysis|training\/[A-Za-z0-9]+|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|video\?tags=beginner%2Fopening)$/;
@@ -26,6 +26,19 @@ describe('lichessDestinationsByWeakness', () => {
     expect(lichessDestinationsByWeakness['endgame-pawn'].url).toBe(
       'https://lichess.org/practice/pawn-endgames/key-squares/xebrDvFe',
     );
+  });
+
+  it('uses raw puzzle themes for retrieval instead of guided lessons', () => {
+    expect(getDestinationForWeakness('fork', 'retrieval').url).toBe('https://lichess.org/training/fork');
+  });
+
+  it('uses Analysis for transfer and review stages', () => {
+    expect(getDestinationForWeakness('fork', 'transfer')).toEqual({
+      source: 'lichess',
+      label: 'Lichess Analysis: revisar partida terminada',
+      url: 'https://lichess.org/analysis',
+    });
+    expect(getDestinationForWeakness('opening-principles', 'review').url).toBe('https://lichess.org/analysis');
   });
 
   it('normalizes old opening-principles links that pointed to generic Learn', () => {
@@ -56,6 +69,16 @@ describe('lichessDestinationsByWeakness', () => {
         url: 'https://lichess.org/training/fork',
       }),
     ).toEqual(lichessDestinationsByWeakness.fork);
+  });
+
+  it('keeps raw puzzle links when the block is deliberate retrieval practice', () => {
+    const destination = {
+      source: 'lichess' as const,
+      label: 'Puzzles Lichess: garfos',
+      url: 'https://lichess.org/training/fork',
+    };
+
+    expect(normalizeDestination(destination, 'retrieval')).toEqual(destination);
   });
 
   it('normalizes old generic Practice endgame links to specific studies', () => {

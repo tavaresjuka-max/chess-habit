@@ -1,4 +1,4 @@
-import type { PlanBlock, TrainingLog, TrainingResult } from '../types';
+import type { PlanBlock, PlanBlockFeedback, TrainingLog, TrainingResult } from '../types';
 
 export function createTrainingLog(input: { block: PlanBlock; date: string; startedAt: string }): TrainingLog {
   return {
@@ -16,7 +16,11 @@ export function createTrainingLog(input: { block: PlanBlock; date: string; start
   };
 }
 
-export function completeTrainingLog(input: { log: TrainingLog; completedAt: string }): TrainingLog {
+export function completeTrainingLog(input: {
+  log: TrainingLog;
+  completedAt: string;
+  feedback?: PlanBlockFeedback;
+}): TrainingLog {
   const elapsedSeconds = elapsedSecondsBetween(input.log.startedAt, input.completedAt);
 
   return {
@@ -25,6 +29,7 @@ export function completeTrainingLog(input: { log: TrainingLog; completedAt: stri
     elapsedSeconds,
     timeLimitReached: elapsedSeconds >= input.log.plannedSeconds,
     status: 'done',
+    ...(input.feedback === undefined ? {} : { feedback: input.feedback }),
     updatedAt: input.completedAt,
   };
 }

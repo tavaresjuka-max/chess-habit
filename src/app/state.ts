@@ -10,6 +10,7 @@ import {
   type DailyPlan,
   type LearnerProfile,
   type PlanBlock,
+  type PlanBlockFeedback,
   type SessionMinutes,
   type TrainingLog,
   type Weakness,
@@ -55,7 +56,7 @@ export type AppState = {
   readonly importKnownManualSignals: () => Promise<number>;
   readonly syncChesscomDiagnosis: () => Promise<void>;
   readonly startBlockTraining: (block: PlanBlock) => Promise<void>;
-  readonly completeBlockTraining: (blockId: string) => Promise<void>;
+  readonly completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   readonly skipBlockTraining: (blockId: string) => Promise<void>;
   readonly exportBackup: () => Promise<string>;
   readonly clearAllData: () => Promise<void>;
@@ -104,7 +105,7 @@ export function useAppState(): AppState {
         }
 
         setProfile(storedProfile);
-        setSessionMinutes(storedProfile.defaultSessionMinutes);
+        setSessionMinutes(toSessionMinutes(plan.sessionMinutes, storedProfile.defaultSessionMinutes));
         setTrainingLogs(storedTrainingLogs);
         setWeaknesses(storedWeaknesses);
         setTodayPlan(plan);
@@ -148,14 +149,14 @@ export function useAppState(): AppState {
         return;
       }
 
-      const plan = generatePlan(profile, weaknesses, minutes, getTodayDate());
+      const plan = generatePlan(profile, weaknesses, minutes, getTodayDate(), { previousPlan: todayPlan });
 
       await savePlan(plan);
       setSessionMinutes(minutes);
       setTodayPlan(plan);
       setErrorMessage(undefined);
     },
-    [profile, weaknesses],
+    [profile, todayPlan, weaknesses],
   );
 
   const syncChesscomDiagnosis = useCallback(async () => {
@@ -253,7 +254,7 @@ export function useAppState(): AppState {
   );
 
   const updateBlockStatusWithTrainingLog = useCallback(
-    async (blockId: string, status: PlanBlock['status']) => {
+    async (blockId: string, status: PlanBlock['status'], feedback?: PlanBlockFeedback) => {
       if (todayPlan === undefined) {
         return;
       }
@@ -275,6 +276,7 @@ export function useAppState(): AppState {
           const completedLog = completeTrainingLog({
             log: baseLog,
             completedAt: updatedAt,
+            feedback,
           });
 
           await saveTrainingLog(completedLog);
@@ -299,6 +301,7 @@ export function useAppState(): AppState {
             ? {
                 ...block,
                 status,
+                ...(feedback === undefined ? {} : { feedback }),
                 updatedAt,
               }
             : block,
@@ -349,7 +352,8 @@ export function useAppState(): AppState {
     importKnownManualSignals,
     syncChesscomDiagnosis,
     startBlockTraining,
-    completeBlockTraining: (blockId: string) => updateBlockStatusWithTrainingLog(blockId, 'done'),
+    completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) =>
+      updateBlockStatusWithTrainingLog(blockId, 'done', feedback),
     skipBlockTraining,
     exportBackup: exportAllAsJson,
     clearAllData,
@@ -396,4 +400,16 @@ function upsertTrainingLog(logs: TrainingLog[], nextLog: TrainingLog): TrainingL
   }
 
   return logs.map((log, index) => (index === existingIndex ? nextLog : log));
+}
+
+function toSessionMinutes(minutes: number, fallback: SessionMinutes): SessionMinutes {
+  switch (minutes) {
+    case 5:
+    case 15:
+    case 30:
+    case 60:
+      return minutes;
+    default:
+      return fallback;
+  }
 }

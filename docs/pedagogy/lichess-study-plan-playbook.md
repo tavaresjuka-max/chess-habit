@@ -262,18 +262,25 @@ O explorador pode aparecer como ferramenta secundaria para curiosidade, nao como
 
 ## Backlog Para Aplicar No App
 
+### Implementado Em P2
+
+- `weeklyFocus` no plano diario para explicitar o foco da semana.
+- `weaknessTag` e `resourceStage` nos blocos de treino.
+- Seletor por estagio: `guided` usa recurso primario curado, `explain` prefere video quando existe,
+  `retrieval` usa Puzzle Theme e `transfer`/`review` abrem Analysis de partida terminada.
+- Feedback `easy`/`hard` salvo no bloco/log local; ao regenerar, `easy` avanca para repeticao e `hard`
+  volta para explicacao.
+- Normalizacao de planos antigos preserva puzzle theme quando o bloco novo e repeticao deliberada.
+
 ### P2 - Selecionador De Recurso Por Estagio
 
-- Adicionar `stage` ao bloco planejado ou derivar de historico local.
-- Se tema novo: priorizar Practice/video.
-- Se tema repetido: priorizar Puzzle Theme.
+- Evoluir de `resourceStage` local para historico multi-dia.
 - Se veio de erro pessoal: priorizar Analysis ou Study privado.
-- Se feedback `hard`: reduzir carga e voltar para modo mais guiado.
-- Se feedback `easy`: passar para retrieval ou tema irmao.
+- Se feedback `hard`: reduzir carga, nao apenas trocar recurso.
+- Se feedback `easy`: passar para tema irmao quando houver evidencia suficiente.
 
 ### P2 - Tema Semanal
 
-- Criar `weeklyFocus` derivado de `Weakness[]`.
 - Guardar semana, tema, dias ativos, recursos usados e feedback.
 - Alternar `Practice -> Puzzle Theme -> Analysis/Study -> revisao`.
 

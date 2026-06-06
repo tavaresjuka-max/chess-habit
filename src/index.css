@@ -211,8 +211,10 @@ select {
 .block-meta,
 .stop-rule,
 .coach-note,
+.feedback-note,
 .status-message,
 .app-error,
+.weekly-focus,
 .text-destination {
   color: #46515e;
 }
@@ -224,6 +226,10 @@ select {
 .coach-note {
   border-left: 3px solid #7c9a7e;
   padding-left: 10px;
+}
+
+.feedback-note {
+  font-weight: 650;
 }
 
 .timer-status {

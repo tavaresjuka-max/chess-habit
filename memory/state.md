@@ -7,7 +7,8 @@ Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro)
 - Moldura: **pessoal primeiro, comunidade depois** (decidida pelo dono).
 - Fase de codigo: **aberta pelo dono** para a ferramenta pessoal.
 - App: P1 concluida e P2 iniciada. PWA local-first roda com dominio puro, plano adaptado por fraquezas,
-  timer/log local de treino, Dexie, export/apagar e offline-shell.
+  timer/log local de treino, feedback facil/dificil, foco semanal, selecao de recursos por estagio,
+  Dexie, export/apagar e offline-shell.
 - Backend/banco: so na Fase P4 (sync).
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
@@ -38,8 +39,11 @@ Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro)
 P0 concluida pelo Codex em 2026-06-06. P1 concluida: coletor Chess.com usa PubAPI read-only (`stats`,
 `games/archives`, `games/{YYYY}/{MM}`), acesso serial, cache mensal de **sinais derivados** e parse de
 PGN apenas transiente. P2 iniciada: abrir treino no Lichess inicia timer local; concluir salva tempo
-real treinado. Resultado oficial de puzzles depende de OAuth `puzzle:read`, confirmado na doc oficial,
-e o cliente/parser foi preparado sem armazenar token por padrao.
+real treinado. Blocos de plano agora carregam `weeklyFocus`, `weaknessTag` e `resourceStage`; o seletor
+abre Practice/video para explicacao guiada, Puzzle Theme para repeticao e Analysis para transferencia
+ou revisao de partida terminada. Feedback `easy`/`hard` fica salvo no bloco/log e influencia a proxima
+regeneracao do plano. Resultado oficial de puzzles depende de OAuth `puzzle:read`, confirmado na doc
+oficial, e o cliente/parser foi preparado sem armazenar token por padrao.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

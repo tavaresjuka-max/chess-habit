@@ -58,6 +58,17 @@ export type LearnerBand = '0-800' | '800-1200';
 
 export type SessionMinutes = 5 | 15 | 30 | 60;
 
+export type PlanResourceStage = 'explain' | 'guided' | 'retrieval' | 'transfer' | 'review';
+
+export type PlanBlockFeedback = 'easy' | 'hard';
+
+export type WeeklyFocus = {
+  tag: WeaknessTag;
+  title: string;
+  reason: string;
+  startsOn: string;
+};
+
 export type LearnerProfile = {
   lichessUsername?: string;
   chesscomUsername?: string;
@@ -72,19 +83,22 @@ export type PlanBlock = {
   title: string;
   source: SourceId;
   destination: Destination;
+  weaknessTag?: WeaknessTag;
+  resourceStage?: PlanResourceStage;
   estimatedMinutes: number;
   task: string;
   stopRule: string;
   reason: string;
   coachNote: string;
   status: 'pending' | 'done' | 'skipped';
-  feedback?: 'easy' | 'hard';
+  feedback?: PlanBlockFeedback;
   updatedAt: string;
 };
 
 export type DailyPlan = {
   date: string;
   sessionMinutes: number;
+  weeklyFocus?: WeeklyFocus;
   blocks: PlanBlock[];
   generatedFromWeaknessesAt: string;
 };
@@ -116,6 +130,7 @@ export type TrainingLog = {
   elapsedSeconds?: number;
   timeLimitReached: boolean;
   status: TrainingLogStatus;
+  feedback?: PlanBlockFeedback;
   result?: TrainingResult;
   updatedAt: string;
 };

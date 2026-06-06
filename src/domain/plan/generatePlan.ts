@@ -1,6 +1,16 @@
 import { getCoachNote } from '../coach/coachCatalog';
 import { getDestinationForWeakness } from '../sources/destinations';
-import type { DailyPlan, LearnerProfile, PlanBlock, SessionMinutes, Weakness, WeaknessTag } from '../types';
+import type {
+  DailyPlan,
+  LearnerProfile,
+  PlanBlock,
+  PlanBlockFeedback,
+  PlanResourceStage,
+  SessionMinutes,
+  Weakness,
+  WeaknessTag,
+  WeeklyFocus,
+} from '../types';
 import { getTimeBudget, type PlanBlockKind } from './timeBudget';
 
 type BlockCopy = {
@@ -9,6 +19,10 @@ type BlockCopy = {
   stopRule: string;
   reason: string;
   weaknessTag: WeaknessTag;
+};
+
+type GeneratePlanOptions = {
+  previousPlan?: DailyPlan;
 };
 
 const primaryThemeByBand = {
@@ -21,9 +35,12 @@ export function generatePlan(
   weaknesses: Weakness[],
   sessionMinutes: SessionMinutes,
   date: string,
+  options: GeneratePlanOptions = {},
 ): DailyPlan {
   const primaryWeakness = selectPrimaryWeakness(profile, weaknesses);
   const updatedAt = toPlanTimestamp(date);
+  const latestFeedback = getLatestFeedbackForWeakness(options.previousPlan, primaryWeakness.tag);
+  const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
     createPlanBlock({
       date,
@@ -31,6 +48,7 @@ export function generatePlan(
       kind: budgetBlock.kind,
       minutes: budgetBlock.minutes,
       primaryWeakness,
+      latestFeedback,
       updatedAt,
     }),
   );
@@ -38,6 +56,7 @@ export function generatePlan(
   return {
     date,
     sessionMinutes,
+    weeklyFocus,
     blocks,
     generatedFromWeaknessesAt: weaknesses[0]?.evidence ? updatedAt : updatedAt,
   };
@@ -49,16 +68,20 @@ function createPlanBlock(input: {
   kind: PlanBlockKind;
   minutes: number;
   primaryWeakness: Weakness;
+  latestFeedback: PlanBlockFeedback | undefined;
   updatedAt: string;
 }): PlanBlock {
-  const copy = getBlockCopy(input.kind, input.primaryWeakness);
-  const destination = getDestinationForWeakness(copy.weaknessTag);
+  const resourceStage = getResourceStage(input.kind, input.latestFeedback);
+  const copy = getBlockCopy(input.kind, input.primaryWeakness, resourceStage);
+  const destination = getDestinationForWeakness(copy.weaknessTag, resourceStage);
 
   return {
     id: `${input.date}-${String(input.index + 1).padStart(2, '0')}-${input.kind}`,
     title: copy.title,
     source: destination.source,
     destination,
+    weaknessTag: copy.weaknessTag,
+    resourceStage,
     estimatedMinutes: input.minutes,
     task: copy.task,
     stopRule: copy.stopRule,
@@ -69,22 +92,22 @@ function createPlanBlock(input: {
   };
 }
 
-function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness): BlockCopy {
+function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness, resourceStage: PlanResourceStage): BlockCopy {
   const primaryTheme = primaryWeakness.tag;
 
   switch (kind) {
     case 'aquecimento':
       return {
         title: 'Aquecimento tactico',
-        task: 'Resolva puzzles simples com atencao total ao primeiro lance candidato.',
+        task: 'Resolva puzzles simples e confirme se ha peca solta antes do primeiro lance candidato.',
         stopRule: 'Pare ao fechar o tempo do bloco, mesmo se houver uma sequencia boa em andamento.',
-        reason: 'Aquecimento prepara a vista antes do tema principal da P0.',
+        reason: 'Aquecimento mantem seguranca de pecas presente mesmo quando o foco do dia e outro.',
         weaknessTag: 'blunder-rate',
       };
     case 'tema':
       return {
         title: `Tema do dia: ${weaknessTitleByTag[primaryTheme]}`,
-        task: getThemeTask(primaryTheme),
+        task: getThemeTask(primaryTheme, resourceStage),
         stopRule: 'Pare quando o tempo acabar ou quando errar duas vezes seguidas por pressa.',
         reason: primaryWeakness.evidence,
         weaknessTag: primaryTheme,
@@ -100,10 +123,10 @@ function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness): BlockCopy
     case 'transferencia':
       return {
         title: 'Transferencia para partida',
-        task: 'Abra uma analise livre e procure o mesmo padrao em uma posicao menos limpa.',
-        stopRule: 'Pare ao encontrar uma posicao em que voce consiga explicar o plano em uma frase.',
+        task: `Abra a analise de uma partida terminada e procure ${weaknessTitleByTag[primaryTheme]} em uma posicao menos limpa.`,
+        stopRule: 'Pare ao encontrar uma posicao terminada em que voce consiga explicar o plano em uma frase.',
         reason: 'Transferencia evita que o tema fique preso ao formato de puzzle.',
-        weaknessTag: 'opening-principles',
+        weaknessTag: primaryTheme,
       };
     case 'final':
       return {
@@ -114,6 +137,65 @@ function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness): BlockCopy
         weaknessTag: 'endgame-pawn',
       };
   }
+}
+
+function getResourceStage(kind: PlanBlockKind, latestFeedback: PlanBlockFeedback | undefined): PlanResourceStage {
+  switch (kind) {
+    case 'aquecimento':
+      return 'retrieval';
+    case 'tema':
+      return getThemeResourceStage(latestFeedback);
+    case 'revisao':
+      return 'review';
+    case 'transferencia':
+      return 'transfer';
+    case 'final':
+      return 'guided';
+  }
+}
+
+function getThemeResourceStage(latestFeedback: PlanBlockFeedback | undefined): PlanResourceStage {
+  switch (latestFeedback) {
+    case 'hard':
+      return 'explain';
+    case 'easy':
+      return 'retrieval';
+    case undefined:
+      return 'guided';
+  }
+}
+
+function getLatestFeedbackForWeakness(plan: DailyPlan | undefined, tag: WeaknessTag): PlanBlockFeedback | undefined {
+  if (plan === undefined) {
+    return undefined;
+  }
+
+  return plan.blocks
+    .slice()
+    .reverse()
+    .find((block) => block.weaknessTag === tag && block.feedback !== undefined)?.feedback;
+}
+
+function createWeeklyFocus(date: string, primaryWeakness: Weakness): WeeklyFocus {
+  return {
+    tag: primaryWeakness.tag,
+    title: weaknessTitleByTag[primaryWeakness.tag],
+    reason: primaryWeakness.evidence,
+    startsOn: getWeekStartDate(date),
+  };
+}
+
+function getWeekStartDate(date: string): string {
+  const parsed = new Date(`${date.slice(0, 10)}T00:00:00.000Z`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return date.slice(0, 10);
+  }
+
+  const day = parsed.getUTCDay() === 0 ? 7 : parsed.getUTCDay();
+  parsed.setUTCDate(parsed.getUTCDate() - day + 1);
+
+  return parsed.toISOString().slice(0, 10);
 }
 
 function selectPrimaryWeakness(profile: LearnerProfile, weaknesses: Weakness[]): Weakness {
@@ -150,7 +232,15 @@ const weaknessTitleByTag = {
   'blunder-rate': 'seguranca anti-blunder',
 } satisfies Record<WeaknessTag, string>;
 
-function getThemeTask(tag: WeaknessTag): string {
+function getThemeTask(tag: WeaknessTag, stage: PlanResourceStage): string {
+  if (stage === 'retrieval') {
+    return `Resolva puzzles de ${weaknessTitleByTag[tag]} e confirme a ideia antes do primeiro lance.`;
+  }
+
+  if (stage === 'explain') {
+    return `Revise uma explicacao curta de ${weaknessTitleByTag[tag]} e anote uma regra para testar no treino.`;
+  }
+
   switch (tag) {
     case 'fork':
       return 'Estude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.';

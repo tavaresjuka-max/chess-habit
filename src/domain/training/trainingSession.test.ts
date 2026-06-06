@@ -59,6 +59,23 @@ describe('trainingSession', () => {
     expect(completed.status).toBe('done');
   });
 
+  it('stores optional completion feedback with the log', () => {
+    const log = createTrainingLog({
+      block,
+      date: '2026-06-06',
+      startedAt: '2026-06-06T10:00:00.000Z',
+    });
+
+    const completed = completeTrainingLog({
+      log,
+      completedAt: '2026-06-06T10:03:00.000Z',
+      feedback: 'hard',
+    });
+
+    expect(completed.feedback).toBe('hard');
+    expect(completed.elapsedSeconds).toBe(180);
+  });
+
   it('formats sub-minute completion as one minute', () => {
     expect(formatElapsedMinutes(20)).toBe('1 min');
     expect(formatElapsedMinutes(90)).toBe('2 min');

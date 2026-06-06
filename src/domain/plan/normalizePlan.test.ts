@@ -113,6 +113,40 @@ describe('normalizePlanDestinations', () => {
     );
   });
 
+  it('keeps raw puzzle theme links when a block is marked as retrieval practice', () => {
+    const plan: DailyPlan = {
+      date: '2026-06-06',
+      sessionMinutes: 15,
+      generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+      blocks: [
+        {
+          id: 'block-1',
+          title: 'Tema do dia: garfos',
+          source: 'lichess',
+          destination: {
+            source: 'lichess',
+            label: 'Puzzles Lichess: Fork',
+            url: 'https://lichess.org/training/fork',
+          },
+          weaknessTag: 'fork',
+          resourceStage: 'retrieval',
+          estimatedMinutes: 10,
+          task: 'Repita o tema em puzzles.',
+          stopRule: 'Pare no tempo.',
+          reason: 'Foi facil ontem.',
+          coachNote: 'Calma.',
+          status: 'pending',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
+
+    expect(normalizedBlock?.destination.url).toBe('https://lichess.org/training/fork');
+    expect(normalizedBlock?.task).toBe('Resolva puzzles de garfos e confirme a ideia antes do primeiro lance.');
+  });
+
   it('keeps equivalent plans unchanged by value when no destination changes', () => {
     const plan: DailyPlan = {
       date: '2026-06-06',

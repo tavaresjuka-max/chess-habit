@@ -4,6 +4,7 @@ import {
   formatElapsedMinutes,
   type DailyPlan,
   type PlanBlock,
+  type PlanBlockFeedback,
   type SessionMinutes,
   type TrainingLog,
   type Weakness,
@@ -20,7 +21,7 @@ type TodayProps = {
   onSessionMinutesChange: (minutes: SessionMinutes) => Promise<void>;
   onSyncChesscomDiagnosis: () => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
-  onCompleteBlockTraining: (blockId: string) => Promise<void>;
+  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
 };
 
@@ -84,7 +85,12 @@ export function Today({
       <div className="section-heading">
         <div>
           <h1 id="today-title">Hoje</h1>
-          <p>{plan.date} · {plan.blocks.length} blocos · {plan.sessionMinutes} min</p>
+          <p>{plan.date} - {plan.blocks.length} blocos - {plan.sessionMinutes} min</p>
+          {plan.weeklyFocus !== undefined ? (
+            <p className="weekly-focus">
+              Semana: {plan.weeklyFocus.title} - {plan.weeklyFocus.reason}
+            </p>
+          ) : null}
         </div>
         <label className="compact-field">
           <span>Tempo</span>
@@ -160,51 +166,72 @@ function PlanBlockCard({
   nowIso: string;
   trainingLog: TrainingLog | undefined;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
-  onCompleteBlockTraining: (blockId: string) => Promise<void>;
+  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
 }) {
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
 
   return (
     <article className="plan-block">
-            <div className="block-header">
-              <h2>{block.title}</h2>
-              <span className={`status-pill status-${block.status}`}>{formatStatus(block.status)}</span>
-            </div>
-            <p className="block-meta">{block.estimatedMinutes} min · {block.destination.label}</p>
-            <p>{block.reason}</p>
-            <p>{block.task}</p>
-            <p className="coach-note">{block.coachNote}</p>
-            <p className="stop-rule">{block.stopRule}</p>
-            {timerStatus !== undefined ? <p className={`timer-status ${timerStatus.kind}`}>{timerStatus.label}</p> : null}
-            <div className="button-row">
-              <button
-                type="button"
-                onClick={() => {
-                  void onStartBlockTraining(block);
-                }}
-              >
-                {block.destination.url !== undefined ? 'Abrir no Lichess' : 'Iniciar bloco'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  void onCompleteBlockTraining(block.id);
-                }}
-              >
-                Concluir
-              </button>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => {
-                  void onSkipBlockTraining(block.id);
-                }}
-              >
-                Pular
-              </button>
-            </div>
-          </article>
+      <div className="block-header">
+        <h2>{block.title}</h2>
+        <span className={`status-pill status-${block.status}`}>{formatStatus(block.status)}</span>
+      </div>
+      <p className="block-meta">
+        {block.estimatedMinutes} min - {formatResourceStage(block.resourceStage)} - {block.destination.label}
+      </p>
+      <p>{block.reason}</p>
+      <p>{block.task}</p>
+      <p className="coach-note">{block.coachNote}</p>
+      <p className="stop-rule">{block.stopRule}</p>
+      {block.feedback !== undefined ? <p className="feedback-note">Feedback: {formatFeedback(block.feedback)}</p> : null}
+      {timerStatus !== undefined ? <p className={`timer-status ${timerStatus.kind}`}>{timerStatus.label}</p> : null}
+      <div className="button-row">
+        <button
+          type="button"
+          onClick={() => {
+            void onStartBlockTraining(block);
+          }}
+        >
+          {block.destination.url !== undefined ? 'Abrir no Lichess' : 'Iniciar bloco'}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            void onCompleteBlockTraining(block.id);
+          }}
+        >
+          Concluir
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            void onCompleteBlockTraining(block.id, 'easy');
+          }}
+        >
+          Foi facil
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            void onCompleteBlockTraining(block.id, 'hard');
+          }}
+        >
+          Foi dificil
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            void onSkipBlockTraining(block.id);
+          }}
+        >
+          Pular
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -239,6 +266,32 @@ function formatTimerStatus(
     kind: 'timer-running',
     label: `Treinando ha ${formatElapsedMinutes(elapsedSeconds)}. Faltam ${formatElapsedMinutes(log.plannedSeconds - elapsedSeconds)}.`,
   };
+}
+
+function formatResourceStage(stage: PlanBlock['resourceStage']): string {
+  switch (stage) {
+    case 'explain':
+      return 'explicacao';
+    case 'guided':
+      return 'guiado';
+    case 'retrieval':
+      return 'repeticao';
+    case 'transfer':
+      return 'transferencia';
+    case 'review':
+      return 'revisao';
+    case undefined:
+      return 'treino';
+  }
+}
+
+function formatFeedback(feedback: PlanBlockFeedback): string {
+  switch (feedback) {
+    case 'easy':
+      return 'facil';
+    case 'hard':
+      return 'dificil';
+  }
 }
 
 function playTimerBeep(): void {

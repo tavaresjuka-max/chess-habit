@@ -41,8 +41,10 @@
   - [x] Blocos de principios de abertura abrem aulas de abertura para iniciantes em vez de Learn/explorador genericos.
   - [x] Catalogo Lichess tipado criado para recomendar Practice guiado, temas de puzzle, modos e filtros de video por fraqueza.
   - [x] Sintese da pasta `LEARN CHESS` aplicada em playbook de planos de estudo Lichess com guarda clean-room.
+  - [x] Blocos de plano carregam `weeklyFocus`, `weaknessTag` e `resourceStage` para escolher Practice/video, puzzle theme ou Analysis conforme estagio.
+  - [x] Feedback `easy`/`hard` salvo no bloco/log local e usado ao regenerar plano para voltar a explicacao ou avancar para repeticao.
   - [ ] OAuth/token local para reconciliar resultado real de puzzles.
-  - [ ] Feedback `easy`/`hard`, regen, tema semanal e Lichess diagnostico secundario.
+  - [ ] Lichess diagnostico secundario.
 - [ ] **P3** OAuth PKCE opt-in + gerador de Study Lichess privado/unlisted.
 - [ ] **P4** Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** Versao-comunidade: renomear, disclaimers, i18n, polish e revisao publica.

@@ -43,6 +43,12 @@ describe('generatePlan', () => {
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
 
     expect(plan.blocks[0]?.title).toContain('garfos');
+    expect(plan.weeklyFocus).toMatchObject({
+      tag: 'fork',
+      title: 'garfos',
+      startsOn: '2026-06-01',
+    });
+    expect(plan.blocks[0]?.resourceStage).toBe('guided');
     expect(plan.blocks[0]?.destination.url).toBe(
       'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
     );
@@ -76,6 +82,48 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.destination.url).toBe(
       'https://lichess.org/practice/checkmates/checkmate-patterns-i/fE4k21MW',
     );
+  });
+
+  it('uses retrieval practice for a repeated theme that was marked easy', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {
+      previousPlan: {
+        ...previousPlan,
+        blocks: previousPlan.blocks.map((block, index) =>
+          index === 0
+            ? {
+                ...block,
+                feedback: 'easy',
+              }
+            : block,
+        ),
+      },
+    });
+
+    expect(plan.blocks[0]?.resourceStage).toBe('retrieval');
+    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
+    expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');
+  });
+
+  it('moves a hard repeated theme back to an explanation resource', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {
+      previousPlan: {
+        ...previousPlan,
+        blocks: previousPlan.blocks.map((block, index) =>
+          index === 0
+            ? {
+                ...block,
+                feedback: 'hard',
+              }
+            : block,
+        ),
+      },
+    });
+
+    expect(plan.blocks[0]?.resourceStage).toBe('explain');
+    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/video?tags=beginner%2Ftactics');
+    expect(plan.blocks[0]?.task).toContain('Revise uma explicacao curta de garfos');
   });
 
   it('is deterministic for the same inputs', () => {
