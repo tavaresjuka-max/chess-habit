@@ -1,0 +1,89 @@
+export type SourceId = 'lichess' | 'chesscom' | 'outro';
+
+export type Destination = {
+  source: SourceId;
+  label: string;
+  url?: string;
+};
+
+export type WeaknessTag =
+  | 'hanging-piece'
+  | 'fork'
+  | 'pin'
+  | 'skewer'
+  | 'discovered'
+  | 'mate-in-1'
+  | 'mate-in-2'
+  | 'back-rank'
+  | 'opening-principles'
+  | 'time-trouble'
+  | 'endgame-pawn'
+  | 'endgame-rook'
+  | 'conversion'
+  | 'blunder-rate';
+
+export type Confidence = 'low' | 'medium' | 'high';
+
+export type SignalValue =
+  | { kind: 'rating'; perf: 'rapid' | 'blitz' | 'classical' | 'bullet'; rating: number }
+  | { kind: 'opening'; eco: string; name: string; games: number; lossRate: number }
+  | { kind: 'time-control'; speed: string; games: number; lossRate: number }
+  | { kind: 'color'; color: 'white' | 'black'; lossRate: number }
+  | {
+      kind: 'judgment';
+      blunders: number;
+      mistakes: number;
+      inaccuracies: number;
+      acpl?: number;
+      games: number;
+    }
+  | { kind: 'clock'; timeoutLosses: number; games: number }
+  | { kind: 'manual'; tag: WeaknessTag; note?: string };
+
+export type Signal = {
+  source: SourceId;
+  value: SignalValue;
+  confidence: Confidence;
+  observedAt: string;
+};
+
+export type Weakness = {
+  tag: WeaknessTag;
+  score: number;
+  confidence: Confidence;
+  evidence: string;
+};
+
+export type LearnerBand = '0-800' | '800-1200';
+
+export type SessionMinutes = 5 | 15 | 30 | 60;
+
+export type LearnerProfile = {
+  lichessUsername?: string;
+  band: LearnerBand;
+  defaultSessionMinutes: SessionMinutes;
+  goals: string[];
+  updatedAt: string;
+};
+
+export type PlanBlock = {
+  id: string;
+  title: string;
+  source: SourceId;
+  destination: Destination;
+  estimatedMinutes: number;
+  task: string;
+  stopRule: string;
+  reason: string;
+  coachNote: string;
+  status: 'pending' | 'done' | 'skipped';
+  feedback?: 'easy' | 'hard';
+  updatedAt: string;
+};
+
+export type DailyPlan = {
+  date: string;
+  sessionMinutes: number;
+  blocks: PlanBlock[];
+  generatedFromWeaknessesAt: string;
+};

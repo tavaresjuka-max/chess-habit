@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Rotina">
+  <rect width="512" height="512" rx="72" fill="#1f3f36"/>
+  <path d="M154 379h224v43H154z" fill="#f4f6f1"/>
+  <path d="M207 336h118l24-165H183z" fill="#f4f6f1"/>
+  <path d="M219 139h96v48h-96z" fill="#f4f6f1"/>
+  <circle cx="267" cy="107" r="43" fill="#f4f6f1"/>
+  <path d="M171 256h192v32H171z" fill="#7c9a7e"/>
+</svg>
