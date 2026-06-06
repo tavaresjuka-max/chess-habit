@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getDestinationForWeakness, lichessDestinationsByWeakness, normalizeDestination } from './destinations';
 
 const allowedLichessUrl =
-  /^https:\/\/lichess\.org\/(analysis|training\/[A-Za-z0-9]+|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|video\?tags=beginner%2Fopening)$/;
+  /^https:\/\/lichess\.org\/(analysis|training\/[A-Za-z0-9]+|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|video\/[A-Za-z0-9_-]+\?tags=opening\+principles)$/;
 
 describe('lichessDestinationsByWeakness', () => {
   it('uses only allowed Lichess destination formats', () => {
@@ -15,7 +15,7 @@ describe('lichessDestinationsByWeakness', () => {
 
   it('uses beginner opening lessons instead of free-form tools for opening principles', () => {
     expect(lichessDestinationsByWeakness['opening-principles'].url).toBe(
-      'https://lichess.org/video?tags=beginner%2Fopening',
+      'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
     );
   });
 
@@ -57,6 +57,16 @@ describe('lichessDestinationsByWeakness', () => {
         source: 'lichess',
         label: 'Lichess Analysis: principios e explorador de abertura',
         url: 'https://lichess.org/analysis#explorer',
+      }),
+    ).toEqual(lichessDestinationsByWeakness['opening-principles']);
+  });
+
+  it('normalizes old opening video filters to a concrete lesson', () => {
+    expect(
+      normalizeDestination({
+        source: 'lichess',
+        label: 'Lichess Videos: aulas de abertura para iniciantes',
+        url: 'https://lichess.org/video?tags=beginner%2Fopening',
       }),
     ).toEqual(lichessDestinationsByWeakness['opening-principles']);
   });

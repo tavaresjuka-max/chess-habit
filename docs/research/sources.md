@@ -48,6 +48,12 @@ para o bloco "principios de abertura".
 - [Lichess beginner + opening videos](https://lichess.org/video?tags=beginner%2Fopening): confirmou
   uma pagina filtrada de aulas de abertura para iniciantes, incluindo conteudo de principios/ideias de
   abertura, mais adequada para o bloco de "principios de abertura" que o explorador livre.
+- [Lichess opening principles videos](https://lichess.org/video?tags=opening+principles): confirmou que
+  a busca especifica por `opening principles` reduz a lista para 3 aulas focadas, em vez de uma biblioteca
+  generica de abertura.
+- [Must-Know Opening Principles - Central Control](https://lichess.org/video/gpsZAim-mYc?tags=opening+principles):
+  confirmado como destino direto para principios de abertura porque a propria pagina descreve os tres objetivos
+  centrais da abertura: controle central, desenvolvimento e seguranca do rei.
 
 ## Pesquisa Pontual Em 2026-06-06: Catalogo De Recursos Lichess P2
 

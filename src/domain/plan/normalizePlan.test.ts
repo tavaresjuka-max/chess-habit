@@ -33,8 +33,8 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
-      label: 'Lichess Videos: aulas de abertura para iniciantes',
-      url: 'https://lichess.org/video?tags=beginner%2Fopening',
+      label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
+      url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
     });
     expect(normalizedBlock?.task).toBe(
       'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.',
@@ -69,7 +69,7 @@ describe('normalizePlanDestinations', () => {
 
     const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
 
-    expect(normalizedBlock?.destination.url).toBe('https://lichess.org/video?tags=beginner%2Fopening');
+    expect(normalizedBlock?.destination.url).toBe('https://lichess.org/video/gpsZAim-mYc?tags=opening+principles');
     expect(normalizedBlock?.task).toBe(
       'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.',
     );

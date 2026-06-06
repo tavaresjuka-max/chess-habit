@@ -10,7 +10,7 @@ import {
 } from './resourceCatalog';
 
 const allowedResourceUrl =
-  /^https:\/\/lichess\.org\/(analysis|learn|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|streak|storm|training(?:\/(?:[A-Za-z0-9]+|of-player|themes))?|video\?tags=[A-Za-z0-9%'-]+(?:%2F[A-Za-z0-9%'-]+)*)$/;
+  /^https:\/\/lichess\.org\/(analysis|learn|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|streak|storm|training(?:\/(?:[A-Za-z0-9]+|of-player|themes))?|video(?:\/[A-Za-z0-9_-]+)?\?tags=[A-Za-z0-9%+'-]+(?:%2F[A-Za-z0-9%+'-]+)*)$/;
 
 describe('lichessResourceCatalog', () => {
   it('catalogs official Lichess Practice studies and puzzle themes', () => {
@@ -72,8 +72,8 @@ describe('lichessResourceCatalog', () => {
   it('turns catalog resources into app destinations without leaking catalog-only fields', () => {
     expect(destinationFromResource(getPrimaryLichessResourceForWeakness('opening-principles'))).toEqual({
       source: 'lichess',
-      label: 'Lichess Videos: aulas de abertura para iniciantes',
-      url: 'https://lichess.org/video?tags=beginner%2Fopening',
+      label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
+      url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
     });
   });
 });

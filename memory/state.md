@@ -44,6 +44,9 @@ abre Practice/video para explicacao guiada, Puzzle Theme para repeticao e Analys
 ou revisao de partida terminada. Feedback `easy`/`good`/`hard` fica salvo no bloco/log e influencia a
 proxima regeneracao do plano. Resultado oficial de puzzles depende de OAuth `puzzle:read`, confirmado na doc
 oficial, e o cliente/parser foi preparado sem armazenar token por padrao.
+Destino de `opening-principles` corrigido para uma aula concreta do Lichess Video sobre principios de abertura
+(`Must-Know Opening Principles - Central Control`), e links antigos de Learn/explorador/filtros sao normalizados
+para esse destino.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

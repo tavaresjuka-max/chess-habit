@@ -38,7 +38,7 @@
   - [x] Aviso sonoro/visual ao atingir tempo combinado, sem bloquear continuar treinando.
   - [x] Concluir salva tempo real treinado e preserva `done`.
   - [x] Cliente/parser oficial preparado para `/api/puzzle/activity` com OAuth `puzzle:read`.
-  - [x] Blocos de principios de abertura abrem aulas de abertura para iniciantes em vez de Learn/explorador genericos.
+  - [x] Blocos de principios de abertura abrem uma aula concreta de principios de abertura em vez de Learn/explorador/filtro genericos.
   - [x] Catalogo Lichess tipado criado para recomendar Practice guiado, temas de puzzle, modos e filtros de video por fraqueza.
   - [x] Sintese da pasta `LEARN CHESS` aplicada em playbook de planos de estudo Lichess com guarda clean-room.
   - [x] Blocos de plano carregam `weeklyFocus`, `weaknessTag` e `resourceStage` para escolher Practice/video, puzzle theme ou Analysis conforme estagio.

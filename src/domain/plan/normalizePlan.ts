@@ -50,6 +50,7 @@ function getNormalizedTaskForDestinationUrl(url: string | undefined): string | u
     case 'https://lichess.org/practice/rook-endgames/basic-rook-endgames/pqUSUw8Y':
       return 'Estude a licao guiada de final simples e conte plano, oposicao ou atividade antes de calcular.';
     case 'https://lichess.org/video?tags=beginner%2Fopening':
+    case 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles':
       return 'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.';
     default:
       return undefined;

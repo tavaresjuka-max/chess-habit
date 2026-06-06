@@ -84,6 +84,29 @@ describe('generatePlan', () => {
     );
   });
 
+  it('opens a concrete opening-principles lesson instead of a generic video filter', () => {
+    const plan = generatePlan(
+      baseProfile,
+      [
+        {
+          tag: 'opening-principles',
+          score: 0.8,
+          confidence: 'medium',
+          evidence: 'A abertura 1...e5 apareceu varias vezes com resultado dificil.',
+        },
+      ],
+      15,
+      '2026-06-06',
+    );
+
+    expect(plan.blocks[0]?.title).toContain('principios de abertura');
+    expect(plan.blocks[0]?.destination).toEqual({
+      source: 'lichess',
+      label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
+      url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
+    });
+  });
+
   it('uses retrieval practice for a repeated theme that was marked easy', () => {
     const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {

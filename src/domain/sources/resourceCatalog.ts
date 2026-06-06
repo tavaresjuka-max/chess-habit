@@ -6,7 +6,8 @@ export type LichessResourceKind =
   | 'practice-study'
   | 'puzzle-mode'
   | 'puzzle-theme'
-  | 'video-filter';
+  | 'video-filter'
+  | 'video-lesson';
 
 export type LichessCatalogSource =
   | 'lichess-api-puzzles'
@@ -467,6 +468,17 @@ export const lichessOtherResources = [
     recommendedFor: ['conversion', 'blunder-rate'],
     priority: 56,
   }),
+  resource({
+    id: 'video:opening-principles-central-control',
+    kind: 'video-lesson',
+    title: 'Must-Know Opening Principles - Central Control',
+    label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
+    description: 'Aula especifica de principios de abertura: controle central, desenvolvimento e seguranca do rei.',
+    url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
+    source: 'lichess-video-library',
+    recommendedFor: ['opening-principles'],
+    priority: 100,
+  }),
   videoFilter({
     id: 'video:beginner-opening',
     title: 'Beginner opening videos',
@@ -527,7 +539,7 @@ const primaryResourceIdByWeakness = {
   'mate-in-1': 'practice:checkmates:piece-checkmates-i',
   'mate-in-2': 'practice:checkmates:checkmate-patterns-i',
   'back-rank': 'puzzle:backRankMate',
-  'opening-principles': 'video:beginner-opening',
+  'opening-principles': 'video:opening-principles-central-control',
   'time-trouble': 'analysis:finished-game-review',
   'endgame-pawn': 'practice:pawn-endgames:key-squares',
   'endgame-rook': 'practice:rook-endgames:basic-rook-endgames',

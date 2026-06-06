@@ -13,11 +13,11 @@ const openingPrinciplesDestination = destinationFromResource(
 const analysisDestination = destinationFromResource(getPrimaryLichessResourceForWeakness('conversion'));
 
 const resourceKindPreferenceByStage = {
-  explain: ['video-filter', 'practice-study', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
-  guided: ['practice-study', 'video-filter', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
-  retrieval: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-filter', 'learn-basics', 'analysis-tool'],
-  transfer: ['analysis-tool', 'puzzle-mode', 'puzzle-theme', 'practice-study', 'video-filter', 'learn-basics'],
-  review: ['analysis-tool', 'puzzle-mode', 'puzzle-theme', 'practice-study', 'video-filter', 'learn-basics'],
+  explain: ['video-lesson', 'video-filter', 'practice-study', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
+  guided: ['practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
+  retrieval: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'analysis-tool'],
+  transfer: ['analysis-tool', 'puzzle-mode', 'puzzle-theme', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics'],
+  review: ['analysis-tool', 'puzzle-mode', 'puzzle-theme', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics'],
 } satisfies Record<PlanResourceStage, readonly LichessResourceKind[]>;
 
 export const lichessDestinationsByWeakness = {
@@ -93,7 +93,11 @@ function getResourceForWeaknessAndStage(tag: WeaknessTag, stage: PlanResourceSta
   const resources = getLichessResourcesForWeakness(tag);
 
   if (stage === 'explain') {
-    return resources.find((candidate) => candidate.kind === 'video-filter') ?? primaryResource;
+    return (
+      resources.find((candidate) => candidate.kind === 'video-lesson') ??
+      resources.find((candidate) => candidate.kind === 'video-filter') ??
+      primaryResource
+    );
   }
 
   const preferredKinds = resourceKindPreferenceByStage[stage];
@@ -123,6 +127,9 @@ function getLegacyDestinationForUrl(url: string): Destination | undefined {
       return lichessDestinationsByWeakness['mate-in-1'];
     case 'https://lichess.org/training/mateIn2':
       return lichessDestinationsByWeakness['mate-in-2'];
+    case 'https://lichess.org/video?tags=beginner%2Fopening':
+    case 'https://lichess.org/video?tags=opening+principles':
+      return lichessDestinationsByWeakness['opening-principles'];
     default:
       return undefined;
   }

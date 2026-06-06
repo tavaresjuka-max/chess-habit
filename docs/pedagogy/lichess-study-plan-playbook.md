@@ -239,7 +239,7 @@ Nao transformar uma sessao de 60 minutos em quatro temas aleatorios. A sessao lo
 | `mate-in-1` | Practice `Piece Checkmates I` | `training/mateIn1` + `oneMove` | dizer a ameaca antes do lance |
 | `mate-in-2` | Practice `Checkmate Patterns I` | `training/mateIn2` + `long` | revisar ataque ao rei em partida terminada |
 | `back-rank` | `training/backRankMate` | Practice `Checkmate Patterns I/II` | revisar casas de fuga e seguranca do rei |
-| `opening-principles` | video `beginner/opening` | `training/opening`, `castling`, `attackingF2F7` | revisar primeiros 8-10 lances de partida terminada |
+| `opening-principles` | video especifico `Opening Principles - Central Control` | `training/opening`, `castling`, `attackingF2F7` | revisar primeiros 8-10 lances de partida terminada |
 | `endgame-pawn` | Practice `Key Squares` | Practice `Opposition`, `training/pawnEndgame` | reconstruir linha sem olhar resposta |
 | `endgame-rook` | Practice `Basic Rook Endgames` | `training/rookEndgame` | revisar atividade da torre e rei |
 | `time-trouble` | Analysis de partida terminada | Streak sem pressa, Storm so se ajudar | achar o primeiro momento em que o relogio mandou |
