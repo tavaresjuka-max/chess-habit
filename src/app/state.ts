@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { createSingleFlight } from './singleFlight';
 import {
   appendPlanSession,
   detectWeaknesses,
@@ -628,6 +629,7 @@ export function createDefaultProfile(): LearnerProfile {
 
 const oauthClientId = 'lichess-tutor-local';
 const oauthSessionStorageKey = 'lichess-tutor:oauth-pending';
+const oauthCompletionFlight = createSingleFlight<LichessOAuthToken | undefined>();
 
 type StoredOAuthRequest = {
   state: string;
@@ -637,6 +639,14 @@ type StoredOAuthRequest = {
 };
 
 async function completeLichessOAuthIfNeeded(): Promise<LichessOAuthToken | undefined> {
+  // Em StrictMode o efeito de carga roda duas vezes; o codigo de autorizacao do
+  // Lichess so pode ser trocado uma vez. O single-flight garante uma unica troca
+  // e ambas as execucoes recebem o mesmo token, entao a execucao viva consegue
+  // marcar a conexao como conectada sem depender de um refresh manual.
+  return oauthCompletionFlight(runLichessOAuthCompletion);
+}
+
+async function runLichessOAuthCompletion(): Promise<LichessOAuthToken | undefined> {
   const callback = parseLichessOAuthCallback(window.location.href);
 
   if (callback === undefined) {
