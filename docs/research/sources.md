@@ -7,6 +7,7 @@ Esta pagina registra as fontes que sustentam a arquitetura proposta. Antes de im
 Pesquisa executada para avaliar se a ferramenta pessoal deveria criar/usar estudos do Lichess como destino de treino.
 
 - [Lichess API specification](https://github.com/lichess-org/api/blob/master/doc/specs/lichess-api.yaml): confirmou tag `Studies`, escopos OAuth `study:read` e `study:write`, e regra geral de rate limit.
+- [Lichess OAuth endpoint spec](https://github.com/lichess-org/api/blob/master/doc/specs/tags/oauth/oauth.yaml): confirmou Authorization Code Flow com PKCE, `code_verifier`, `state`, `code_challenge_method=S256`, redirecionamento com `code`/`state` e cuidado para nao expor `code_verifier`.
 - [Create a new Study](https://github.com/lichess-org/api/blob/master/doc/specs/tags/studies/api-study.yaml): confirmou `POST /api/study`, criacao de estudo vazio, limite de ate 30 novos estudos por dia e exigencia de `study:write`.
 - [Import PGN into a study](https://github.com/lichess-org/api/blob/master/doc/specs/tags/studies/api-study-studyId-import-pgn.yaml): confirmou `POST /api/study/{studyId}/import-pgn`, criacao de capitulos por PGN, modos `practice`, `conceal` e `gamebook`, limite de 64 capitulos por estudo e exigencia de `study:write`.
 - [Update study chapter moves](https://github.com/lichess-org/api/blob/master/doc/specs/tags/studies/api-study-studyId-chapterId-moves.yaml): confirmou substituicao da arvore de lances por PGN em capitulo existente e exigencia de `study:write`.

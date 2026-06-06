@@ -27,8 +27,8 @@
 ## Fases De Codigo
 
 - [x] **P0** Scaffold limpo + dominio tipado (Signal/Weakness/Plan) + gerador sensivel a tempo.
-- [ ] **P1** Coletor Lichess publico + detector de fraquezas + plano adaptado.
-- [ ] **P2** Loop de valor: feedback facil/dificil + regen + tema semanal.
-- [ ] **P3** Sync PC<->celular opt-in (merge por registro, D1).
-- [ ] **P4** Multi-fonte leve: Chess.com `/stats` + "outro estudo" texto livre.
-- [ ] **P5** Versao-comunidade: renomear, OAuth PKCE, disclaimers, i18n, polish.
+- [ ] **P1** Chess.com diagnostico primario + detector de fraquezas + plano adaptado.
+- [ ] **P2** Loop de valor: feedback facil/dificil + regen + tema semanal + Lichess secundario.
+- [ ] **P3** OAuth PKCE opt-in + gerador de Study Lichess privado/unlisted.
+- [ ] **P4** Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
+- [ ] **P5** Versao-comunidade: renomear, disclaimers, i18n, polish e revisao publica.

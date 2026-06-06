@@ -71,8 +71,10 @@ Consequencias que substituem decisoes anteriores:
 - **A fase de codigo foi aberta pelo dono.** Codigo permitido em `lichess-tutor`.
 - **Escopo adaptativo e multi-fonte aprovado, porem faseado:** Lichess (P1), adaptacao (P2), sync (P3),
   Chess.com leve (P4). (Atualiza as Decisoes 2 e 6 da consolidacao: nao sao cortados, sao faseados.)
+  **Nota posterior:** roadmap revisado apos P0: Chess.com ficou P1, Study/OAuth P3 e sync P4.
 - **Renomeacao e OAuth ficam para a Fase P5 (comunidade).** Na ferramenta pessoal (um usuario), nome
-  interno basta e nao ha OAuth.
+  interno basta e nao ha OAuth. **Nota posterior:** a parte de OAuth foi substituida pela decisao
+  "OAuth Permitido Pelo Dono Para Evolucao Futura" abaixo; renomeacao publica continua em P5.
 
 Correcoes tecnicas/legais dos tres relatorios **aceitas integralmente**:
 
@@ -85,8 +87,9 @@ Correcoes tecnicas/legais dos tres relatorios **aceitas integralmente**:
 - Linguagem de fraqueza como hipotese; sem promessa de rating.
 
 Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
-ADRs: ADR-004 (pessoal-primeiro), ADR-005 (clean-room/sem ChessKing), ADR-006 (adaptativo sem OAuth/
-engine), ADR-007 (sync depois do valor, por registro). Spec unificado anterior: superseded.
+ADRs: ADR-004 (pessoal-primeiro), ADR-005 (clean-room/sem ChessKing), ADR-006 (revisado: OAuth
+opt-in para Study, sem engine/escopos de jogo), ADR-007 (sync depois do valor, por registro). Spec
+unificado anterior: superseded.
 
 ## 2026-06-06: Banda E Chess.com Antecipado
 
@@ -102,6 +105,6 @@ engine), ADR-007 (sync depois do valor, por registro). Spec unificado anterior: 
 ## 2026-06-06: OAuth Permitido Pelo Dono Para Evolucao Futura
 
 O dono decidiu: **"vamos usar oauth sim"**. A P0 permanece sem rede/OAuth, mas a decisao remove a
-restricao anterior como direcao de produto futura. Antes de implementar qualquer OAuth/Study, reconciliar
-os documentos canonicos (`AGENTS.md`, `PLANO.md`, ADR-006 e spec) num plano proprio, com escopo opt-in,
-tokens somente locais, sem escopos de jogo e sem ajuda durante partidas ao vivo.
+restricao anterior como direcao de produto futura. Reconciliacao aplicada em `AGENTS.md`, `PLANO.md`,
+ADR-006 e spec: OAuth PKCE e opt-in, restrito a Studies (`study:read`/`study:write`), tokens somente
+locais, sem escopos de jogo e sem ajuda durante partidas ao vivo.
