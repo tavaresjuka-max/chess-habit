@@ -226,6 +226,31 @@ select {
   padding-left: 10px;
 }
 
+.timer-status {
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.timer-running {
+  background: #eef4f1;
+  color: #1f3f36;
+}
+
+.timer-over {
+  background: #f8e7d0;
+  color: #7a3d00;
+}
+
+.timer-done {
+  background: #d9f0dd;
+  color: #1f5130;
+}
+
+.timer-skipped {
+  background: #edf2f7;
+  color: #334155;
+}
+
 .status-pill {
   border-radius: 999px;
   padding: 4px 8px;

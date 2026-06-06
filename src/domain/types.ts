@@ -88,3 +88,34 @@ export type DailyPlan = {
   blocks: PlanBlock[];
   generatedFromWeaknessesAt: string;
 };
+
+export type TrainingResult = {
+  source: 'lichess';
+  kind: 'puzzle-activity';
+  fetchedAt: string;
+  since: string;
+  until: string;
+  puzzles: number;
+  wins: number;
+  losses: number;
+  themes: string[];
+};
+
+export type TrainingLogStatus = 'active' | 'done' | 'skipped';
+
+export type TrainingLog = {
+  id: string;
+  date: string;
+  blockId: string;
+  blockTitle: string;
+  source: SourceId;
+  destinationLabel: string;
+  plannedSeconds: number;
+  startedAt: string;
+  completedAt?: string;
+  elapsedSeconds?: number;
+  timeLimitReached: boolean;
+  status: TrainingLogStatus;
+  result?: TrainingResult;
+  updatedAt: string;
+};

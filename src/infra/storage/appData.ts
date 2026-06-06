@@ -1,4 +1,4 @@
-import type { DailyPlan, LearnerProfile, Signal, SourceId, Weakness } from '../../domain';
+import type { DailyPlan, LearnerProfile, Signal, SourceId, TrainingLog, Weakness } from '../../domain';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
 import { db, type ProfileRecord, type SignalRecord, type WeaknessRecord } from './db';
 
@@ -34,6 +34,18 @@ export async function savePlan(plan: DailyPlan): Promise<void> {
 
 export async function getPlan(date: string): Promise<DailyPlan | undefined> {
   return db.plans.get(date);
+}
+
+export async function saveTrainingLog(log: TrainingLog): Promise<void> {
+  await db.logs.put(log);
+}
+
+export async function getTrainingLog(id: string): Promise<TrainingLog | undefined> {
+  return db.logs.get(id);
+}
+
+export async function loadTrainingLogsForDate(date: string): Promise<TrainingLog[]> {
+  return db.logs.where('date').equals(date).toArray();
 }
 
 export async function loadSignals(): Promise<Signal[]> {
@@ -91,11 +103,11 @@ export async function clearAll(): Promise<void> {
     'rw',
     [db.profile, db.plans, db.logs, db.signals, db.weaknesses, db.chesscomMonthSignals],
     async () => {
-    await db.profile.clear();
-    await db.plans.clear();
-    await db.logs.clear();
-    await db.signals.clear();
-    await db.weaknesses.clear();
+      await db.profile.clear();
+      await db.plans.clear();
+      await db.logs.clear();
+      await db.signals.clear();
+      await db.weaknesses.clear();
       await db.chesscomMonthSignals.clear();
     },
   );

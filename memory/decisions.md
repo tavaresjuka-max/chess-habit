@@ -115,3 +115,11 @@ Durante a implementacao P1, o contrato `SignalValue.kind === 'color'` foi ajusta
 `games`. Motivo: o Adendo 22.2 exige minimo de partidas para disparar a hipotese de desequilibrio
 entre brancas e pretas; sem `games`, o detector teria que adivinhar frequencia ou persistir sinais
 por partida. O app continua persistindo apenas sinais derivados, nunca PGN completo.
+
+## 2026-06-06: Puzzle Activity Como Leitura Opt-In
+
+O dono pediu que concluir um treino tente salvar como foi o resultado do exercicio no Lichess. A API
+oficial exige OAuth `puzzle:read` para `/api/puzzle/activity`. Decisao: permitir `puzzle:read` como
+escopo opt-in minimo de leitura para reconciliar resultado de puzzles, sem `puzzle:write`, sem escopos
+de jogo, sem engine, sem token em logs/export/bundle. Enquanto OAuth nao estiver ligado, o app salva
+timer/log local (`startedAt`, `completedAt`, `elapsedSeconds`) e pode reconciliar depois.

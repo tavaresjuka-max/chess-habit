@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { DailyPlan, LearnerProfile, Signal, Weakness } from '../../domain';
+import type { DailyPlan, LearnerProfile, Signal, TrainingLog, Weakness } from '../../domain';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
 
 export const storageDatabaseName = 'lichess-tutor' as const;
@@ -10,13 +10,7 @@ export type ProfileRecord = LearnerProfile & {
 
 export type PlanRecord = DailyPlan;
 
-export type LearningLogRecord = {
-  id: string;
-  date: string;
-  blockId: string;
-  status: 'done' | 'skipped';
-  updatedAt: string;
-};
+export type LearningLogRecord = TrainingLog;
 
 export type SignalRecord = Signal & {
   id: string;

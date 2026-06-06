@@ -54,12 +54,15 @@ export function App() {
         <Today
           plan={appState.todayPlan}
           sessionMinutes={appState.sessionMinutes}
+          trainingLogs={appState.trainingLogs}
           weaknesses={appState.weaknesses}
           diagnosisState={appState.diagnosisState}
           diagnosisMessage={appState.diagnosisMessage}
           onSessionMinutesChange={appState.regeneratePlan}
           onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
-          onBlockStatusChange={appState.updateBlockStatus}
+          onStartBlockTraining={appState.startBlockTraining}
+          onCompleteBlockTraining={appState.completeBlockTraining}
+          onSkipBlockTraining={appState.skipBlockTraining}
         />
       )}
     </main>

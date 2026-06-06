@@ -2,11 +2,15 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   detectWeaknesses,
   createKnownManualSignals,
+  completeTrainingLog,
+  createTrainingLog,
   generatePlan,
+  skipTrainingLog,
   type DailyPlan,
   type LearnerProfile,
   type PlanBlock,
   type SessionMinutes,
+  type TrainingLog,
   type Weakness,
 } from '../domain';
 import { ChesscomRateLimitError, importChesscomSignals } from '../infra/chesscom/chesscomClient';
@@ -14,15 +18,18 @@ import {
   clearAll,
   exportAllAsJson,
   getPlan,
+  getTrainingLog,
   loadChesscomMonthCache,
   loadProfile,
   loadSignals,
+  loadTrainingLogsForDate,
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
   savePlan,
   saveProfile as saveStoredProfile,
+  saveTrainingLog,
 } from '../infra/storage/appData';
 
 export type AppView = 'today' | 'config';
@@ -36,6 +43,7 @@ export type AppState = {
   readonly profile: LearnerProfile | undefined;
   readonly todayPlan: DailyPlan | undefined;
   readonly sessionMinutes: SessionMinutes;
+  readonly trainingLogs: TrainingLog[];
   readonly weaknesses: Weakness[];
   readonly diagnosisState: DiagnosisState;
   readonly diagnosisMessage: string | undefined;
@@ -45,7 +53,9 @@ export type AppState = {
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
   readonly importKnownManualSignals: () => Promise<number>;
   readonly syncChesscomDiagnosis: () => Promise<void>;
-  readonly updateBlockStatus: (blockId: string, status: PlanBlock['status']) => Promise<void>;
+  readonly startBlockTraining: (block: PlanBlock) => Promise<void>;
+  readonly completeBlockTraining: (blockId: string) => Promise<void>;
+  readonly skipBlockTraining: (blockId: string) => Promise<void>;
   readonly exportBackup: () => Promise<string>;
   readonly clearAllData: () => Promise<void>;
 };
@@ -56,6 +66,7 @@ export function useAppState(): AppState {
   const [profile, setProfile] = useState<LearnerProfile | undefined>(undefined);
   const [todayPlan, setTodayPlan] = useState<DailyPlan | undefined>(undefined);
   const [sessionMinutes, setSessionMinutes] = useState<SessionMinutes>(15);
+  const [trainingLogs, setTrainingLogs] = useState<TrainingLog[]>([]);
   const [weaknesses, setWeaknesses] = useState<Weakness[]>([]);
   const [diagnosisState, setDiagnosisState] = useState<DiagnosisState>('idle');
   const [diagnosisMessage, setDiagnosisMessage] = useState<string | undefined>(undefined);
@@ -81,6 +92,7 @@ export function useAppState(): AppState {
         const date = getTodayDate();
         const storedWeaknesses = await loadWeaknesses();
         const storedPlan = await getPlan(date);
+        const storedTrainingLogs = await loadTrainingLogsForDate(date);
         const plan = storedPlan ?? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date);
 
         if (storedPlan === undefined) {
@@ -89,6 +101,7 @@ export function useAppState(): AppState {
 
         setProfile(storedProfile);
         setSessionMinutes(storedProfile.defaultSessionMinutes);
+        setTrainingLogs(storedTrainingLogs);
         setWeaknesses(storedWeaknesses);
         setTodayPlan(plan);
         setLoadState('ready');
@@ -118,9 +131,10 @@ export function useAppState(): AppState {
 
     setProfile(nextProfile);
     setSessionMinutes(nextProfile.defaultSessionMinutes);
-    setTodayPlan(plan);
-    setActiveView('today');
-    setErrorMessage(undefined);
+      setTodayPlan(plan);
+      setActiveView('today');
+      setErrorMessage(undefined);
+      setTrainingLogs(await loadTrainingLogsForDate(date));
   }, [weaknesses]);
 
   const regeneratePlan = useCallback(
@@ -211,13 +225,69 @@ export function useAppState(): AppState {
     return manualSignals.length;
   }, [profile, sessionMinutes]);
 
-  const updateBlockStatus = useCallback(
+  const startBlockTraining = useCallback(
+    async (block: PlanBlock) => {
+      if (todayPlan === undefined) {
+        return;
+      }
+
+      const startedAt = new Date().toISOString();
+      const log = createTrainingLog({
+        block,
+        date: todayPlan.date,
+        startedAt,
+      });
+
+      await saveTrainingLog(log);
+      setTrainingLogs(upsertTrainingLog(trainingLogs, log));
+
+      if (block.destination.url !== undefined) {
+        window.open(block.destination.url, '_blank', 'noopener,noreferrer');
+      }
+    },
+    [todayPlan, trainingLogs],
+  );
+
+  const updateBlockStatusWithTrainingLog = useCallback(
     async (blockId: string, status: PlanBlock['status']) => {
       if (todayPlan === undefined) {
         return;
       }
 
       const updatedAt = new Date().toISOString();
+      const existingLog = await getTrainingLog(`${todayPlan.date}:${blockId}`);
+
+      if (status === 'done') {
+        const block = todayPlan.blocks.find((planBlock) => planBlock.id === blockId);
+
+        if (block !== undefined) {
+          const baseLog =
+            existingLog ??
+            createTrainingLog({
+              block,
+              date: todayPlan.date,
+              startedAt: updatedAt,
+            });
+          const completedLog = completeTrainingLog({
+            log: baseLog,
+            completedAt: updatedAt,
+          });
+
+          await saveTrainingLog(completedLog);
+          setTrainingLogs(upsertTrainingLog(trainingLogs, completedLog));
+        }
+      }
+
+      if (status === 'skipped' && existingLog !== undefined) {
+        const skippedLog = skipTrainingLog({
+          log: existingLog,
+          skippedAt: updatedAt,
+        });
+
+        await saveTrainingLog(skippedLog);
+        setTrainingLogs(upsertTrainingLog(trainingLogs, skippedLog));
+      }
+
       const nextPlan: DailyPlan = {
         ...todayPlan,
         blocks: todayPlan.blocks.map((block) =>
@@ -235,7 +305,14 @@ export function useAppState(): AppState {
       setTodayPlan(nextPlan);
       setErrorMessage(undefined);
     },
-    [todayPlan],
+    [todayPlan, trainingLogs],
+  );
+
+  const skipBlockTraining = useCallback(
+    async (blockId: string) => {
+      await updateBlockStatusWithTrainingLog(blockId, 'skipped');
+    },
+    [updateBlockStatusWithTrainingLog],
   );
 
   const clearAllData = useCallback(async () => {
@@ -243,6 +320,7 @@ export function useAppState(): AppState {
     setProfile(undefined);
     setTodayPlan(undefined);
     setSessionMinutes(15);
+    setTrainingLogs([]);
     setWeaknesses([]);
     setDiagnosisState('idle');
     setDiagnosisMessage(undefined);
@@ -256,6 +334,7 @@ export function useAppState(): AppState {
     profile,
     todayPlan,
     sessionMinutes,
+    trainingLogs,
     weaknesses,
     diagnosisState,
     diagnosisMessage,
@@ -265,7 +344,9 @@ export function useAppState(): AppState {
     regeneratePlan,
     importKnownManualSignals,
     syncChesscomDiagnosis,
-    updateBlockStatus,
+    startBlockTraining,
+    completeBlockTraining: (blockId: string) => updateBlockStatusWithTrainingLog(blockId, 'done'),
+    skipBlockTraining,
     exportBackup: exportAllAsJson,
     clearAllData,
   };
@@ -301,4 +382,14 @@ function toDiagnosisErrorMessage(error: unknown): string {
   }
 
   return error instanceof Error ? error.message : 'Nao foi possivel atualizar o diagnostico Chess.com.';
+}
+
+function upsertTrainingLog(logs: TrainingLog[], nextLog: TrainingLog): TrainingLog[] {
+  const existingIndex = logs.findIndex((log) => log.id === nextLog.id);
+
+  if (existingIndex === -1) {
+    return [...logs, nextLog];
+  }
+
+  return logs.map((log, index) => (index === existingIndex ? nextLog : log));
 }

@@ -6,8 +6,10 @@ import {
   clearAll,
   exportAllAsJson,
   getPlan,
+  getTrainingLog,
   loadProfile,
   loadSignals,
+  loadTrainingLogsForDate,
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
@@ -15,6 +17,7 @@ import {
   savePlan,
   saveProfile,
   loadChesscomMonthCache,
+  saveTrainingLog,
 } from './appData';
 
 type ExportPayload = {
@@ -71,6 +74,29 @@ describe('appData storage', () => {
 
     await expect(loadProfile()).resolves.toBeUndefined();
     await expect(getPlan('2026-06-06')).resolves.toBeUndefined();
+  });
+
+  it('saves and loads training logs', async () => {
+    const log = {
+      id: '2026-06-06:block-1',
+      date: '2026-06-06',
+      blockId: 'block-1',
+      blockTitle: 'Tema',
+      source: 'lichess',
+      destinationLabel: 'Puzzles Lichess',
+      plannedSeconds: 300,
+      startedAt: '2026-06-06T10:00:00.000Z',
+      completedAt: '2026-06-06T10:04:00.000Z',
+      elapsedSeconds: 240,
+      timeLimitReached: false,
+      status: 'done',
+      updatedAt: '2026-06-06T10:04:00.000Z',
+    } as const;
+
+    await saveTrainingLog(log);
+
+    await expect(getTrainingLog(log.id)).resolves.toEqual(log);
+    await expect(loadTrainingLogsForDate('2026-06-06')).resolves.toEqual([log]);
   });
 
   it('replaces derived signals by source and stores weaknesses', async () => {

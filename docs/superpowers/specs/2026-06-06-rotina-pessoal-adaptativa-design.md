@@ -49,8 +49,9 @@ demais uma coisa, deixo lacunas, nao evoluo, e paro".
 ## 3. Nao-objetivos (cortar sem do)
 
 - Sem tabuleiro proprio, sem jogo no app, sem ajuda durante partida ao vivo (nunca sugerir lance).
-- Sem OAuth em P0-P2; OAuth PKCE opt-in entra na fase de Studies (P3). Sem engine WASM, sem OCR/visao,
-  sem backend ate a fase de sync (P4).
+- Sem OAuth obrigatorio em P0-P2. P2 pode preparar leitura opt-in de atividade de puzzles
+  (`puzzle:read`) para reconciliar resultado de treino; OAuth PKCE opt-in para Studies entra na P3.
+  Sem engine WASM, sem OCR/visao, sem backend ate a fase de sync (P4).
 - Sem ChessKing como fonte. Sem screenshots remotos (so local). **Chess.com promovido para P1**
   como fonte primaria de diagnostico (secao 14): parse de PGN transiente, guardar so sinais derivados,
   nunca PGN completo.
@@ -62,7 +63,8 @@ demais uma coisa, deixo lacunas, nao evoluo, e paro".
 - Revalidar nomes de campos/parametros contra a doc oficial viva antes de escrever qualquer coletor
   (registrar em `docs/research/sources.md`).
 - OAuth: somente opt-in, tokens so locais, nunca em logs/export/bundle; escopos permitidos para Study
-  (`study:read`/`study:write`) e proibidos para jogo (`board:play`, `bot:play`, `challenge:*`).
+  (`study:read`/`study:write`) e leitura de atividade de puzzles (`puzzle:read`); proibidos
+  `puzzle:write` e escopos de jogo (`board:play`, `bot:play`, `challenge:*`).
 - Privacidade: nada de PII em logs; nada de token; nada de PGN completo persistido (so derivados).
 - Dominio puro: sem rede e sem React; funcoes deterministas e testaveis.
 - Uma fase por vez (P0->P1->P2->...); commits atomicos; rodar o gate antes de fechar tarefa.
@@ -249,11 +251,17 @@ Base conhecida 2026-06-06 (revalidar antes de codar em `https://lichess.org/api`
 
 ## 12. Loop de adaptacao â€” P2 (o valor)
 
+- Abrir um bloco com destino Lichess inicia um timer local com o tempo planejado do bloco. Ao atingir
+  o limite, o app emite aviso sonoro curto e visual; o aluno pode continuar. Ao concluir, grava o
+  tempo real treinado. Se concluir antes do limite, a UI mostra "Treinou por X min".
 - Feedback por bloco: `easy`/`hard` (um toque) -> ajusta volume/dificuldade do proximo plano
   (`hard` reduz volume/mantem tema; `easy` sobe dificuldade ou troca tema).
 - Ao abrir o app: refetch (respeitando TTL) -> recomputa sinais -> regenera plano do dia preservando
   blocos `done`.
 - Revisao semanal (metrics): escolhe o tema da proxima semana pela fraqueza dominante real.
+- Resultado oficial de puzzles Lichess: usar apenas `GET /api/puzzle/activity` com OAuth `puzzle:read`,
+  uma requisicao por vez; correlacionar por janela `startedAt`/`completedAt`. Sem OAuth, preservar log
+  local e reconciliar futuramente quando o token existir.
 
 ## 12.5 Gerador de Study Lichess via OAuth — P3
 
@@ -395,7 +403,7 @@ tudo, limpar cache. Sync (P4) guarda so dados sincronizaveis, nunca imagens.
 |---|---|---|---|
 | **P0** | Scaffold limpo + dominio tipado + time budget | `package.json`, `src/`, `domain/{types,plan,metrics}`, Dexie | `lint+test+build` verdes; gera plano fixo para 5/15/30/60; dominio sem rede |
 | **P1** | Chess.com adaptativo (diagnostico primario) + destinos Lichess | `services/chesscom.ts` (stats + archives, parse transiente), `domain/weakness/`, mapa destino Lichess (allowlist) | com `username` Chess.com real, tema do plano vem das fraquezas derivadas; so sinais derivados persistidos (zero PGN); 429 respeitado; testes de fixture |
-| **P2** | Loop de valor + Lichess como fonte secundaria | `services/lichess.ts`, feedback `easy/hard`, regen ao abrir, revisao semanal, auto-ajuste de band | feedback altera proximo plano; `done` preservado; tema semanal vem da fraqueza dominante; sinais do Lichess somam aos do Chess.com; testes |
+| **P2** | Loop de valor + Lichess como fonte secundaria | timer/log de treino, `services/lichess.ts`, feedback `easy/hard`, regen ao abrir, revisao semanal, auto-ajuste de band | abrir treino inicia timer; limite apita sem bloquear; concluir salva tempo real; feedback altera proximo plano; `done` preservado; tema semanal vem da fraqueza dominante; sinais do Lichess somam aos do Chess.com; testes |
 | **P3** | Gerador de Study via OAuth (`study:write`) — "Seu treino de hoje" com posicoes fracas | `services/lichessOAuth.ts` (PKCE), `services/lichessStudy.ts` | login Lichess opt-in; cria/atualiza study privado/unlisted; token so local; fallback deep-link de analise quando deslogado |
 | **P4** | Sync opt-in + "outro estudo" local | D1 + worker + merge por registro; formulario manual -> Signal | so estado local do app (perfil/logs/feedback/notas/manual-signals); nenhum `done` perdido; print so local |
 | **P5** | Comunidade | rename, disclaimers, i18n, polish, revisao publica e seguranca OAuth | fora do escopo pessoal; reentra na validacao |

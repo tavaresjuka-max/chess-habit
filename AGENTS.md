@@ -31,9 +31,10 @@ Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adap
 - Nao dar ajuda durante partida ao vivo. Nunca sugerir lances. Abrir analise so de partidas terminadas.
 - Nao usar Board API, Bot API, Challenge API ou escopos de jogo.
 - Respeitar rate limit do Lichess: uma requisicao por vez; em HTTP 429, esperar no minimo 1 minuto.
-- OAuth foi autorizado pelo dono para a ferramenta pessoal, mas apenas como **opt-in** e com escopo
-  minimo para Studies (`study:read`/`study:write`) em fase propria. Tokens ficam so locais, nunca em
-  logs, bundle publico ou arquivos versionados. Sem engine na ferramenta pessoal.
+- OAuth foi autorizado pelo dono para a ferramenta pessoal, mas apenas como **opt-in** e com escopos
+  minimos: Studies (`study:read`/`study:write`) em fase propria e leitura de atividade de puzzles
+  (`puzzle:read`) para reconciliar resultado de treino. Tokens ficam so locais, nunca em logs, bundle
+  publico ou arquivos versionados. Proibido `puzzle:write`, escopos de jogo, engine e mensagens.
 - Chess.com entra na Fase P1 como fonte primaria de diagnostico (o dono joga la), via API publica
   read-only: `/stats` + arquivos mensais recentes de partidas. Sem login. Parse de PGN **transiente**
   (extrair sinais e descartar); **nunca persistir PGN completo**. Sem PII de perfil (nome/avatar/local).

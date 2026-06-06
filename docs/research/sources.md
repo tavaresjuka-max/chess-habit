@@ -29,6 +29,14 @@ Pesquisa executada antes de implementar o coletor P1 de diagnostico primario.
 - [Chess.com Help Center: What is the PubAPI and how do I use it?](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it): confirmou que a PubAPI e REST, JSON-LD e read-only, nao inclui dados privados como chat, documenta cache, `ETag`/`Last-Modified`, resposta 429 e recomenda acesso serial para evitar rate limit.
 - [Chess.com Published-Data API](https://www.chess.com/news/view/published-data-api): confirmou endpoints `GET /pub/player/{username}/stats`, `GET /pub/player/{username}/games/archives` e `GET /pub/player/{username}/games/{YYYY}/{MM}`, campos dos jogos mensais (`pgn`, `time_class`, `rules`, `white/black.result`, `accuracies`, `eco`) e codigos de resultado como `win`, `timeout`, `resigned`, `checkmated`, `stalemate`, `timevsinsufficient`.
 
+## Pesquisa Pontual Em 2026-06-06: Lichess Puzzle Activity P2
+
+Pesquisa executada antes de preparar a reconciliacao de resultados de treino em puzzles.
+
+- [Lichess API specification](https://github.com/lichess-org/api/blob/master/doc/specs/lichess-api.yaml): confirmou endpoints de puzzles e escopo OAuth `puzzle:read` para ler atividade de puzzles; manteve escopos de jogo (`board:play`, `bot:play`, `challenge:*`) fora do escopo permitido.
+- [Get your puzzle activity](https://github.com/lichess-org/api/blob/master/doc/specs/tags/puzzles/api-puzzle-activity.yaml): confirmou `GET /api/puzzle/activity`, resposta `application/x-ndjson`, ordenacao por ordem cronologica reversa, parametros `max`, `before` e `since`, e exigencia de OAuth `puzzle:read`.
+- [PuzzleActivity schema](https://github.com/lichess-org/api/blob/master/doc/specs/schemas/PuzzleActivity.yaml): confirmou campos `date`, `win` e `puzzle{id,rating,themes}` usados para resumir puzzles resolvidos, acertos, erros e temas.
+
 ## Pesquisa Externa Em 2026-06-06: Auditoria Global Estrategica
 
 Pesquisa executada para `docs/review/relatorio-codex-torre-aberta-lichess-tutor.md`.

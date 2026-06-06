@@ -34,6 +34,12 @@
   - [x] Cache mensal guarda apenas sinais derivados; PGN completo nunca e persistido.
   - [x] UI atualiza diagnostico Chess.com e importa sinais manuais genericos confirmados pelo dono.
 - [ ] **P2** Loop de valor: feedback facil/dificil + regen + tema semanal + Lichess secundario.
+  - [x] Timer/log local ao abrir treino no Lichess.
+  - [x] Aviso sonoro/visual ao atingir tempo combinado, sem bloquear continuar treinando.
+  - [x] Concluir salva tempo real treinado e preserva `done`.
+  - [x] Cliente/parser oficial preparado para `/api/puzzle/activity` com OAuth `puzzle:read`.
+  - [ ] OAuth/token local para reconciliar resultado real de puzzles.
+  - [ ] Feedback `easy`/`hard`, regen, tema semanal e Lichess diagnostico secundario.
 - [ ] **P3** OAuth PKCE opt-in + gerador de Study Lichess privado/unlisted.
 - [ ] **P4** Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** Versao-comunidade: renomear, disclaimers, i18n, polish e revisao publica.

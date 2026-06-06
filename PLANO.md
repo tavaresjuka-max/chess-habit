@@ -20,7 +20,9 @@ pede feedback curto e adapta as proximas licoes. Foco pessoal: faixa 0-1200.
 ## Nao Escopo (ferramenta pessoal)
 
 - Sem tabuleiro proprio, sem jogo no app, sem ajuda durante partida ao vivo.
-- Sem OAuth em P0-P2; OAuth PKCE opt-in entra so na fase de Studies, com `study:read`/`study:write`.
+- Sem OAuth obrigatorio em P0-P2. P2 pode preparar leitura opt-in de atividade de puzzles
+  (`puzzle:read`) para reconciliar resultado de treino; OAuth PKCE opt-in para Studies entra na P3
+  com `study:read`/`study:write`.
 - Sem engine, sem OCR.
 - Sem ChessKing como fonte; sem copiar codigo/assets do app pago (clean-room).
 - Sem backend ate a fase de sync (P4).
@@ -35,7 +37,7 @@ React + Vite + TypeScript + PWA + IndexedDB (Dexie). Cloudflare D1 + Worker so n
 |---|---|
 | **P0** | Scaffold limpo + dominio tipado (Signal/Weakness/Plan) + gerador sensivel a tempo (plano fixo) |
 | **P1** | Chess.com como fonte primaria de diagnostico (stats + partidas recentes, parse transiente) + detector + plano adaptado, com destinos Lichess |
-| **P2** | Loop de valor (feedback, regen, tema semanal, auto-ajuste de band) + Lichess como fonte secundaria de diagnostico |
+| **P2** | Loop de valor (timer/log de treino, feedback, regen, tema semanal, auto-ajuste de band) + Lichess como fonte secundaria de diagnostico |
 | **P3** | OAuth PKCE opt-in + gerador de Study Lichess privado/unlisted ("Seu treino de hoje") |
 | **P4** | Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local |
 | **P5** | Versao-comunidade: renomear, disclaimers, i18n, polish e revisao publica — so se a pessoal for boa |
