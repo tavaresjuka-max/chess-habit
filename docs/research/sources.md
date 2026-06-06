@@ -78,6 +78,26 @@ nao baixa puzzles, nao persiste PGN e so guarda metadados de destinos oficiais.
   [Puzzle Storm](https://lichess.org/storm) e [Puzzles from player games](https://lichess.org/training/of-player):
   confirmaram destinos publicos de treino que podem ser recomendados sem criar tabuleiro proprio.
 
+## Pesquisa Local Em 2026-06-06: LEARN CHESS
+
+Pesquisa executada para sintetizar auditorias, estudos de concorrentes e pesquisa pedagogica da pasta local
+`C:\Users\tavar\OneDrive\Documentos\CLAUDE CODE\LEARN CHESS` em um playbook de planos Lichess.
+
+- `PROJECT_MEMORY.md`, `PLANO.md` e `ROADMAP.md`: usados para recuperar contrato pedagogico, invariantes e
+  ordem de habilidades.
+- `docs/research/MASTER-SINTESE-PESQUISAS-2026-06-04.md`: usado para a tese central de erro -> causa ->
+  repeticao -> transferencia.
+- `docs/research/zero-to-1000.md`, `RELATORIO-PEDAGOGIA-CODEX.md`, `META-ANALISE-PEDAGOGIA.md` e
+  `SINTESE-PEDAGOGIA-ANTIGRAVITY.md`: usados para principios de primeira tentativa, transferencia, interleaving,
+  progressao conceitual e revisao espacada.
+- `docs/research/PESQUISA-PUZZLES-PEDAGOGIA-CONSOLIDADA.md`: usado como fonte de alto nivel para
+  `conceptVariant`, `difficultyStep`, formatos variados e curadoria por qualidade.
+- Sinteses em `docs/history/research/competitive-analysis/`: usadas somente para padroes abstratos de produto
+  e ensino, como coach contextual, planos personalizados, SRS, revisao de erros e game feel.
+- Nao foram usados APKs brutos, codigo decompilado, assets, textos de aula, bancos proprietarios, listas de
+  puzzles pagos ou conteudo protegido. O playbook gerado aplica apenas recursos oficiais do Lichess e principios
+  pedagogicos abstratos.
+
 ## Pesquisa Externa Em 2026-06-06: Auditoria Global Estrategica
 
 Pesquisa executada para `docs/review/relatorio-codex-torre-aberta-lichess-tutor.md`.
