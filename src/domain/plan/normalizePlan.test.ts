@@ -75,6 +75,44 @@ describe('normalizePlanDestinations', () => {
     );
   });
 
+  it('updates stored tactical blocks that still point to raw puzzle themes when Practice is better', () => {
+    const plan: DailyPlan = {
+      date: '2026-06-06',
+      sessionMinutes: 15,
+      generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+      blocks: [
+        {
+          id: 'block-1',
+          title: 'Tema do dia: garfos',
+          source: 'lichess',
+          destination: {
+            source: 'lichess',
+            label: 'Puzzles Lichess: garfos',
+            url: 'https://lichess.org/training/fork',
+          },
+          estimatedMinutes: 10,
+          task: 'Treine puzzles de garfo e procure dois alvos antes de jogar.',
+          stopRule: 'Pare no tempo.',
+          reason: 'Sinal possivel.',
+          coachNote: 'Calma.',
+          status: 'pending',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
+
+    expect(normalizedBlock?.destination).toEqual({
+      source: 'lichess',
+      label: 'Lichess Practice: The Fork',
+      url: 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
+    });
+    expect(normalizedBlock?.task).toBe(
+      'Estude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.',
+    );
+  });
+
   it('keeps equivalent plans unchanged by value when no destination changes', () => {
     const plan: DailyPlan = {
       date: '2026-06-06',

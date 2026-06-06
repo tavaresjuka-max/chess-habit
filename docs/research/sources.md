@@ -49,6 +49,35 @@ para o bloco "principios de abertura".
   uma pagina filtrada de aulas de abertura para iniciantes, incluindo conteudo de principios/ideias de
   abertura, mais adequada para o bloco de "principios de abertura" que o explorador livre.
 
+## Pesquisa Pontual Em 2026-06-06: Catalogo De Recursos Lichess P2
+
+Pesquisa executada para trocar uma allowlist rasa de destinos por um catalogo tipado de estudos,
+temas de puzzle, modos de treino e filtros de video. O catalogo e estatico/curado: nao faz scraping,
+nao baixa puzzles, nao persiste PGN e so guarda metadados de destinos oficiais.
+
+- [Lichess API Tips](https://lichess.org/page/api-tips): revalidou preferencia por API oficial em vez
+  de scraping/browser automation e regra de uma requisicao por vez com espera minima de 1 minuto apos
+  HTTP 429.
+- [Lichess Practice source](https://raw.githubusercontent.com/lichess-org/lila/master/modules/practice/src/main/PracticeSections.scala):
+  confirmou a estrutura oficial atual de Practice: 5 secoes e 32 estudos (`Checkmates`,
+  `Fundamental Tactics`, `Advanced Tactics`, `Pawn Endgames`, `Rook Endgames`).
+- [Lichess Practice structure source](https://raw.githubusercontent.com/lichess-org/lila/master/modules/practice/src/main/PracticeStructure.scala):
+  confirmou que os estudos de Practice sao identificados por `StudyId`, slug de nome e capitulos
+  preenchidos pelo backend, com 233 capitulos totais na estrutura oficial.
+- [Lichess puzzle theme source](https://raw.githubusercontent.com/lichess-org/lila/master/translation/source/puzzleTheme.xml):
+  confirmou os slugs oficiais de temas de puzzle usados em `/training/{theme}`, como `fork`,
+  `hangingPiece`, `pin`, `skewer`, `mateIn2`, `backRankMate`, `pawnEndgame`, `rookEndgame` e outros.
+- [Lichess puzzle API specs](https://github.com/lichess-org/api/tree/master/doc/specs/tags/puzzles):
+  confirmou que resultados pessoais de puzzles dependem de endpoints oficiais e OAuth `puzzle:read`;
+  o catalogo local guarda apenas destinos/temas, nao dados de resolucao.
+- [Lichess Video module](https://raw.githubusercontent.com/lichess-org/lila/master/modules/video/src/main/Video.scala)
+  e [Video API source](https://raw.githubusercontent.com/lichess-org/lila/master/modules/video/src/main/VideoApi.scala):
+  confirmaram que a biblioteca de videos e dinamica e filtravel por tags; o app recomenda filtros
+  estaveis como `beginner/opening`, em vez de tentar congelar a lista completa de videos.
+- [Lichess training themes](https://lichess.org/training/themes), [Puzzle Streak](https://lichess.org/streak),
+  [Puzzle Storm](https://lichess.org/storm) e [Puzzles from player games](https://lichess.org/training/of-player):
+  confirmaram destinos publicos de treino que podem ser recomendados sem criar tabuleiro proprio.
+
 ## Pesquisa Externa Em 2026-06-06: Auditoria Global Estrategica
 
 Pesquisa executada para `docs/review/relatorio-codex-torre-aberta-lichess-tutor.md`.

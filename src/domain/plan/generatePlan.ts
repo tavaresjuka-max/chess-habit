@@ -153,20 +153,20 @@ const weaknessTitleByTag = {
 function getThemeTask(tag: WeaknessTag): string {
   switch (tag) {
     case 'fork':
-      return 'Treine puzzles de garfo e procure dois alvos antes de jogar.';
+      return 'Estude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.';
     case 'hanging-piece':
       return 'Treine puzzles de peca pendurada e confirme quem defende cada alvo.';
     case 'mate-in-1':
     case 'mate-in-2':
     case 'back-rank':
-      return 'Treine mates curtos e fale a ameaca antes de clicar no primeiro lance.';
+      return 'Estude o bloco guiado de mates curtos e fale a ameaca antes de clicar no primeiro lance.';
     case 'opening-principles':
       return 'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.';
     case 'time-trouble':
       return 'Revise uma partida terminada e marque onde o relogio passou a mandar na decisao.';
     case 'endgame-pawn':
     case 'endgame-rook':
-      return 'Treine final simples e conte plano, oposicao ou atividade antes de calcular.';
+      return 'Estude a licao guiada de final simples e conte plano, oposicao ou atividade antes de calcular.';
     case 'conversion':
       return 'Revise uma posicao ganha ja terminada e explique como transformar vantagem em ponto.';
     case 'blunder-rate':
@@ -174,7 +174,7 @@ function getThemeTask(tag: WeaknessTag): string {
     case 'pin':
     case 'skewer':
     case 'discovered':
-      return 'Treine o padrao tatico e confirme a peca-alvo antes de escolher o lance.';
+      return 'Estude a licao guiada do padrao tatico e confirme a peca-alvo antes de escolher o lance.';
   }
 }
 

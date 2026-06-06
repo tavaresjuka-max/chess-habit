@@ -43,7 +43,9 @@ describe('generatePlan', () => {
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
 
     expect(plan.blocks[0]?.title).toContain('garfos');
-    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
+    expect(plan.blocks[0]?.destination.url).toBe(
+      'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
+    );
   });
 
   it('uses hanging pieces as the fixed P0 theme for the 0-800 band', () => {
@@ -71,7 +73,9 @@ describe('generatePlan', () => {
 
     expect(plan.blocks[0]?.title).toContain('mate em 2');
     expect(plan.blocks[0]?.reason).toBe('Sinal possivel de dificuldade com mates curtos.');
-    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/mateIn2');
+    expect(plan.blocks[0]?.destination.url).toBe(
+      'https://lichess.org/practice/checkmates/checkmate-patterns-i/fE4k21MW',
+    );
   });
 
   it('is deterministic for the same inputs', () => {

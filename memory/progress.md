@@ -39,6 +39,7 @@
   - [x] Concluir salva tempo real treinado e preserva `done`.
   - [x] Cliente/parser oficial preparado para `/api/puzzle/activity` com OAuth `puzzle:read`.
   - [x] Blocos de principios de abertura abrem aulas de abertura para iniciantes em vez de Learn/explorador genericos.
+  - [x] Catalogo Lichess tipado criado para recomendar Practice guiado, temas de puzzle, modos e filtros de video por fraqueza.
   - [ ] OAuth/token local para reconciliar resultado real de puzzles.
   - [ ] Feedback `easy`/`hard`, regen, tema semanal e Lichess diagnostico secundario.
 - [ ] **P3** OAuth PKCE opt-in + gerador de Study Lichess privado/unlisted.
