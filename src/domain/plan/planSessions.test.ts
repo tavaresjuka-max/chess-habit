@@ -1,0 +1,71 @@
+import { describe, expect, it } from 'vitest';
+import type { LearnerProfile, Weakness } from '../types';
+import { generatePlan } from './generatePlan';
+import {
+  appendPlanSession,
+  createTrainingRoadmap,
+  getNextPlanSessionNumber,
+  getPlanSessionSummaries,
+  getPlanTotalMinutes,
+} from './planSessions';
+
+const profile: LearnerProfile = {
+  lichessUsername: 'jukasparov',
+  band: '800-1200',
+  defaultSessionMinutes: 15,
+  goals: ['estudar com consistencia'],
+  updatedAt: '2026-06-06T00:00:00.000Z',
+};
+
+const weaknesses: Weakness[] = [
+  {
+    tag: 'fork',
+    score: 0.7,
+    confidence: 'medium',
+    evidence: 'Sinal recorrente de garfos.',
+  },
+];
+
+describe('plan sessions', () => {
+  it('appends an extra same-day session with unique block ids', () => {
+    const dailyPlan = generatePlan(profile, weaknesses, 30, '2026-06-06');
+    const extraSession = generatePlan(profile, weaknesses, 15, '2026-06-06', {
+      previousPlan: dailyPlan,
+      sessionNumber: getNextPlanSessionNumber(dailyPlan),
+    });
+    const plan = appendPlanSession(dailyPlan, extraSession);
+
+    expect(plan.blocks).toHaveLength(5);
+    expect(getPlanTotalMinutes(plan)).toBe(45);
+    expect(getPlanSessionSummaries(plan).map((session) => session.minutes)).toEqual([30, 15]);
+    expect(new Set(plan.blocks.map((block) => block.id)).size).toBe(plan.blocks.length);
+    expect(plan.blocks[plan.blocks.length - 1]?.sessionNumber).toBe(2);
+  });
+
+  it('creates a roadmap from today sessions and projected next days', () => {
+    const dailyPlan = generatePlan(profile, weaknesses, 15, '2026-06-06');
+    const roadmap = createTrainingRoadmap({
+      profile,
+      weaknesses,
+      activePlan: dailyPlan,
+      sessionMinutes: 15,
+      futureDays: 2,
+    });
+
+    expect(roadmap).toHaveLength(3);
+    expect(roadmap[0]).toMatchObject({
+      label: 'Hoje',
+      status: 'current',
+      minutes: 15,
+    });
+    expect(roadmap[1]).toMatchObject({
+      date: '2026-06-07',
+      label: 'Amanha',
+      status: 'future',
+    });
+    expect(roadmap[2]).toMatchObject({
+      date: '2026-06-08',
+      label: 'Em 2 dias',
+    });
+  });
+});

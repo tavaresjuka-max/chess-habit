@@ -156,9 +156,39 @@ select {
   margin-bottom: 18px;
 }
 
+.session-actions {
+  display: grid;
+  gap: 10px;
+  min-width: 178px;
+}
+
 .block-list {
   display: grid;
   gap: 14px;
+}
+
+.session-group {
+  display: grid;
+  gap: 10px;
+}
+
+.session-heading,
+.section-subheading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.session-heading h2,
+.section-subheading h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.session-heading span {
+  color: #46515e;
+  font-size: 0.9rem;
 }
 
 .diagnosis-strip {
@@ -187,6 +217,47 @@ select {
   color: #22303c;
   font-size: 0.85rem;
   padding: 5px 9px;
+}
+
+.roadmap-section {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.roadmap-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.roadmap-item {
+  border: 1px solid #cdd7cf;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 12px;
+}
+
+.roadmap-item > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.roadmap-item span,
+.roadmap-item small {
+  color: #46515e;
+}
+
+.roadmap-item p {
+  margin: 4px 0;
+}
+
+.roadmap-done {
+  background: #f4fbf5;
 }
 
 .plan-block {
@@ -302,6 +373,7 @@ select {
   }
 
   .button-row > *,
+  .session-actions,
   .compact-field,
   .diagnosis-strip > * {
     width: 100%;

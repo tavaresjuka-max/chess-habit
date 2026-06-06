@@ -23,6 +23,7 @@ type BlockCopy = {
 
 type GeneratePlanOptions = {
   previousPlan?: DailyPlan;
+  sessionNumber?: number;
 };
 
 type LatestThemeSignal = {
@@ -44,12 +45,14 @@ export function generatePlan(
 ): DailyPlan {
   const primaryWeakness = selectPrimaryWeakness(profile, weaknesses);
   const updatedAt = toPlanTimestamp(date);
+  const sessionNumber = options.sessionNumber ?? 1;
   const latestThemeSignal = getLatestThemeSignalForWeakness(options.previousPlan, primaryWeakness.tag);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
     createPlanBlock({
       date,
       index,
+      sessionNumber,
       kind: budgetBlock.kind,
       minutes: budgetBlock.minutes,
       primaryWeakness,
@@ -70,6 +73,7 @@ export function generatePlan(
 function createPlanBlock(input: {
   date: string;
   index: number;
+  sessionNumber: number;
   kind: PlanBlockKind;
   minutes: number;
   primaryWeakness: Weakness;
@@ -81,7 +85,8 @@ function createPlanBlock(input: {
   const destination = getDestinationForWeakness(copy.weaknessTag, resourceStage);
 
   return {
-    id: `${input.date}-${String(input.index + 1).padStart(2, '0')}-${input.kind}`,
+    id: createPlanBlockId(input.date, input.sessionNumber, input.index, input.kind),
+    sessionNumber: input.sessionNumber,
     title: copy.title,
     source: destination.source,
     destination,
@@ -95,6 +100,12 @@ function createPlanBlock(input: {
     status: 'pending',
     updatedAt: input.updatedAt,
   };
+}
+
+function createPlanBlockId(date: string, sessionNumber: number, index: number, kind: PlanBlockKind): string {
+  const sessionSegment = sessionNumber <= 1 ? '' : `-s${String(sessionNumber).padStart(2, '0')}`;
+
+  return `${date}${sessionSegment}-${String(index + 1).padStart(2, '0')}-${kind}`;
 }
 
 function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness, resourceStage: PlanResourceStage): BlockCopy {

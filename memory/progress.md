@@ -43,6 +43,7 @@
   - [x] Sintese da pasta `LEARN CHESS` aplicada em playbook de planos de estudo Lichess com guarda clean-room.
   - [x] Blocos de plano carregam `weeklyFocus`, `weaknessTag` e `resourceStage` para escolher Practice/video, puzzle theme ou Analysis conforme estagio.
   - [x] Feedback `easy`/`good`/`hard` salvo no bloco/log local e usado ao regenerar plano: facil avanca para repeticao, bom preserva desafio saudavel, dificil volta para explicacao.
+  - [x] Roadmap local de proximos passos e sessao extra no mesmo dia quando sobrar tempo.
   - [ ] OAuth/token local para reconciliar resultado real de puzzles.
   - [ ] Lichess diagnostico secundario.
 - [ ] **P3** OAuth PKCE opt-in + gerador de Study Lichess privado/unlisted.

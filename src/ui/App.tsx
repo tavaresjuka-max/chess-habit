@@ -53,12 +53,14 @@ export function App() {
       ) : (
         <Today
           plan={appState.todayPlan}
+          roadmap={appState.roadmap}
           sessionMinutes={appState.sessionMinutes}
           trainingLogs={appState.trainingLogs}
           weaknesses={appState.weaknesses}
           diagnosisState={appState.diagnosisState}
           diagnosisMessage={appState.diagnosisMessage}
           onSessionMinutesChange={appState.regeneratePlan}
+          onCreateNextSession={appState.createNextSession}
           onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
           onStartBlockTraining={appState.startBlockTraining}
           onCompleteBlockTraining={appState.completeBlockTraining}

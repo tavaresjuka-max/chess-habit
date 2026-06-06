@@ -44,6 +44,9 @@ abre Practice/video para explicacao guiada, Puzzle Theme para repeticao e Analys
 ou revisao de partida terminada. Feedback `easy`/`good`/`hard` fica salvo no bloco/log e influencia a
 proxima regeneracao do plano. Resultado oficial de puzzles depende de OAuth `puzzle:read`, confirmado na doc
 oficial, e o cliente/parser foi preparado sem armazenar token por padrao.
+O app ainda persiste um plano por data, mas agora esse plano pode ter varias sessoes no mesmo dia:
+`Fazer proxima sessao` anexa uma sessao extra com IDs de bloco unicos, e a tela mostra um roadmap local
+com as sessoes de hoje e os proximos dias projetados pelo mesmo gerador.
 Destino de `opening-principles` corrigido para uma aula concreta do Lichess Video sobre principios de abertura
 (`Must-Know Opening Principles - Central Control`), e links antigos de Learn/explorador/filtros sao normalizados
 para esse destino.

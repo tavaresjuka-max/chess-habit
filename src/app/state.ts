@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  appendPlanSession,
   detectWeaknesses,
   createKnownManualSignals,
   completeTrainingLog,
+  createTrainingRoadmap,
   createTrainingLog,
   generatePlan,
+  getNextPlanSessionNumber,
   normalizePlanDestinations,
   skipTrainingLog,
   type DailyPlan,
@@ -13,6 +16,7 @@ import {
   type PlanBlockFeedback,
   type SessionMinutes,
   type TrainingLog,
+  type TrainingRoadmapItem,
   type Weakness,
 } from '../domain';
 import { ChesscomRateLimitError, importChesscomSignals } from '../infra/chesscom/chesscomClient';
@@ -44,6 +48,7 @@ export type AppState = {
   readonly loadState: LoadState;
   readonly profile: LearnerProfile | undefined;
   readonly todayPlan: DailyPlan | undefined;
+  readonly roadmap: TrainingRoadmapItem[];
   readonly sessionMinutes: SessionMinutes;
   readonly trainingLogs: TrainingLog[];
   readonly weaknesses: Weakness[];
@@ -53,6 +58,7 @@ export type AppState = {
   readonly setActiveView: (view: AppView) => void;
   readonly saveProfile: (profile: LearnerProfile) => Promise<void>;
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
+  readonly createNextSession: (minutes: SessionMinutes) => Promise<void>;
   readonly importKnownManualSignals: () => Promise<number>;
   readonly syncChesscomDiagnosis: () => Promise<void>;
   readonly startBlockTraining: (block: PlanBlock) => Promise<void>;
@@ -136,10 +142,10 @@ export function useAppState(): AppState {
 
     setProfile(nextProfile);
     setSessionMinutes(nextProfile.defaultSessionMinutes);
-      setTodayPlan(plan);
-      setActiveView('today');
-      setErrorMessage(undefined);
-      setTrainingLogs(await loadTrainingLogsForDate(date));
+    setTodayPlan(plan);
+    setActiveView('today');
+    setErrorMessage(undefined);
+    setTrainingLogs(await loadTrainingLogsForDate(date));
   }, [weaknesses]);
 
   const regeneratePlan = useCallback(
@@ -154,6 +160,40 @@ export function useAppState(): AppState {
       await savePlan(plan);
       setSessionMinutes(minutes);
       setTodayPlan(plan);
+      setErrorMessage(undefined);
+    },
+    [profile, todayPlan, weaknesses],
+  );
+
+  const createNextSession = useCallback(
+    async (minutes: SessionMinutes) => {
+      if (profile === undefined) {
+        setActiveView('config');
+        return;
+      }
+
+      if (todayPlan === undefined) {
+        const date = getTodayDate();
+        const plan = generatePlan(profile, weaknesses, minutes, date);
+
+        await savePlan(plan);
+        setSessionMinutes(minutes);
+        setTodayPlan(plan);
+        setTrainingLogs(await loadTrainingLogsForDate(date));
+        setErrorMessage(undefined);
+        return;
+      }
+
+      const sessionPlan = generatePlan(profile, weaknesses, minutes, todayPlan.date, {
+        previousPlan: todayPlan,
+        sessionNumber: getNextPlanSessionNumber(todayPlan),
+      });
+      const nextPlan = appendPlanSession(todayPlan, sessionPlan);
+
+      await savePlan(nextPlan);
+      setSessionMinutes(minutes);
+      setTodayPlan(nextPlan);
+      setTrainingLogs(await loadTrainingLogsForDate(todayPlan.date));
       setErrorMessage(undefined);
     },
     [profile, todayPlan, weaknesses],
@@ -340,6 +380,15 @@ export function useAppState(): AppState {
     loadState,
     profile,
     todayPlan,
+    roadmap:
+      profile === undefined || todayPlan === undefined
+        ? []
+        : createTrainingRoadmap({
+            profile,
+            weaknesses,
+            activePlan: todayPlan,
+            sessionMinutes,
+          }),
     sessionMinutes,
     trainingLogs,
     weaknesses,
@@ -349,6 +398,7 @@ export function useAppState(): AppState {
     setActiveView,
     saveProfile,
     regeneratePlan,
+    createNextSession,
     importKnownManualSignals,
     syncChesscomDiagnosis,
     startBlockTraining,

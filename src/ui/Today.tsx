@@ -2,23 +2,28 @@ import { useEffect, useRef, useState } from 'react';
 import {
   elapsedSecondsBetween,
   formatElapsedMinutes,
+  getPlanSessionSummaries,
+  getPlanTotalMinutes,
   type DailyPlan,
   type PlanBlock,
   type PlanBlockFeedback,
   type SessionMinutes,
   type TrainingLog,
+  type TrainingRoadmapItem,
   type Weakness,
 } from '../domain';
 import type { DiagnosisState } from '../app/state';
 
 type TodayProps = {
   plan: DailyPlan | undefined;
+  roadmap: TrainingRoadmapItem[];
   sessionMinutes: SessionMinutes;
   trainingLogs: TrainingLog[];
   weaknesses: Weakness[];
   diagnosisState: DiagnosisState;
   diagnosisMessage: string | undefined;
   onSessionMinutesChange: (minutes: SessionMinutes) => Promise<void>;
+  onCreateNextSession: (minutes: SessionMinutes) => Promise<void>;
   onSyncChesscomDiagnosis: () => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
   onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
@@ -29,12 +34,14 @@ const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
 
 export function Today({
   plan,
+  roadmap,
   sessionMinutes,
   trainingLogs,
   weaknesses,
   diagnosisState,
   diagnosisMessage,
   onSessionMinutesChange,
+  onCreateNextSession,
   onSyncChesscomDiagnosis,
   onStartBlockTraining,
   onCompleteBlockTraining,
@@ -80,33 +87,51 @@ export function Today({
     );
   }
 
+  const sessionSummaries = getPlanSessionSummaries(plan);
+  const totalPlannedMinutes = getPlanTotalMinutes(plan);
+
   return (
     <section aria-labelledby="today-title" className="panel today-panel">
       <div className="section-heading">
         <div>
           <h1 id="today-title">Hoje</h1>
-          <p>{plan.date} - {plan.blocks.length} blocos - {plan.sessionMinutes} min</p>
+          <p>
+            {plan.date} - {sessionSummaries.length} {sessionSummaries.length === 1 ? 'sessao' : 'sessoes'} -{' '}
+            {totalPlannedMinutes} min
+          </p>
           {plan.weeklyFocus !== undefined ? (
             <p className="weekly-focus">
               Semana: {plan.weeklyFocus.title} - {plan.weeklyFocus.reason}
             </p>
           ) : null}
         </div>
-        <label className="compact-field">
-          <span>Tempo</span>
-          <select
-            value={sessionMinutes}
-            onChange={(event) => {
-              void onSessionMinutesChange(Number(event.target.value) as SessionMinutes);
+        <div className="session-actions">
+          <label className="compact-field">
+            <span>Tempo</span>
+            <select
+              value={sessionMinutes}
+              onChange={(event) => {
+                void onSessionMinutesChange(Number(event.target.value) as SessionMinutes);
+              }}
+            >
+              {sessionOptions.map((minutes) => (
+                <option key={minutes} value={minutes}>
+                  {minutes} min
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={hasActiveTraining}
+            onClick={() => {
+              void onCreateNextSession(sessionMinutes);
             }}
           >
-            {sessionOptions.map((minutes) => (
-              <option key={minutes} value={minutes}>
-                {minutes} min
-              </option>
-            ))}
-          </select>
-        </label>
+            Fazer proxima sessao
+          </button>
+        </div>
       </div>
 
       <div className="diagnosis-strip" aria-live="polite">
@@ -137,19 +162,61 @@ export function Today({
         </div>
       ) : null}
 
+      <RoadmapList items={roadmap} />
+
       <div className="block-list">
-        {plan.blocks.map((block) => (
-          <PlanBlockCard
-            block={block}
-            key={block.id}
-            nowIso={nowIso}
-            trainingLog={trainingLogs.find((log) => log.blockId === block.id)}
-            onStartBlockTraining={onStartBlockTraining}
-            onCompleteBlockTraining={onCompleteBlockTraining}
-            onSkipBlockTraining={onSkipBlockTraining}
-          />
+        {sessionSummaries.map((session) => (
+          <section
+            className="session-group"
+            key={session.sessionNumber}
+            aria-labelledby={`session-${String(session.sessionNumber)}`}
+          >
+            <div className="session-heading">
+              <h2 id={`session-${String(session.sessionNumber)}`}>Sessao {session.sessionNumber}</h2>
+              <span>{session.minutes} min</span>
+            </div>
+            {session.blocks.map((block) => (
+              <PlanBlockCard
+                block={block}
+                key={block.id}
+                nowIso={nowIso}
+                trainingLog={trainingLogs.find((log) => log.blockId === block.id)}
+                onStartBlockTraining={onStartBlockTraining}
+                onCompleteBlockTraining={onCompleteBlockTraining}
+                onSkipBlockTraining={onSkipBlockTraining}
+              />
+            ))}
+          </section>
         ))}
       </div>
+    </section>
+  );
+}
+
+function RoadmapList({ items }: { items: TrainingRoadmapItem[] }) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="roadmap-section" aria-labelledby="roadmap-title">
+      <div className="section-subheading">
+        <h2 id="roadmap-title">Proximos passos</h2>
+      </div>
+      <ol className="roadmap-list">
+        {items.map((item) => (
+          <li className={`roadmap-item roadmap-${item.status}`} key={item.id}>
+            <div>
+              <strong>{item.label}</strong>
+              <span>{item.minutes} min</span>
+            </div>
+            <p>{item.title}</p>
+            <small>
+              {formatRoadmapStatus(item.status)} - {item.destinationLabel}
+            </small>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -370,5 +437,16 @@ function formatStatus(status: PlanBlock['status']): string {
       return 'Feito';
     case 'skipped':
       return 'Pulado';
+  }
+}
+
+function formatRoadmapStatus(status: TrainingRoadmapItem['status']): string {
+  switch (status) {
+    case 'current':
+      return 'Planejado';
+    case 'done':
+      return 'Feito';
+    case 'future':
+      return 'Proximo';
   }
 }

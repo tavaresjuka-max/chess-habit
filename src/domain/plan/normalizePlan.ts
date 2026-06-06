@@ -13,6 +13,7 @@ export function normalizePlanDestinations(plan: DailyPlan): DailyPlan {
 
       return {
         ...block,
+        sessionNumber: block.sessionNumber ?? 1,
         destination,
         source: destination.source,
         task: shouldUseNormalizedTask ? normalizedTask : block.task,

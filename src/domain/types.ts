@@ -80,6 +80,7 @@ export type LearnerProfile = {
 
 export type PlanBlock = {
   id: string;
+  sessionNumber?: number;
   title: string;
   source: SourceId;
   destination: Destination;
