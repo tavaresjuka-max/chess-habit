@@ -42,7 +42,7 @@
   - [x] Catalogo Lichess tipado criado para recomendar Practice guiado, temas de puzzle, modos e filtros de video por fraqueza.
   - [x] Sintese da pasta `LEARN CHESS` aplicada em playbook de planos de estudo Lichess com guarda clean-room.
   - [x] Blocos de plano carregam `weeklyFocus`, `weaknessTag` e `resourceStage` para escolher Practice/video, puzzle theme ou Analysis conforme estagio.
-  - [x] Feedback `easy`/`hard` salvo no bloco/log local e usado ao regenerar plano para voltar a explicacao ou avancar para repeticao.
+  - [x] Feedback `easy`/`good`/`hard` salvo no bloco/log local e usado ao regenerar plano: facil avanca para repeticao, bom preserva desafio saudavel, dificil volta para explicacao.
   - [ ] OAuth/token local para reconciliar resultado real de puzzles.
   - [ ] Lichess diagnostico secundario.
 - [ ] **P3** OAuth PKCE opt-in + gerador de Study Lichess privado/unlisted.

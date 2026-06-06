@@ -216,6 +216,15 @@ function PlanBlockCard({
           type="button"
           className="secondary-button"
           onClick={() => {
+            void onCompleteBlockTraining(block.id, 'good');
+          }}
+        >
+          Foi bom
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
             void onCompleteBlockTraining(block.id, 'hard');
           }}
         >
@@ -289,6 +298,8 @@ function formatFeedback(feedback: PlanBlockFeedback): string {
   switch (feedback) {
     case 'easy':
       return 'facil';
+    case 'good':
+      return 'bom: interessante e desafiador';
     case 'hard':
       return 'dificil';
   }

@@ -126,6 +126,39 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.task).toContain('Revise uma explicacao curta de garfos');
   });
 
+  it('keeps a good repeated theme in the same resource stage', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
+    const retrievalPlan = generatePlan(baseProfile, [], 15, '2026-06-06', {
+      previousPlan: {
+        ...previousPlan,
+        blocks: previousPlan.blocks.map((block, index) =>
+          index === 0
+            ? {
+                ...block,
+                feedback: 'easy',
+              }
+            : block,
+        ),
+      },
+    });
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {
+      previousPlan: {
+        ...retrievalPlan,
+        blocks: retrievalPlan.blocks.map((block, index) =>
+          index === 0
+            ? {
+                ...block,
+                feedback: 'good',
+              }
+            : block,
+        ),
+      },
+    });
+
+    expect(plan.blocks[0]?.resourceStage).toBe('retrieval');
+    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
+  });
+
   it('is deterministic for the same inputs', () => {
     const sessionMinutes: SessionMinutes = 30;
     const first = generatePlan(baseProfile, [], sessionMinutes, '2026-06-06');

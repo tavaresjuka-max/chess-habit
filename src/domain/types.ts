@@ -60,7 +60,7 @@ export type SessionMinutes = 5 | 15 | 30 | 60;
 
 export type PlanResourceStage = 'explain' | 'guided' | 'retrieval' | 'transfer' | 'review';
 
-export type PlanBlockFeedback = 'easy' | 'hard';
+export type PlanBlockFeedback = 'easy' | 'good' | 'hard';
 
 export type WeeklyFocus = {
   tag: WeaknessTag;

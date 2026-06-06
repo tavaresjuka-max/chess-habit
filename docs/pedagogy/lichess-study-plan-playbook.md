@@ -268,8 +268,8 @@ O explorador pode aparecer como ferramenta secundaria para curiosidade, nao como
 - `weaknessTag` e `resourceStage` nos blocos de treino.
 - Seletor por estagio: `guided` usa recurso primario curado, `explain` prefere video quando existe,
   `retrieval` usa Puzzle Theme e `transfer`/`review` abrem Analysis de partida terminada.
-- Feedback `easy`/`hard` salvo no bloco/log local; ao regenerar, `easy` avanca para repeticao e `hard`
-  volta para explicacao.
+- Feedback `easy`/`good`/`hard` salvo no bloco/log local; ao regenerar, `easy` avanca para repeticao,
+  `good` preserva o estagio por estar interessante e desafiador, e `hard` volta para explicacao.
 - Normalizacao de planos antigos preserva puzzle theme quando o bloco novo e repeticao deliberada.
 
 ### P2 - Selecionador De Recurso Por Estagio
@@ -277,6 +277,7 @@ O explorador pode aparecer como ferramenta secundaria para curiosidade, nao como
 - Evoluir de `resourceStage` local para historico multi-dia.
 - Se veio de erro pessoal: priorizar Analysis ou Study privado.
 - Se feedback `hard`: reduzir carga, nao apenas trocar recurso.
+- Se feedback `good`: manter a zona de desafio saudavel e repetir com variacao.
 - Se feedback `easy`: passar para tema irmao quando houver evidencia suficiente.
 
 ### P2 - Tema Semanal

@@ -25,6 +25,11 @@ type GeneratePlanOptions = {
   previousPlan?: DailyPlan;
 };
 
+type LatestThemeSignal = {
+  feedback: PlanBlockFeedback;
+  resourceStage?: PlanResourceStage;
+};
+
 const primaryThemeByBand = {
   '0-800': 'hanging-piece',
   '800-1200': 'fork',
@@ -39,7 +44,7 @@ export function generatePlan(
 ): DailyPlan {
   const primaryWeakness = selectPrimaryWeakness(profile, weaknesses);
   const updatedAt = toPlanTimestamp(date);
-  const latestFeedback = getLatestFeedbackForWeakness(options.previousPlan, primaryWeakness.tag);
+  const latestThemeSignal = getLatestThemeSignalForWeakness(options.previousPlan, primaryWeakness.tag);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
     createPlanBlock({
@@ -48,7 +53,7 @@ export function generatePlan(
       kind: budgetBlock.kind,
       minutes: budgetBlock.minutes,
       primaryWeakness,
-      latestFeedback,
+      latestThemeSignal,
       updatedAt,
     }),
   );
@@ -68,10 +73,10 @@ function createPlanBlock(input: {
   kind: PlanBlockKind;
   minutes: number;
   primaryWeakness: Weakness;
-  latestFeedback: PlanBlockFeedback | undefined;
+  latestThemeSignal: LatestThemeSignal | undefined;
   updatedAt: string;
 }): PlanBlock {
-  const resourceStage = getResourceStage(input.kind, input.latestFeedback);
+  const resourceStage = getResourceStage(input.kind, input.latestThemeSignal);
   const copy = getBlockCopy(input.kind, input.primaryWeakness, resourceStage);
   const destination = getDestinationForWeakness(copy.weaknessTag, resourceStage);
 
@@ -139,12 +144,12 @@ function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness, resourceSt
   }
 }
 
-function getResourceStage(kind: PlanBlockKind, latestFeedback: PlanBlockFeedback | undefined): PlanResourceStage {
+function getResourceStage(kind: PlanBlockKind, latestThemeSignal: LatestThemeSignal | undefined): PlanResourceStage {
   switch (kind) {
     case 'aquecimento':
       return 'retrieval';
     case 'tema':
-      return getThemeResourceStage(latestFeedback);
+      return getThemeResourceStage(latestThemeSignal);
     case 'revisao':
       return 'review';
     case 'transferencia':
@@ -154,10 +159,12 @@ function getResourceStage(kind: PlanBlockKind, latestFeedback: PlanBlockFeedback
   }
 }
 
-function getThemeResourceStage(latestFeedback: PlanBlockFeedback | undefined): PlanResourceStage {
-  switch (latestFeedback) {
+function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined): PlanResourceStage {
+  switch (latestThemeSignal?.feedback) {
     case 'hard':
       return 'explain';
+    case 'good':
+      return latestThemeSignal.resourceStage ?? 'guided';
     case 'easy':
       return 'retrieval';
     case undefined:
@@ -165,15 +172,24 @@ function getThemeResourceStage(latestFeedback: PlanBlockFeedback | undefined): P
   }
 }
 
-function getLatestFeedbackForWeakness(plan: DailyPlan | undefined, tag: WeaknessTag): PlanBlockFeedback | undefined {
+function getLatestThemeSignalForWeakness(plan: DailyPlan | undefined, tag: WeaknessTag): LatestThemeSignal | undefined {
   if (plan === undefined) {
     return undefined;
   }
 
-  return plan.blocks
+  const block = plan.blocks
     .slice()
     .reverse()
-    .find((block) => block.weaknessTag === tag && block.feedback !== undefined)?.feedback;
+    .find((candidate) => candidate.weaknessTag === tag && candidate.feedback !== undefined);
+
+  if (block?.feedback === undefined) {
+    return undefined;
+  }
+
+  return {
+    feedback: block.feedback,
+    resourceStage: block.resourceStage,
+  };
 }
 
 function createWeeklyFocus(date: string, primaryWeakness: Weakness): WeeklyFocus {
