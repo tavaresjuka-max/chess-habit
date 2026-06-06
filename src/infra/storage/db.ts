@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type { DailyPlan, LearnerProfile, Signal, Weakness } from '../../domain';
+import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
 
 export const storageDatabaseName = 'lichess-tutor' as const;
 
@@ -25,12 +26,15 @@ export type WeaknessRecord = Weakness & {
   id: string;
 };
 
+export type ChesscomMonthSignalCacheRecord = ChesscomMonthCache;
+
 export class TutorDatabase extends Dexie {
   profile!: Table<ProfileRecord, string>;
   plans!: Table<PlanRecord, string>;
   logs!: Table<LearningLogRecord, string>;
   signals!: Table<SignalRecord, string>;
   weaknesses!: Table<WeaknessRecord, string>;
+  chesscomMonthSignals!: Table<ChesscomMonthSignalCacheRecord, string>;
 
   constructor(name = storageDatabaseName) {
     super(name);
@@ -41,6 +45,10 @@ export class TutorDatabase extends Dexie {
       logs: 'id, date, blockId, updatedAt',
       signals: 'id, source, observedAt',
       weaknesses: 'id, tag, confidence',
+    });
+
+    this.version(2).stores({
+      chesscomMonthSignals: 'id, username, updatedAt, expiresAt',
     });
   }
 }

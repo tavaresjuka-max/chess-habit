@@ -22,7 +22,7 @@ export function generatePlan(
   sessionMinutes: SessionMinutes,
   date: string,
 ): DailyPlan {
-  const primaryTheme = primaryThemeByBand[profile.band];
+  const primaryWeakness = selectPrimaryWeakness(profile, weaknesses);
   const updatedAt = toPlanTimestamp(date);
   const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
     createPlanBlock({
@@ -30,7 +30,7 @@ export function generatePlan(
       index,
       kind: budgetBlock.kind,
       minutes: budgetBlock.minutes,
-      primaryTheme,
+      primaryWeakness,
       updatedAt,
     }),
   );
@@ -48,10 +48,10 @@ function createPlanBlock(input: {
   index: number;
   kind: PlanBlockKind;
   minutes: number;
-  primaryTheme: WeaknessTag;
+  primaryWeakness: Weakness;
   updatedAt: string;
 }): PlanBlock {
-  const copy = getBlockCopy(input.kind, input.primaryTheme);
+  const copy = getBlockCopy(input.kind, input.primaryWeakness);
   const destination = getDestinationForWeakness(copy.weaknessTag);
 
   return {
@@ -69,7 +69,9 @@ function createPlanBlock(input: {
   };
 }
 
-function getBlockCopy(kind: PlanBlockKind, primaryTheme: WeaknessTag): BlockCopy {
+function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness): BlockCopy {
+  const primaryTheme = primaryWeakness.tag;
+
   switch (kind) {
     case 'aquecimento':
       return {
@@ -81,13 +83,10 @@ function getBlockCopy(kind: PlanBlockKind, primaryTheme: WeaknessTag): BlockCopy
       };
     case 'tema':
       return {
-        title: primaryTheme === 'fork' ? 'Tema do dia: garfos' : 'Tema do dia: pecas penduradas',
-        task:
-          primaryTheme === 'fork'
-            ? 'Treine puzzles de garfo e procure dois alvos antes de jogar.'
-            : 'Treine puzzles de peca pendurada e confirme quem defende cada alvo.',
+        title: `Tema do dia: ${weaknessTitleByTag[primaryTheme]}`,
+        task: getThemeTask(primaryTheme),
         stopRule: 'Pare quando o tempo acabar ou quando errar duas vezes seguidas por pressa.',
-        reason: 'Tema fixo da P0 para validar o fluxo antes do detector adaptativo.',
+        reason: primaryWeakness.evidence,
         weaknessTag: primaryTheme,
       };
     case 'revisao':
@@ -114,6 +113,68 @@ function getBlockCopy(kind: PlanBlockKind, primaryTheme: WeaknessTag): BlockCopy
         reason: 'Finais curtos consolidam precisao sem depender de engine no app.',
         weaknessTag: 'endgame-pawn',
       };
+  }
+}
+
+function selectPrimaryWeakness(profile: LearnerProfile, weaknesses: Weakness[]): Weakness {
+  const [firstWeakness] = [...weaknesses].sort((left, right) => right.score - left.score);
+
+  if (firstWeakness !== undefined) {
+    return firstWeakness;
+  }
+
+  const fallbackTag = primaryThemeByBand[profile.band];
+
+  return {
+    tag: fallbackTag,
+    score: 0,
+    confidence: 'low',
+    evidence: 'Tema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.',
+  };
+}
+
+const weaknessTitleByTag = {
+  'hanging-piece': 'pecas penduradas',
+  fork: 'garfos',
+  pin: 'cravadas',
+  skewer: 'espetos',
+  discovered: 'ataques descobertos',
+  'mate-in-1': 'mate em 1',
+  'mate-in-2': 'mate em 2',
+  'back-rank': 'mate na ultima fileira',
+  'opening-principles': 'principios de abertura',
+  'time-trouble': 'gestao de tempo',
+  'endgame-pawn': 'finais de peoes',
+  'endgame-rook': 'finais de torres',
+  conversion: 'conversao',
+  'blunder-rate': 'seguranca anti-blunder',
+} satisfies Record<WeaknessTag, string>;
+
+function getThemeTask(tag: WeaknessTag): string {
+  switch (tag) {
+    case 'fork':
+      return 'Treine puzzles de garfo e procure dois alvos antes de jogar.';
+    case 'hanging-piece':
+      return 'Treine puzzles de peca pendurada e confirme quem defende cada alvo.';
+    case 'mate-in-1':
+    case 'mate-in-2':
+    case 'back-rank':
+      return 'Treine mates curtos e fale a ameaca antes de clicar no primeiro lance.';
+    case 'opening-principles':
+      return 'Revise principios de abertura e procure desenvolvimento, centro e seguranca do rei.';
+    case 'time-trouble':
+      return 'Revise uma partida terminada e marque onde o relogio passou a mandar na decisao.';
+    case 'endgame-pawn':
+    case 'endgame-rook':
+      return 'Treine final simples e conte plano, oposicao ou atividade antes de calcular.';
+    case 'conversion':
+      return 'Revise uma posicao ganha ja terminada e explique como transformar vantagem em ponto.';
+    case 'blunder-rate':
+      return 'Treine puzzles de seguranca de pecas e faca uma checagem curta antes de cada lance.';
+    case 'pin':
+    case 'skewer':
+    case 'discovered':
+      return 'Treine o padrao tatico e confirme a peca-alvo antes de escolher o lance.';
   }
 }
 

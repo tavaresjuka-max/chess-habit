@@ -28,7 +28,7 @@ export type SignalValue =
   | { kind: 'rating'; perf: 'rapid' | 'blitz' | 'classical' | 'bullet'; rating: number }
   | { kind: 'opening'; eco: string; name: string; games: number; lossRate: number }
   | { kind: 'time-control'; speed: string; games: number; lossRate: number }
-  | { kind: 'color'; color: 'white' | 'black'; lossRate: number }
+  | { kind: 'color'; color: 'white' | 'black'; games: number; lossRate: number }
   | {
       kind: 'judgment';
       blunders: number;
@@ -60,6 +60,7 @@ export type SessionMinutes = 5 | 15 | 30 | 60;
 
 export type LearnerProfile = {
   lichessUsername?: string;
+  chesscomUsername?: string;
   band: LearnerBand;
   defaultSessionMinutes: SessionMinutes;
   goals: string[];

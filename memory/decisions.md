@@ -108,3 +108,10 @@ O dono decidiu: **"vamos usar oauth sim"**. A P0 permanece sem rede/OAuth, mas a
 restricao anterior como direcao de produto futura. Reconciliacao aplicada em `AGENTS.md`, `PLANO.md`,
 ADR-006 e spec: OAuth PKCE e opt-in, restrito a Studies (`study:read`/`study:write`), tokens somente
 locais, sem escopos de jogo e sem ajuda durante partidas ao vivo.
+
+## 2026-06-06: Ajuste Do Signal De Cor Para P1
+
+Durante a implementacao P1, o contrato `SignalValue.kind === 'color'` foi ajustado para incluir
+`games`. Motivo: o Adendo 22.2 exige minimo de partidas para disparar a hipotese de desequilibrio
+entre brancas e pretas; sem `games`, o detector teria que adivinhar frequencia ou persistir sinais
+por partida. O app continua persistindo apenas sinais derivados, nunca PGN completo.

@@ -1,0 +1,203 @@
+import type { Confidence, Signal, Weakness, WeaknessTag } from '../types';
+
+type WeaknessCandidate = {
+  tag: WeaknessTag;
+  contribution: number;
+  minContribution: number;
+  confidence: Confidence;
+  evidence: string;
+};
+
+const confidenceScore = {
+  low: 0.3,
+  medium: 0.6,
+  high: 0.9,
+} satisfies Record<Confidence, number>;
+
+const confidenceRank = {
+  low: 0,
+  medium: 1,
+  high: 2,
+} satisfies Record<Confidence, number>;
+
+export function detectWeaknesses(signals: Signal[]): Weakness[] {
+  const weaknesses = detectNonColorWeaknesses(signals);
+  const colorWeakness = detectColorWeakness(signals);
+
+  if (colorWeakness === undefined) {
+    return weaknesses;
+  }
+
+  const existingIndex = weaknesses.findIndex((weakness) => weakness.tag === colorWeakness.tag);
+
+  if (existingIndex === -1) {
+    return [...weaknesses, colorWeakness].sort(sortWeaknesses);
+  }
+
+  return weaknesses.map((weakness, index) =>
+    index === existingIndex
+      ? {
+          ...weakness,
+          confidence: maxConfidence(weakness.confidence, colorWeakness.confidence),
+          score: Math.max(weakness.score, colorWeakness.score),
+        }
+      : weakness,
+  );
+}
+
+function detectNonColorWeaknesses(signals: Signal[]): Weakness[] {
+  const candidates = signals.flatMap(signalToCandidates);
+  const byTag = new Map<WeaknessTag, Weakness>();
+
+  for (const candidate of candidates) {
+    const score = toScore(candidate);
+    const existing = byTag.get(candidate.tag);
+
+    if (existing === undefined) {
+      byTag.set(candidate.tag, {
+        tag: candidate.tag,
+        score,
+        confidence: candidate.confidence,
+        evidence: candidate.evidence,
+      });
+      continue;
+    }
+
+    byTag.set(candidate.tag, {
+      tag: candidate.tag,
+      score: Math.max(existing.score, score),
+      confidence: maxConfidence(existing.confidence, candidate.confidence),
+      evidence: score > existing.score ? candidate.evidence : existing.evidence,
+    });
+  }
+
+  return [...byTag.values()].sort(sortWeaknesses);
+}
+
+function signalToCandidates(signal: Signal): WeaknessCandidate[] {
+  switch (signal.value.kind) {
+    case 'judgment':
+      if (signal.value.games >= 5 && signal.value.blunders / signal.value.games > 0.5) {
+        return [
+          {
+            tag: 'blunder-rate',
+            contribution: signal.value.games,
+            minContribution: 5,
+            confidence: signal.confidence,
+            evidence:
+              'Nas partidas analisadas recentes apareceram mais erros graves que o esperado; hoje vale testar uma rotina curta anti-blunder.',
+          },
+        ];
+      }
+      return [];
+
+    case 'clock':
+      if (signal.value.games >= 10 && signal.value.timeoutLosses >= 2) {
+        return [
+          {
+            tag: 'time-trouble',
+            contribution: signal.value.games,
+            minContribution: 10,
+            confidence: signal.confidence,
+            evidence: `Voce perdeu por tempo em ${String(signal.value.timeoutLosses)} partidas recentes; talvez um ritmo um pouco mais calmo ajude.`,
+          },
+        ];
+      }
+      return [];
+
+    case 'opening':
+      if (signal.value.games >= 5 && signal.value.lossRate > 0.6) {
+        return [
+          {
+            tag: 'opening-principles',
+            contribution: signal.value.games,
+            minContribution: 5,
+            confidence: signal.confidence,
+            evidence: `A abertura ${signal.value.name} apareceu varias vezes com resultado dificil; hoje a revisao fica nos principios de abertura.`,
+          },
+        ];
+      }
+      return [];
+
+    case 'manual':
+      return [
+        {
+          tag: signal.value.tag,
+          contribution: 1,
+          minContribution: 1,
+          confidence: signal.confidence,
+          evidence:
+            signal.value.note ??
+            'Ha um sinal manual registrado para este tema; hoje o plano pode testar essa hipotese com treino curto.',
+        },
+      ];
+
+    case 'color':
+    case 'rating':
+    case 'time-control':
+      return [];
+  }
+}
+
+export function detectColorWeakness(signals: Signal[]): Weakness | undefined {
+  const colorSignals = signals.filter((signal) => signal.value.kind === 'color');
+  const white = aggregateColor(colorSignals, 'white');
+  const black = aggregateColor(colorSignals, 'black');
+
+  if (white.games + black.games < 10 || white.games === 0 || black.games === 0) {
+    return undefined;
+  }
+
+  const lossRateDiff = Math.abs(white.lossRate - black.lossRate);
+
+  if (lossRateDiff <= 0.2) {
+    return undefined;
+  }
+
+  return {
+    tag: 'opening-principles',
+    score: confidenceScore.low,
+    confidence: 'low',
+    evidence: 'A diferenca de resultado entre cores sugere revisar fundamentos de abertura sem tirar conclusoes duras.',
+  };
+}
+
+function aggregateColor(signals: Signal[], color: 'white' | 'black'): { games: number; lossRate: number } {
+  let games = 0;
+  let losses = 0;
+
+  for (const signal of signals) {
+    if (signal.value.kind !== 'color' || signal.value.color !== color) {
+      continue;
+    }
+
+    games += signal.value.games;
+    losses += signal.value.lossRate * signal.value.games;
+  }
+
+  return {
+    games,
+    lossRate: games === 0 ? 0 : losses / games,
+  };
+}
+
+function toScore(candidate: WeaknessCandidate): number {
+  const frequencyFactor = Math.min(1, candidate.contribution / candidate.minContribution);
+  return roundScore(confidenceScore[candidate.confidence] * frequencyFactor);
+}
+
+function roundScore(score: number): number {
+  return Math.round(score * 1000) / 1000;
+}
+
+function maxConfidence(left: Confidence, right: Confidence): Confidence {
+  return confidenceRank[right] > confidenceRank[left] ? right : left;
+}
+
+function sortWeaknesses(left: Weakness, right: Weakness): number {
+  if (right.score !== left.score) {
+    return right.score - left.score;
+  }
+
+  return left.tag.localeCompare(right.tag);
+}

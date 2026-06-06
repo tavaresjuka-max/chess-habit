@@ -77,6 +77,11 @@ button:hover,
   background: #173129;
 }
 
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .nav-button {
   flex: 1;
   background: #fff;
@@ -154,6 +159,34 @@ select {
 .block-list {
   display: grid;
   gap: 14px;
+}
+
+.diagnosis-strip {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: max-content 1fr;
+  margin-bottom: 14px;
+}
+
+.diagnosis-strip p {
+  margin: 0;
+}
+
+.weakness-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.weakness-chip {
+  border: 1px solid #cdd7cf;
+  border-radius: 999px;
+  background: #fff;
+  color: #22303c;
+  font-size: 0.85rem;
+  padding: 5px 9px;
 }
 
 .plan-block {
@@ -238,7 +271,12 @@ select {
   }
 
   .button-row > *,
-  .compact-field {
+  .compact-field,
+  .diagnosis-strip > * {
     width: 100%;
+  }
+
+  .diagnosis-strip {
+    grid-template-columns: 1fr;
   }
 }

@@ -105,7 +105,7 @@ export type SignalValue =
   | { kind: 'rating'; perf: 'rapid' | 'blitz' | 'classical' | 'bullet'; rating: number }
   | { kind: 'opening'; eco: string; name: string; games: number; lossRate: number }
   | { kind: 'time-control'; speed: string; games: number; lossRate: number }
-  | { kind: 'color'; color: 'white' | 'black'; lossRate: number }
+  | { kind: 'color'; color: 'white' | 'black'; games: number; lossRate: number }
   | { kind: 'judgment'; blunders: number; mistakes: number; inaccuracies: number; acpl?: number; games: number }
   | { kind: 'clock'; timeoutLosses: number; games: number }
   | { kind: 'manual'; tag: WeaknessTag; note?: string }

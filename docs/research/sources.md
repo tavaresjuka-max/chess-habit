@@ -22,6 +22,13 @@ Pesquisa executada durante a implementacao P0 do app instalavel/offline-shell.
 - [MDN: CycleTracker manifest and iconography](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/CycleTracker/Manifest_file): confirmou membros de manifest usados na P0 (`name`, `short_name`, `start_url`, `display`, cores e icones) e que HTTPS/localhost permite reconhecimento como PWA.
 - [MDN: start_url](https://developer.mozilla.org/en-US/docs/Web/Manifest/Reference/start_url): confirmou que `start_url` define a URL aberta ao iniciar o app instalado e pode ser requisito de instalabilidade em alguns browsers.
 
+## Pesquisa Pontual Em 2026-06-06: Chess.com P1
+
+Pesquisa executada antes de implementar o coletor P1 de diagnostico primario.
+
+- [Chess.com Help Center: What is the PubAPI and how do I use it?](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it): confirmou que a PubAPI e REST, JSON-LD e read-only, nao inclui dados privados como chat, documenta cache, `ETag`/`Last-Modified`, resposta 429 e recomenda acesso serial para evitar rate limit.
+- [Chess.com Published-Data API](https://www.chess.com/news/view/published-data-api): confirmou endpoints `GET /pub/player/{username}/stats`, `GET /pub/player/{username}/games/archives` e `GET /pub/player/{username}/games/{YYYY}/{MM}`, campos dos jogos mensais (`pgn`, `time_class`, `rules`, `white/black.result`, `accuracies`, `eco`) e codigos de resultado como `win`, `timeout`, `resigned`, `checkmated`, `stalemate`, `timevsinsufficient`.
+
 ## Pesquisa Externa Em 2026-06-06: Auditoria Global Estrategica
 
 Pesquisa executada para `docs/review/relatorio-codex-torre-aberta-lichess-tutor.md`.

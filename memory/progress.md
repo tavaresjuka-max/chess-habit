@@ -27,7 +27,12 @@
 ## Fases De Codigo
 
 - [x] **P0** Scaffold limpo + dominio tipado (Signal/Weakness/Plan) + gerador sensivel a tempo.
-- [ ] **P1** Chess.com diagnostico primario + detector de fraquezas + plano adaptado.
+- [x] **P1** Chess.com diagnostico primario + detector de fraquezas + plano adaptado.
+  - [x] Detector puro `Signal[] -> Weakness[]`.
+  - [x] Gerador de plano prioriza fraqueza real e cai para tema conservador sem dados suficientes.
+  - [x] Cliente Chess.com PubAPI read-only (`stats`, `games/archives`, arquivos mensais), serial.
+  - [x] Cache mensal guarda apenas sinais derivados; PGN completo nunca e persistido.
+  - [x] UI atualiza diagnostico Chess.com e importa sinais manuais genericos confirmados pelo dono.
 - [ ] **P2** Loop de valor: feedback facil/dificil + regen + tema semanal + Lichess secundario.
 - [ ] **P3** OAuth PKCE opt-in + gerador de Study Lichess privado/unlisted.
 - [ ] **P4** Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.

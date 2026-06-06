@@ -6,7 +6,8 @@ Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro)
 
 - Moldura: **pessoal primeiro, comunidade depois** (decidida pelo dono).
 - Fase de codigo: **aberta pelo dono** para a ferramenta pessoal.
-- App: P0 concluida. PWA local-first minima roda com dominio puro, plano fixo, Dexie, export/apagar e offline-shell.
+- App: P1 concluida. PWA local-first roda com dominio puro, plano adaptado por fraquezas, Dexie,
+  export/apagar e offline-shell.
 - Backend/banco: so na Fase P4 (sync).
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
@@ -33,12 +34,15 @@ Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro)
 
 ## Proxima Etapa
 
-P0 concluida pelo Codex em 2026-06-06. Proximo: planejar/confirmar P1 antes de implementar coletores
-Chess.com, revalidando contratos oficiais e preservando parse transiente/zero PGN persistido.
+P0 concluida pelo Codex em 2026-06-06. P1 concluida: coletor Chess.com usa PubAPI read-only (`stats`,
+`games/archives`, `games/{YYYY}/{MM}`), acesso serial, cache mensal de **sinais derivados** e parse de
+PGN apenas transiente. Proxima fase: P2, loop de valor (feedback, regen, tema semanal, Lichess
+secundario).
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**
-(serial + cache), parse transiente, so sinais derivados. Onboarding P1 importa nivel/temas conhecidos
+(serial + cache), parse transiente, so sinais derivados. O Signal `color` carrega `games` alem de
+`lossRate`, porque a regra de desequilibrio por cor exige minimo de partidas. Onboarding P1 importa nivel/temas conhecidos
 (inclusive observados no ChessKing) como Signals manuais genericos `source:'outro'` (ver spec 14.3,
 ADR-005, ADR-008) — sem taxonomia ChessKing, prints so locais, sem OCR. Mapeamento de temas CONFIRMADO
 pelo dono (forcas: mate em 1/capturas/tatica basica/finais basicos; fraquezas: fork/hanging-piece,

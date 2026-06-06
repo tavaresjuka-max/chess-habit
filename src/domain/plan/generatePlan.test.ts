@@ -54,6 +54,26 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/hangingPiece');
   });
 
+  it('uses the strongest weakness when detector signals are available', () => {
+    const plan = generatePlan(
+      baseProfile,
+      [
+        {
+          tag: 'mate-in-2',
+          score: 0.6,
+          confidence: 'medium',
+          evidence: 'Sinal possivel de dificuldade com mates curtos.',
+        },
+      ],
+      15,
+      '2026-06-06',
+    );
+
+    expect(plan.blocks[0]?.title).toContain('mate em 2');
+    expect(plan.blocks[0]?.reason).toBe('Sinal possivel de dificuldade com mates curtos.');
+    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/mateIn2');
+  });
+
   it('is deterministic for the same inputs', () => {
     const sessionMinutes: SessionMinutes = 30;
     const first = generatePlan(baseProfile, [], sessionMinutes, '2026-06-06');

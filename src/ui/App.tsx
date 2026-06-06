@@ -46,6 +46,7 @@ export function App() {
         <Config
           profile={appState.profile}
           onSave={appState.saveProfile}
+          onImportKnownManualSignals={appState.importKnownManualSignals}
           onExport={appState.exportBackup}
           onClear={appState.clearAllData}
         />
@@ -53,7 +54,11 @@ export function App() {
         <Today
           plan={appState.todayPlan}
           sessionMinutes={appState.sessionMinutes}
+          weaknesses={appState.weaknesses}
+          diagnosisState={appState.diagnosisState}
+          diagnosisMessage={appState.diagnosisMessage}
           onSessionMinutesChange={appState.regeneratePlan}
+          onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
           onBlockStatusChange={appState.updateBlockStatus}
         />
       )}

@@ -5,15 +5,17 @@ import type { LearnerBand, LearnerProfile, SessionMinutes } from '../domain';
 type ConfigProps = {
   profile: LearnerProfile | undefined;
   onSave: (profile: LearnerProfile) => Promise<void>;
+  onImportKnownManualSignals: () => Promise<number>;
   onExport: () => Promise<string>;
   onClear: () => Promise<void>;
 };
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
 
-export function Config({ profile, onSave, onExport, onClear }: ConfigProps) {
+export function Config({ profile, onSave, onImportKnownManualSignals, onExport, onClear }: ConfigProps) {
   const initialProfile = profile ?? createDefaultProfile();
   const [lichessUsername, setLichessUsername] = useState(initialProfile.lichessUsername ?? 'jukasparov');
+  const [chesscomUsername, setChesscomUsername] = useState(initialProfile.chesscomUsername ?? 'jukatavares');
   const [band, setBand] = useState<LearnerBand>(initialProfile.band);
   const [defaultSessionMinutes, setDefaultSessionMinutes] = useState<SessionMinutes>(
     initialProfile.defaultSessionMinutes,
@@ -23,6 +25,7 @@ export function Config({ profile, onSave, onExport, onClear }: ConfigProps) {
   async function handleSubmit() {
     await onSave({
       lichessUsername: lichessUsername.trim() === '' ? undefined : lichessUsername.trim(),
+      chesscomUsername: chesscomUsername.trim() === '' ? undefined : chesscomUsername.trim(),
       band,
       defaultSessionMinutes,
       goals: initialProfile.goals,
@@ -42,6 +45,11 @@ export function Config({ profile, onSave, onExport, onClear }: ConfigProps) {
     link.click();
     URL.revokeObjectURL(url);
     setStatusMessage('Backup exportado.');
+  }
+
+  async function handleImportKnownManualSignals() {
+    const count = await onImportKnownManualSignals();
+    setStatusMessage(`${String(count)} sinais manuais salvos.`);
   }
 
   async function handleClear() {
@@ -72,6 +80,17 @@ export function Config({ profile, onSave, onExport, onClear }: ConfigProps) {
             value={lichessUsername}
             onChange={(event) => {
               setLichessUsername(event.target.value);
+            }}
+          />
+        </label>
+
+        <label className="field">
+          <span>Usuario Chess.com</span>
+          <input
+            autoComplete="username"
+            value={chesscomUsername}
+            onChange={(event) => {
+              setChesscomUsername(event.target.value);
             }}
           />
         </label>
@@ -109,6 +128,9 @@ export function Config({ profile, onSave, onExport, onClear }: ConfigProps) {
           <button type="submit">Salvar</button>
           <button type="button" className="secondary-button" onClick={() => void handleExport()}>
             Exportar backup JSON
+          </button>
+          <button type="button" className="secondary-button" onClick={() => void handleImportKnownManualSignals()}>
+            Adicionar sinais manuais
           </button>
           <button type="button" className="danger-button" onClick={() => void handleClear()}>
             Apagar tudo
