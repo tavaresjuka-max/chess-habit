@@ -42,30 +42,41 @@ describe('plan sessions', () => {
     expect(plan.blocks[plan.blocks.length - 1]?.sessionNumber).toBe(2);
   });
 
-  it('creates a roadmap from today sessions and projected next days', () => {
+  it('creates a roadmap from today sessions and the weekly-focus progression', () => {
     const dailyPlan = generatePlan(profile, weaknesses, 15, '2026-06-06');
     const roadmap = createTrainingRoadmap({
       profile,
       weaknesses,
       activePlan: dailyPlan,
       sessionMinutes: 15,
-      futureDays: 2,
+      futureDays: 3,
     });
 
-    expect(roadmap).toHaveLength(3);
+    expect(roadmap).toHaveLength(4);
     expect(roadmap[0]).toMatchObject({
       label: 'Hoje',
+      title: 'Tema do dia: garfos',
       status: 'current',
       minutes: 15,
     });
     expect(roadmap[1]).toMatchObject({
       date: '2026-06-07',
       label: 'Amanha',
+      title: 'Repeticao: garfos',
+      destinationLabel: 'Puzzles Lichess: Fork',
       status: 'future',
     });
     expect(roadmap[2]).toMatchObject({
       date: '2026-06-08',
       label: 'Em 2 dias',
+      title: 'Transferencia: garfos em partida',
+      destinationLabel: 'Lichess Analysis: revisar partida terminada',
+    });
+    expect(roadmap[3]).toMatchObject({
+      date: '2026-06-09',
+      label: 'Em 3 dias',
+      title: 'Revisao: garfos sem pressa',
+      destinationLabel: 'Lichess Analysis: revisar partida terminada',
     });
   });
 });

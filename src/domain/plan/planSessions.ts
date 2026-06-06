@@ -1,5 +1,5 @@
-import type { DailyPlan, LearnerProfile, PlanBlock, SessionMinutes, Weakness } from '../types';
-import { generatePlan } from './generatePlan';
+import { getDestinationForWeakness } from '../sources/destinations';
+import type { DailyPlan, LearnerProfile, PlanBlock, PlanResourceStage, SessionMinutes, Weakness } from '../types';
 
 export type PlanSessionStatus = 'current' | 'done' | 'future';
 
@@ -21,6 +21,26 @@ export type TrainingRoadmapItem = {
   destinationLabel: string;
   status: PlanSessionStatus;
 };
+
+type FutureRoadmapStep = {
+  stage: PlanResourceStage;
+  title: (focusTitle: string) => string;
+};
+
+const futureRoadmapSteps = [
+  {
+    stage: 'retrieval',
+    title: (focusTitle) => `Repeticao: ${focusTitle}`,
+  },
+  {
+    stage: 'transfer',
+    title: (focusTitle) => `Transferencia: ${focusTitle} em partida`,
+  },
+  {
+    stage: 'review',
+    title: (focusTitle) => `Revisao: ${focusTitle} sem pressa`,
+  },
+] satisfies readonly FutureRoadmapStep[];
 
 export function appendPlanSession(plan: DailyPlan, sessionPlan: DailyPlan): DailyPlan {
   const existingBlockIds = new Set(plan.blocks.map((block) => block.id));
@@ -84,27 +104,28 @@ export function createTrainingRoadmap(input: {
     status: session.status,
   }));
 
+  const focus = input.activePlan.weeklyFocus;
+
+  if (focus === undefined) {
+    return activeItems;
+  }
+
   const futureItems: TrainingRoadmapItem[] = [];
-  let previousPlan = input.activePlan;
 
   for (let dayOffset = 1; dayOffset <= (input.futureDays ?? 3); dayOffset += 1) {
     const date = addDays(input.activePlan.date, dayOffset);
-    const projectedPlan = generatePlan(input.profile, input.weaknesses, input.sessionMinutes, date, {
-      previousPlan,
-    });
-    const themeBlock = getThemeBlock(projectedPlan.blocks);
+    const step = getFutureRoadmapStep(dayOffset);
+    const destination = getDestinationForWeakness(focus.tag, step.stage);
 
     futureItems.push({
       id: `${date}:session:1`,
       date,
       label: dayOffset === 1 ? 'Amanha' : `Em ${String(dayOffset)} dias`,
-      minutes: projectedPlan.sessionMinutes,
-      title: themeBlock.title,
-      destinationLabel: themeBlock.destination.label,
+      minutes: input.sessionMinutes,
+      title: step.title(focus.title),
+      destinationLabel: destination.label,
       status: 'future',
     });
-
-    previousPlan = projectedPlan;
   }
 
   return [...activeItems, ...futureItems];
@@ -112,6 +133,16 @@ export function createTrainingRoadmap(input: {
 
 export function getPlanBlockSessionNumber(block: PlanBlock): number {
   return block.sessionNumber ?? 1;
+}
+
+function getFutureRoadmapStep(dayOffset: number): FutureRoadmapStep {
+  const step = futureRoadmapSteps[(dayOffset - 1) % futureRoadmapSteps.length];
+
+  if (step === undefined) {
+    throw new Error('Roadmap progression is missing a future step.');
+  }
+
+  return step;
 }
 
 function getThemeBlock(blocks: PlanBlock[]): PlanBlock {

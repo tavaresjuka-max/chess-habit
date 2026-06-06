@@ -46,7 +46,8 @@ proxima regeneracao do plano. Resultado oficial de puzzles depende de OAuth `puz
 oficial, e o cliente/parser foi preparado sem armazenar token por padrao.
 O app ainda persiste um plano por data, mas agora esse plano pode ter varias sessoes no mesmo dia:
 `Fazer proxima sessao` anexa uma sessao extra com IDs de bloco unicos, e a tela mostra um roadmap local
-com as sessoes de hoje e os proximos dias projetados pelo mesmo gerador.
+com as sessoes de hoje e os proximos dias em progressao do foco semanal: repeticao, transferencia e revisao,
+em vez de repetir o mesmo recurso guiado.
 Destino de `opening-principles` corrigido para uma aula concreta do Lichess Video sobre principios de abertura
 (`Must-Know Opening Principles - Central Control`), e links antigos de Learn/explorador/filtros sao normalizados
 para esse destino.
