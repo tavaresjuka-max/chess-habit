@@ -8,6 +8,7 @@
 - Substitui: `2026-06-06-chess-tutor-unified-app-design.md` (marcado superseded).
 - Incorpora as correcoes dos relatorios: Codex "Spec em Xeque", Claude/DeepSeek consolidacao,
   Antigravity analise de design (em `docs/review/`).
+- Estado de execucao em 2026-06-06: P0-P3 concluidas; P4 e P5 congeladas por decisao do dono.
 
 > Este documento e uma PROPOSTA aprovada pelo dono como base de execucao para a ferramenta pessoal.
 > Nao sobrepoe `AGENTS.md`; ao contrario, `AGENTS.md` foi atualizado para esta moldura.
@@ -21,8 +22,9 @@
 Uma ferramenta pessoal (PWA local-first) que ajuda o dono a estudar xadrez melhor usando o Lichess:
 entende o nivel/fraquezas a partir do historico real do Lichess, gera um plano adaptado ao tempo
 disponivel, abre a tarefa certa no Lichess, registra progresso, pede feedback curto e adapta as
-proximas licoes. OAuth pessoal foi autorizado pelo dono para Studies, como opt-in e com escopo minimo.
-Se ficar boa, vira versao para a comunidade (Fase P5), que reentra em renomeacao e revisao publica.
+proximas licoes. OAuth pessoal foi autorizado pelo dono como opt-in, com escopos minimos
+`puzzle:read` e `study:write`. Se ficar boa, uma versao para a comunidade pode voltar na Fase P5,
+mas P5 esta congelada ate nova decisao.
 
 Dor que resolve (do proprio dono): "abro o Lichess e nao sei por onde comecar; me perco, estudo
 demais uma coisa, deixo lacunas, nao evoluo, e paro".
@@ -43,15 +45,15 @@ demais uma coisa, deixo lacunas, nao evoluo, e paro".
 6. **Erro/offline/migracao especificados:** ver secao 11.
 7. **Linguagem de hipotese:** fraqueza e "sinal possivel", nunca "voce perde por X". Sem promessa de
    rating.
-8. **Pessoal = um usuario:** OAuth PKCE e permitido como **opt-in** apenas para Studies, com
-   `study:read`/`study:write` conforme necessidade minima. Escopos de jogo continuam proibidos.
+8. **Pessoal = um usuario:** OAuth PKCE e permitido como **opt-in** apenas para `puzzle:read`
+   (atividade de puzzles) e `study:write` (criar/importar Study). Escopos de jogo continuam proibidos.
 
 ## 3. Nao-objetivos (cortar sem do)
 
 - Sem tabuleiro proprio, sem jogo no app, sem ajuda durante partida ao vivo (nunca sugerir lance).
-- Sem OAuth obrigatorio em P0-P2. P2 pode preparar leitura opt-in de atividade de puzzles
-  (`puzzle:read`) para reconciliar resultado de treino; OAuth PKCE opt-in para Studies entra na P3.
-  Sem engine WASM, sem OCR/visao, sem backend ate a fase de sync (P4).
+- Sem OAuth obrigatorio. P2/P3 usam OAuth PKCE apenas como opt-in: `puzzle:read` para reconciliar
+  resultado de treino e `study:write` para criar/importar Study. Sem engine WASM, sem OCR/visao,
+  sem backend enquanto P4 estiver congelada.
 - Sem ChessKing como fonte. Sem screenshots remotos (so local). **Chess.com promovido para P1**
   como fonte primaria de diagnostico (secao 14): parse de PGN transiente, guardar so sinais derivados,
   nunca PGN completo.
@@ -63,7 +65,7 @@ demais uma coisa, deixo lacunas, nao evoluo, e paro".
 - Revalidar nomes de campos/parametros contra a doc oficial viva antes de escrever qualquer coletor
   (registrar em `docs/research/sources.md`).
 - OAuth: somente opt-in, tokens so locais, nunca em logs/export/bundle; escopos permitidos para Study
-  (`study:read`/`study:write`) e leitura de atividade de puzzles (`puzzle:read`); proibidos
+  (`study:write`) e leitura de atividade de puzzles (`puzzle:read`); proibidos
   `puzzle:write` e escopos de jogo (`board:play`, `bot:play`, `challenge:*`).
 - Privacidade: nada de PII em logs; nada de token; nada de PGN completo persistido (so derivados).
 - Dominio puro: sem rede e sem React; funcoes deterministas e testaveis.
@@ -284,7 +286,7 @@ Guardrails P3:
   por vez; 429 -> esperar pelo menos 1 minuto.
 - Fair play: nunca criar/atualizar estudo a partir de partida ao vivo; nunca sugerir lance durante jogo.
 
-## 13. Sync PC<->celular — P4 (depois do valor e do Study opt-in)
+## 13. Sync PC<->celular — P4 (CONGELADA em 2026-06-06)
 
 - **Opt-in.** Codigo de sync forte (>=24 chars) gerado uma vez; digitado no 2o aparelho;
   chave = `hash(codigo)`.
@@ -375,15 +377,16 @@ Mapeamento a partir dos prints (CONFIRMADO pelo dono em 2026-06-06):
 | Finais de peoes | `endgame-pawn` | fraqueza |
 | "Qual seria sua jogada?" (calculo/candidatos) | nota manual (sem tag direta) | fraqueza |
 
-### 14.4 "Outro estudo" generico — P4 (texto livre, local)
+### 14.4 "Outro estudo" generico — P4 (CONGELADA em 2026-06-06)
 
 Formulario livre (nivel aproximado, o que estudou, fraqueza percebida) -> Signal `manual`. Print
 opcional **so local**, nunca sincronizado, com aviso de direitos. Sem OCR.
 
-## 15. Versao-comunidade — P5 (so se a pessoal for boa)
+## 15. Versao-comunidade — P5 (CONGELADA em 2026-06-06)
 
 Renomeacao publica (resolve P0 de marca), disclaimer de nao-afiliacao e fair play, polish PWA, i18n.
-OAuth PKCE ja existe como opt-in pessoal desde P3 (study). Na comunidade, reentra em revisao publica, disclaimers, nome e seguranca.
+OAuth PKCE ja existe como opt-in pessoal desde P3. Na comunidade, reentra em revisao publica,
+disclaimers, nome e seguranca apenas se P5 for descongelada.
 
 ## 16. Voz do coach (tom, nao personagem)
 
@@ -394,19 +397,20 @@ Durante partida ao vivo: silencio.
 ## 17. Privacidade
 
 Local-first; dados no aparelho. Guardar: username (publico), preferencias, plano, conclusoes, notas,
-sinais derivados. Nunca: token, senha, PGN completo, PII em log. Direitos: exportar JSON, apagar
-tudo, limpar cache. Sync (P4) guarda so dados sincronizaveis, nunca imagens.
+sinais derivados e token OAuth opt-in somente no IndexedDB local. Nunca: token em backup JSON/log/bundle,
+senha, PGN completo persistido, PII em log. Direitos: exportar JSON, apagar tudo, limpar cache.
+Sync (P4) esta congelado.
 
 ## 18. Fases, alvos e Definition of Done
 
 | Fase | Objetivo | Alvos | DoD |
 |---|---|---|---|
-| **P0** | Scaffold limpo + dominio tipado + time budget | `package.json`, `src/`, `domain/{types,plan,metrics}`, Dexie | `lint+test+build` verdes; gera plano fixo para 5/15/30/60; dominio sem rede |
-| **P1** | Chess.com adaptativo (diagnostico primario) + destinos Lichess | `services/chesscom.ts` (stats + archives, parse transiente), `domain/weakness/`, mapa destino Lichess (allowlist) | com `username` Chess.com real, tema do plano vem das fraquezas derivadas; so sinais derivados persistidos (zero PGN); 429 respeitado; testes de fixture |
-| **P2** | Loop de valor + Lichess como fonte secundaria | timer/log de treino, `services/lichess.ts`, feedback `easy/hard`, regen ao abrir, revisao semanal, auto-ajuste de band | abrir treino inicia timer; limite apita sem bloquear; concluir salva tempo real; feedback altera proximo plano; `done` preservado; tema semanal vem da fraqueza dominante; sinais do Lichess somam aos do Chess.com; testes |
-| **P3** | Gerador de Study via OAuth (`study:write`) — "Seu treino de hoje" com posicoes fracas | `services/lichessOAuth.ts` (PKCE), `services/lichessStudy.ts` | login Lichess opt-in; cria/atualiza study privado/unlisted; token so local; fallback deep-link de analise quando deslogado |
-| **P4** | Sync opt-in + "outro estudo" local | D1 + worker + merge por registro; formulario manual -> Signal | so estado local do app (perfil/logs/feedback/notas/manual-signals); nenhum `done` perdido; print so local |
-| **P5** | Comunidade | rename, disclaimers, i18n, polish, revisao publica e seguranca OAuth | fora do escopo pessoal; reentra na validacao |
+| **P0** | Concluida: scaffold limpo + dominio tipado + time budget | `package.json`, `src/`, `domain/{types,plan,metrics}`, Dexie | `lint+test+build` verdes; gera plano fixo para 5/15/30/60; dominio sem rede |
+| **P1** | Concluida: Chess.com adaptativo (diagnostico primario) + destinos Lichess | `services/chesscom.ts` (stats + archives, parse transiente), `domain/weakness/`, mapa destino Lichess (allowlist) | com `username` Chess.com real, tema do plano vem das fraquezas derivadas; so sinais derivados persistidos (zero PGN); 429 respeitado; testes de fixture |
+| **P2** | Concluida: loop de valor + Lichess como fonte secundaria | timer/log de treino, `services/lichess.ts`, feedback `easy/good/hard`, roadmap, sessoes extras | abrir treino inicia timer; limite apita sem bloquear; concluir salva tempo real; feedback altera proximo plano; `done` preservado; sinais do Lichess somam aos do Chess.com; testes |
+| **P3** | Concluida: OAuth + puzzle activity + Study (`study:write`) | `infra/lichess/oauth.ts`, `infra/lichess/puzzleActivity.ts`, `infra/lichess/study.ts` | login Lichess opt-in; token so local; reconcilia puzzles; cria study privado; PGN transiente |
+| **P4** | **CONGELADA**: Sync opt-in + "outro estudo" local | D1 + worker + merge por registro; formulario manual -> Signal | nao implementar ate nova decisao do dono |
+| **P5** | **CONGELADA**: Comunidade | rename, disclaimers, i18n, polish, revisao publica e seguranca OAuth | nao implementar ate nova decisao do dono |
 
 ## 19. ADRs registrados (ver `docs/adr/`)
 
@@ -427,7 +431,7 @@ Gate por fase: `npm run lint && npm run test && npm run build` verdes.
 
 1. `band` pessoal confirmada pelo dono: **800-1200** (tema fixo de P0 = `fork`).
 2. Username Lichess fixado: **jukasparov** (usar em P1).
-3. Conta Cloudflare existente para o D1 do sync (P4)?
+3. Conta Cloudflare para D1 fica irrelevante enquanto P4 estiver congelada.
 
 ---
 

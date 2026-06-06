@@ -6,23 +6,24 @@ Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro)
 
 - Moldura: **pessoal primeiro, comunidade depois** (decidida pelo dono).
 - Fase de codigo: **aberta pelo dono** para a ferramenta pessoal.
-- App: P1 concluida e P2 iniciada. PWA local-first roda com dominio puro, plano adaptado por fraquezas,
-  timer/log local de treino, feedback facil/bom/dificil, foco semanal, selecao de recursos por estagio,
-  Dexie, export/apagar e offline-shell.
-- Backend/banco: so na Fase P4 (sync).
+- App: P0-P3 concluidas. PWA local-first roda com dominio puro, diagnostico Chess.com/Lichess,
+  plano adaptado por fraquezas, timer/log local de treino, feedback facil/bom/dificil, foco semanal,
+  roadmap, sessoes extras, selecao de recursos por estagio, OAuth PKCE opt-in, reconciliacao de puzzles,
+  Study Lichess privado do dia, Dexie, export/apagar e offline-shell.
+- Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
 ## Decisoes Vigentes
 
 - Ferramenta pessoal Lichess-first, local-first, adaptativa, faixa 0-1200.
 - Clean-room: app novo do zero; proibido herdar codigo/assets do app pago. ChessKing fora do dominio.
-- OAuth foi permitido pelo dono e reconciliado em `AGENTS.md`, `PLANO.md`, ADR-006 e spec. P0-P2 seguem
-  sem OAuth obrigatorio; `puzzle:read` e permitido como leitura opt-in para reconciliar atividade de
-  puzzles; P3 usa OAuth PKCE opt-in para Studies com `study:read`/`study:write`.
+- OAuth foi permitido pelo dono e reconciliado em `AGENTS.md`, `PLANO.md`, ADR-006 e spec. OAuth nunca
+  e obrigatorio; escopos permitidos na ferramenta pessoal: `puzzle:read` para reconciliar atividade de
+  puzzles e `study:write` para criar/importar o Study do dia. Tokens ficam locais e fora do export.
 - Sem engine na ferramenta pessoal.
 - Adaptativo via dados publicos do Lichess + a analise que o Lichess ja fez (sem rodar engine).
-- Multi-fonte e sync sao faseados, nao cortados. P1 deve partir do plano vigente e revalidar contratos oficiais antes de coletores.
-- Renomeacao publica continua reservada para a versao-comunidade; OAuth pessoal e opt-in e restrito a Studies.
+- Multi-fonte chegou ate P3. Sync (P4) e comunidade/renomeacao/disclaimers publicos (P5) estao congelados.
+- Renomeacao publica continua reservada para a versao-comunidade congelada; OAuth pessoal e opt-in e restrito a `puzzle:read`/`study:write`.
 - Tipos estritos, sync por registro, slugs por allowlist oficial/manual, erro/offline especificados, linguagem de hipotese.
 
 ## Historico Da Auditoria (insumo, ja absorvido)
@@ -36,21 +37,21 @@ Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro)
 
 ## Proxima Etapa
 
-P0 concluida pelo Codex em 2026-06-06. P1 concluida: coletor Chess.com usa PubAPI read-only (`stats`,
-`games/archives`, `games/{YYYY}/{MM}`), acesso serial, cache mensal de **sinais derivados** e parse de
-PGN apenas transiente. P2 iniciada: abrir treino no Lichess inicia timer local; concluir salva tempo
-real treinado. Blocos de plano agora carregam `weeklyFocus`, `weaknessTag` e `resourceStage`; o seletor
-abre Practice/video para explicacao guiada, Puzzle Theme para repeticao e Analysis para transferencia
-ou revisao de partida terminada. Feedback `easy`/`good`/`hard` fica salvo no bloco/log e influencia a
-proxima regeneracao do plano. Resultado oficial de puzzles depende de OAuth `puzzle:read`, confirmado na doc
-oficial, e o cliente/parser foi preparado sem armazenar token por padrao.
-O app ainda persiste um plano por data, mas agora esse plano pode ter varias sessoes no mesmo dia:
-`Fazer proxima sessao` anexa uma sessao extra com IDs de bloco unicos, e a tela mostra um roadmap local
-com as sessoes de hoje e os proximos dias em progressao do foco semanal: repeticao, transferencia e revisao,
-em vez de repetir o mesmo recurso guiado.
-Destino de `opening-principles` corrigido para uma aula concreta do Lichess Video sobre principios de abertura
-(`Must-Know Opening Principles - Central Control`), e links antigos de Learn/explorador/filtros sao normalizados
-para esse destino.
+P0, P1, P2 e P3 foram fechadas em 2026-06-06. P4 e P5 estao congeladas por decisao do dono; a proxima
+etapa valida e estabilizar/testar o app pessoal com uso real antes de qualquer sync, backend, texto livre
+ou versao-comunidade.
+
+Implementado ate P3:
+
+- Chess.com PubAPI read-only como diagnostico primario (`stats`, `games/archives`, `games/{YYYY}/{MM}`),
+  acesso serial, cache mensal de sinais derivados e parse PGN apenas transiente.
+- Lichess como diagnostico secundario por export NDJSON de partidas analisadas, sem moves/PGN persistido.
+- Timer/log local ao abrir treino no Lichess; concluir salva tempo real e feedback `easy`/`good`/`hard`.
+- Reconciliacao de puzzles via OAuth opt-in `puzzle:read`, tanto manual quanto oportunista ao concluir.
+- Study Lichess privado do dia via OAuth opt-in `study:write`; PGN gerado e importado transientemente,
+  sem armazenar PGN completo.
+- Roadmap local, foco semanal, recursos por estagio, sessoes extras no mesmo dia e abertura direta de
+  aulas/Practice/puzzle themes especificos.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

@@ -14,6 +14,19 @@ Pesquisa executada para avaliar se a ferramenta pessoal deveria criar/usar estud
 - [Export all chapters](https://github.com/lichess-org/api/blob/master/doc/specs/tags/studies/api-study-studyId.pgn.yaml): confirmou exportacao PGN de estudo, leitura publica limitada a estudos publicos nao-unlisted quando sem autenticacao, e leitura completa com `study:read`.
 - [Lichess API Tips](https://lichess.org/page/api-tips): revalidou preferencia por API oficial em vez de scraping/browser automation, regra de uma requisicao por vez e espera minima de 1 minuto apos HTTP 429.
 
+## Pesquisa Pontual Em 2026-06-06: Fechamento P3 OAuth/Studies/Lichess
+
+Pesquisa revalidada antes de fechar P3 e congelar P4/P5.
+
+- [Lichess API specification](https://github.com/lichess-org/api/blob/master/doc/specs/lichess-api.yaml): revalidou endpoint base `https://lichess.org`, rate limit de uma requisicao por vez, espera minima apos HTTP 429, PKCE, tokens long-lived e cuidado para nao hardcodar/expor tokens.
+- [Lichess OAuth endpoint spec](https://github.com/lichess-org/api/blob/master/doc/specs/tags/oauth/oauth.yaml): revalidou Authorization Code Flow with PKCE, `state`, `code_verifier`, `code_challenge_method=S256`, `scope` e hint `username`.
+- [Lichess token endpoint spec](https://github.com/lichess-org/api/blob/master/doc/specs/tags/oauth/api-token.yaml): revalidou `POST /api/token` com `authorization_code`, `code_verifier`, `redirect_uri`, `client_id`, resposta `Bearer`/`expires_in`, e `DELETE /api/token` para revogar.
+- [Get your puzzle activity](https://github.com/lichess-org/api/blob/master/doc/specs/tags/puzzles/api-puzzle-activity.yaml): revalidou `GET /api/puzzle/activity`, NDJSON, parametros `max`, `before`, `since` e escopo `puzzle:read`.
+- [Lichess games export spec](https://github.com/lichess-org/api/blob/master/doc/specs/tags/games/api-games-user-username.yaml): revalidou export NDJSON de partidas de usuario; o app usa `moves=false`, `pgnInJson=false`, `opening=true`, `accuracy=true`, `finished=true`, `sort=dateDesc` e nao envia `analysed=true`, para nao descartar sinais baratos de abertura/cor.
+- [Create a new Study](https://github.com/lichess-org/api/blob/master/doc/specs/tags/studies/api-study.yaml): revalidou `POST /api/study`, `visibility` public/unlisted/private, limite de 30 estudos/dia e exigencia de `study:write`.
+- [Import PGN into a study](https://github.com/lichess-org/api/blob/master/doc/specs/tags/studies/api-study-studyId-import-pgn.yaml): revalidou `POST /api/study/{studyId}/import-pgn`, multiplos capitulos por PGN, limite de 64 capitulos e exigencia de `study:write`.
+- [Study user selection schema](https://github.com/lichess-org/api/blob/master/doc/specs/schemas/StudyUserSelection.yaml): revalidou valores permitidos `nobody`, `owner`, `contributor`, `member`, `everyone` para permissoes do Study.
+
 ## Pesquisa Pontual Em 2026-06-06: PWA P0
 
 Pesquisa executada durante a implementacao P0 do app instalavel/offline-shell.

@@ -106,8 +106,8 @@ unificado anterior: superseded.
 
 O dono decidiu: **"vamos usar oauth sim"**. A P0 permanece sem rede/OAuth, mas a decisao remove a
 restricao anterior como direcao de produto futura. Reconciliacao aplicada em `AGENTS.md`, `PLANO.md`,
-ADR-006 e spec: OAuth PKCE e opt-in, restrito a Studies (`study:read`/`study:write`), tokens somente
-locais, sem escopos de jogo e sem ajuda durante partidas ao vivo.
+ADR-006 e spec: OAuth PKCE e opt-in, restrito a `study:write` para Study e `puzzle:read` para
+reconciliar puzzles, tokens somente locais, sem escopos de jogo e sem ajuda durante partidas ao vivo.
 
 ## 2026-06-06: Ajuste Do Signal De Cor Para P1
 
@@ -123,3 +123,16 @@ oficial exige OAuth `puzzle:read` para `/api/puzzle/activity`. Decisao: permitir
 escopo opt-in minimo de leitura para reconciliar resultado de puzzles, sem `puzzle:write`, sem escopos
 de jogo, sem engine, sem token em logs/export/bundle. Enquanto OAuth nao estiver ligado, o app salva
 timer/log local (`startedAt`, `completedAt`, `elapsedSeconds`) e pode reconciliar depois.
+
+## 2026-06-06: P3 Fechada E P4/P5 Congeladas
+
+O dono pediu para fazer tudo ate P3 completo e congelar P4/P5. Decisao aplicada:
+
+- P0-P3 ficam como escopo atual da ferramenta pessoal.
+- P4 (sync PC<->celular, backend/D1, merge por registro e texto livre "outro estudo") fica congelada.
+- P5 (versao-comunidade, renomeacao publica, disclaimers publicos, i18n, polish e revisao publica)
+  fica congelada.
+- Study gerado em P3 e privado por padrao. Estudo publico/seguivel para outros usuarios e assunto de P5,
+  nao da ferramenta pessoal atual.
+- Escopos OAuth ativos no app pessoal: `puzzle:read` e `study:write`; sem escopos de jogo, sem
+  `puzzle:write`, sem mensagens, sem engine.

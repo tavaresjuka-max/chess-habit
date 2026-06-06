@@ -18,8 +18,9 @@ o resultado de blocos de treino ja iniciados pelo usuario.
 - P1/P2 continuam podendo detectar fraquezas a partir de dados publicos e APIs read-only oficiais
   (Chess.com e Lichess), com parse transiente e so sinais derivados persistidos.
 - OAuth PKCE fica permitido como **opt-in** em fase propria para gerar/atualizar Lichess Studies e
-  reconciliar atividade de puzzles. Escopos permitidos: `study:read` e/ou `study:write`, conforme a
-  necessidade minima, e `puzzle:read` para ler `/api/puzzle/activity`.
+  reconciliar atividade de puzzles. Escopos permitidos no app pessoal atual: `study:write` para
+  criar/importar Study e `puzzle:read` para ler `/api/puzzle/activity`. `study:read` so deve entrar
+  se uma tarefa futura realmente exigir leitura de estudos privados e o dono descongelar esse escopo.
 - Escopos proibidos continuam proibidos: `board:play`, `bot:play`, `challenge:*`, `msg:write`,
   `engine:*`, `puzzle:write` e qualquer escopo de jogo/automacao de partida.
 - Tokens ficam somente locais, nunca em logs, bundle publico, arquivos versionados ou export padrao.
