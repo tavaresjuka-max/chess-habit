@@ -5,6 +5,7 @@ import {
   completeTrainingLog,
   createTrainingLog,
   generatePlan,
+  normalizePlanDestinations,
   skipTrainingLog,
   type DailyPlan,
   type LearnerProfile,
@@ -93,9 +94,12 @@ export function useAppState(): AppState {
         const storedWeaknesses = await loadWeaknesses();
         const storedPlan = await getPlan(date);
         const storedTrainingLogs = await loadTrainingLogsForDate(date);
-        const plan = storedPlan ?? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date);
+        const plan =
+          storedPlan === undefined
+            ? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date)
+            : normalizePlanDestinations(storedPlan);
 
-        if (storedPlan === undefined) {
+        if (storedPlan === undefined || plan !== storedPlan) {
           await savePlan(plan);
         }
 

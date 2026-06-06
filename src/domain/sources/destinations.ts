@@ -1,5 +1,11 @@
 import type { Destination, WeaknessTag } from '../types';
 
+const openingPrinciplesDestination = {
+  source: 'lichess',
+  label: 'Lichess Analysis: principios e explorador de abertura',
+  url: 'https://lichess.org/analysis#explorer',
+} satisfies Destination;
+
 export const lichessDestinationsByWeakness = {
   'hanging-piece': {
     source: 'lichess',
@@ -42,9 +48,7 @@ export const lichessDestinationsByWeakness = {
     url: 'https://lichess.org/training/backRankMate',
   },
   'opening-principles': {
-    source: 'lichess',
-    label: 'Lichess Learn: principios de abertura',
-    url: 'https://lichess.org/learn',
+    ...openingPrinciplesDestination,
   },
   'time-trouble': {
     source: 'lichess',
@@ -73,4 +77,12 @@ export const lichessDestinationsByWeakness = {
 
 export function getDestinationForWeakness(tag: WeaknessTag): Destination {
   return lichessDestinationsByWeakness[tag];
+}
+
+export function normalizeDestination(destination: Destination): Destination {
+  if (destination.url === 'https://lichess.org/learn' && destination.label.includes('abertura')) {
+    return openingPrinciplesDestination;
+  }
+
+  return destination;
 }

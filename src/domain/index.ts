@@ -1,5 +1,6 @@
 export * from './types';
 export * from './plan/generatePlan';
+export * from './plan/normalizePlan';
 export * from './plan/timeBudget';
 export * from './coach/coachCatalog';
 export * from './manual/knownManualSignals';

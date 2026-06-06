@@ -37,6 +37,15 @@ Pesquisa executada antes de preparar a reconciliacao de resultados de treino em 
 - [Get your puzzle activity](https://github.com/lichess-org/api/blob/master/doc/specs/tags/puzzles/api-puzzle-activity.yaml): confirmou `GET /api/puzzle/activity`, resposta `application/x-ndjson`, ordenacao por ordem cronologica reversa, parametros `max`, `before` e `since`, e exigencia de OAuth `puzzle:read`.
 - [PuzzleActivity schema](https://github.com/lichess-org/api/blob/master/doc/specs/schemas/PuzzleActivity.yaml): confirmou campos `date`, `win` e `puzzle{id,rating,themes}` usados para resumir puzzles resolvidos, acertos, erros e temas.
 
+## Pesquisa Pontual Em 2026-06-06: Destino De Abertura P2
+
+Pesquisa executada apos observar que `https://lichess.org/learn` era generico demais para o bloco
+"principios de abertura".
+
+- [Lichess Features](https://lichess.org/features): confirmou que o Lichess oferece ferramentas
+  especificas de `Analysis board` e `Openings`, mais adequadas para revisar principios de abertura
+  do que a pagina generica de basicos (`/learn`).
+
 ## Pesquisa Externa Em 2026-06-06: Auditoria Global Estrategica
 
 Pesquisa executada para `docs/review/relatorio-codex-torre-aberta-lichess-tutor.md`.
