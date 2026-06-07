@@ -8,10 +8,10 @@ export type LichessOAuthRequest = {
   redirectUri: string;
 };
 
-export type LichessOAuthCallback = {
-  code: string;
-  state: string;
-};
+export type LichessOAuthCallback =
+  | { kind: 'success'; code: string; state: string }
+  | { kind: 'error'; error: string }
+  | { kind: 'none' };
 
 export type LichessTokenResponse = {
   token_type: string;
@@ -55,21 +55,21 @@ export async function createLichessOAuthRequest(input: {
   };
 }
 
-export function parseLichessOAuthCallback(url: string): LichessOAuthCallback | undefined {
+export function parseLichessOAuthCallback(url: string): LichessOAuthCallback {
   const parsed = new URL(url);
   const code = parsed.searchParams.get('code');
   const state = parsed.searchParams.get('state');
   const error = parsed.searchParams.get('error');
 
   if (error !== null) {
-    throw new Error(`OAuth Lichess cancelado ou recusado: ${error}.`);
+    return { kind: 'error', error };
   }
 
   if (code === null || state === null) {
-    return undefined;
+    return { kind: 'none' };
   }
 
-  return { code, state };
+  return { kind: 'success', code, state };
 }
 
 export async function exchangeLichessOAuthCode(input: {

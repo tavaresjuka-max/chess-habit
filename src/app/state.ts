@@ -118,21 +118,26 @@ export function useAppState(): AppState {
 
     async function loadAppData() {
       try {
-        const oauthToken = await completeLichessOAuthIfNeeded();
+        const completion = await completeLichessOAuthIfNeeded();
         const storedProfile = await loadProfile();
 
         if (!isMounted) {
           return;
         }
 
-        if (oauthToken !== undefined) {
-          setLichessToken(oauthToken);
+        if (completion.kind === 'connected') {
+          setLichessToken(completion.token);
           setLichessConnectionState('connected');
           setLichessMessage('Lichess conectado.');
         } else {
           const storedToken = await loadLichessOAuthToken();
+
           setLichessToken(storedToken);
           setLichessConnectionState(storedToken === undefined ? 'disconnected' : 'connected');
+
+          if (completion.kind === 'cancelled') {
+            setLichessMessage(completion.message);
+          }
         }
 
         if (storedProfile === undefined) {
@@ -333,14 +338,18 @@ export function useAppState(): AppState {
   const disconnectLichess = useCallback(async () => {
     const token = await loadLichessOAuthToken();
 
-    if (token !== undefined) {
-      await revokeLichessOAuthToken({ token: token.accessToken });
+    try {
+      if (token !== undefined) {
+        await revokeLichessOAuthToken({ token: token.accessToken });
+      }
+    } catch {
+      // Revogar depende da rede; mesmo se falhar, o token local precisa sumir.
+    } finally {
+      await clearLichessOAuthToken();
+      setLichessToken(undefined);
+      setLichessConnectionState('disconnected');
+      setLichessMessage('Conexao Lichess removida.');
     }
-
-    await clearLichessOAuthToken();
-    setLichessToken(undefined);
-    setLichessConnectionState('disconnected');
-    setLichessMessage('Conexao Lichess removida.');
   }, []);
 
   const syncLichessDiagnosis = useCallback(async () => {
@@ -648,7 +657,12 @@ export function createDefaultProfile(): LearnerProfile {
 
 const oauthClientId = 'lichess-tutor-local';
 const oauthSessionStorageKey = 'lichess-tutor:oauth-pending';
-const oauthCompletionFlight = createSingleFlight<LichessOAuthToken | undefined>();
+type OAuthCompletionResult =
+  | { kind: 'connected'; token: LichessOAuthToken }
+  | { kind: 'cancelled'; message: string }
+  | { kind: 'none' };
+
+const oauthCompletionFlight = createSingleFlight<OAuthCompletionResult>();
 
 type StoredOAuthRequest = {
   state: string;
@@ -657,41 +671,74 @@ type StoredOAuthRequest = {
   scopes: LichessOAuthToken['scopes'];
 };
 
-async function completeLichessOAuthIfNeeded(): Promise<LichessOAuthToken | undefined> {
+async function completeLichessOAuthIfNeeded(): Promise<OAuthCompletionResult> {
   // Em StrictMode o efeito de carga roda duas vezes; o codigo de autorizacao do
   // Lichess so pode ser trocado uma vez. O single-flight garante uma unica troca
-  // e ambas as execucoes recebem o mesmo token, entao a execucao viva consegue
+  // e ambas as execucoes recebem o mesmo resultado, entao a execucao viva consegue
   // marcar a conexao como conectada sem depender de um refresh manual.
   return oauthCompletionFlight(runLichessOAuthCompletion);
 }
 
-async function runLichessOAuthCompletion(): Promise<LichessOAuthToken | undefined> {
+async function runLichessOAuthCompletion(): Promise<OAuthCompletionResult> {
   const callback = parseLichessOAuthCallback(window.location.href);
 
-  if (callback === undefined) {
-    return undefined;
+  if (callback.kind === 'none') {
+    return { kind: 'none' };
+  }
+
+  // Cancelamento/recusa nao pode derrubar o boot do app; vira mensagem
+  // recuperavel e a query e sempre limpa para o reload nao repetir o erro.
+  if (callback.kind === 'error') {
+    sessionStorage.removeItem(oauthSessionStorageKey);
+    clearOAuthQueryFromUrl();
+
+    return { kind: 'cancelled', message: oauthCancelMessage(callback.error) };
   }
 
   const pending = readPendingOAuthRequest();
 
   if (pending === undefined || pending.state !== callback.state) {
-    throw new Error('Retorno OAuth Lichess nao confere com a solicitacao local.');
+    clearOAuthQueryFromUrl();
+
+    return {
+      kind: 'cancelled',
+      message: 'O retorno do Lichess nao confere com a solicitacao local. Tente conectar de novo.',
+    };
   }
 
-  const token = await exchangeLichessOAuthCode({
-    code: callback.code,
-    codeVerifier: pending.codeVerifier,
-    redirectUri: pending.redirectUri,
-    clientId: oauthClientId,
-    scopes: pending.scopes,
-    nowIso: new Date().toISOString(),
-  });
+  try {
+    const token = await exchangeLichessOAuthCode({
+      code: callback.code,
+      codeVerifier: pending.codeVerifier,
+      redirectUri: pending.redirectUri,
+      clientId: oauthClientId,
+      scopes: pending.scopes,
+      nowIso: new Date().toISOString(),
+    });
 
-  await saveLichessOAuthToken(token);
-  sessionStorage.removeItem(oauthSessionStorageKey);
+    await saveLichessOAuthToken(token);
+    sessionStorage.removeItem(oauthSessionStorageKey);
+    clearOAuthQueryFromUrl();
+
+    return { kind: 'connected', token };
+  } catch (error) {
+    sessionStorage.removeItem(oauthSessionStorageKey);
+    clearOAuthQueryFromUrl();
+
+    return { kind: 'cancelled', message: toLichessErrorMessage(error) };
+  }
+}
+
+function clearOAuthQueryFromUrl(): void {
   window.history.replaceState(null, document.title, stripOAuthQuery(window.location.href));
+}
 
-  return token;
+function oauthCancelMessage(error: string): string {
+  if (error === 'access_denied') {
+    return 'Voce cancelou a conexao com o Lichess. Pode tentar de novo quando quiser.';
+  }
+
+  return `O Lichess recusou a conexao (${error}). Tente conectar de novo.`;
 }
 
 function readPendingOAuthRequest(): StoredOAuthRequest | undefined {

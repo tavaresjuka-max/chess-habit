@@ -40,7 +40,22 @@ export function App() {
         </button>
       </nav>
 
-      {appState.errorMessage !== undefined ? <p className="app-error">{appState.errorMessage}</p> : null}
+      {appState.errorMessage !== undefined ? (
+        <p className="app-error" role="alert">
+          {appState.errorMessage}
+          {appState.loadState === 'error' ? (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                window.location.assign(window.location.pathname);
+              }}
+            >
+              Recarregar
+            </button>
+          ) : null}
+        </p>
+      ) : null}
 
       {shouldShowConfig ? (
         <Config

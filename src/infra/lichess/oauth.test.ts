@@ -26,10 +26,22 @@ describe('lichess oauth', () => {
 
   it('parses and strips an OAuth callback', () => {
     expect(parseLichessOAuthCallback('http://127.0.0.1:5174/?code=abc&state=xyz')).toEqual({
+      kind: 'success',
       code: 'abc',
       state: 'xyz',
     });
     expect(stripOAuthQuery('http://127.0.0.1:5174/?code=abc&state=xyz&view=config')).toBe('/?view=config');
+  });
+
+  it('reports a cancelled OAuth callback as a recoverable error instead of throwing', () => {
+    expect(parseLichessOAuthCallback('http://127.0.0.1:5174/?error=access_denied&state=xyz')).toEqual({
+      kind: 'error',
+      error: 'access_denied',
+    });
+  });
+
+  it('reports no callback when there is no oauth query', () => {
+    expect(parseLichessOAuthCallback('http://127.0.0.1:5174/?view=config')).toEqual({ kind: 'none' });
   });
 
   it('exchanges an authorization code for a local token record', async () => {
