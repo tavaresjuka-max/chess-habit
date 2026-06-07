@@ -182,6 +182,35 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
   });
 
+  it('preserves done status and feedback of matching blocks when regenerating', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
+    const completedBlockId = previousPlan.blocks[0]?.id;
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {
+      previousPlan: {
+        ...previousPlan,
+        blocks: previousPlan.blocks.map((block, index) =>
+          index === 0
+            ? { ...block, status: 'done', feedback: 'good', updatedAt: '2026-06-06T10:00:00.000Z' }
+            : block,
+        ),
+      },
+    });
+
+    const regenerated = plan.blocks.find((block) => block.id === completedBlockId);
+
+    expect(regenerated?.status).toBe('done');
+    expect(regenerated?.feedback).toBe('good');
+    expect(regenerated?.updatedAt).toBe('2026-06-06T10:00:00.000Z');
+  });
+
+  it('does not resurrect feedback on a previously pending block', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', { previousPlan });
+
+    expect(plan.blocks.every((block) => block.status === 'pending')).toBe(true);
+    expect(plan.blocks.every((block) => block.feedback === undefined)).toBe(true);
+  });
+
   it('is deterministic for the same inputs', () => {
     const sessionMinutes: SessionMinutes = 30;
     const first = generatePlan(baseProfile, [], sessionMinutes, '2026-06-06');

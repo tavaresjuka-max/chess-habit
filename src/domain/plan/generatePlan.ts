@@ -49,16 +49,19 @@ export function generatePlan(
   const latestThemeSignal = getLatestThemeSignalForWeakness(options.previousPlan, primaryWeakness.tag);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
-    createPlanBlock({
-      date,
-      index,
-      sessionNumber,
-      kind: budgetBlock.kind,
-      minutes: budgetBlock.minutes,
-      primaryWeakness,
-      latestThemeSignal,
-      updatedAt,
-    }),
+    inheritPreviousProgress(
+      createPlanBlock({
+        date,
+        index,
+        sessionNumber,
+        kind: budgetBlock.kind,
+        minutes: budgetBlock.minutes,
+        primaryWeakness,
+        latestThemeSignal,
+        updatedAt,
+      }),
+      options.previousPlan,
+    ),
   );
 
   return {
@@ -66,7 +69,7 @@ export function generatePlan(
     sessionMinutes,
     weeklyFocus,
     blocks,
-    generatedFromWeaknessesAt: weaknesses[0]?.evidence ? updatedAt : updatedAt,
+    generatedFromWeaknessesAt: updatedAt,
   };
 }
 
@@ -99,6 +102,25 @@ function createPlanBlock(input: {
     coachNote: getCoachNote(input.kind),
     status: 'pending',
     updatedAt: input.updatedAt,
+  };
+}
+
+function inheritPreviousProgress(block: PlanBlock, previousPlan: DailyPlan | undefined): PlanBlock {
+  if (previousPlan === undefined) {
+    return block;
+  }
+
+  const previous = previousPlan.blocks.find((candidate) => candidate.id === block.id);
+
+  if (previous === undefined || previous.status === 'pending') {
+    return block;
+  }
+
+  return {
+    ...block,
+    status: previous.status,
+    feedback: previous.feedback,
+    updatedAt: previous.updatedAt,
   };
 }
 

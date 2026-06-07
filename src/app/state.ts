@@ -181,7 +181,9 @@ export function useAppState(): AppState {
 
   const saveProfile = useCallback(async (nextProfile: LearnerProfile) => {
     const date = getTodayDate();
-    const plan = generatePlan(nextProfile, weaknesses, nextProfile.defaultSessionMinutes, date);
+    const plan = generatePlan(nextProfile, weaknesses, nextProfile.defaultSessionMinutes, date, {
+      previousPlan: todayPlan,
+    });
 
     await saveStoredProfile(nextProfile);
     await savePlan(plan);
@@ -192,7 +194,7 @@ export function useAppState(): AppState {
     setActiveView('today');
     setErrorMessage(undefined);
     setTrainingLogs(await loadTrainingLogsForDate(date));
-  }, [weaknesses]);
+  }, [todayPlan, weaknesses]);
 
   const regeneratePlan = useCallback(
     async (minutes: SessionMinutes) => {
@@ -274,7 +276,7 @@ export function useAppState(): AppState {
       const allSignals = await loadSignals();
       const nextWeaknesses = detectWeaknesses(allSignals);
       const date = getTodayDate();
-      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date);
+      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, { previousPlan: todayPlan });
 
       await replaceWeaknesses(nextWeaknesses);
       await savePlan(plan);
@@ -292,7 +294,7 @@ export function useAppState(): AppState {
       setDiagnosisState('error');
       setDiagnosisMessage(toDiagnosisErrorMessage(error));
     }
-  }, [profile, sessionMinutes]);
+  }, [profile, sessionMinutes, todayPlan]);
 
   const importKnownManualSignals = useCallback(async () => {
     const manualSignals = createKnownManualSignals(new Date().toISOString());
@@ -307,14 +309,14 @@ export function useAppState(): AppState {
 
     if (profile !== undefined) {
       const date = getTodayDate();
-      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date);
+      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, { previousPlan: todayPlan });
 
       await savePlan(plan);
       setTodayPlan(plan);
     }
 
     return manualSignals.length;
-  }, [profile, sessionMinutes]);
+  }, [profile, sessionMinutes, todayPlan]);
 
   const connectLichess = useCallback(async () => {
     const redirectUri = getOAuthRedirectUri();
