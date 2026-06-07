@@ -81,6 +81,10 @@ describe('trainingSession', () => {
     expect(formatElapsedMinutes(90)).toBe('2 min');
   });
 
+  it('formats a zero-duration completion honestly instead of inflating to a minute', () => {
+    expect(formatElapsedMinutes(0)).toBe('menos de 1 min');
+  });
+
   it('guards invalid elapsed dates', () => {
     expect(elapsedSecondsBetween('bad', '2026-06-06T10:00:00.000Z')).toBe(0);
   });

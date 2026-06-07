@@ -75,6 +75,10 @@ export function elapsedSecondsBetween(startedAt: string, nowIso: string): number
 }
 
 export function formatElapsedMinutes(seconds: number): string {
+  if (seconds <= 0) {
+    return 'menos de 1 min';
+  }
+
   const minutes = Math.max(1, Math.round(seconds / 60));
   return `${String(minutes)} min`;
 }
