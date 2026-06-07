@@ -26,6 +26,17 @@ describe('parsePuzzleActivityNdjson', () => {
       },
     ]);
   });
+
+  it('skips a syntactically broken json line without dropping the batch', () => {
+    const valid = {
+      date: 1_780_000_000_000,
+      win: false,
+      puzzle: { id: 'zz999', rating: 1300, themes: ['mate'] },
+    };
+    const ndjson = [JSON.stringify(valid), '{ "date": 1, ', ''].join('\n');
+
+    expect(parsePuzzleActivityNdjson(ndjson)).toEqual([valid]);
+  });
 });
 
 describe('summarizePuzzleActivity', () => {

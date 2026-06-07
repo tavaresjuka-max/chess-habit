@@ -86,8 +86,16 @@ export function parsePuzzleActivityNdjson(ndjson: string): LichessPuzzleActivity
   return ndjson
     .split(/\r?\n/)
     .filter((line) => line.trim() !== '')
-    .map((line) => JSON.parse(line) as unknown)
+    .map(parseJsonLineOrUndefined)
     .filter(isPuzzleActivity);
+}
+
+function parseJsonLineOrUndefined(line: string): unknown {
+  try {
+    return JSON.parse(line) as unknown;
+  } catch {
+    return undefined;
+  }
 }
 
 function puzzleActivityUrl(options: FetchPuzzleActivityOptions): string {

@@ -104,8 +104,16 @@ export function parseLichessGamesNdjson(ndjson: string): LichessGameJson[] {
   return ndjson
     .split(/\r?\n/)
     .filter((line) => line.trim() !== '')
-    .map((line) => JSON.parse(line) as unknown)
+    .map(parseJsonLineOrUndefined)
     .filter(isLichessGameJson);
+}
+
+function parseJsonLineOrUndefined(line: string): unknown {
+  try {
+    return JSON.parse(line) as unknown;
+  } catch {
+    return undefined;
+  }
 }
 
 export function extractSignalsFromLichessGames(

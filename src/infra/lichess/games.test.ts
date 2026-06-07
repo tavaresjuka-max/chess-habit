@@ -26,6 +26,24 @@ describe('lichess games', () => {
     expect(games[0]?.id).toBe('game1');
   });
 
+  it('skips a syntactically broken json line without dropping the batch', () => {
+    const games = parseLichessGamesNdjson(
+      [
+        JSON.stringify({
+          id: 'game1',
+          players: { white: { user: { name: 'jukasparov' } }, black: { user: { name: 'opponent' } } },
+        }),
+        '{ "id": "broken", ',
+        JSON.stringify({
+          id: 'game2',
+          players: { white: { user: { name: 'jukasparov' } }, black: { user: { name: 'opponent' } } },
+        }),
+      ].join('\n'),
+    );
+
+    expect(games.map((game) => game.id)).toEqual(['game1', 'game2']);
+  });
+
   it('finds the player side case-insensitively', () => {
     expect(
       getPlayerSideLichess(
