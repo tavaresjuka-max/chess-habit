@@ -78,6 +78,7 @@ export type LichessStudyLink = {
   studyId: string;
   url: string;
   visibility: 'private' | 'unlisted';
+  imported: boolean;
   createdAt: string;
   updatedAt: string;
 };

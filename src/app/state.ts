@@ -429,7 +429,7 @@ export function useAppState(): AppState {
 
     const existingLink = await getLichessStudyLink(todayPlan.date);
 
-    if (existingLink !== undefined) {
+    if (existingLink?.imported === true) {
       setLichessStudyLink(existingLink);
       setLichessMessage('Study do dia ja existe.');
       window.open(existingLink.url, '_blank', 'noopener,noreferrer');
@@ -445,12 +445,29 @@ export function useAppState(): AppState {
     }
 
     setLichessConnectionState('syncing');
-    setLichessMessage('Criando Study privado no Lichess.');
+    setLichessMessage(
+      existingLink === undefined ? 'Criando Study privado no Lichess.' : 'Retomando o Study do dia no Lichess.',
+    );
 
     try {
       const studyLink = await createDailyStudy({
         token: token.accessToken,
         plan: todayPlan,
+        existingStudyId: existingLink?.studyId,
+        onStudyCreated: async (studyId) => {
+          const partialNow = new Date().toISOString();
+
+          await saveLichessStudyLink({
+            id: todayPlan.date,
+            date: todayPlan.date,
+            studyId,
+            url: `https://lichess.org/study/${studyId}`,
+            visibility: 'private',
+            imported: false,
+            createdAt: partialNow,
+            updatedAt: partialNow,
+          });
+        },
       });
 
       await saveLichessStudyLink(studyLink);

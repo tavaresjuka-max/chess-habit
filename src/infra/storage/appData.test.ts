@@ -176,6 +176,7 @@ describe('appData storage', () => {
       studyId: 'abc12345',
       url: 'https://lichess.org/study/abc12345',
       visibility: 'private',
+      imported: true,
       createdAt: '2026-06-06T10:00:00.000Z',
       updatedAt: '2026-06-06T10:00:00.000Z',
     });

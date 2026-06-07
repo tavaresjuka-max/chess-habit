@@ -14,6 +14,8 @@ export type CreateDailyStudyOptions = {
   token: string;
   plan: DailyPlan;
   visibility?: LichessStudyLink['visibility'];
+  existingStudyId?: string;
+  onStudyCreated?: (studyId: string) => Promise<void> | void;
   nowIso?: string;
   fetcher?: typeof fetch;
 };
@@ -30,12 +32,22 @@ export async function createDailyStudy(options: CreateDailyStudyOptions): Promis
   const fetcher = options.fetcher ?? fetch;
   const nowIso = options.nowIso ?? new Date().toISOString();
   const visibility = options.visibility ?? 'private';
-  const studyId = await createStudy({
-    token,
-    name: `Seu treino de hoje - ${options.plan.date}`,
-    visibility,
-    fetcher,
-  });
+  // Reaproveita um Study ja criado (retry apos import falhar) para nao deixar
+  // Studies vazios orfaos no Lichess a cada tentativa.
+  let studyId = options.existingStudyId;
+
+  if (studyId === undefined) {
+    studyId = await createStudy({
+      token,
+      name: `Seu treino de hoje - ${options.plan.date}`,
+      visibility,
+      fetcher,
+    });
+
+    // Reporta o id antes do import para o chamador persistir um link parcial e
+    // poder recuperar o mesmo Study se o import falhar.
+    await options.onStudyCreated?.(studyId);
+  }
 
   await importPgnToStudy({
     token,
@@ -51,6 +63,7 @@ export async function createDailyStudy(options: CreateDailyStudyOptions): Promis
     studyId,
     url: `${lichessBaseUrl}/study/${studyId}`,
     visibility,
+    imported: true,
     createdAt: nowIso,
     updatedAt: nowIso,
   };

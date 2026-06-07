@@ -58,9 +58,60 @@ describe('lichess study', () => {
       studyId: 'abc12345',
       url: 'https://lichess.org/study/abc12345',
       visibility: 'private',
+      imported: true,
       createdAt: '2026-06-06T10:00:00.000Z',
       updatedAt: '2026-06-06T10:00:00.000Z',
     });
+  });
+
+  it('reuses an existing study id instead of creating a new study', async () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    const requests: string[] = [];
+    const fetcher = (input: RequestInfo | URL): Promise<Response> => {
+      requests.push(requestUrl(input));
+
+      return Promise.resolve(Response.json([{ id: 'chapter1', name: 'Plano do dia' }]));
+    };
+
+    const link = await createDailyStudy({
+      token: 'secret-token',
+      plan,
+      existingStudyId: 'reused99',
+      nowIso: '2026-06-06T10:00:00.000Z',
+      fetcher,
+    });
+
+    expect(requests).toEqual(['https://lichess.org/api/study/reused99/import-pgn']);
+    expect(link.studyId).toBe('reused99');
+    expect(link.imported).toBe(true);
+  });
+
+  it('reports the new study id before importing so a partial study can be recovered', async () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    const events: string[] = [];
+    const fetcher = (input: RequestInfo | URL): Promise<Response> => {
+      if (requestUrl(input).endsWith('/api/study')) {
+        events.push('create');
+
+        return Promise.resolve(Response.json({ id: 'fresh77' }));
+      }
+
+      events.push('import');
+
+      return Promise.resolve(Response.json([{ id: 'chapter1', name: 'Plano do dia' }]));
+    };
+
+    await createDailyStudy({
+      token: 'secret-token',
+      plan,
+      nowIso: '2026-06-06T10:00:00.000Z',
+      fetcher,
+      onStudyCreated: (studyId) => {
+        events.push(`saved:${studyId}`);
+      },
+    });
+
+    expect(events).toEqual(['create', 'saved:fresh77', 'import']);
   });
 });
 
