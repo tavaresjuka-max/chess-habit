@@ -147,7 +147,7 @@ export type PlanBlock = {
   reason: string           // liga a uma Weakness
   coachNote: string
   status: 'pending' | 'done' | 'skipped'
-  feedback?: 'easy' | 'hard'
+  feedback?: 'easy' | 'good' | 'hard'
   updatedAt: string        // necessario para merge por registro no sync (P4)
 }
 
@@ -256,8 +256,8 @@ Base conhecida 2026-06-06 (revalidar antes de codar em `https://lichess.org/api`
 - Abrir um bloco com destino Lichess inicia um timer local com o tempo planejado do bloco. Ao atingir
   o limite, o app emite aviso sonoro curto e visual; o aluno pode continuar. Ao concluir, grava o
   tempo real treinado. Se concluir antes do limite, a UI mostra "Treinou por X min".
-- Feedback por bloco: `easy`/`hard` (um toque) -> ajusta volume/dificuldade do proximo plano
-  (`hard` reduz volume/mantem tema; `easy` sobe dificuldade ou troca tema).
+- Feedback por bloco: `easy`/`good`/`hard` (um toque) -> ajusta o estagio de recurso do proximo plano
+  (`hard` volta para explicacao; `good` mantem o estagio atual; `easy` avanca para repeticao/retrieval).
 - Ao abrir o app: refetch (respeitando TTL) -> recomputa sinais -> regenera plano do dia preservando
   blocos `done`.
 - Revisao semanal (metrics): escolhe o tema da proxima semana pela fraqueza dominante real.
@@ -508,10 +508,13 @@ ritmo um pouco mais lento ajude." Proibido (determinista): "Voce perde porque de
 
 ### 22.6 Ajustes de P2 e produto
 
-- **Auto-ajuste de `band`** em P2 (ex.: rating rapido medio acima da faixa por ~4 semanas sugere subir).
-- **`sessionMinutes` ajustavel por dia** na tela Hoje (override rapido do default).
-- `feedback`: manter `easy`/`hard`; ausencia de feedback = sem ajuste. Documentado (nao e omissao).
-- Remover `rating-history` do coletor P1 ate existir regra que o use (auto-ajuste de band em P2).
+- **Auto-ajuste de `band`**: NAO implementado. Estava previsto como ideia para P2, mas a `band` continua
+  definida manualmente na Config. Reservado para reavaliacao futura junto com P4/P5 (congeladas).
+- **`sessionMinutes` ajustavel por dia** na tela Hoje (override rapido do default). Implementado.
+- `feedback`: `easy`/`good`/`hard`; ausencia de feedback = sem ajuste. `hard` volta para explicacao,
+  `good` mantem o estagio, `easy` avanca para repeticao. Implementado.
+- `rating-history` fora do coletor enquanto nao houver regra que o use (o auto-ajuste de band que o
+  consumiria nao foi implementado).
 
 ### 22.7 Sync P4 — lacunas a detalhar no plano de P4 (nao bloqueiam P0/P1)
 
