@@ -496,18 +496,28 @@ export function useAppState(): AppState {
         return;
       }
 
-      const startedAt = new Date().toISOString();
-      const log = createTrainingLog({
-        block,
-        date: todayPlan.date,
-        startedAt,
-      });
+      const existingLog = await getTrainingLog(`${todayPlan.date}:${block.id}`);
 
-      await saveTrainingLog(log);
-      setTrainingLogs(upsertTrainingLog(trainingLogs, log));
+      // Reabrir um bloco ja concluido apenas reabre o destino: nao recria um log
+      // active que apagaria o treino concluido anterior.
+      if (existingLog?.status !== 'done') {
+        const startedAt = new Date().toISOString();
+        const log = createTrainingLog({
+          block,
+          date: todayPlan.date,
+          startedAt,
+        });
+
+        await saveTrainingLog(log);
+        setTrainingLogs(upsertTrainingLog(trainingLogs, log));
+      }
 
       if (block.destination.url !== undefined) {
-        window.open(block.destination.url, '_blank', 'noopener,noreferrer');
+        const opened = window.open(block.destination.url, '_blank', 'noopener,noreferrer');
+
+        if (opened === null) {
+          setLichessMessage('Seu navegador bloqueou a nova aba. Toque de novo ou libere pop-ups para abrir o treino.');
+        }
       }
     },
     [todayPlan, trainingLogs],
@@ -538,10 +548,14 @@ export function useAppState(): AppState {
             completedAt: updatedAt,
             feedback,
           });
-          const reconciledLog = await reconcileLogIfPossible(completedLog);
+          const reconcileOutcome = await reconcileLogIfPossible(completedLog);
 
-          await saveTrainingLog(reconciledLog);
-          setTrainingLogs(upsertTrainingLog(trainingLogs, reconciledLog));
+          await saveTrainingLog(reconcileOutcome.log);
+          setTrainingLogs(upsertTrainingLog(trainingLogs, reconcileOutcome.log));
+
+          if (reconcileOutcome.warning !== undefined) {
+            setLichessMessage(reconcileOutcome.warning);
+          }
         }
       }
 
@@ -761,18 +775,20 @@ function getOAuthRedirectUri(): string {
   return `${window.location.origin}${window.location.pathname}`;
 }
 
-async function reconcileLogIfPossible(log: TrainingLog): Promise<TrainingLog> {
+type ReconcileOutcome = { log: TrainingLog; warning?: string };
+
+async function reconcileLogIfPossible(log: TrainingLog): Promise<ReconcileOutcome> {
   if (!isPuzzleTrainingLog(log)) {
-    return log;
+    return { log };
+  }
+
+  const token = await loadLichessOAuthToken();
+
+  if (token === undefined) {
+    return { log };
   }
 
   try {
-    const token = await loadLichessOAuthToken();
-
-    if (token === undefined) {
-      return log;
-    }
-
     const until = log.completedAt ?? new Date().toISOString();
     const activities = await fetchPuzzleActivity({
       token: token.accessToken,
@@ -782,20 +798,24 @@ async function reconcileLogIfPossible(log: TrainingLog): Promise<TrainingLog> {
     });
 
     if (activities.length === 0) {
-      return log;
+      return { log };
     }
 
-    return reconcileTrainingLogResult({
-      log,
-      result: summarizePuzzleActivity({
-        activities,
-        fetchedAt: new Date().toISOString(),
-        since: log.startedAt,
-        until,
+    return {
+      log: reconcileTrainingLogResult({
+        log,
+        result: summarizePuzzleActivity({
+          activities,
+          fetchedAt: new Date().toISOString(),
+          since: log.startedAt,
+          until,
+        }),
       }),
-    });
+    };
   } catch {
-    return log;
+    // Antes engolia o erro: o treino era salvo como se o resultado tivesse sido
+    // conferido. Agora o bloco e salvo, mas o usuario sabe que faltou conferir.
+    return { log, warning: 'Treino salvo. Nao consegui conferir o resultado dos puzzles no Lichess agora.' };
   }
 }
 
