@@ -290,6 +290,7 @@ function PlanBlockCard({
   onSkipBlockTraining: (blockId: string) => Promise<void>;
 }) {
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
+  const isDone = block.status === 'done';
 
   return (
     <article className="plan-block">
@@ -307,58 +308,77 @@ function PlanBlockCard({
       {block.feedback !== undefined ? <p className="feedback-note">Feedback: {formatFeedback(block.feedback)}</p> : null}
       {timerStatus !== undefined ? <p className={`timer-status ${timerStatus.kind}`}>{timerStatus.label}</p> : null}
       <div className="button-row">
-        <button
-          type="button"
-          onClick={() => {
-            void onStartBlockTraining(block);
-          }}
-        >
-          {block.destination.url !== undefined ? 'Abrir no Lichess' : 'Iniciar bloco'}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            void onCompleteBlockTraining(block.id);
-          }}
-        >
-          Concluir
-        </button>
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={() => {
-            void onCompleteBlockTraining(block.id, 'easy');
-          }}
-        >
-          Foi facil
-        </button>
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={() => {
-            void onCompleteBlockTraining(block.id, 'good');
-          }}
-        >
-          Foi bom
-        </button>
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={() => {
-            void onCompleteBlockTraining(block.id, 'hard');
-          }}
-        >
-          Foi dificil
-        </button>
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={() => {
-            void onSkipBlockTraining(block.id);
-          }}
-        >
-          Pular
-        </button>
+        {block.destination.url !== undefined ? (
+          <a
+            className="button-link"
+            href={block.destination.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${isDone ? 'Abrir de novo' : 'Abrir no Lichess'}: ${block.title}`}
+            onClick={() => {
+              void onStartBlockTraining(block);
+            }}
+          >
+            {isDone ? 'Abrir de novo' : 'Abrir no Lichess'}
+          </a>
+        ) : isDone ? null : (
+          <button
+            type="button"
+            onClick={() => {
+              void onStartBlockTraining(block);
+            }}
+          >
+            Iniciar bloco
+          </button>
+        )}
+        {isDone ? null : (
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                void onCompleteBlockTraining(block.id);
+              }}
+            >
+              Concluir
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                void onCompleteBlockTraining(block.id, 'easy');
+              }}
+            >
+              Foi facil
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                void onCompleteBlockTraining(block.id, 'good');
+              }}
+            >
+              Foi bom
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                void onCompleteBlockTraining(block.id, 'hard');
+              }}
+            >
+              Foi dificil
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                void onSkipBlockTraining(block.id);
+              }}
+            >
+              Pular
+            </button>
+          </>
+        )}
       </div>
     </article>
   );

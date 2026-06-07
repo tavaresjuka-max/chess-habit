@@ -169,6 +169,19 @@ describe('appData storage', () => {
     await expect(loadLichessOAuthToken()).resolves.toBeUndefined();
   });
 
+  it('deletes an expired Lichess OAuth token when loading it', async () => {
+    await saveLichessOAuthToken({
+      accessToken: 'lio_expired',
+      tokenType: 'Bearer',
+      scopes: ['puzzle:read'],
+      obtainedAt: '2026-06-06T00:00:00.000Z',
+      expiresAt: '2026-06-07T00:00:00.000Z',
+    });
+
+    await expect(loadLichessOAuthToken('2026-06-08T00:00:00.000Z')).resolves.toBeUndefined();
+    await expect(loadLichessOAuthToken('2026-06-06T12:00:00.000Z')).resolves.toBeUndefined();
+  });
+
   it('stores Lichess study links outside backup export', async () => {
     await saveLichessStudyLink({
       id: '2026-06-06',

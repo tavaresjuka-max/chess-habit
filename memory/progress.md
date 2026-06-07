@@ -51,5 +51,13 @@
   - [x] Token salvo somente no IndexedDB local e omitido do backup JSON.
   - [x] Reconciliacao manual e oportunista de resultado real de puzzles via `/api/puzzle/activity`.
   - [x] Geracao de Study privado do dia via `POST /api/study` + import PGN transiente em capitulos.
+- [x] **Estabilizacao pos caca-bug remanescente (2026-06-07)**.
+  - [x] Bloco `done` nao mostra mais `Concluir`/feedback/`Pular`; fica apenas reabertura.
+  - [x] `Abrir no Lichess` virou link real com `target="_blank"` e inicia log/timer no clique.
+  - [x] Token OAuth expirado e removido do IndexedDB ao carregar.
+  - [x] Cobertura React adicionada para fluxo de treino, feedback `easy/good/hard`, Study sem OAuth e NDJSON quebrado.
+  - [x] Configuracao PWA exportada e coberta por smoke unitario; build gera `sw.js` e manifest.
+  - [x] `state.ts` refatorado para modulos de data, erro, OAuth, abertura externa e logs de treino.
+  - [ ] Limite conhecido: em browser de aba unica, `target="_blank"` pode navegar a aba atual; o log fica salvo e o timer reaparece ao voltar.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

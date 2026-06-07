@@ -52,6 +52,10 @@ Implementado ate P3:
   sem armazenar PGN completo.
 - Roadmap local, foco semanal, recursos por estagio, sessoes extras no mesmo dia e abertura direta de
   aulas/Practice/puzzle themes especificos.
+- Estabilizacao de 2026-06-07: blocos concluidos ocultam acoes destrutivas, abertura de treino usa
+  link real com timer iniciado no clique, token OAuth expirado e limpo ao carregar, PWA config tem smoke
+  unitario e `state.ts` foi dividido em modulos auxiliares. Limite conhecido: em browser de aba unica,
+  links externos podem substituir a aba atual; o log ativo e persistido antes da saida e reaparece ao voltar.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

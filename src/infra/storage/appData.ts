@@ -99,7 +99,12 @@ export async function saveChesscomMonthCache(record: ChesscomMonthCache): Promis
 export async function loadLichessOAuthToken(nowIso = new Date().toISOString()): Promise<LichessOAuthToken | undefined> {
   const record = await db.lichessOAuthTokens.get(lichessTokenId);
 
-  if (record === undefined || record.expiresAt <= nowIso) {
+  if (record === undefined) {
+    return undefined;
+  }
+
+  if (record.expiresAt <= nowIso) {
+    await clearLichessOAuthToken();
     return undefined;
   }
 
