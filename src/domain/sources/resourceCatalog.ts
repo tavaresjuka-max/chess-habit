@@ -1,20 +1,30 @@
-import type { Destination, LearnerBand, WeaknessTag } from '../types';
+import type { Destination, LearnerBand, LichessOAuthScope, WeaknessTag } from '../types';
 
 export type LichessResourceKind =
   | 'analysis-tool'
+  | 'community-study'
   | 'learn-basics'
   | 'practice-study'
   | 'puzzle-mode'
+  | 'puzzle-replay'
   | 'puzzle-theme'
   | 'video-lesson';
 
 export type LichessCatalogSource =
   | 'lichess-api-puzzles'
   | 'lichess-learn'
+  | 'lichess-community-study'
+  | 'lichess-curation-report'
   | 'lichess-practice-source'
   | 'lichess-puzzle-theme-xml'
   | 'lichess-training-page'
   | 'lichess-video-library';
+
+export type CuratedValue = 'A' | 'B' | 'C' | 'D';
+export type QualityStatus = 'approved' | 'needs-human-review' | 'rejected';
+export type RightsRisk = 'low' | 'medium' | 'high';
+export type ResourceLanguage = 'pt-BR' | 'en' | 'other';
+export type LinkCheckStatus = 'ok' | 'unchecked' | 'broken';
 
 export type LichessResource = {
   id: string;
@@ -24,9 +34,20 @@ export type LichessResource = {
   description: string;
   url?: string;
   source: LichessCatalogSource;
+  author?: string;
   bands: readonly LearnerBand[];
   recommendedFor: readonly WeaknessTag[];
   priority: number;
+  value: CuratedValue;
+  qualityStatus: QualityStatus;
+  rightsRisk: RightsRisk;
+  language: ResourceLanguage;
+  requiresOAuth: boolean;
+  oauthScopes: readonly LichessOAuthScope[];
+  lastVerifiedAt: string;
+  lastLinkCheckStatus: LinkCheckStatus;
+  replacementResourceId?: string;
+  reviewCadenceDays: number;
 };
 
 type PracticeStudyInput = {
@@ -48,6 +69,31 @@ type PuzzleThemeInput = {
   priority?: number;
 };
 
+type ResourceInput = {
+  id: string;
+  kind: LichessResourceKind;
+  title: string;
+  label: string;
+  description: string;
+  url?: string;
+  source: LichessCatalogSource;
+  author?: string;
+  bands?: readonly LearnerBand[];
+  recommendedFor?: readonly WeaknessTag[];
+  priority?: number;
+  value?: CuratedValue;
+  qualityStatus?: QualityStatus;
+  rightsRisk?: RightsRisk;
+  language?: ResourceLanguage;
+  requiresOAuth?: boolean;
+  oauthScopes?: readonly LichessOAuthScope[];
+  lastVerifiedAt?: string;
+  lastLinkCheckStatus?: LinkCheckStatus;
+  replacementResourceId?: string;
+  reviewCadenceDays?: number;
+};
+
+const defaultVerifiedAt = '2026-06-08';
 const allBands = ['0-800', '800-1200'] as const;
 const beginnerBands = ['0-800'] as const;
 const improvingBands = ['800-1200'] as const;
@@ -346,7 +392,7 @@ export const lichessPuzzleThemes = [
   puzzleTheme({ slug: 'queenRookEndgame', title: 'Queen and Rook', group: 'phases', recommendedFor: ['endgame-rook'] }),
   puzzleTheme({ slug: 'advancedPawn', title: 'Advanced pawn', group: 'motifs', recommendedFor: ['endgame-pawn', 'conversion'] }),
   puzzleTheme({ slug: 'attackingF2F7', title: 'Attacking f2 or f7', group: 'motifs', recommendedFor: ['opening-principles'] }),
-  puzzleTheme({ slug: 'capturingDefender', title: 'Capture the defender', group: 'motifs', recommendedFor: ['conversion'] }),
+  puzzleTheme({ slug: 'capturingDefender', title: 'Capture the defender', group: 'motifs', recommendedFor: ['conversion'], priority: 74 }),
   puzzleTheme({ slug: 'discoveredAttack', title: 'Discovered attack', group: 'motifs', recommendedFor: ['discovered'], priority: 88 }),
   puzzleTheme({ slug: 'doubleCheck', title: 'Double check', group: 'motifs', recommendedFor: ['discovered', 'mate-in-2'] }),
   puzzleTheme({ slug: 'exposedKing', title: 'Exposed king', group: 'motifs', recommendedFor: ['mate-in-2'] }),
@@ -362,8 +408,8 @@ export const lichessPuzzleThemes = [
   puzzleTheme({ slug: 'clearance', title: 'Clearance', group: 'advanced', recommendedFor: ['conversion'] }),
   puzzleTheme({ slug: 'collinearMove', title: 'Collinear move', group: 'advanced' }),
   puzzleTheme({ slug: 'discoveredCheck', title: 'Discovered check', group: 'advanced', recommendedFor: ['discovered'] }),
-  puzzleTheme({ slug: 'defensiveMove', title: 'Defensive move', group: 'advanced', recommendedFor: ['blunder-rate', 'conversion'] }),
-  puzzleTheme({ slug: 'deflection', title: 'Deflection', group: 'advanced', recommendedFor: ['conversion'] }),
+  puzzleTheme({ slug: 'defensiveMove', title: 'Defensive move', group: 'advanced', recommendedFor: ['blunder-rate', 'conversion'], priority: 72 }),
+  puzzleTheme({ slug: 'deflection', title: 'Deflection', group: 'advanced', recommendedFor: ['conversion'], priority: 70 }),
   puzzleTheme({ slug: 'interference', title: 'Interference', group: 'advanced', recommendedFor: ['conversion'] }),
   puzzleTheme({ slug: 'intermezzo', title: 'Intermezzo', group: 'advanced', recommendedFor: ['conversion'] }),
   puzzleTheme({ slug: 'quietMove', title: 'Quiet move', group: 'advanced', recommendedFor: ['conversion'] }),
@@ -398,9 +444,9 @@ export const lichessPuzzleThemes = [
   puzzleTheme({ slug: 'enPassant', title: 'En passant rights', group: 'special-moves' }),
   puzzleTheme({ slug: 'promotion', title: 'Promotion', group: 'special-moves', recommendedFor: ['endgame-pawn'] }),
   puzzleTheme({ slug: 'underPromotion', title: 'Underpromotion', group: 'special-moves', recommendedFor: ['endgame-pawn'] }),
-  puzzleTheme({ slug: 'equality', title: 'Equality', group: 'goals', recommendedFor: ['conversion'] }),
-  puzzleTheme({ slug: 'advantage', title: 'Advantage', group: 'goals', recommendedFor: ['conversion'] }),
-  puzzleTheme({ slug: 'crushing', title: 'Crushing', group: 'goals', recommendedFor: ['conversion'] }),
+  puzzleTheme({ slug: 'equality', title: 'Equality', group: 'goals', recommendedFor: ['conversion'], priority: 66 }),
+  puzzleTheme({ slug: 'advantage', title: 'Advantage', group: 'goals', recommendedFor: ['conversion'], priority: 88 }),
+  puzzleTheme({ slug: 'crushing', title: 'Crushing', group: 'goals', recommendedFor: ['conversion'], priority: 84 }),
   puzzleTheme({ slug: 'oneMove', title: 'One-move puzzle', group: 'lengths', recommendedFor: ['mate-in-1'] }),
   puzzleTheme({ slug: 'short', title: 'Short puzzle', group: 'lengths', recommendedFor: ['fork', 'hanging-piece', 'pin', 'skewer'] }),
   puzzleTheme({ slug: 'long', title: 'Long puzzle', group: 'lengths', recommendedFor: ['mate-in-2', 'conversion'] }),
@@ -408,6 +454,315 @@ export const lichessPuzzleThemes = [
   puzzleTheme({ slug: 'master', title: 'Master games', group: 'origin' }),
   puzzleTheme({ slug: 'masterVsMaster', title: 'Master vs Master games', group: 'origin' }),
   puzzleTheme({ slug: 'superGM', title: 'Super GM games', group: 'origin' }),
+] as const satisfies readonly LichessResource[];
+
+export const lichessVideoLessons = [
+  resource({
+    id: 'video:opening-principles-central-control',
+    kind: 'video-lesson',
+    title: 'Must-Know Opening Principles - Central Control',
+    label: 'Lichess Video (em ingles): abertura - centro, desenvolvimento e rei seguro',
+    description: 'Aula direta de principios de abertura: centro, desenvolvimento e seguranca do rei.',
+    url: 'https://lichess.org/video/gpsZAim-mYc',
+    source: 'lichess-video-library',
+    recommendedFor: ['opening-principles'],
+    priority: 100,
+    value: 'A',
+  }),
+  resource({
+    id: 'video:hanging-pieces',
+    kind: 'video-lesson',
+    title: 'Hanging Pieces',
+    label: 'Lichess Video (em ingles): pecas penduradas',
+    description: 'Aula direta para reconhecer pecas sem defesa antes de escolher lance candidato.',
+    url: 'https://lichess.org/video/wod7uXzkrTc',
+    source: 'lichess-video-library',
+    recommendedFor: ['hanging-piece', 'blunder-rate'],
+    priority: 88,
+    value: 'A',
+  }),
+  resource({
+    id: 'video:fork',
+    kind: 'video-lesson',
+    title: 'Fork',
+    label: 'Lichess Video (em ingles): garfos',
+    description: 'Aula direta para revisar o padrao de dois alvos antes de voltar aos puzzles.',
+    url: 'https://lichess.org/video/mbiR0tcdqBY',
+    source: 'lichess-video-library',
+    recommendedFor: ['fork'],
+    priority: 88,
+    value: 'A',
+  }),
+  resource({
+    id: 'video:pin',
+    kind: 'video-lesson',
+    title: 'Pin',
+    label: 'Lichess Video (em ingles): cravadas',
+    description: 'Aula direta para reconhecer alinhamento, peca presa e alvo atras dela.',
+    url: 'https://lichess.org/video/VjwSudAqLn8',
+    source: 'lichess-video-library',
+    recommendedFor: ['pin'],
+    priority: 88,
+    value: 'A',
+  }),
+  resource({
+    id: 'video:skewer',
+    kind: 'video-lesson',
+    title: 'Skewer',
+    label: 'Lichess Video (em ingles): espetos',
+    description: 'Aula direta para revisar ataques em linha contra alvo de maior valor.',
+    url: 'https://lichess.org/video/ZexQ1kow1MM',
+    source: 'lichess-video-library',
+    recommendedFor: ['skewer'],
+    priority: 88,
+    value: 'A',
+  }),
+  resource({
+    id: 'video:discovered-attack',
+    kind: 'video-lesson',
+    title: 'Discovered Attack',
+    label: 'Lichess Video (em ingles): ataque descoberto',
+    description: 'Aula direta para enxergar a linha que abre quando uma peca se move.',
+    url: 'https://lichess.org/video/nMADfn1scbI',
+    source: 'lichess-video-library',
+    recommendedFor: ['discovered'],
+    priority: 88,
+    value: 'A',
+  }),
+  resource({
+    id: 'video:back-rank',
+    kind: 'video-lesson',
+    title: 'Back Rank',
+    label: 'Lichess Video (em ingles): mate na ultima fileira',
+    description: 'Aula direta para revisar o rei preso e a pressao na ultima fileira.',
+    url: 'https://lichess.org/video/spMQR31h0-0',
+    source: 'lichess-video-library',
+    recommendedFor: ['back-rank', 'mate-in-2'],
+    priority: 84,
+    value: 'B',
+  }),
+  resource({
+    id: 'video:mating-patterns',
+    kind: 'video-lesson',
+    title: 'Mating Patterns',
+    label: 'Lichess Video (em ingles): padroes de mate',
+    description: 'Aula direta para revisar padroes de mate antes de treinar mate curto.',
+    url: 'https://lichess.org/video/uhQhasudq9M',
+    source: 'lichess-video-library',
+    recommendedFor: ['mate-in-1', 'mate-in-2', 'back-rank'],
+    priority: 86,
+    value: 'A',
+  }),
+  resource({
+    id: 'video:pawn-endgames',
+    kind: 'video-lesson',
+    title: 'Pawn Endgames',
+    label: 'Lichess Video (em ingles): finais de peoes',
+    description: 'Aula direta para revisar planos de finais de peoes antes de Practice ou puzzles.',
+    url: 'https://lichess.org/video/QUqq7wSLE78',
+    source: 'lichess-video-library',
+    recommendedFor: ['endgame-pawn', 'conversion'],
+    priority: 84,
+    value: 'B',
+  }),
+  resource({
+    id: 'video:calculation',
+    kind: 'video-lesson',
+    title: 'Calculation',
+    label: 'Lichess Video (em ingles): calculo',
+    description: 'Aula direta para organizar calculo e reduzir decisoes por impulso.',
+    url: 'https://lichess.org/video/-OoPm17P8xA',
+    source: 'lichess-video-library',
+    recommendedFor: ['conversion', 'blunder-rate'],
+    priority: 80,
+    value: 'B',
+  }),
+  resource({
+    id: 'video:avoid-blunders',
+    kind: 'video-lesson',
+    title: 'Avoid Blunders',
+    label: 'Lichess Video (em ingles): evitar blunders',
+    description: 'Aula direta para reforcar checagem curta antes de lances criticos.',
+    url: 'https://lichess.org/video/AYy2A6HIcU0',
+    source: 'lichess-video-library',
+    recommendedFor: ['blunder-rate', 'hanging-piece'],
+    priority: 82,
+    value: 'B',
+  }),
+  resource({
+    id: 'video:convert-material-advantage',
+    kind: 'video-lesson',
+    title: 'Convert Material Advantage',
+    label: 'Lichess Video (em ingles): converter vantagem material',
+    description: 'Aula direta para transformar vantagem em plano pratico sem depender de engine.',
+    url: 'https://lichess.org/video/0-ouahZH8X4',
+    source: 'lichess-video-library',
+    recommendedFor: ['conversion'],
+    priority: 86,
+    value: 'A',
+  }),
+] as const satisfies readonly LichessResource[];
+
+export const lichessCommunityStudies = [
+  resource({
+    id: 'study:noseknowsall:beginner-endgames-you-must-know',
+    kind: 'community-study',
+    title: 'Beginner Endgames You Must Know!',
+    label: 'Lichess Study: finais essenciais para iniciante',
+    description: 'Estudo comunitario progressivo para reforcar finais basicos depois dos recursos oficiais.',
+    url: 'https://lichess.org/study/wukLYIXj',
+    source: 'lichess-community-study',
+    author: 'NoseKnowsAll',
+    recommendedFor: ['endgame-pawn', 'conversion', 'mate-in-1'],
+    priority: 56,
+    value: 'A',
+    qualityStatus: 'approved',
+    rightsRisk: 'low',
+  }),
+  resource({
+    id: 'study:noseknowsall:intermediate-endgames-you-must-know',
+    kind: 'community-study',
+    title: 'Intermediate Endgames You Must Know!',
+    label: 'Lichess Study: finais intermediarios essenciais',
+    description: 'Estudo comunitario para aprofundar finais depois de Practice e puzzle themes.',
+    url: 'https://lichess.org/study/UsqmCsgC',
+    source: 'lichess-community-study',
+    author: 'NoseKnowsAll',
+    bands: improvingBands,
+    recommendedFor: ['endgame-pawn', 'conversion'],
+    priority: 54,
+    value: 'A',
+    qualityStatus: 'approved',
+    rightsRisk: 'low',
+  }),
+  resource({
+    id: 'study:noseknowsall:rook-endgames-you-must-know',
+    kind: 'community-study',
+    title: 'Rook Endgames You Must Know!',
+    label: 'Lichess Study: finais de torre essenciais',
+    description: 'Estudo comunitario de reforco para finais de torre depois do Practice oficial.',
+    url: 'https://lichess.org/study/bnboDhFM',
+    source: 'lichess-community-study',
+    author: 'NoseKnowsAll',
+    bands: improvingBands,
+    recommendedFor: ['endgame-rook', 'conversion'],
+    priority: 56,
+    value: 'B',
+    qualityStatus: 'approved',
+    rightsRisk: 'low',
+  }),
+  resource({
+    id: 'study:jomega:beginner-tactics',
+    kind: 'community-study',
+    title: 'Beginner: Tactics',
+    label: 'Lichess Study: tatica iniciante jomega',
+    description: 'Estudo comunitario de reforco para taticas basicas; manter abaixo de Practice e puzzles.',
+    url: 'https://lichess.org/study/Iof6LzcT',
+    source: 'lichess-community-study',
+    author: 'jomega',
+    recommendedFor: ['fork', 'pin', 'skewer', 'discovered', 'hanging-piece', 'mate-in-1', 'mate-in-2'],
+    priority: 40,
+    value: 'B',
+    qualityStatus: 'needs-human-review',
+    rightsRisk: 'medium',
+  }),
+  resource({
+    id: 'study:jomega:simple-tactics-i',
+    kind: 'community-study',
+    title: 'Beginner: Simple Tactics I',
+    label: 'Lichess Study: taticas simples I jomega',
+    description: 'Estudo comunitario de reforco para repetir taticas basicas fora do formato de puzzle.',
+    url: 'https://lichess.org/study/s3iOCawc',
+    source: 'lichess-community-study',
+    author: 'jomega',
+    recommendedFor: ['fork', 'pin', 'skewer', 'discovered', 'hanging-piece'],
+    priority: 38,
+    value: 'B',
+    qualityStatus: 'needs-human-review',
+    rightsRisk: 'medium',
+  }),
+  resource({
+    id: 'study:jomega:simple-tactics-ii',
+    kind: 'community-study',
+    title: 'Beginner: Simple Tactics II',
+    label: 'Lichess Study: taticas simples II jomega',
+    description: 'Estudo comunitario de reforco para consolidar padroes taticos basicos.',
+    url: 'https://lichess.org/study/6JAUFQ5p',
+    source: 'lichess-community-study',
+    author: 'jomega',
+    recommendedFor: ['fork', 'pin', 'skewer', 'discovered', 'hanging-piece'],
+    priority: 37,
+    value: 'B',
+    qualityStatus: 'needs-human-review',
+    rightsRisk: 'medium',
+  }),
+  resource({
+    id: 'study:jomega:tactics-internalized',
+    kind: 'community-study',
+    title: 'Intermediate: Tactics Internalized',
+    label: 'Lichess Study: taticas internalizadas jomega',
+    description: 'Estudo comunitario de reforco para taticas mais longas e transferencia de padroes.',
+    url: 'https://lichess.org/study/wzFrgluQ',
+    source: 'lichess-community-study',
+    author: 'jomega',
+    bands: improvingBands,
+    recommendedFor: ['fork', 'pin', 'skewer', 'discovered', 'conversion', 'blunder-rate'],
+    priority: 36,
+    value: 'B',
+    qualityStatus: 'needs-human-review',
+    rightsRisk: 'medium',
+  }),
+] as const satisfies readonly LichessResource[];
+
+export const rejectedLichessResources = [
+  resource({
+    id: 'rejected:study:practical-endings-pawns-part-1',
+    kind: 'community-study',
+    title: 'Practical Endings: Pawns PART 1',
+    label: 'Rejeitado: estudo comunitario de finais de peoes',
+    description: 'Rejeitado por risco de adaptacao de livro protegido; nunca entra no catalogo ativo.',
+    url: 'https://lichess.org/study/dXKWlrkg',
+    source: 'lichess-community-study',
+    author: 'Blue_Knight5',
+    recommendedFor: ['endgame-pawn'],
+    priority: 0,
+    value: 'D',
+    qualityStatus: 'rejected',
+    rightsRisk: 'high',
+    replacementResourceId: 'practice:pawn-endgames:key-squares',
+  }),
+  resource({
+    id: 'rejected:study:pawn-endgames',
+    kind: 'community-study',
+    title: 'Pawn Endgames!',
+    label: 'Rejeitado: estudo comunitario de finais de peoes',
+    description: 'Rejeitado por baixa qualidade pedagogica e tom desalinhado; nunca entra no catalogo ativo.',
+    url: 'https://lichess.org/study/izZ71JC2',
+    source: 'lichess-community-study',
+    author: 'community',
+    recommendedFor: ['endgame-pawn'],
+    priority: 0,
+    value: 'D',
+    qualityStatus: 'rejected',
+    rightsRisk: 'medium',
+    replacementResourceId: 'practice:pawn-endgames:key-squares',
+  }),
+  resource({
+    id: 'rejected:study:mate-in-2-can-you-see-it',
+    kind: 'community-study',
+    title: 'Mate in 2 CAN YOU SEE IT?',
+    label: 'Rejeitado: estudo comunitario de mate em 2',
+    description: 'Candidato fraco para catalogo ativo; manter fora ate revisao humana especifica.',
+    url: 'https://lichess.org/study/APSzIEsV',
+    source: 'lichess-community-study',
+    author: 'community',
+    recommendedFor: ['mate-in-2'],
+    priority: 0,
+    value: 'C',
+    qualityStatus: 'rejected',
+    rightsRisk: 'medium',
+    replacementResourceId: 'practice:checkmates:checkmate-patterns-i',
+  }),
 ] as const satisfies readonly LichessResource[];
 
 export const lichessOtherResources = [
@@ -468,17 +823,6 @@ export const lichessOtherResources = [
     priority: 56,
   }),
   resource({
-    id: 'video:opening-principles-central-control',
-    kind: 'video-lesson',
-    title: 'Must-Know Opening Principles - Central Control',
-    label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
-    description: 'Aula específica de princípios de abertura: controle central, desenvolvimento e segurança do rei.',
-    url: 'https://lichess.org/video/gpsZAim-mYc',
-    source: 'lichess-video-library',
-    recommendedFor: ['opening-principles'],
-    priority: 100,
-  }),
-  resource({
     id: 'analysis:finished-game-review',
     kind: 'analysis-tool',
     title: 'Analysis board',
@@ -494,6 +838,8 @@ export const lichessOtherResources = [
 export const lichessResourceCatalog = [
   ...lichessPracticeStudies,
   ...lichessPuzzleThemes,
+  ...lichessVideoLessons,
+  ...lichessCommunityStudies,
   ...lichessOtherResources,
 ] as const satisfies readonly LichessResource[];
 
@@ -507,17 +853,17 @@ const primaryResourceIdByWeakness = {
   'mate-in-2': 'practice:checkmates:checkmate-patterns-i',
   'back-rank': 'puzzle:backRankMate',
   'opening-principles': 'video:opening-principles-central-control',
-  'time-trouble': 'analysis:finished-game-review',
+  'time-trouble': 'puzzle-mode:streak',
   'endgame-pawn': 'practice:pawn-endgames:key-squares',
   'endgame-rook': 'practice:rook-endgames:basic-rook-endgames',
-  conversion: 'analysis:finished-game-review',
+  conversion: 'puzzle:advantage',
   'blunder-rate': 'puzzle:hangingPiece',
 } satisfies Record<WeaknessTag, LichessResource['id']>;
 
 export function getLichessResourcesForWeakness(tag: WeaknessTag): LichessResource[] {
   return lichessResourceCatalog
-    .filter((resourceItem) => resourceItem.recommendedFor.includes(tag))
-    .sort((left, right) => right.priority - left.priority || left.title.localeCompare(right.title));
+    .filter((resourceItem) => resourceItem.qualityStatus !== 'rejected' && resourceItem.recommendedFor.includes(tag))
+    .sort(compareLichessResources);
 }
 
 export function getPrimaryLichessResourceForWeakness(tag: WeaknessTag): LichessResource {
@@ -529,6 +875,14 @@ export function getPrimaryLichessResourceForWeakness(tag: WeaknessTag): LichessR
   }
 
   return primary;
+}
+
+export function findLichessResourceById(resourceId: string): LichessResource | undefined {
+  return lichessResourceCatalog.find((resourceItem) => resourceItem.id === resourceId);
+}
+
+export function findLichessResourceByUrl(url: string): LichessResource | undefined {
+  return lichessResourceCatalog.find((resourceItem) => resourceItem.url === url);
 }
 
 export function destinationFromResource(resourceItem: LichessResource): Destination {
@@ -571,18 +925,7 @@ function puzzleTheme(input: PuzzleThemeInput): LichessResource {
   });
 }
 
-function resource(input: {
-  id: string;
-  kind: LichessResourceKind;
-  title: string;
-  label: string;
-  description: string;
-  url?: string;
-  source: LichessCatalogSource;
-  bands?: readonly LearnerBand[];
-  recommendedFor?: readonly WeaknessTag[];
-  priority?: number;
-}): LichessResource {
+function resource(input: ResourceInput): LichessResource {
   return {
     id: input.id,
     kind: input.kind,
@@ -591,10 +934,74 @@ function resource(input: {
     description: input.description,
     ...(input.url === undefined ? {} : { url: input.url }),
     source: input.source,
+    ...(input.author === undefined ? {} : { author: input.author }),
     bands: input.bands ?? allBands,
     recommendedFor: input.recommendedFor ?? [],
     priority: input.priority ?? 30,
+    value: input.value ?? 'B',
+    qualityStatus: input.qualityStatus ?? getDefaultQualityStatus(input.source),
+    rightsRisk: input.rightsRisk ?? getDefaultRightsRisk(input.source),
+    language: input.language ?? 'en',
+    requiresOAuth: input.requiresOAuth ?? false,
+    oauthScopes: input.oauthScopes ?? [],
+    lastVerifiedAt: input.lastVerifiedAt ?? defaultVerifiedAt,
+    lastLinkCheckStatus: input.lastLinkCheckStatus ?? 'ok',
+    ...(input.replacementResourceId === undefined ? {} : { replacementResourceId: input.replacementResourceId }),
+    reviewCadenceDays: input.reviewCadenceDays ?? getDefaultReviewCadenceDays(input.source),
   };
+}
+
+function compareLichessResources(left: LichessResource, right: LichessResource): number {
+  return (
+    right.priority - left.priority ||
+    getQualityRank(right.qualityStatus) - getQualityRank(left.qualityStatus) ||
+    getKindRank(left.kind) - getKindRank(right.kind) ||
+    left.title.localeCompare(right.title)
+  );
+}
+
+function getDefaultQualityStatus(source: LichessCatalogSource): QualityStatus {
+  return source === 'lichess-community-study' ? 'needs-human-review' : 'approved';
+}
+
+function getDefaultRightsRisk(source: LichessCatalogSource): RightsRisk {
+  return source === 'lichess-community-study' ? 'medium' : 'low';
+}
+
+function getDefaultReviewCadenceDays(source: LichessCatalogSource): number {
+  return source === 'lichess-community-study' ? 90 : 180;
+}
+
+function getQualityRank(status: QualityStatus): number {
+  switch (status) {
+    case 'approved':
+      return 2;
+    case 'needs-human-review':
+      return 1;
+    case 'rejected':
+      return 0;
+  }
+}
+
+function getKindRank(kind: LichessResourceKind): number {
+  switch (kind) {
+    case 'practice-study':
+      return 1;
+    case 'puzzle-theme':
+      return 2;
+    case 'puzzle-mode':
+      return 3;
+    case 'puzzle-replay':
+      return 4;
+    case 'video-lesson':
+      return 5;
+    case 'community-study':
+      return 6;
+    case 'learn-basics':
+      return 7;
+    case 'analysis-tool':
+      return 8;
+  }
 }
 
 function slugify(value: string): string {

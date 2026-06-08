@@ -33,7 +33,7 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
-      label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
+      label: 'Lichess Video (em ingles): abertura - centro, desenvolvimento e rei seguro',
       url: 'https://lichess.org/video/gpsZAim-mYc',
     });
     expect(normalizedBlock?.task).toBe(
@@ -75,7 +75,7 @@ describe('normalizePlanDestinations', () => {
     );
   });
 
-  it('updates stored tactical video search filters to concrete Practice lessons', () => {
+  it('updates stored tactical video search filters to direct video lessons', () => {
     const plan: DailyPlan = {
       date: '2026-06-06',
       sessionMinutes: 15,
@@ -107,8 +107,8 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
-      label: 'Lichess Practice: The Fork',
-      url: 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
+      label: 'Lichess Video (em ingles): garfos',
+      url: 'https://lichess.org/video/mbiR0tcdqBY',
     });
   });
 

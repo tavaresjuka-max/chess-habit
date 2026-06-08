@@ -7,13 +7,18 @@ export function normalizePlanDestinations(plan: DailyPlan): DailyPlan {
     blocks: plan.blocks.map((block) => {
       const weaknessTag = getNormalizedWeaknessTag(block, plan);
       const destination = normalizeGenericAnalysisDestination(
-        normalizeGenericVideoFilterDestination(
-          normalizeDestination(block.destination, block.resourceStage),
+        normalizeRejectedStudyDestination(
+          normalizeGenericVideoFilterDestination(
+            normalizeDestination(block.destination, block.resourceStage),
+            block.resourceStage,
+            weaknessTag,
+          ),
           block.resourceStage,
           weaknessTag,
         ),
         block.resourceStage,
         weaknessTag,
+        block.task,
       );
       const upgradedDestination = block.destination.url !== destination.url;
       const normalizedTask = getNormalizedTaskForDestinationUrl(destination.url);
@@ -47,16 +52,32 @@ function normalizeGenericAnalysisDestination(
   destination: Destination,
   resourceStage: DailyPlan['blocks'][number]['resourceStage'],
   weaknessTag: DailyPlan['blocks'][number]['weaknessTag'],
+  task: string,
 ): Destination {
   if (
     destination.url !== 'https://lichess.org/analysis' ||
     weaknessTag === undefined ||
-    (resourceStage !== 'review' && resourceStage !== 'transfer')
+    (resourceStage !== 'review' && resourceStage !== 'transfer') ||
+    mentionsFinishedGame(task)
   ) {
     return destination;
   }
 
   return getDestinationForWeakness(weaknessTag, resourceStage);
+}
+
+function normalizeRejectedStudyDestination(
+  destination: Destination,
+  resourceStage: DailyPlan['blocks'][number]['resourceStage'],
+  weaknessTag: DailyPlan['blocks'][number]['weaknessTag'],
+): Destination {
+  const replacementTag = getRejectedStudyReplacementTag(destination.url);
+
+  if (replacementTag === undefined) {
+    return destination;
+  }
+
+  return getDestinationForWeakness(weaknessTag ?? replacementTag, resourceStage ?? 'guided');
 }
 
 function normalizeGenericVideoFilterDestination(
@@ -69,6 +90,22 @@ function normalizeGenericVideoFilterDestination(
   }
 
   return getDestinationForWeakness(weaknessTag, resourceStage ?? 'guided');
+}
+
+function getRejectedStudyReplacementTag(url: string | undefined): DailyPlan['blocks'][number]['weaknessTag'] {
+  switch (url) {
+    case 'https://lichess.org/study/dXKWlrkg':
+    case 'https://lichess.org/study/izZ71JC2':
+      return 'endgame-pawn';
+    case 'https://lichess.org/study/APSzIEsV':
+      return 'mate-in-2';
+    default:
+      return undefined;
+  }
+}
+
+function mentionsFinishedGame(task: string): boolean {
+  return task.toLowerCase().includes('partida terminada');
 }
 
 function getNormalizedTaskForDestinationUrl(url: string | undefined): string | undefined {
@@ -104,6 +141,22 @@ function getNormalizedTaskForDestinationUrl(url: string | undefined): string | u
     case 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles':
     case 'https://lichess.org/video/gpsZAim-mYc':
       return 'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.';
+    case 'https://lichess.org/video/wod7uXzkrTc':
+      return 'Assista uma aula curta de pecas penduradas e anote uma checagem para usar antes de jogar.';
+    case 'https://lichess.org/video/mbiR0tcdqBY':
+      return 'Assista uma aula curta de garfos e anote como confirmar dois alvos antes do lance.';
+    case 'https://lichess.org/video/VjwSudAqLn8':
+      return 'Assista uma aula curta de cravadas e anote como reconhecer a peca presa.';
+    case 'https://lichess.org/video/ZexQ1kow1MM':
+      return 'Assista uma aula curta de espetos e anote como reconhecer o alinhamento.';
+    case 'https://lichess.org/video/nMADfn1scbI':
+      return 'Assista uma aula curta de ataque descoberto e anote qual linha abre quando a peca sai.';
+    case 'https://lichess.org/video/uhQhasudq9M':
+      return 'Assista uma aula curta de padroes de mate e anote uma ameaca tipica para procurar nos puzzles.';
+    case 'https://lichess.org/video/QUqq7wSLE78':
+      return 'Assista uma aula curta de finais de peoes e anote uma regra pratica antes de treinar.';
+    case 'https://lichess.org/video/0-ouahZH8X4':
+      return 'Assista uma aula curta de conversao de vantagem e anote um plano simples para testar.';
     default:
       return undefined;
   }
