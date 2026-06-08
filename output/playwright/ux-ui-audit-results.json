@@ -1,0 +1,754 @@
+[
+  {
+    "label": "desktop-first-run-config",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "scroll": {
+      "width": 1280,
+      "height": 800,
+      "viewportHeight": 800
+    },
+    "horizontalOverflow": false,
+    "buttons": [
+      {
+        "text": "Hoje",
+        "width": 276,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Config",
+        "width": 276,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Salvar",
+        "width": 72,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Exportar backup JSON",
+        "width": 187,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Adicionar sinais manuais",
+        "width": 203,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Apagar tudo",
+        "width": 119,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Conectar Lichess",
+        "width": 147,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Remover conexao",
+        "width": 156,
+        "height": 41,
+        "disabled": true
+      }
+    ],
+    "links": [],
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Config"
+      },
+      {
+        "tag": "h2",
+        "text": "Lichess OAuth"
+      }
+    ],
+    "textSample": "Hoje\nConfig\nConfig\nUsuario Lichess\nUsuario Chess.com\nFaixa atual\n0-800\n800-1200\nTempo padrao\n5 min\n15 min\n30 min\n60 min\nSalvar\nExportar backup JSON\nAdicionar sinais manuais\nApagar tudo\nLichess OAuth\n\nDesconectado. Conectar habilita reconciliar puzzles e criar o Study do dia.\n\nConectar Lichess\nRemover conexao"
+  },
+  {
+    "label": "desktop-today",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "scroll": {
+      "width": 1280,
+      "height": 1750,
+      "viewportHeight": 800
+    },
+    "horizontalOverflow": false,
+    "buttons": [
+      {
+        "text": "Hoje",
+        "width": 276,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Config",
+        "width": 276,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Fazer proxima sessao",
+        "width": 178,
+        "height": 62,
+        "disabled": false
+      },
+      {
+        "text": "Atualizar Chess.com",
+        "width": 171,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Atualizar Lichess",
+        "width": 146,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Reconciliar puzzles",
+        "width": 162,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Gerar Study",
+        "width": 113,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi facil",
+        "width": 84,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi bom",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi dificil",
+        "width": 93,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Pular",
+        "width": 66,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi facil",
+        "width": 84,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi bom",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi dificil",
+        "width": 93,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Pular",
+        "width": 66,
+        "height": 41,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "text": "Abrir no Lichess",
+        "ariaLabel": "Abrir no Lichess: Tema do dia: garfos",
+        "href": "https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p",
+        "target": "_blank",
+        "width": 142,
+        "height": 41
+      },
+      {
+        "text": "Abrir no Lichess",
+        "ariaLabel": "Abrir no Lichess: Revisao curta",
+        "href": "https://lichess.org/analysis",
+        "target": "_blank",
+        "width": 142,
+        "height": 41
+      }
+    ],
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Hoje"
+      },
+      {
+        "tag": "h2",
+        "text": "Proximos passos"
+      },
+      {
+        "tag": "h2",
+        "text": "Sessao 1"
+      },
+      {
+        "tag": "h2",
+        "text": "Tema do dia: garfos"
+      },
+      {
+        "tag": "h2",
+        "text": "Revisao curta"
+      }
+    ],
+    "textSample": "Hoje\nConfig\nHoje\n\n2026-06-07 - 1 sessao - 15 min\n\nSemana: garfos - Tema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.\n\nTempo\n5 min\n15 min\n30 min\n60 min\nFazer proxima sessao\nAtualizar Chess.com\nAtualizar Lichess\nReconciliar puzzles\nGerar Study\nProximos passos\nHoje\n15 min\n\nTema do dia: garfos\n\nPlanejado - Lichess Practice: The Fork\nAmanha\n15 min\n\nRepeticao: garfos\n\nProximo - Puzzles Lichess: Fork\nEm 2 dias\n15 min\n\nTransferencia: garfos em partida\n\nProximo - Lichess Analysis: revisar partida terminada\nEm 3 dias\n15 min\n\nRevisao: garfos sem pressa\n\nProximo - Lichess Analysis: revisar partida terminada\nSessao 1\n15 min\nTema do dia: garfos\nPendente\n\n10 min - guiado - Lichess Practice: The Fork\n\nTema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.\n\nEstude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.\n\nHoje o foco e repeticao deliberada de um padrao. Procure a ideia antes do lance: alvo, defensor e consequencia material. Pare quando a regra de parada bater, mesmo se estiver embalado.\n\nPare quando o tempo acabar ou quando errar duas vezes seguidas por pressa.\n\nAbrir no Lichess\nConcluir\nFoi facil\nFoi bom\nFoi dificil\nPular\nRevisao curta\nPendente\n\n5 min - revisao - Lichess Analysis: revisar partida terminada\n\nRevisao conecta puzzle com partida real sem sugerir lance ao vivo.\n\nRevise uma posicao terminada e escreva mentalmente qual ameaca passou batida.\n\nRevise como quem procura causa, nao culpa. Escolha uma posicao recente e pergunte qual informacao voce ignorou. Uma resposta honest"
+  },
+  {
+    "label": "desktop-training-active",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "scroll": {
+      "width": 1280,
+      "height": 1801,
+      "viewportHeight": 800
+    },
+    "horizontalOverflow": false,
+    "buttons": [
+      {
+        "text": "Hoje",
+        "width": 276,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Config",
+        "width": 276,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Fazer proxima sessao",
+        "width": 178,
+        "height": 62,
+        "disabled": true
+      },
+      {
+        "text": "Atualizar Chess.com",
+        "width": 171,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Atualizar Lichess",
+        "width": 146,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Reconciliar puzzles",
+        "width": 162,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Gerar Study",
+        "width": 113,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi facil",
+        "width": 84,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi bom",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi dificil",
+        "width": 93,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Pular",
+        "width": 66,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi facil",
+        "width": 84,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi bom",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi dificil",
+        "width": 93,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Pular",
+        "width": 66,
+        "height": 41,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "text": "Abrir no Lichess",
+        "ariaLabel": "Abrir no Lichess: Tema do dia: garfos",
+        "href": "https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p",
+        "target": "_blank",
+        "width": 142,
+        "height": 41
+      },
+      {
+        "text": "Abrir no Lichess",
+        "ariaLabel": "Abrir no Lichess: Revisao curta",
+        "href": "https://lichess.org/analysis",
+        "target": "_blank",
+        "width": 142,
+        "height": 41
+      }
+    ],
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Hoje"
+      },
+      {
+        "tag": "h2",
+        "text": "Proximos passos"
+      },
+      {
+        "tag": "h2",
+        "text": "Sessao 1"
+      },
+      {
+        "tag": "h2",
+        "text": "Tema do dia: garfos"
+      },
+      {
+        "tag": "h2",
+        "text": "Revisao curta"
+      }
+    ],
+    "textSample": "Hoje\nConfig\nHoje\n\n2026-06-07 - 1 sessao - 15 min\n\nSemana: garfos - Tema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.\n\nTempo\n5 min\n15 min\n30 min\n60 min\nFazer proxima sessao\nAtualizar Chess.com\nAtualizar Lichess\nReconciliar puzzles\nGerar Study\nProximos passos\nHoje\n15 min\n\nTema do dia: garfos\n\nPlanejado - Lichess Practice: The Fork\nAmanha\n15 min\n\nRepeticao: garfos\n\nProximo - Puzzles Lichess: Fork\nEm 2 dias\n15 min\n\nTransferencia: garfos em partida\n\nProximo - Lichess Analysis: revisar partida terminada\nEm 3 dias\n15 min\n\nRevisao: garfos sem pressa\n\nProximo - Lichess Analysis: revisar partida terminada\nSessao 1\n15 min\nTema do dia: garfos\nPendente\n\n10 min - guiado - Lichess Practice: The Fork\n\nTema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.\n\nEstude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.\n\nHoje o foco e repeticao deliberada de um padrao. Procure a ideia antes do lance: alvo, defensor e consequencia material. Pare quando a regra de parada bater, mesmo se estiver embalado.\n\nPare quando o tempo acabar ou quando errar duas vezes seguidas por pressa.\n\nTreinando ha 1 min. Faltam 10 min.\n\nAbrir no Lichess\nConcluir\nFoi facil\nFoi bom\nFoi dificil\nPular\nRevisao curta\nPendente\n\n5 min - revisao - Lichess Analysis: revisar partida terminada\n\nRevisao conecta puzzle com partida real sem sugerir lance ao vivo.\n\nRevise uma posicao terminada e escreva mentalmente qual ameaca passou batida.\n\nRevise como quem procura causa, nao culpa. Escolha uma posicao recente e pergunte qual informac"
+  },
+  {
+    "label": "desktop-block-done",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "scroll": {
+      "width": 1280,
+      "height": 1786,
+      "viewportHeight": 800
+    },
+    "horizontalOverflow": false,
+    "buttons": [
+      {
+        "text": "Hoje",
+        "width": 276,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Config",
+        "width": 276,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Fazer proxima sessao",
+        "width": 178,
+        "height": 62,
+        "disabled": false
+      },
+      {
+        "text": "Atualizar Chess.com",
+        "width": 171,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Atualizar Lichess",
+        "width": 146,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Reconciliar puzzles",
+        "width": 162,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Gerar Study",
+        "width": 113,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi facil",
+        "width": 84,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi bom",
+        "width": 88,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi dificil",
+        "width": 93,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Pular",
+        "width": 66,
+        "height": 41,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "text": "Abrir de novo",
+        "ariaLabel": "Abrir de novo: Tema do dia: garfos",
+        "href": "https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p",
+        "target": "_blank",
+        "width": 127,
+        "height": 41
+      },
+      {
+        "text": "Abrir no Lichess",
+        "ariaLabel": "Abrir no Lichess: Revisao curta",
+        "href": "https://lichess.org/analysis",
+        "target": "_blank",
+        "width": 142,
+        "height": 41
+      }
+    ],
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Hoje"
+      },
+      {
+        "tag": "h2",
+        "text": "Proximos passos"
+      },
+      {
+        "tag": "h2",
+        "text": "Sessao 1"
+      },
+      {
+        "tag": "h2",
+        "text": "Tema do dia: garfos"
+      },
+      {
+        "tag": "h2",
+        "text": "Revisao curta"
+      }
+    ],
+    "textSample": "Hoje\nConfig\nHoje\n\n2026-06-07 - 1 sessao - 15 min\n\nSemana: garfos - Tema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.\n\nTempo\n5 min\n15 min\n30 min\n60 min\nFazer proxima sessao\nAtualizar Chess.com\nAtualizar Lichess\nReconciliar puzzles\nGerar Study\nProximos passos\nHoje\n15 min\n\nTema do dia: garfos\n\nPlanejado - Lichess Practice: The Fork\nAmanha\n15 min\n\nRepeticao: garfos\n\nProximo - Puzzles Lichess: Fork\nEm 2 dias\n15 min\n\nTransferencia: garfos em partida\n\nProximo - Lichess Analysis: revisar partida terminada\nEm 3 dias\n15 min\n\nRevisao: garfos sem pressa\n\nProximo - Lichess Analysis: revisar partida terminada\nSessao 1\n15 min\nTema do dia: garfos\nFeito\n\n10 min - guiado - Lichess Practice: The Fork\n\nTema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.\n\nEstude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.\n\nHoje o foco e repeticao deliberada de um padrao. Procure a ideia antes do lance: alvo, defensor e consequencia material. Pare quando a regra de parada bater, mesmo se estiver embalado.\n\nPare quando o tempo acabar ou quando errar duas vezes seguidas por pressa.\n\nFeedback: bom: interessante e desafiador\n\nTreinou por 1 min.\n\nAbrir de novo\nRevisao curta\nPendente\n\n5 min - revisao - Lichess Analysis: revisar partida terminada\n\nRevisao conecta puzzle com partida real sem sugerir lance ao vivo.\n\nRevise uma posicao terminada e escreva mentalmente qual ameaca passou batida.\n\nRevise como quem procura causa, nao culpa. Escolha uma posicao recente e pergunte qual informacao voce ignorou. Uma resp"
+  },
+  {
+    "label": "mobile-first-run-config",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "scroll": {
+      "width": 390,
+      "height": 908,
+      "viewportHeight": 844
+    },
+    "horizontalOverflow": false,
+    "buttons": [
+      {
+        "text": "Hoje",
+        "width": 179,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Config",
+        "width": 179,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Salvar",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Exportar backup JSON",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Adicionar sinais manuais",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Apagar tudo",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Conectar Lichess",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Remover conexao",
+        "width": 366,
+        "height": 41,
+        "disabled": true
+      }
+    ],
+    "links": [],
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Config"
+      },
+      {
+        "tag": "h2",
+        "text": "Lichess OAuth"
+      }
+    ],
+    "textSample": "Hoje\nConfig\nConfig\nUsuario Lichess\nUsuario Chess.com\nFaixa atual\n0-800\n800-1200\nTempo padrao\n5 min\n15 min\n30 min\n60 min\nSalvar\nExportar backup JSON\nAdicionar sinais manuais\nApagar tudo\nLichess OAuth\n\nDesconectado. Conectar habilita reconciliar puzzles e criar o Study do dia.\n\nConectar Lichess\nRemover conexao"
+  },
+  {
+    "label": "mobile-today",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "scroll": {
+      "width": 390,
+      "height": 2592,
+      "viewportHeight": 844
+    },
+    "horizontalOverflow": false,
+    "buttons": [
+      {
+        "text": "Hoje",
+        "width": 179,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Config",
+        "width": 179,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Fazer proxima sessao",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Atualizar Chess.com",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Atualizar Lichess",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Reconciliar puzzles",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Gerar Study",
+        "width": 366,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi facil",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi bom",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi dificil",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Pular",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi facil",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi bom",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Foi dificil",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      },
+      {
+        "text": "Pular",
+        "width": 332,
+        "height": 41,
+        "disabled": false
+      }
+    ],
+    "links": [
+      {
+        "text": "Abrir no Lichess",
+        "ariaLabel": "Abrir no Lichess: Tema do dia: garfos",
+        "href": "https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p",
+        "target": "_blank",
+        "width": 332,
+        "height": 41
+      },
+      {
+        "text": "Abrir no Lichess",
+        "ariaLabel": "Abrir no Lichess: Revisao curta",
+        "href": "https://lichess.org/analysis",
+        "target": "_blank",
+        "width": 332,
+        "height": 41
+      }
+    ],
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "Hoje"
+      },
+      {
+        "tag": "h2",
+        "text": "Proximos passos"
+      },
+      {
+        "tag": "h2",
+        "text": "Sessao 1"
+      },
+      {
+        "tag": "h2",
+        "text": "Tema do dia: garfos"
+      },
+      {
+        "tag": "h2",
+        "text": "Revisao curta"
+      }
+    ],
+    "textSample": "Hoje\nConfig\nHoje\n\n2026-06-07 - 1 sessao - 15 min\n\nSemana: garfos - Tema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.\n\nTempo\n5 min\n15 min\n30 min\n60 min\nFazer proxima sessao\nAtualizar Chess.com\nAtualizar Lichess\nReconciliar puzzles\nGerar Study\nProximos passos\nHoje\n15 min\n\nTema do dia: garfos\n\nPlanejado - Lichess Practice: The Fork\nAmanha\n15 min\n\nRepeticao: garfos\n\nProximo - Puzzles Lichess: Fork\nEm 2 dias\n15 min\n\nTransferencia: garfos em partida\n\nProximo - Lichess Analysis: revisar partida terminada\nEm 3 dias\n15 min\n\nRevisao: garfos sem pressa\n\nProximo - Lichess Analysis: revisar partida terminada\nSessao 1\n15 min\nTema do dia: garfos\nPendente\n\n10 min - guiado - Lichess Practice: The Fork\n\nTema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.\n\nEstude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.\n\nHoje o foco e repeticao deliberada de um padrao. Procure a ideia antes do lance: alvo, defensor e consequencia material. Pare quando a regra de parada bater, mesmo se estiver embalado.\n\nPare quando o tempo acabar ou quando errar duas vezes seguidas por pressa.\n\nAbrir no Lichess\nConcluir\nFoi facil\nFoi bom\nFoi dificil\nPular\nRevisao curta\nPendente\n\n5 min - revisao - Lichess Analysis: revisar partida terminada\n\nRevisao conecta puzzle com partida real sem sugerir lance ao vivo.\n\nRevise uma posicao terminada e escreva mentalmente qual ameaca passou batida.\n\nRevise como quem procura causa, nao culpa. Escolha uma posicao recente e pergunte qual informacao voce ignorou. Uma resposta honest"
+  }
+]

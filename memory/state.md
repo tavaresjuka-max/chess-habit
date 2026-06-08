@@ -1,6 +1,6 @@
 # Estado Atual
 
-Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro).
+Data: 2026-06-08 (atualizado apos fechamento do polish UX/UI).
 
 ## Status
 
@@ -10,6 +10,9 @@ Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro)
   plano adaptado por fraquezas, timer/log local de treino, feedback facil/bom/dificil, foco semanal,
   roadmap, sessoes extras, selecao de recursos por estagio, OAuth PKCE opt-in, reconciliacao de puzzles,
   Study Lichess privado do dia, Dexie, export/apagar e offline-shell.
+- Polish UX/UI de 2026-06-07 concluido: tela Hoje prioriza treino, diagnostico fica recolhido, card de
+  treino tem avaliacao obrigatoria em duas etapas, Config foi separada em secoes, e feedback local usa
+  toasts/icone contidos.
 - Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
@@ -37,9 +40,10 @@ Data: 2026-06-06 (atualizado apos decisao do dono pela moldura pessoal-primeiro)
 
 ## Proxima Etapa
 
-P0, P1, P2 e P3 foram fechadas em 2026-06-06. P4 e P5 estao congeladas por decisao do dono; a proxima
-etapa valida e estabilizar/testar o app pessoal com uso real antes de qualquer sync, backend, texto livre
-ou versao-comunidade.
+P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08.
+P4 e P5 estao congeladas por decisao do dono. A proxima etapa valida e usar o app pessoalmente por
+algumas sessoes reais e corrigir apenas dores pequenas observadas no uso antes de qualquer sync,
+backend, texto livre ou versao-comunidade.
 
 Implementado ate P3:
 
@@ -56,6 +60,11 @@ Implementado ate P3:
   link real com timer iniciado no clique, token OAuth expirado e limpo ao carregar, PWA config tem smoke
   unitario e `state.ts` foi dividido em modulos auxiliares. Limite conhecido: em browser de aba unica,
   links externos podem substituir a aba atual; o log ativo e persistido antes da saida e reaparece ao voltar.
+- Polish de 2026-06-07/2026-06-08: `sonner` e `lucide-react` adicionados; Hoje ficou treino-first com
+  diagnostico em `<details>`; card pendente mostra `Abrir no Lichess`, `Concluir` e `Pular`, e so conclui
+  depois de `Facil`/`Bom`/`Dificil`; Config tem secoes Essencial, Lichess opcional e Dados locais;
+  `npm run lint`, `npm run test` e `npm run build` passaram no fechamento; capturas finais Playwright
+  desktop/mobile foram salvas em `output/playwright/`.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

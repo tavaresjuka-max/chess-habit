@@ -1,6 +1,6 @@
 # Polish UX/UI Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Make the personal Lichess study tool calm and finished on mobile — training-first "Hoje" screen, a two-step block card with required difficulty rating, a sectioned Config screen, accessibility polish, PT-BR accents, and lightweight feedback (toasts) + icons.
 
@@ -11,6 +11,10 @@
 **Spec:** `docs/superpowers/specs/2026-06-07-polish-ux-ui-design.md`
 
 **Executor:** Codex.
+
+**Execution status:** Completed in commits `dea7891` through `dac5d55`. Final gate re-run after completion:
+`npm run lint`, `npm run test`, and `npm run build` passed. Final desktop/mobile visual artifacts were
+captured in `output/playwright/` during closure.
 
 ---
 
@@ -39,7 +43,7 @@
 - Modify: `package.json` (via npm)
 - Modify: `src/ui/App.tsx`
 
-- [ ] **Step 1: Install the two runtime deps**
+- [x] **Step 1: Install the two runtime deps**
 
 Run:
 ```bash
@@ -47,7 +51,7 @@ npm install sonner lucide-react
 ```
 Expected: both land in `dependencies`; `npm install` completes clean.
 
-- [ ] **Step 2: Mount the Toaster in the app shell**
+- [x] **Step 2: Mount the Toaster in the app shell**
 
 In `src/ui/App.tsx`, add the import at the top (after the existing imports):
 ```tsx
@@ -60,12 +64,12 @@ Then, inside the main return, add the Toaster as the first child of `<main class
       <nav className="top-nav" aria-label="Navegacao principal">
 ```
 
-- [ ] **Step 3: Run the full gate**
+- [x] **Step 3: Run the full gate**
 
 Run: `npm run lint && npm run test && npm run build`
 Expected: all green. (The Toaster renders nothing visible yet; no test asserts on it.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add package.json package-lock.json src/ui/App.tsx
@@ -82,7 +86,7 @@ Pure string edits to visible copy, plus the two test assertions that depend on t
 - Modify: `src/ui/App.tsx`, `src/ui/Config.tsx`, `src/ui/Today.tsx`
 - Test: `src/smoke.test.tsx`, `src/app/trainingFlow.test.tsx`
 
-- [ ] **Step 1: Update the failing test assertions first (they will fail until the copy changes)**
+- [x] **Step 1: Update the failing test assertions first (they will fail until the copy changes)**
 
 In `src/smoke.test.tsx`, line 16, change:
 ```tsx
@@ -102,19 +106,19 @@ to:
       expect(screen.getByText(/Treinando há/i)).toBeTruthy();
 ```
 
-- [ ] **Step 2: Run those tests to confirm they now fail**
+- [x] **Step 2: Run those tests to confirm they now fail**
 
 Run: `npm run test -- smoke trainingFlow`
 Expected: FAIL — "Unable to find ... Usuário Lichess" / "Treinando há" (source still says `Usuario` / `Treinando ha`).
 
-- [ ] **Step 3: Apply accents in `src/ui/App.tsx`**
+- [x] **Step 3: Apply accents in `src/ui/App.tsx`**
 
 Change the nav `aria-label`:
 ```tsx
       <nav className="top-nav" aria-label="Navegação principal">
 ```
 
-- [ ] **Step 4: Apply accents in `src/ui/Config.tsx`**
+- [x] **Step 4: Apply accents in `src/ui/Config.tsx`**
 
 Make these exact replacements:
 - `<h1 id="config-title">Config</h1>` → `<h1 id="config-title">Configuração</h1>`
@@ -127,7 +131,7 @@ Make these exact replacements:
 
 (Leave the nav button label `Config` in `App.tsx` unchanged — the page H1 carries the full word; the nav stays compact.)
 
-- [ ] **Step 5: Apply accents in `src/ui/Today.tsx`**
+- [x] **Step 5: Apply accents in `src/ui/Today.tsx`**
 
 Replacements:
 - Empty-plan message: `Salve sua configuracao para gerar o plano local.` → `Salve sua configuração para gerar o plano local.`
@@ -140,12 +144,12 @@ Replacements:
 - In `formatWeaknessTag`: `'pecas penduradas'` → `'peças penduradas'`; `'conversao'` → `'conversão'`; `'mate na ultima fileira'` → `'mate na última fileira'`
 - In `formatRoadmapStatus`: `'Proximo'` → `'Próximo'`
 
-- [ ] **Step 6: Run the full gate**
+- [x] **Step 6: Run the full gate**
 
 Run: `npm run lint && npm run test && npm run build`
 Expected: all green.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/ui/App.tsx src/ui/Config.tsx src/ui/Today.tsx src/smoke.test.tsx src/app/trainingFlow.test.tsx
@@ -161,7 +165,7 @@ Pure CSS. Verified manually (focus rings and cursors aren't unit-testable); test
 **Files:**
 - Modify: `src/index.css`
 
-- [ ] **Step 1: Fix the disabled cursor and add a real loading class**
+- [x] **Step 1: Fix the disabled cursor and add a real loading class**
 
 In `src/index.css`, replace this rule (lines ~80–83):
 ```css
@@ -183,7 +187,7 @@ button[aria-disabled='true'] {
 }
 ```
 
-- [ ] **Step 2: Add a consistent focus-visible ring**
+- [x] **Step 2: Add a consistent focus-visible ring**
 
 In `src/index.css`, immediately after the block from Step 1, add:
 ```css
@@ -193,7 +197,7 @@ In `src/index.css`, immediately after the block from Step 1, add:
 }
 ```
 
-- [ ] **Step 3: Raise mobile touch targets to 44px**
+- [x] **Step 3: Raise mobile touch targets to 44px**
 
 In `src/index.css`, inside the existing `@media (max-width: 560px)` block, add this rule (e.g. right after the `.app-shell` override):
 ```css
@@ -205,16 +209,16 @@ In `src/index.css`, inside the existing `@media (max-width: 560px)` block, add t
   }
 ```
 
-- [ ] **Step 4: Run the full gate**
+- [x] **Step 4: Run the full gate**
 
 Run: `npm run lint && npm run test && npm run build`
 Expected: all green.
 
-- [ ] **Step 5: Manual visual check**
+- [x] **Step 5: Manual visual check**
 
 Run: `npm run dev`, then in the browser: Tab through nav/buttons/inputs → a 2px dark-green ring is visible on each. A disabled button shows `not-allowed`, not the loading cursor. At 390px width, buttons are at least 44px tall.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/index.css
@@ -232,7 +236,7 @@ The pending card shows only `Abrir no Lichess` (primary) + `Concluir` + a discre
 - Modify: `src/index.css`
 - Test: `src/app/trainingFlow.test.tsx`
 
-- [ ] **Step 1: Rewrite the card-flow tests (they will fail first)**
+- [x] **Step 1: Rewrite the card-flow tests (they will fail first)**
 
 In `src/app/trainingFlow.test.tsx`, replace the test `'hides destructive completion controls after a block is already done'` with:
 ```tsx
@@ -333,12 +337,12 @@ Add a new test (after the `'reopens a done block...'` test) covering the cancel 
   });
 ```
 
-- [ ] **Step 2: Run the card tests to confirm they fail**
+- [x] **Step 2: Run the card tests to confirm they fail**
 
 Run: `npm run test -- trainingFlow`
 Expected: FAIL — the current card shows `Foi bom` (not `Bom`) and `Concluir` completes immediately, so `Como foi o treino?` is never found.
 
-- [ ] **Step 3: Rewrite `PlanBlockCard` for the two-step flow**
+- [x] **Step 3: Rewrite `PlanBlockCard` for the two-step flow**
 
 In `src/ui/Today.tsx`, replace the entire `PlanBlockCard` function (lines ~277–385) with:
 ```tsx
@@ -487,7 +491,7 @@ function PlanBlockCard({
 ```
 (`useState` is already imported at the top of `Today.tsx`.)
 
-- [ ] **Step 4: Add CSS for the rating row and link-button**
+- [x] **Step 4: Add CSS for the rating row and link-button**
 
 In `src/index.css`, append:
 ```css
@@ -518,12 +522,12 @@ In `src/index.css`, append:
 }
 ```
 
-- [ ] **Step 5: Run the full gate**
+- [x] **Step 5: Run the full gate**
 
 Run: `npm run lint && npm run test && npm run build`
 Expected: all green (all rewritten card tests + the new Voltar test pass).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/ui/Today.tsx src/index.css src/app/trainingFlow.test.tsx
@@ -541,7 +545,7 @@ New order: compact header → weakness chips → training blocks → "Próxima s
 - Modify: `src/index.css`
 - Test: `src/app/trainingFlow.test.tsx` (open the `<details>` before using diagnostics buttons)
 
-- [ ] **Step 1: Make the diagnostics tests open the section first (they will fail otherwise once it's collapsed)**
+- [x] **Step 1: Make the diagnostics tests open the section first (they will fail otherwise once it's collapsed)**
 
 In `src/app/trainingFlow.test.tsx`, in `'syncs Lichess diagnosis even when the NDJSON stream has a broken line'`, replace:
 ```tsx
@@ -563,7 +567,7 @@ with:
     fireEvent.click(screen.getByRole('button', { name: 'Gerar Study' }));
 ```
 
-- [ ] **Step 2: Rewrite the `Today` return to the new order**
+- [x] **Step 2: Rewrite the `Today` return to the new order**
 
 In `src/ui/Today.tsx`, replace the returned JSX of the `Today` component (the block starting `return (` at ~line 106 and ending at its matching `);` before `function RoadmapList`, i.e. lines ~106–246) with:
 ```tsx
@@ -716,7 +720,7 @@ In `src/ui/Today.tsx`, replace the returned JSX of the `Today` component (the bl
   );
 ```
 
-- [ ] **Step 3: Add CSS for the next-session block and diagnostics details**
+- [x] **Step 3: Add CSS for the next-session block and diagnostics details**
 
 In `src/index.css`, append:
 ```css
@@ -744,16 +748,16 @@ In `src/index.css`, append:
 }
 ```
 
-- [ ] **Step 4: Run the full gate**
+- [x] **Step 4: Run the full gate**
 
 Run: `npm run lint && npm run test && npm run build`
 Expected: all green (diagnostics tests now open the `<details>` first).
 
-- [ ] **Step 5: Manual visual check (mobile-first)**
+- [x] **Step 5: Manual visual check (mobile-first)**
 
 Run: `npm run dev`. At 390×844: the first `Abrir no Lichess` is at/near the first fold; the 4 diagnostics buttons are NOT visible until you expand "Diagnóstico". Order top→bottom: header → weakness chips → training → Próxima sessão → Próximos passos → Diagnóstico (closed).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/ui/Today.tsx src/index.css src/app/trainingFlow.test.tsx
@@ -770,7 +774,7 @@ Group the screen into **Essencial** (fields + Salvar), **Lichess (opcional)** (e
 - Modify: `src/ui/Config.tsx` (the returned JSX, lines ~82–188)
 - Modify: `src/index.css`
 
-- [ ] **Step 1: Restructure the Config JSX**
+- [x] **Step 1: Restructure the Config JSX**
 
 In `src/ui/Config.tsx`, replace the returned JSX (from `return (` at ~line 82 to the matching `);` at ~line 188) with:
 ```tsx
@@ -899,7 +903,7 @@ In `src/ui/Config.tsx`, replace the returned JSX (from `return (` at ~line 82 to
 ```
 (The `statusMessage` line is removed in Task 7. Keep it for now so this task stays self-contained.)
 
-- [ ] **Step 2: Add CSS for the sections, optional tag, and danger zone**
+- [x] **Step 2: Add CSS for the sections, optional tag, and danger zone**
 
 In `src/index.css`, append:
 ```css
@@ -944,16 +948,16 @@ Then update the existing `.connection-box` rule (lines ~151–157) — remove it
 }
 ```
 
-- [ ] **Step 3: Run the full gate**
+- [x] **Step 3: Run the full gate**
 
 Run: `npm run lint && npm run test && npm run build`
 Expected: all green (smoke test still finds nav `Config` and `Usuário Lichess`).
 
-- [ ] **Step 4: Manual visual check**
+- [x] **Step 4: Manual visual check**
 
 Run: `npm run dev` → Config view. Three clear sections; `Apagar tudo` sits inside the pink danger zone, separated from setup.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/ui/Config.tsx src/index.css
@@ -969,7 +973,7 @@ Replace the static `status-message` paragraph with `sonner` toasts for the four 
 **Files:**
 - Modify: `src/ui/Config.tsx`
 
-- [ ] **Step 1: Import toast and replace the status calls**
+- [x] **Step 1: Import toast and replace the status calls**
 
 In `src/ui/Config.tsx`, add the import at the top:
 ```tsx
@@ -981,7 +985,7 @@ Replace each `setStatusMessage(...)` call:
 - in `handleImportKnownManualSignals`: `setStatusMessage(\`${String(count)} sinais manuais salvos.\`);` → `toast.success(\`${String(count)} sinais manuais salvos.\`);`
 - in `handleClear`: `setStatusMessage('Dados locais apagados.');` → `toast.success('Dados locais apagados.');`
 
-- [ ] **Step 2: Remove the now-unused state and paragraph**
+- [x] **Step 2: Remove the now-unused state and paragraph**
 
 Delete the state declaration:
 ```tsx
@@ -993,16 +997,16 @@ Delete the trailing render line:
 ```
 `useState` is still used for the other fields, so keep the `import { useState } from 'react';`.
 
-- [ ] **Step 3: Run the full gate**
+- [x] **Step 3: Run the full gate**
 
 Run: `npm run lint && npm run test && npm run build`
 Expected: all green. Lint must not flag an unused `statusMessage`/`setStatusMessage` (both removed).
 
-- [ ] **Step 4: Manual visual check**
+- [x] **Step 4: Manual visual check**
 
 Run: `npm run dev` → Config → click `Salvar`: a green toast "Configuração salva." appears bottom-right and auto-dismisses. Export/import/Apagar tudo each toast similarly. OAuth errors still render inline in the connection box.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/ui/Config.tsx
@@ -1018,7 +1022,7 @@ Icons only where they aid scanning, always `aria-hidden` so accessible names (an
 **Files:**
 - Modify: `src/ui/App.tsx`, `src/ui/Today.tsx`, `src/ui/Config.tsx`
 
-- [ ] **Step 1: Nav icons in `src/ui/App.tsx`**
+- [x] **Step 1: Nav icons in `src/ui/App.tsx`**
 
 Add import:
 ```tsx
@@ -1034,7 +1038,7 @@ Add an icon as the first child of each nav button (text stays — the accessible
           Config
 ```
 
-- [ ] **Step 2: Action icons in `src/ui/Today.tsx`**
+- [x] **Step 2: Action icons in `src/ui/Today.tsx`**
 
 Add import:
 ```tsx
@@ -1044,7 +1048,7 @@ import { Check, ExternalLink, RefreshCw } from 'lucide-react';
 - In the `Concluir` button, add as first child: `<Check size={18} aria-hidden="true" />`.
 - In `Atualizar Chess.com` and `Atualizar Lichess` buttons, add as first child: `<RefreshCw size={16} aria-hidden="true" />`.
 
-- [ ] **Step 3: Danger icon in `src/ui/Config.tsx`**
+- [x] **Step 3: Danger icon in `src/ui/Config.tsx`**
 
 Add import:
 ```tsx
@@ -1052,7 +1056,7 @@ import { Trash2 } from 'lucide-react';
 ```
 In the `Apagar tudo` button, add as first child: `<Trash2 size={18} aria-hidden="true" />`.
 
-- [ ] **Step 4: Ensure icon + text spacing**
+- [x] **Step 4: Ensure icon + text spacing**
 
 In `src/index.css`, append:
 ```css
@@ -1066,16 +1070,16 @@ button > svg,
 }
 ```
 
-- [ ] **Step 5: Run the full gate**
+- [x] **Step 5: Run the full gate**
 
 Run: `npm run lint && npm run test && npm run build`
 Expected: all green. Critically, `getByRole('button', { name: 'Concluir' })` and `findByRole('link', { name: /Abrir no Lichess/i })` still match because the icons are `aria-hidden`.
 
-- [ ] **Step 6: Manual visual check**
+- [x] **Step 6: Manual visual check**
 
 Run: `npm run dev`. Icons appear inline-left of their labels; no icon clutter on secondary/feedback buttons. Tab focus still shows the ring from Task 3.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/ui/App.tsx src/ui/Today.tsx src/ui/Config.tsx src/index.css

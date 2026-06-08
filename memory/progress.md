@@ -59,5 +59,21 @@
   - [x] Configuracao PWA exportada e coberta por smoke unitario; build gera `sw.js` e manifest.
   - [x] `state.ts` refatorado para modulos de data, erro, OAuth, abertura externa e logs de treino.
   - [ ] Limite conhecido: em browser de aba unica, `target="_blank"` pode navegar a aba atual; o log fica salvo e o timer reaparece ao voltar.
+- [x] **Rodada UX/UI + pesquisa comunidade preparada (2026-06-07)**.
+  - [x] Prompt multi-IA criado em `prompts/ux-ui-community-audit.md`.
+  - [x] Pasta de relatorios designada em `docs/review/ux-ui-community-audit/`.
+  - [x] Fontes de bibliotecas prontas, acessibilidade e teste visual registradas em `docs/research/sources.md`.
+- [x] **Relatorio Codex da rodada UX/UI executado (2026-06-07)**.
+  - [x] Relatorio salvo em `docs/review/ux-ui-community-audit/relatorio-codex-ux-ui-comunidade-2026-06-07.md`.
+  - [x] Capturas Playwright desktop/mobile geradas em `output/playwright/`.
+  - [x] Pesquisa complementar de licencas, peers e maturidade registrada em `docs/research/sources.md`.
+- [x] **Polish UX/UI implementado e fechado (2026-06-07/2026-06-08)**.
+  - [x] Plano de execucao `docs/superpowers/plans/2026-06-07-polish-ux-ui.md` marcado como concluido.
+  - [x] `sonner` e `lucide-react` adotados de forma contida; sem framework UI completo.
+  - [x] Tela Hoje reorganizada com treino primeiro, diagnostico recolhido, card de treino em duas etapas e avaliacao obrigatoria.
+  - [x] Config reorganizada em Essencial, Lichess opcional e Dados locais; feedback local por toast.
+  - [x] Acessibilidade/polish CSS: foco visivel, cursor disabled correto, alvo mobile de 44px e microcopy PT-BR acentuada.
+  - [x] Gate final reexecutado: `npm run lint`, `npm run test` e `npm run build` verdes.
+  - [x] Checagem visual final Playwright em 1280x800 e 390x844; capturas `ux-polish-final-*-2026-06-08.png` salvas em `output/playwright/`.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

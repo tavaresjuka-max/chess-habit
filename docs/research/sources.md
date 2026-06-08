@@ -180,6 +180,61 @@ Pesquisa executada para `docs/review/relatorio-codex-revisao-proposta2-rotina-pe
 - [Cloudflare Workers KV - How KV works](https://developers.cloudflare.com/kv/concepts/how-kv-works/): revalidou consistencia eventual de KV e inadequacao para operacoes atomicas/transacionais.
 - [MDN: Making PWAs installable](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable): revalidou requisitos de manifest, icones 192/512, `start_url`, `display`, HTTPS/localhost/loopback e papel opcional, mas comum, de service worker para offline.
 
+## Pesquisa Externa Em 2026-06-07: UX/UI E Bibliotecas Prontas
+
+Pesquisa executada para criar o prompt de auditoria multi-IA em `prompts/ux-ui-community-audit.md`.
+Objetivo: orientar avaliacao de funcionamento UX/UI e investigacao de componentes prontos da comunidade,
+sem violar clean-room, privacidade, PWA local-first ou fases congeladas.
+
+- [Radix UI Primitives](https://www.radix-ui.com/primitives/docs/overview/introduction): confirmou primitives
+  open-source, acessiveis, sem estilo, adotaveis incrementalmente e tree-shakeable por componente.
+- [shadcn/ui manual installation](https://ui.shadcn.com/docs/installation/manual): confirmou dependencia de
+  Tailwind CSS e pacotes como `class-variance-authority`, `clsx`, `tailwind-merge`, `lucide-react` e
+  `tw-animate-css`.
+- [shadcn/ui project ready / registries](https://ui.shadcn.com/docs/new): confirmou modelo de copiar codigo
+  dos componentes para o projeto, blocos prontos e registries comunitarias.
+- [React Aria](https://react-aria.adobe.com/): confirmou componentes style-free com foco em acessibilidade,
+  interacoes touch/keyboard/screen reader, forms e internacionalizacao.
+- [Ariakit Components](https://ariakit.com/components): confirmou componentes acessiveis baseados em padroes
+  WAI-ARIA para dialog, disclosure, menu, select, tabs, toolbar e tooltip.
+- [Headless UI](https://headlessui.com/): confirmado como biblioteca de componentes React sem estilo e
+  orientada a acessibilidade.
+- [Mantine](https://mantine.dev/): confirmou biblioteca completa de componentes e hooks React, componentes
+  prontos responsivos mantidos pela comunidade e numeros publicos de adocao exibidos pelo site.
+- [Material UI overview](https://mui.com/material-ui/getting-started/): confirmou biblioteca React completa,
+  open-source, pronta para producao e baseada em Material Design.
+- [Chakra UI components](https://chakra-ui.com/docs/components/concepts/overview): confirmou catalogo amplo de
+  componentes modernos e acessiveis, incluindo dialogs, drawers, alerts, data list, date picker e forms.
+- [Lucide React](https://lucide.dev/guide/react): confirmou pacote React de icones SVG inline, tree-shakeable,
+  TypeScript e licenca ISC.
+- [Sonner GitHub](https://github.com/emilkowalski/sonner): confirmou toast React MIT, suporte a React 18/19
+  declarado em `peerDependencies` e uso simples por `<Toaster />` + `toast()`.
+- [Recharts GitHub](https://github.com/recharts/recharts): confirmou biblioteca React/D3 para graficos, MIT,
+  componentes declarativos e necessidade de `react-is` compatibilizado com a versao de React.
+- [Open Props](https://open-props.style/): confirmou biblioteca MIT de design tokens CSS, framework-agnostic,
+  util para padronizar spacing, radius, shadows, cores e animacoes sem trocar React/CSS.
+- [Playwright visual comparisons](https://playwright.dev/docs/test-snapshots): confirmou suporte nativo a
+  screenshot visual regression via `toHaveScreenshot()`.
+- [Playwright accessibility testing](https://playwright.dev/docs/accessibility-testing): confirmou integracao
+  recomendada com `@axe-core/playwright`, tags WCAG e limitacao de testes automatizados.
+- [Testing Library user-event](https://testing-library.com/docs/user-event/intro/): confirmou simulacao de
+  interacoes de usuario mais realista que `fireEvent`, util para fluxos de UX em testes React.
+- Pesquisa complementar executada em 2026-06-07 para
+  `docs/review/ux-ui-community-audit/relatorio-codex-ux-ui-comunidade-2026-06-07.md`:
+  `npm view` confirmou versoes/licencas/peer dependencies de `@radix-ui/react-dialog`,
+  `@radix-ui/react-select`, `react-aria-components`, `@ariakit/react`, `@headlessui/react`,
+  `@base-ui-components/react`, `@mantine/core`, `@mui/material`, `@chakra-ui/react`, `sonner`,
+  `lucide-react`, `recharts`, `@axe-core/playwright`, `@testing-library/user-event`, `open-props`,
+  `@picocss/pico` e `tailwindcss`.
+- [Base UI About](https://base-ui.com/react/overview/about): confirmado como alternativa headless acessivel
+  open-source, ainda em `1.0.0-rc.0` na verificacao npm.
+- [Pico CSS](https://picocss.com/): confirmou framework CSS minimalista para HTML semantico, MIT,
+  responsivo e sem JavaScript.
+- [Tremor](https://npm.tremor.so/): confirmou componentes React/Tailwind voltados a dashboards e charts,
+  uteis como comparativo para uma futura tela de progresso, mas inadequados como dependencia imediata.
+- Playwright via runtime bundled do Codex foi usado para capturar `Config`, `Hoje`, treino ativo e bloco
+  concluido em desktop/mobile; artefatos salvos em `output/playwright/`.
+
 ## Lichess
 
 - [Lichess API](https://lichess-org.github.io/api/): referencia oficial dos endpoints.
