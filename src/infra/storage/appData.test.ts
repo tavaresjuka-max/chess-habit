@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { generatePlan } from '../../domain';
 import type { LearnerProfile, Signal, Weakness } from '../../domain';
 import {
+  appendSignals,
   clearAll,
   clearLichessOAuthToken,
   exportAllAsJson,
@@ -136,6 +137,26 @@ describe('appData storage', () => {
 
     await expect(loadSignals()).resolves.toEqual([signal]);
     await expect(loadWeaknesses()).resolves.toEqual([weakness]);
+  });
+
+  it('appends manual tutor signals without deleting existing source signals', async () => {
+    const existingSignal: Signal = {
+      source: 'outro',
+      confidence: 'medium',
+      observedAt: '2026-06-06T00:00:00.000Z',
+      value: { kind: 'manual', tag: 'fork', note: 'Sinal manual anterior.' },
+    };
+    const nextSignal: Signal = {
+      source: 'outro',
+      confidence: 'medium',
+      observedAt: '2026-06-08T00:00:00.000Z',
+      value: { kind: 'manual', tag: 'hanging-piece', note: 'Resposta ao Professor Lemos.' },
+    };
+
+    await replaceSignalsForSource('outro', [existingSignal]);
+    await appendSignals([nextSignal]);
+
+    await expect(loadSignals()).resolves.toEqual([existingSignal, nextSignal]);
   });
 
   it('caches only derived Chess.com month signals', async () => {

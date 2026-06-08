@@ -35,11 +35,16 @@ describe('diagnose', () => {
     }
   });
 
-  it('asks a question when the tag has no mapped procedure', () => {
+  it('names the cause for endgame tags that now have mapped procedures', () => {
     const weaknesses: Weakness[] = [
       { tag: 'endgame-pawn', score: 0.9, confidence: 'high', evidence: 'tema fora do mapa agregado' },
     ];
-    expect(diagnose(weaknesses).kind).toBe('question');
+    const result = diagnose(weaknesses);
+
+    expect(result.kind).toBe('cause');
+    if (result.kind === 'cause') {
+      expect(result.weaknessTag).toBe('endgame-pawn');
+    }
   });
 
   it('names the cause for a tactical tag that has a mapped procedure', () => {
@@ -49,5 +54,50 @@ describe('diagnose', () => {
     if (result.kind === 'cause') {
       expect(result.weaknessTag).toBe('discovered');
     }
+  });
+
+  it('uses puzzle theme stats when a reconciled theme has clear error evidence', () => {
+    const result = diagnose(
+      [{ tag: 'blunder-rate', score: 0.6, confidence: 'medium', evidence: 'erros graves recentes' }],
+      {
+        since: '2026-06-08T10:00:00.000Z',
+        until: '2026-06-08T10:15:00.000Z',
+        themes: [
+          { theme: 'fork', attempts: 5, losses: 3 },
+          { theme: 'pin', attempts: 4, losses: 1 },
+        ],
+      },
+    );
+
+    expect(result.kind).toBe('cause');
+    if (result.kind === 'cause') {
+      expect(result.basis).toBe('puzzle-theme');
+      expect(result.weaknessTag).toBe('fork');
+      expect(result.message).toContain('3 erros em 5 tentativas');
+    }
+  });
+
+  it('maps conversion puzzle dashboard themes to conversion weakness', () => {
+    const result = diagnose([], {
+      since: '2026-06-01T00:00:00.000Z',
+      until: '2026-06-08T00:00:00.000Z',
+      themes: [{ theme: 'advantage', attempts: 5, losses: 3 }],
+    });
+
+    expect(result.kind).toBe('cause');
+    if (result.kind === 'cause') {
+      expect(result.weaknessTag).toBe('conversion');
+      expect(result.basis).toBe('puzzle-theme');
+    }
+  });
+
+  it('does not use puzzle theme stats when volume is still weak', () => {
+    const result = diagnose([], {
+      since: '2026-06-08T10:00:00.000Z',
+      until: '2026-06-08T10:05:00.000Z',
+      themes: [{ theme: 'fork', attempts: 2, losses: 2 }],
+    });
+
+    expect(result.kind).toBe('question');
   });
 });

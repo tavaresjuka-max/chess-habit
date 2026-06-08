@@ -79,7 +79,28 @@ export function summarizePuzzleActivity(input: {
     wins,
     losses: input.activities.length - wins,
     themes,
+    themeStats: summarizeThemeStats(input.activities),
   };
+}
+
+function summarizeThemeStats(activities: LichessPuzzleActivity[]): TrainingResult['themeStats'] {
+  const byTheme = new Map<string, { theme: string; attempts: number; losses: number }>();
+
+  for (const activity of activities) {
+    for (const theme of activity.puzzle.themes) {
+      const current = byTheme.get(theme) ?? { theme, attempts: 0, losses: 0 };
+
+      byTheme.set(theme, {
+        theme,
+        attempts: current.attempts + 1,
+        losses: current.losses + (activity.win ? 0 : 1),
+      });
+    }
+  }
+
+  return [...byTheme.values()].sort(
+    (left, right) => right.losses - left.losses || right.attempts - left.attempts || left.theme.localeCompare(right.theme),
+  );
 }
 
 export function parsePuzzleActivityNdjson(ndjson: string): LichessPuzzleActivity[] {

@@ -71,6 +71,32 @@ describe('buildSessionMessage', () => {
     expect(message.lines.some((line) => line.includes('4') && line.includes('1'))).toBe(true);
   });
 
+  it('does not report dashboard aggregates as block puzzle numbers', () => {
+    const result: TrainingResult = {
+      source: 'lichess',
+      kind: 'puzzle-dashboard',
+      fetchedAt: '2026-06-08T10:00:00.000Z',
+      since: '2026-06-01T00:00:00.000Z',
+      until: '2026-06-08T10:00:00.000Z',
+      days: 7,
+      puzzles: 5,
+      wins: 1,
+      losses: 4,
+      themes: ['fork'],
+      themeStats: [{ theme: 'fork', attempts: 5, losses: 4 }],
+      weakThemes: ['fork'],
+      strongThemes: [],
+    };
+    const message = buildSessionMessage({
+      phase: 'post',
+      consistency: baseConsistency,
+      lastFeedback: 'good',
+      puzzleResult: result,
+    });
+
+    expect(message.lines.some((line) => line.includes('Nos puzzles'))).toBe(false);
+  });
+
   it('never uses banned phrases', () => {
     const messages = [
       buildSessionMessage({

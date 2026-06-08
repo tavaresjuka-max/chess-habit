@@ -61,6 +61,10 @@ describe('summarizePuzzleActivity', () => {
       wins: 1,
       losses: 1,
       themes: ['fork', 'mate'],
+      themeStats: [
+        { theme: 'fork', attempts: 2, losses: 1 },
+        { theme: 'mate', attempts: 1, losses: 1 },
+      ],
     });
   });
 });

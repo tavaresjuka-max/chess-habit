@@ -125,7 +125,7 @@ export type DailyPlan = {
   generatedFromWeaknessesAt: string;
 };
 
-export type TrainingResult = {
+export type PuzzleActivityTrainingResult = {
   source: 'lichess';
   kind: 'puzzle-activity';
   fetchedAt: string;
@@ -135,7 +135,50 @@ export type TrainingResult = {
   wins: number;
   losses: number;
   themes: string[];
+  themeStats?: PuzzleThemeStat[];
 };
+
+export type PuzzleDashboardTrainingResult = {
+  source: 'lichess';
+  kind: 'puzzle-dashboard';
+  fetchedAt: string;
+  since: string;
+  until: string;
+  days: number;
+  puzzles: number;
+  wins: number;
+  losses: number;
+  themes: string[];
+  themeStats: PuzzleThemeStat[];
+  weakThemes: string[];
+  strongThemes: string[];
+  averageRating?: number;
+  performance?: number;
+  accuracy?: number;
+};
+
+export type PuzzleReplaySummaryTrainingResult = {
+  source: 'lichess';
+  kind: 'puzzle-replay-summary';
+  fetchedAt: string;
+  since: string;
+  until: string;
+  days: number;
+  theme: string;
+  nb: number;
+  remainingCount: number;
+  url: string;
+  puzzles: number;
+  wins: number;
+  losses: number;
+  themes: string[];
+  themeStats: PuzzleThemeStat[];
+};
+
+export type TrainingResult =
+  | PuzzleActivityTrainingResult
+  | PuzzleDashboardTrainingResult
+  | PuzzleReplaySummaryTrainingResult;
 
 export type TrainingLogStatus = 'active' | 'done' | 'skipped';
 
@@ -183,6 +226,13 @@ export type Diagnosis =
     }
   | { kind: 'question'; message: string };
 
-export type PuzzleThemeStat = { theme: string; attempts: number; losses: number };
+export type PuzzleThemeStat = {
+  theme: string;
+  attempts: number;
+  losses: number;
+  averageRating?: number;
+  performance?: number;
+  accuracy?: number;
+};
 
 export type PuzzleThemeStats = { since: string; until: string; themes: PuzzleThemeStat[] };

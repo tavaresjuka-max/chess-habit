@@ -1,7 +1,16 @@
-import type { Confidence, Diagnosis, PuzzleThemeStats, Weakness, WeaknessTag } from '../types';
+import type { Confidence, Diagnosis, PuzzleThemeStat, PuzzleThemeStats, Weakness, WeaknessTag } from '../types';
+
+type PuzzleThemeCandidate = {
+  stat: PuzzleThemeStat;
+  weaknessTag: WeaknessTag;
+  lossRate: number;
+};
 
 const confidenceRank: Record<Confidence, number> = { low: 0, medium: 1, high: 2 };
 const MIN_SCORE = 0.5;
+const MIN_PUZZLE_THEME_ATTEMPTS = 3;
+const MIN_PUZZLE_THEME_LOSSES = 2;
+const MIN_PUZZLE_THEME_LOSS_RATE = 0.5;
 
 const causeByTag: Partial<Record<WeaknessTag, { message: string; procedure: string }>> = {
   'blunder-rate': {
@@ -42,10 +51,40 @@ const causeByTag: Partial<Record<WeaknessTag, { message: string; procedure: stri
   },
 };
 
+Object.assign(
+  causeByTag,
+  {
+    'mate-in-1': {
+      message: 'Mates imediatos ainda estao passando sem a varredura final.',
+      procedure: 'Antes de calcular longo, cheque fuga, defesa e captura do rei.',
+    },
+    'mate-in-2': {
+      message: 'Mates curtos pedem mais calma na primeira ameaca.',
+      procedure: 'Veja a continuacao antes de clicar no primeiro lance promissor.',
+    },
+    'endgame-pawn': {
+      message: 'Finais de peoes estao cobrando plano antes de calculo.',
+      procedure: 'Conte rei ativo, oposicao e casa de promocao antes da corrida.',
+    },
+    'endgame-rook': {
+      message: 'Finais de torre estao pedindo mais atividade e tecnica.',
+      procedure: 'Antes de defender, veja se a torre pode ficar ativa atras do peao.',
+    },
+    conversion: {
+      message: 'A vantagem aparece, mas a conversao ainda perde clareza.',
+      procedure: 'Simplifique quando puder, ative pecas e reduza o contra-jogo.',
+    },
+  } satisfies Partial<Record<WeaknessTag, { message: string; procedure: string }>>,
+);
+
 const QUESTION_MESSAGE = 'O que pesou mais hoje: tempo, cálculo ou peça solta?';
 
 export function diagnose(weaknesses: Weakness[], puzzleThemeStats?: PuzzleThemeStats): Diagnosis {
-  void puzzleThemeStats;
+  const puzzleThemeCause = diagnosePuzzleTheme(puzzleThemeStats);
+
+  if (puzzleThemeCause !== undefined) {
+    return puzzleThemeCause;
+  }
 
   const primary = weaknesses[0];
 
@@ -64,3 +103,104 @@ export function diagnose(weaknesses: Weakness[], puzzleThemeStats?: PuzzleThemeS
 
   return { kind: 'question', message: QUESTION_MESSAGE };
 }
+
+function diagnosePuzzleTheme(puzzleThemeStats: PuzzleThemeStats | undefined): Diagnosis | undefined {
+  if (puzzleThemeStats === undefined) {
+    return undefined;
+  }
+
+  const [candidate] = puzzleThemeStats.themes
+    .map((stat): PuzzleThemeCandidate | undefined => {
+      const weaknessTag = puzzleThemeToWeaknessTag[stat.theme];
+
+      if (weaknessTag === undefined) {
+        return undefined;
+      }
+
+      return {
+        stat,
+        weaknessTag,
+        lossRate: stat.attempts === 0 ? 0 : stat.losses / stat.attempts,
+      };
+    })
+    .filter((candidate): candidate is PuzzleThemeCandidate => candidate !== undefined)
+    .filter(
+      (candidate) =>
+        candidate.stat.attempts >= MIN_PUZZLE_THEME_ATTEMPTS &&
+        candidate.stat.losses >= MIN_PUZZLE_THEME_LOSSES &&
+        candidate.lossRate >= MIN_PUZZLE_THEME_LOSS_RATE,
+    )
+    .sort(
+      (left, right) =>
+        right.stat.losses - left.stat.losses ||
+        right.lossRate - left.lossRate ||
+        right.stat.attempts - left.stat.attempts ||
+        left.stat.theme.localeCompare(right.stat.theme),
+    );
+
+  if (candidate === undefined) {
+    return undefined;
+  }
+
+  const cause = causeByTag[candidate.weaknessTag];
+
+  if (cause === undefined) {
+    return undefined;
+  }
+
+  const themeLabel = puzzleThemeLabelByTheme[candidate.stat.theme] ?? candidate.stat.theme;
+
+  return {
+    kind: 'cause',
+    weaknessTag: candidate.weaknessTag,
+    basis: 'puzzle-theme',
+    message: `Nos puzzles conferidos, ${themeLabel} concentrou ${String(candidate.stat.losses)} erros em ${String(candidate.stat.attempts)} tentativas.`,
+    procedure: cause.procedure,
+  };
+}
+
+const puzzleThemeToWeaknessTag: Partial<Record<string, WeaknessTag>> = {
+  backRankMate: 'back-rank',
+  discoveredAttack: 'discovered',
+  discoveredCheck: 'discovered',
+  fork: 'fork',
+  hangingPiece: 'hanging-piece',
+  mate: 'mate-in-2',
+  mateIn1: 'mate-in-1',
+  mateIn2: 'mate-in-2',
+  pin: 'pin',
+  skewer: 'skewer',
+  advantage: 'conversion',
+  crushing: 'conversion',
+  defensiveMove: 'conversion',
+  capturingDefender: 'conversion',
+  deflection: 'conversion',
+  pawnEndgame: 'endgame-pawn',
+  advancedPawn: 'endgame-pawn',
+  promotion: 'endgame-pawn',
+  underPromotion: 'endgame-pawn',
+  rookEndgame: 'endgame-rook',
+};
+
+const puzzleThemeLabelByTheme: Partial<Record<string, string>> = {
+  backRankMate: 'mate na ultima fileira',
+  discoveredAttack: 'ataque descoberto',
+  discoveredCheck: 'xeque descoberto',
+  fork: 'garfos',
+  hangingPiece: 'pecas penduradas',
+  mate: 'mates',
+  mateIn1: 'mate em 1',
+  mateIn2: 'mate em 2',
+  pin: 'cravadas',
+  skewer: 'espetos',
+  advantage: 'vantagem',
+  crushing: 'conversao de vantagem',
+  defensiveMove: 'defesa precisa',
+  capturingDefender: 'capturar defensor',
+  deflection: 'desvio',
+  pawnEndgame: 'finais de peoes',
+  advancedPawn: 'peao avancado',
+  promotion: 'promocao',
+  underPromotion: 'subpromocao',
+  rookEndgame: 'finais de torre',
+};

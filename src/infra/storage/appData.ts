@@ -74,6 +74,18 @@ export async function replaceSignalsForSource(source: SourceId, signals: Signal[
   });
 }
 
+export async function appendSignals(signals: Signal[]): Promise<void> {
+  if (signals.length === 0) {
+    return;
+  }
+
+  await db.transaction('rw', db.signals, async () => {
+    const offset = await db.signals.count();
+
+    await db.signals.bulkPut(signals.map((signal, index) => toSignalRecord(signal, offset + index)));
+  });
+}
+
 export async function loadWeaknesses(): Promise<Weakness[]> {
   const records = await db.weaknesses.toArray();
   return records.map(fromWeaknessRecord);

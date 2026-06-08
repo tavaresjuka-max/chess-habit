@@ -49,7 +49,7 @@ const closeByFeedback: Record<PlanBlockFeedback, string> = {
 };
 
 function puzzleLines(result: TrainingResult | undefined): string[] {
-  if (result === undefined) {
+  if (result === undefined || result.kind !== 'puzzle-activity') {
     return [];
   }
   return [`Nos puzzles: ${String(result.wins)} certos, ${String(result.losses)} errados.`];
