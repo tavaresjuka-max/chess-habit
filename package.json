@@ -12,8 +12,10 @@
   },
   "dependencies": {
     "dexie": "4.4.3",
+    "lucide-react": "^1.17.0",
     "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "react-dom": "19.2.7",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

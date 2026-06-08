@@ -1,6 +1,7 @@
 import { useAppState } from '../app/state';
 import { Config } from './Config';
 import { Today } from './Today';
+import { Toaster } from 'sonner';
 
 export function App() {
   const appState = useAppState();
@@ -19,6 +20,7 @@ export function App() {
 
   return (
     <main className="app-shell">
+      <Toaster richColors position="bottom-right" />
       <nav className="top-nav" aria-label="Navegacao principal">
         <button
           className={shouldShowConfig ? 'nav-button' : 'nav-button nav-button-active'}
