@@ -85,5 +85,12 @@
   - [x] Feedback `good` em estagio `guided` agora avanca para `retrieval`, abrindo puzzle theme variado (`/training/fork`) em vez do mesmo Practice estatico.
   - [x] Plano ja salvo no dia tambem pode ser reparado ao carregar, preservando status/feedback existentes.
   - [x] Regressao coberta por testes de gerador, storage e fluxo React com IndexedDB isolado.
+- [x] **Professor Lemos Etapa 1: envelope de sessao na tela Hoje (2026-06-08)**.
+  - [x] Tipos `Consistency`, `CoachMessage`, `Diagnosis` e `PuzzleThemeStats` adicionados ao dominio.
+  - [x] `computeConsistency` calcula sequencia atual, maior sequencia, dias desde ultimo treino e retorno apos ausencia.
+  - [x] `diagnose` so afirma causa quando fraqueza primaria tem score/confidence suficientes e tag mapeada; caso contrario pergunta.
+  - [x] `buildSessionMessage` cobre abertura, retorno e fechamento por feedback, com banlist testada.
+  - [x] `TutorCard` renderizado em Hoje logo apos o cabecalho, com estado pre e pos-treino.
+  - [x] Gate final verde: `npm run test`, `npm run lint`, `npm run build`; Browser validado em 1280x720 e 375x812 sem overflow horizontal.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

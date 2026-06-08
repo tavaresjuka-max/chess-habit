@@ -13,6 +13,9 @@ Data: 2026-06-08 (atualizado apos fechamento do polish UX/UI).
 - Polish UX/UI de 2026-06-07 concluido: tela Hoje prioriza treino, diagnostico fica recolhido, card de
   treino tem avaliacao obrigatoria em duas etapas, Config foi separada em secoes, e feedback local usa
   toasts/icone contidos.
+- Professor Lemos Etapa 1 concluida em 2026-06-08: tela Hoje agora tem card dedicado com abertura,
+  retorno apos ausencia, fechamento por feedback, reconhecimento sobrio de constancia e diagnostico
+  agregado travado por evidencia.
 - Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
@@ -40,10 +43,11 @@ Data: 2026-06-08 (atualizado apos fechamento do polish UX/UI).
 
 ## Proxima Etapa
 
-P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08.
-P4 e P5 estao congeladas por decisao do dono. A proxima etapa valida e usar o app pessoalmente por
-algumas sessoes reais e corrigir apenas dores pequenas observadas no uso antes de qualquer sync,
-backend, texto livre ou versao-comunidade.
+P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08;
+Professor Lemos Etapa 1 foi fechada em 2026-06-08. P4 e P5 estao congeladas por decisao do dono. A
+proxima etapa valida e usar o app pessoalmente por algumas sessoes reais e corrigir apenas dores
+pequenas observadas no uso. O diagnostico por tema via `puzzle:read` fica para a Etapa 2 propria,
+sem adiantar sync, backend, texto livre ou versao-comunidade.
 
 Implementado ate P3:
 
@@ -71,6 +75,9 @@ Implementado ate P3:
 - Ajuste de uso real em 2026-06-08: plano diario nao pode reiniciar sempre na mesma licao guiada de
   Practice. Ao criar/reparar o plano do dia, o app consulta o plano anterior salvo; `good` depois de
   `guided` avanca para `retrieval`, abrindo puzzle theme variado como `https://lichess.org/training/fork`.
+- Professor Lemos Etapa 1 em 2026-06-08: dominio puro ganhou `computeConsistency`, `diagnose` e
+  `buildSessionMessage`; a tela Hoje renderiza `TutorCard` depois do cabecalho. Sem rede nova, sem
+  engine, sem PGN persistido e sem diagnostico por tema ainda.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

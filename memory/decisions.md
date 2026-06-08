@@ -144,3 +144,12 @@ Lichess Practice em dias diferentes. Decisao: o plano novo deve consultar o plan
 memoria de progresso, e feedback `good` depois de `guided` avanca para `retrieval`. Assim a rotina
 passa para puzzle theme variado (`/training/fork`) em vez de repetir o mesmo Practice estatico; `hard`
 continua voltando para explicacao.
+
+## 2026-06-08: Professor Lemos Etapa 1 Fica No Envelope De Sessao
+
+Decisao operacional aplicada a partir do plano `2026-06-08-professor-lemos-tutor-etapa1.md`:
+Professor Lemos entra primeiro como envelope de sessao na tela Hoje, nao como chat livre nem analise
+lance a lance. O dominio usa funcoes puras sem rede/React: constancia, mensagem de sessao e diagnostico
+agregado travado por evidencia. O retorno apos ausencia, nesta etapa pre-treino, e definido por
+`daysSinceLastSession >= 2`. Diagnostico por tema de puzzle via `puzzle:read` fica para plano proprio
+de Etapa 2.
