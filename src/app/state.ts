@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   appendPlanSession,
+  buildPuzzleThemeStats,
   detectWeaknesses,
   createKnownManualSignals,
+  createTutorQuestionSignal,
   completeTrainingLog,
   createTrainingRoadmap,
   createTrainingLog,
@@ -19,6 +21,7 @@ import {
   type SessionMinutes,
   type TrainingLog,
   type TrainingRoadmapItem,
+  type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
 import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
@@ -29,6 +32,7 @@ import {
   clearAll,
   clearLichessOAuthToken,
   exportAllAsJson,
+  appendSignals,
   getLatestPlanBefore,
   getLichessStudyLink,
   getPlan,
@@ -54,7 +58,7 @@ import { completeLichessOAuthIfNeeded, startLichessOAuthConnection } from './oau
 import {
   mergeTrainingLogs,
   reconcileLogIfPossible,
-  reconcileLogsWithLichessPuzzleActivity,
+  reconcileLichessPuzzleDiagnostics,
   upsertTrainingLog,
 } from './trainingLogFlow';
 
@@ -85,6 +89,7 @@ export type AppState = {
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
   readonly createNextSession: (minutes: SessionMinutes) => Promise<void>;
   readonly importKnownManualSignals: () => Promise<number>;
+  readonly answerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
   readonly syncChesscomDiagnosis: () => Promise<void>;
   readonly connectLichess: () => Promise<void>;
   readonly disconnectLichess: () => Promise<void>;
@@ -161,9 +166,11 @@ export function useAppState(): AppState {
           normalizedStoredPlan === undefined
             ? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date, {
                 previousPlan: normalizedPreviousPlan,
+                recentThemeStats: buildPuzzleThemeStats(storedTrainingLogs),
               })
             : generatePlan(storedProfile, storedWeaknesses, toSessionMinutes(normalizedStoredPlan.sessionMinutes, storedProfile.defaultSessionMinutes), date, {
                 previousPlan: combinePlanHistory(normalizedStoredPlan, normalizedPreviousPlan),
+                recentThemeStats: buildPuzzleThemeStats(storedTrainingLogs),
               });
 
         if (storedPlan === undefined || plan !== storedPlan) {
@@ -198,6 +205,7 @@ export function useAppState(): AppState {
     const date = getTodayDate();
     const plan = generatePlan(nextProfile, weaknesses, nextProfile.defaultSessionMinutes, date, {
       previousPlan: todayPlan,
+      recentThemeStats: buildPuzzleThemeStats(trainingLogs),
     });
 
     await saveStoredProfile(nextProfile);
@@ -209,7 +217,7 @@ export function useAppState(): AppState {
     setActiveView('today');
     setErrorMessage(undefined);
     setTrainingLogs(await loadTrainingLogsForDate(date));
-  }, [todayPlan, weaknesses]);
+  }, [todayPlan, trainingLogs, weaknesses]);
 
   const regeneratePlan = useCallback(
     async (minutes: SessionMinutes) => {
@@ -218,14 +226,17 @@ export function useAppState(): AppState {
         return;
       }
 
-      const plan = generatePlan(profile, weaknesses, minutes, getTodayDate(), { previousPlan: todayPlan });
+      const plan = generatePlan(profile, weaknesses, minutes, getTodayDate(), {
+        previousPlan: todayPlan,
+        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+      });
 
       await savePlan(plan);
       setSessionMinutes(minutes);
       setTodayPlan(plan);
       setErrorMessage(undefined);
     },
-    [profile, todayPlan, weaknesses],
+    [profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const createNextSession = useCallback(
@@ -237,7 +248,9 @@ export function useAppState(): AppState {
 
       if (todayPlan === undefined) {
         const date = getTodayDate();
-        const plan = generatePlan(profile, weaknesses, minutes, date);
+        const plan = generatePlan(profile, weaknesses, minutes, date, {
+          recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        });
 
         await savePlan(plan);
         setSessionMinutes(minutes);
@@ -250,6 +263,7 @@ export function useAppState(): AppState {
       const sessionPlan = generatePlan(profile, weaknesses, minutes, todayPlan.date, {
         previousPlan: todayPlan,
         sessionNumber: getNextPlanSessionNumber(todayPlan),
+        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
       });
       const nextPlan = appendPlanSession(todayPlan, sessionPlan);
 
@@ -259,7 +273,7 @@ export function useAppState(): AppState {
       setTrainingLogs(await loadTrainingLogsForDate(todayPlan.date));
       setErrorMessage(undefined);
     },
-    [profile, todayPlan, weaknesses],
+    [profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const syncChesscomDiagnosis = useCallback(async () => {
@@ -291,7 +305,10 @@ export function useAppState(): AppState {
       const allSignals = await loadSignals();
       const nextWeaknesses = detectWeaknesses(allSignals);
       const date = getTodayDate();
-      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, { previousPlan: todayPlan });
+      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
+        previousPlan: todayPlan,
+        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+      });
 
       await replaceWeaknesses(nextWeaknesses);
       await savePlan(plan);
@@ -309,7 +326,7 @@ export function useAppState(): AppState {
       setDiagnosisState('error');
       setDiagnosisMessage(toDiagnosisErrorMessage(error));
     }
-  }, [profile, sessionMinutes, todayPlan]);
+  }, [profile, sessionMinutes, todayPlan, trainingLogs]);
 
   const importKnownManualSignals = useCallback(async () => {
     const manualSignals = createKnownManualSignals(new Date().toISOString());
@@ -324,14 +341,47 @@ export function useAppState(): AppState {
 
     if (profile !== undefined) {
       const date = getTodayDate();
-      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, { previousPlan: todayPlan });
+      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
+        previousPlan: todayPlan,
+        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+      });
 
       await savePlan(plan);
       setTodayPlan(plan);
     }
 
     return manualSignals.length;
-  }, [profile, sessionMinutes, todayPlan]);
+  }, [profile, sessionMinutes, todayPlan, trainingLogs]);
+
+  const answerTutorQuestion = useCallback(
+    async (answer: TutorQuestionAnswer) => {
+      const signal = createTutorQuestionSignal(answer, new Date().toISOString());
+
+      await appendSignals([signal]);
+
+      const allSignals = await loadSignals();
+      const nextWeaknesses = detectWeaknesses(allSignals);
+
+      await replaceWeaknesses(nextWeaknesses);
+      setWeaknesses(nextWeaknesses);
+
+      if (profile !== undefined) {
+        const date = getTodayDate();
+        const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
+          previousPlan: todayPlan,
+          recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        });
+
+        await savePlan(plan);
+        setTodayPlan(plan);
+      }
+
+      setDiagnosisState('success');
+      setDiagnosisMessage('Resposta registrada. Ajustei as hipoteses do treino.');
+      setErrorMessage(undefined);
+    },
+    [profile, sessionMinutes, todayPlan, trainingLogs],
+  );
 
   const connectLichess = useCallback(async () => {
     await startLichessOAuthConnection(profile?.lichessUsername);
@@ -382,7 +432,10 @@ export function useAppState(): AppState {
       const allSignals = await loadSignals();
       const nextWeaknesses = detectWeaknesses(allSignals);
       const date = getTodayDate();
-      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, { previousPlan: todayPlan });
+      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
+        previousPlan: todayPlan,
+        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+      });
 
       await replaceWeaknesses(nextWeaknesses);
       await savePlan(plan);
@@ -399,7 +452,7 @@ export function useAppState(): AppState {
       setLichessConnectionState('error');
       setLichessMessage(toLichessErrorMessage(error));
     }
-  }, [profile, sessionMinutes, todayPlan]);
+  }, [profile, sessionMinutes, todayPlan, trainingLogs]);
 
   const reconcileLichessResults = useCallback(async () => {
     const token = await loadLichessOAuthToken();
@@ -414,24 +467,42 @@ export function useAppState(): AppState {
     setLichessMessage('Buscando resultados de puzzles no Lichess.');
 
     try {
-      const reconciledLogs = await reconcileLogsWithLichessPuzzleActivity(trainingLogs, token.accessToken);
+      const reconciledLogs = await reconcileLichessPuzzleDiagnostics(trainingLogs, token.accessToken);
 
       for (const log of reconciledLogs) {
         await saveTrainingLog(log);
       }
 
-      setTrainingLogs(mergeTrainingLogs(trainingLogs, reconciledLogs));
+      const nextTrainingLogs = mergeTrainingLogs(trainingLogs, reconciledLogs);
+
+      if (profile !== undefined && todayPlan !== undefined) {
+        const nextPlan = generatePlan(
+          profile,
+          weaknesses,
+          toSessionMinutes(todayPlan.sessionMinutes, profile.defaultSessionMinutes),
+          todayPlan.date,
+          {
+            previousPlan: todayPlan,
+            recentThemeStats: buildPuzzleThemeStats(nextTrainingLogs),
+          },
+        );
+
+        await savePlan(nextPlan);
+        setTodayPlan(nextPlan);
+      }
+
+      setTrainingLogs(nextTrainingLogs);
       setLichessConnectionState('connected');
       setLichessMessage(
         reconciledLogs.length === 0
           ? 'Nenhum resultado novo de puzzle encontrado.'
-          : `${String(reconciledLogs.length)} bloco(s) reconciliado(s) com o Lichess.`,
+          : `${String(reconciledLogs.length)} bloco(s) e sinais agregados de puzzle atualizados.`,
       );
     } catch (error) {
       setLichessConnectionState('error');
       setLichessMessage(toLichessErrorMessage(error));
     }
-  }, [trainingLogs]);
+  }, [profile, todayPlan, trainingLogs, weaknesses]);
 
   const createLichessStudy = useCallback(async () => {
     if (todayPlan === undefined) {
@@ -635,6 +706,7 @@ export function useAppState(): AppState {
     regeneratePlan,
     createNextSession,
     importKnownManualSignals,
+    answerTutorQuestion,
     syncChesscomDiagnosis,
     connectLichess,
     disconnectLichess,

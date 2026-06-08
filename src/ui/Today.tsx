@@ -12,6 +12,7 @@ import {
   type SessionMinutes,
   type TrainingLog,
   type TrainingRoadmapItem,
+  type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
@@ -30,6 +31,7 @@ type TodayProps = {
   lichessStudyLink: LichessStudyLink | undefined;
   onSessionMinutesChange: (minutes: SessionMinutes) => Promise<void>;
   onCreateNextSession: (minutes: SessionMinutes) => Promise<void>;
+  onAnswerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
   onSyncChesscomDiagnosis: () => Promise<void>;
   onSyncLichessDiagnosis: () => Promise<void>;
   onReconcileLichessResults: () => Promise<void>;
@@ -54,6 +56,7 @@ export function Today({
   lichessStudyLink,
   onSessionMinutesChange,
   onCreateNextSession,
+  onAnswerTutorQuestion,
   onSyncChesscomDiagnosis,
   onSyncLichessDiagnosis,
   onReconcileLichessResults,
@@ -122,7 +125,14 @@ export function Today({
         </div>
       </div>
 
-      <TutorCard plan={plan} weaknesses={weaknesses} trainingLogs={trainingLogs} today={plan.date} />
+      <TutorCard
+        plan={plan}
+        weaknesses={weaknesses}
+        trainingLogs={trainingLogs}
+        today={plan.date}
+        onAnswerTutorQuestion={onAnswerTutorQuestion}
+        onReconcileLichessResults={onReconcileLichessResults}
+      />
 
       {weaknesses.length > 0 ? (
         <div className="weakness-row" aria-label="Hipóteses atuais">

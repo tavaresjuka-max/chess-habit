@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getDestinationForWeakness, lichessDestinationsByWeakness, normalizeDestination } from './destinations';
 
 const allowedLichessUrl =
-  /^https:\/\/lichess\.org\/(analysis|training\/[A-Za-z0-9]+|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|video\/[A-Za-z0-9_-]+)$/;
+  /^https:\/\/lichess\.org\/(analysis|learn|streak|storm|training(?:\/(?:[A-Za-z0-9]+|of-player|themes))?|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|video\/[A-Za-z0-9_-]+)$/;
 
 describe('lichessDestinationsByWeakness', () => {
   it('uses only allowed Lichess destination formats', () => {
@@ -41,6 +41,22 @@ describe('lichessDestinationsByWeakness', () => {
 
   it('uses raw puzzle themes for retrieval instead of guided lessons', () => {
     expect(getDestinationForWeakness('fork', 'retrieval').url).toBe('https://lichess.org/training/fork');
+  });
+
+  it('uses direct videos as explanation resources', () => {
+    expect(getDestinationForWeakness('fork', 'explain')).toEqual({
+      source: 'lichess',
+      label: 'Lichess Video (em ingles): garfos',
+      url: 'https://lichess.org/video/mbiR0tcdqBY',
+    });
+    expect(getDestinationForWeakness('pin', 'explain').url).toBe('https://lichess.org/video/VjwSudAqLn8');
+    expect(getDestinationForWeakness('endgame-pawn', 'explain').url).toBe('https://lichess.org/video/QUqq7wSLE78');
+  });
+
+  it('uses concrete tools instead of generic Analysis for time trouble and conversion', () => {
+    expect(lichessDestinationsByWeakness['time-trouble'].url).toBe('https://lichess.org/streak');
+    expect(getDestinationForWeakness('time-trouble', 'retrieval').url).toBe('https://lichess.org/streak');
+    expect(lichessDestinationsByWeakness.conversion.url).toBe('https://lichess.org/training/advantage');
   });
 
   it('keeps tactical transfer and review on concrete training resources', () => {

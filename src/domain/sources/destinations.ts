@@ -1,22 +1,14 @@
 import type { Destination, PlanResourceStage, WeaknessTag } from '../types';
 import {
   destinationFromResource,
-  getLichessResourcesForWeakness,
   getPrimaryLichessResourceForWeakness,
-  type LichessResource,
-  type LichessResourceKind,
 } from './resourceCatalog';
+import { selectLichessResource, type SelectLichessResourceInput } from './resourceSelector';
 
 const openingPrinciplesDestination = destinationFromResource(
   getPrimaryLichessResourceForWeakness('opening-principles'),
 );
-const resourceKindPreferenceByStage = {
-  explain: ['video-lesson', 'practice-study', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
-  guided: ['practice-study', 'video-lesson', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
-  retrieval: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'learn-basics', 'analysis-tool'],
-  transfer: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'learn-basics', 'analysis-tool'],
-  review: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'learn-basics', 'analysis-tool'],
-} satisfies Record<PlanResourceStage, readonly LichessResourceKind[]>;
+type DestinationContext = Omit<SelectLichessResourceInput, 'weaknessTag' | 'resourceStage'>;
 
 export const lichessDestinationsByWeakness = {
   'hanging-piece': destinationFromResource(getPrimaryLichessResourceForWeakness('hanging-piece')),
@@ -35,8 +27,18 @@ export const lichessDestinationsByWeakness = {
   'blunder-rate': destinationFromResource(getPrimaryLichessResourceForWeakness('blunder-rate')),
 } satisfies Record<WeaknessTag, Destination>;
 
-export function getDestinationForWeakness(tag: WeaknessTag, stage: PlanResourceStage = 'guided'): Destination {
-  return destinationFromResource(getResourceForWeaknessAndStage(tag, stage));
+export function getDestinationForWeakness(
+  tag: WeaknessTag,
+  stage: PlanResourceStage = 'guided',
+  context: DestinationContext = {},
+): Destination {
+  return destinationFromResource(
+    selectLichessResource({
+      weaknessTag: tag,
+      resourceStage: stage,
+      ...context,
+    }),
+  );
 }
 
 export function normalizeDestination(destination: Destination, stage?: PlanResourceStage): Destination {
@@ -67,36 +69,6 @@ export function normalizeDestination(destination: Destination, stage?: PlanResou
   }
 
   return destination;
-}
-
-function getResourceForWeaknessAndStage(tag: WeaknessTag, stage: PlanResourceStage): LichessResource {
-  const primaryResource = getPrimaryLichessResourceForWeakness(tag);
-
-  if (stage === 'guided') {
-    return primaryResource;
-  }
-
-  const resources = getLichessResourcesForWeakness(tag);
-
-  if (stage === 'explain') {
-    return (
-      resources.find((candidate) => candidate.kind === 'video-lesson') ??
-      resources.find((candidate) => candidate.kind === 'practice-study') ??
-      primaryResource
-    );
-  }
-
-  const preferredKinds = resourceKindPreferenceByStage[stage];
-
-  for (const kind of preferredKinds) {
-    const resource = resources.find((candidate) => candidate.kind === kind);
-
-    if (resource !== undefined) {
-      return resource;
-    }
-  }
-
-  return primaryResource;
 }
 
 function getLegacyDestinationForUrl(url: string): Destination | undefined {

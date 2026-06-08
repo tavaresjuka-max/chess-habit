@@ -1,9 +1,16 @@
 import {
   reconcileTrainingLogResult,
   type TrainingLog,
+  type TrainingResult,
 } from '../domain';
 import { loadLichessOAuthToken } from '../infra/storage/appData';
 import { fetchPuzzleActivity, summarizePuzzleActivity } from '../infra/lichess/puzzleActivity';
+import {
+  fetchPuzzleDashboard,
+  fetchPuzzleReplay,
+  summarizePuzzleDashboard,
+  summarizePuzzleReplay,
+} from '../infra/lichess/puzzleDashboard';
 
 export type ReconcileOutcome = { log: TrainingLog; warning?: string };
 
@@ -88,6 +95,25 @@ export async function reconcileLogsWithLichessPuzzleActivity(
   return reconciledLogs;
 }
 
+export async function reconcileLichessPuzzleDiagnostics(
+  logs: TrainingLog[],
+  token: string,
+  fetchedAt = new Date().toISOString(),
+): Promise<TrainingLog[]> {
+  const reconciledLogs = await reconcileLogsWithLichessPuzzleActivity(logs, token);
+  const dashboard = await fetchPuzzleDashboard({ token, days: 30 });
+  const dashboardResult = summarizePuzzleDashboard({ dashboard, fetchedAt });
+  const dashboardLog = createDiagnosticLog({
+    id: 'lichess-puzzle-dashboard',
+    title: 'Diagnostico de puzzles Lichess',
+    label: 'Lichess Puzzle Dashboard',
+    result: dashboardResult,
+  });
+  const replayLog = await createReplayLogIfPossible(token, dashboardResult, fetchedAt);
+
+  return replayLog === undefined ? [...reconciledLogs, dashboardLog] : [...reconciledLogs, dashboardLog, replayLog];
+}
+
 export function mergeTrainingLogs(currentLogs: TrainingLog[], nextLogs: TrainingLog[]): TrainingLog[] {
   return nextLogs.reduce(upsertTrainingLog, currentLogs);
 }
@@ -104,4 +130,57 @@ export function upsertTrainingLog(logs: TrainingLog[], nextLog: TrainingLog): Tr
 
 function isPuzzleTrainingLog(log: TrainingLog): boolean {
   return log.destinationLabel.includes('Puzzles') || log.destinationLabel.includes('Puzzle');
+}
+
+async function createReplayLogIfPossible(
+  token: string,
+  dashboardResult: Extract<TrainingResult, { kind: 'puzzle-dashboard' }>,
+  fetchedAt: string,
+): Promise<TrainingLog | undefined> {
+  const theme = dashboardResult.weakThemes[0];
+
+  if (theme === undefined) {
+    return undefined;
+  }
+
+  try {
+    const replay = await fetchPuzzleReplay({ token, days: dashboardResult.days, theme });
+
+    if (replay.remainingCount === 0) {
+      return undefined;
+    }
+
+    return createDiagnosticLog({
+      id: `lichess-puzzle-replay-${theme}`,
+      title: `Replay de puzzles: ${theme}`,
+      label: `Lichess Puzzle Replay: ${theme}`,
+      result: summarizePuzzleReplay({ replay, fetchedAt }),
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+function createDiagnosticLog(input: {
+  id: string;
+  title: string;
+  label: string;
+  result: TrainingResult;
+}): TrainingLog {
+  return {
+    id: `${input.result.until.slice(0, 10)}:${input.id}`,
+    date: input.result.until.slice(0, 10),
+    blockId: input.id,
+    blockTitle: input.title,
+    source: 'lichess',
+    destinationLabel: input.label,
+    plannedSeconds: 0,
+    startedAt: input.result.fetchedAt,
+    completedAt: input.result.fetchedAt,
+    elapsedSeconds: 0,
+    timeLimitReached: false,
+    status: 'done',
+    result: input.result,
+    updatedAt: input.result.fetchedAt,
+  };
 }

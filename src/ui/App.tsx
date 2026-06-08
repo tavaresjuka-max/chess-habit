@@ -89,6 +89,7 @@ export function App() {
           lichessStudyLink={appState.lichessStudyLink}
           onSessionMinutesChange={appState.regeneratePlan}
           onCreateNextSession={appState.createNextSession}
+          onAnswerTutorQuestion={appState.answerTutorQuestion}
           onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
           onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
           onReconcileLichessResults={appState.reconcileLichessResults}

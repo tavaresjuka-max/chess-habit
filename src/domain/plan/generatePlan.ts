@@ -1,11 +1,13 @@
 import { getCoachNote } from '../coach/coachCatalog';
 import { getDestinationForWeakness } from '../sources/destinations';
+import { findLichessResourceByUrl } from '../sources/resourceCatalog';
 import type {
   DailyPlan,
   LearnerProfile,
   PlanBlock,
   PlanBlockFeedback,
   PlanResourceStage,
+  PuzzleThemeStats,
   SessionMinutes,
   Weakness,
   WeaknessTag,
@@ -24,6 +26,8 @@ type BlockCopy = {
 type GeneratePlanOptions = {
   previousPlan?: DailyPlan;
   sessionNumber?: number;
+  recentThemeStats?: PuzzleThemeStats;
+  completedResourceIds?: readonly string[];
 };
 
 type LatestThemeSignal = {
@@ -47,10 +51,12 @@ export function generatePlan(
   const updatedAt = toPlanTimestamp(date);
   const sessionNumber = options.sessionNumber ?? 1;
   const latestThemeSignal = getLatestThemeSignalForWeakness(options.previousPlan, primaryWeakness.tag);
+  const completedResourceIds = getCompletedResourceIds(options.previousPlan, options.completedResourceIds);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
     inheritPreviousProgress(
       createPlanBlock({
+        profile,
         date,
         index,
         sessionNumber,
@@ -58,6 +64,8 @@ export function generatePlan(
         minutes: budgetBlock.minutes,
         primaryWeakness,
         latestThemeSignal,
+        recentThemeStats: options.recentThemeStats,
+        completedResourceIds,
         updatedAt,
       }),
       options.previousPlan,
@@ -74,6 +82,7 @@ export function generatePlan(
 }
 
 function createPlanBlock(input: {
+  profile: LearnerProfile;
   date: string;
   index: number;
   sessionNumber: number;
@@ -81,11 +90,18 @@ function createPlanBlock(input: {
   minutes: number;
   primaryWeakness: Weakness;
   latestThemeSignal: LatestThemeSignal | undefined;
+  recentThemeStats?: PuzzleThemeStats;
+  completedResourceIds: readonly string[];
   updatedAt: string;
 }): PlanBlock {
   const resourceStage = getResourceStage(input.kind, input.latestThemeSignal);
   const copy = getBlockCopy(input.kind, input.primaryWeakness, resourceStage);
-  const destination = getDestinationForWeakness(copy.weaknessTag, resourceStage);
+  const destination = getDestinationForWeakness(copy.weaknessTag, resourceStage, {
+    learnerBand: input.profile.band,
+    blockMinutes: input.minutes,
+    recentThemeStats: input.recentThemeStats,
+    completedResourceIds: input.completedResourceIds,
+  });
 
   return {
     id: createPlanBlockId(input.date, input.sessionNumber, input.index, input.kind),
@@ -116,12 +132,7 @@ function inheritPreviousProgress(block: PlanBlock, previousPlan: DailyPlan | und
     return block;
   }
 
-  return {
-    ...block,
-    status: previous.status,
-    feedback: previous.feedback,
-    updatedAt: previous.updatedAt,
-  };
+  return previous;
 }
 
 function createPlanBlockId(date: string, sessionNumber: number, index: number, kind: PlanBlockKind): string {
@@ -195,7 +206,7 @@ function getResourceStage(kind: PlanBlockKind, latestThemeSignal: LatestThemeSig
 function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined): PlanResourceStage {
   switch (latestThemeSignal?.feedback) {
     case 'hard':
-      return 'explain';
+      return latestThemeSignal.resourceStage === 'explain' ? 'retrieval' : 'explain';
     case 'good':
       return getNextGoodResourceStage(latestThemeSignal.resourceStage);
     case 'easy':
@@ -237,6 +248,33 @@ function getLatestThemeSignalForWeakness(plan: DailyPlan | undefined, tag: Weakn
     feedback: block.feedback,
     resourceStage: block.resourceStage,
   };
+}
+
+function getCompletedResourceIds(
+  previousPlan: DailyPlan | undefined,
+  providedResourceIds: readonly string[] | undefined,
+): string[] {
+  const completedResourceIds = new Set(providedResourceIds ?? []);
+
+  for (const block of previousPlan?.blocks ?? []) {
+    if (block.status !== 'done' || block.destination.url === undefined) {
+      continue;
+    }
+
+    const resource = findLichessResourceByUrl(block.destination.url);
+
+    if (resource === undefined) {
+      continue;
+    }
+
+    completedResourceIds.add(resource.id);
+
+    if (block.destination.label.includes('Replay') && resource.id.startsWith('puzzle:')) {
+      completedResourceIds.add(`puzzle-replay:${resource.id.slice('puzzle:'.length)}`);
+    }
+  }
+
+  return [...completedResourceIds].sort();
 }
 
 function createWeeklyFocus(date: string, primaryWeakness: Weakness): WeeklyFocus {
@@ -316,12 +354,12 @@ function getThemeTask(tag: WeaknessTag, stage: PlanResourceStage): string {
     case 'opening-principles':
       return 'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.';
     case 'time-trouble':
-      return 'Revise uma partida terminada e marque onde o relógio passou a mandar na decisão.';
+      return 'Treine uma sequencia curta no Puzzle Streak e pare para checar antes de cada lance impulsivo.';
     case 'endgame-pawn':
     case 'endgame-rook':
       return 'Estude a lição guiada de final simples e conte plano, oposição ou atividade antes de calcular.';
     case 'conversion':
-      return 'Revise uma posição ganha já terminada e explique como transformar vantagem em ponto.';
+      return 'Treine posicoes de vantagem e explique como simplificar, ativar pecas ou remover contra-jogo.';
     case 'blunder-rate':
       return 'Treine puzzles de segurança de peças e faça uma checagem curta antes de cada lance.';
     case 'pin':

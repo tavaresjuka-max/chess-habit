@@ -4,7 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { generatePlan, type LearnerProfile, type PlanBlockFeedback, type PlanResourceStage } from '../domain';
 import { App } from '../ui/App';
-import { clearAll, getPlan, getTrainingLog, savePlan, saveProfile } from '../infra/storage/appData';
+import {
+  clearAll,
+  getPlan,
+  getTrainingLog,
+  loadWeaknesses,
+  saveLichessOAuthToken,
+  savePlan,
+  saveProfile,
+} from '../infra/storage/appData';
 
 const profile: LearnerProfile = {
   lichessUsername: 'jukasparov',
@@ -35,9 +43,7 @@ describe('training flow', () => {
 
     const openLink = await screen.findByRole('link', { name: /Abrir no Lichess/i });
 
-    expect(openLink.getAttribute('href')).toBe(
-      'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
-    );
+    expect(openLink.getAttribute('href')).toBe('https://lichess.org/training/fork');
     expect(openLink.getAttribute('target')).toBe('_blank');
 
     fireEvent.click(openLink);
@@ -54,7 +60,7 @@ describe('training flow', () => {
   it('hides destructive completion controls after a block is already done', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    await clickFirstButton('Concluir');
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
     await waitFor(() => {
@@ -86,9 +92,9 @@ describe('training flow', () => {
   });
 
   it.each([
-    ['Fácil', 'easy', 'retrieval', 'https://lichess.org/training/fork'],
-    ['Bom', 'good', 'retrieval', 'https://lichess.org/training/fork'],
-    ['Difícil', 'hard', 'explain', 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p'],
+    ['Fácil', 'easy', 'retrieval', 'https://lichess.org/training/short'],
+    ['Bom', 'good', 'retrieval', 'https://lichess.org/training/short'],
+    ['Difícil', 'hard', 'explain', 'https://lichess.org/training/short'],
   ] satisfies Array<[string, PlanBlockFeedback, PlanResourceStage, string]>)(
     'uses feedback %s to adapt the next generated plan',
     async (buttonName, expectedFeedback, expectedStage, expectedUrl) => {
@@ -101,14 +107,18 @@ describe('training flow', () => {
         expect((await getFirstBlockLog())?.feedback).toBe(expectedFeedback);
       });
 
-      fireEvent.click(screen.getByRole('button', { name: 'Config' }));
-      fireEvent.click(await screen.findByRole('button', { name: 'Salvar' }));
+      fireEvent.click(await screen.findByRole('button', { name: /Fazer/ }));
 
       await waitFor(async () => {
         const plan = await getPlan(getTodayDateForTest());
+        const nextThemeBlock = plan?.blocks.find(
+          (block) => block.sessionNumber === 2 && block.title.includes('garfos'),
+        );
 
-        expect(plan?.blocks[0]?.resourceStage).toBe(expectedStage);
-        expect(plan?.blocks[0]?.destination.url).toBe(expectedUrl);
+        expect(plan?.blocks[0]?.resourceStage).toBe('guided');
+        expect(plan?.blocks[0]?.status).toBe('done');
+        expect(nextThemeBlock?.resourceStage).toBe(expectedStage);
+        expect(nextThemeBlock?.destination.url).toBe(expectedUrl);
       });
     },
   );
@@ -148,7 +158,7 @@ describe('training flow', () => {
   it('reopens a done block without recreating an active log', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    await clickFirstButton('Concluir');
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
     await waitFor(() => {
@@ -167,6 +177,29 @@ describe('training flow', () => {
       expect(reopenedLog?.completedAt).toBe(completedLog?.completedAt);
     });
     expect(screen.queryByText(/Treinando há/i)).toBeNull();
+  });
+
+  it('registers Professor Lemos question answer as a manual signal for the next session', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Peça solta' }));
+
+    await waitFor(async () => {
+      expect((await loadWeaknesses())[0]?.tag).toBe('hanging-piece');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Fazer/ }));
+
+    await waitFor(async () => {
+      const plan = await getPlan(getTodayDateForTest());
+      const nextThemeBlock = plan?.blocks.find((block) => block.sessionNumber === 2);
+
+      expect(nextThemeBlock?.weaknessTag).toBe('hanging-piece');
+      expect(nextThemeBlock?.destination.url).toBe('https://lichess.org/training/hangingPiece');
+    });
   });
 
   it('cancels completion with Voltar without finishing the block', async () => {
@@ -211,6 +244,81 @@ describe('training flow', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('uses Conferir puzzles to update dashboard/replay signals and pending training blocks', async () => {
+    await clearAll();
+    await saveProfile({ ...profile, defaultSessionMinutes: 30 });
+    const fetchMock = vi.fn<typeof fetch>((input) => {
+      const url = requestUrl(input);
+
+      if (url.includes('/api/puzzle/activity')) {
+        return Promise.resolve(
+          new Response(
+            `${JSON.stringify({
+              date: Date.parse('2026-06-08T10:05:00.000Z'),
+              win: false,
+              puzzle: { id: 'discarded', rating: 1000, themes: ['fork'] },
+            })}\n`,
+            { status: 200 },
+          ),
+        );
+      }
+
+      if (url.includes('/api/puzzle/dashboard/30')) {
+        return Promise.resolve(
+          Response.json({
+            days: 30,
+            global: { nb: 4, firstWins: 1, replayWins: 0, puzzleRatingAvg: 1000, performance: 900 },
+            themes: {
+              fork: { theme: 'Fork', results: { nb: 4, firstWins: 1, replayWins: 0, puzzleRatingAvg: 1000 } },
+            },
+          }),
+        );
+      }
+
+      if (url.includes('/api/puzzle/replay/30/fork')) {
+        return Promise.resolve(
+          Response.json({
+            replay: { days: 30, theme: 'fork', nb: 3, remaining: ['abc12', 'def34'] },
+            angle: { key: 'fork', name: 'Fork', desc: 'not stored' },
+          }),
+        );
+      }
+
+      return Promise.resolve(new Response('', { status: 404 }));
+    });
+
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    await clickFirstButton('Concluir');
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await saveLichessOAuthToken({
+      accessToken: 'secret-token',
+      tokenType: 'Bearer',
+      scopes: ['puzzle:read'],
+      obtainedAt: '2026-06-08T10:00:00.000Z',
+      expiresAt: '2099-01-01T00:00:00.000Z',
+    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Conferir puzzles' }));
+
+    await waitFor(async () => {
+      const plan = await getPlan(getTodayDateForTest());
+      const transferBlock = plan?.blocks.find((block) => block.resourceStage === 'transfer');
+
+      expect(transferBlock?.destination).toMatchObject({
+        label: 'Puzzles Lichess: Fork',
+        url: 'https://lichess.org/training/fork',
+      });
+    });
+
+    const dashboardLog = await getTrainingLog(`${getTodayDateForTest()}:lichess-puzzle-dashboard`);
+    const replayLog = await getTrainingLog(`${getTodayDateForTest()}:lichess-puzzle-replay-fork`);
+
+    expect(dashboardLog?.result?.kind).toBe('puzzle-dashboard');
+    expect(replayLog?.result?.kind).toBe('puzzle-replay-summary');
+    expect(JSON.stringify(replayLog?.result)).not.toContain('abc12');
+  });
+
   it('asks for Lichess connection before creating a Study', async () => {
     render(<App />);
 
@@ -239,4 +347,26 @@ function getTodayDateForTest(): string {
   const day = String(now.getDate()).padStart(2, '0');
 
   return `${String(year)}-${month}-${day}`;
+}
+
+function requestUrl(input: RequestInfo | URL): string {
+  if (typeof input === 'string') {
+    return input;
+  }
+
+  if (input instanceof URL) {
+    return input.toString();
+  }
+
+  return input.url;
+}
+
+async function clickFirstButton(name: string): Promise<void> {
+  const [button] = await screen.findAllByRole('button', { name });
+
+  if (button === undefined) {
+    throw new Error(`Expected at least one button named ${name}.`);
+  }
+
+  fireEvent.click(button);
 }
