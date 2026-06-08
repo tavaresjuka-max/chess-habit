@@ -499,6 +499,7 @@ select {
 
   button,
   .button-link,
+  .link-button,
   input,
   select {
     min-height: 44px;
