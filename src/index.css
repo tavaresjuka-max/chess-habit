@@ -77,9 +77,19 @@ button:hover,
   background: #173129;
 }
 
-button:disabled {
-  cursor: wait;
+button:disabled,
+button[aria-disabled='true'] {
+  cursor: not-allowed;
   opacity: 0.7;
+}
+
+.is-loading {
+  cursor: wait;
+}
+
+:focus-visible {
+  outline: 2px solid #1f3f36;
+  outline-offset: 2px;
 }
 
 .nav-button {
@@ -392,6 +402,13 @@ select {
   .app-shell {
     align-items: stretch;
     padding: 18px 12px;
+  }
+
+  button,
+  .button-link,
+  input,
+  select {
+    min-height: 44px;
   }
 
   .top-nav,
