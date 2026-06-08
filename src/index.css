@@ -298,6 +298,31 @@ select {
   margin-bottom: 14px;
 }
 
+.tutor-card {
+  border: 1px solid #cdd7cf;
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+}
+
+.tutor-card h2 {
+  margin: 0;
+  color: #1f3f36;
+  font-size: 1.05rem;
+}
+
+.tutor-card p + p {
+  margin-top: 2px;
+}
+
+.tutor-diagnosis {
+  border-left: 3px solid #7c9a7e;
+  padding-left: 10px;
+}
+
 .weakness-chip {
   border: 1px solid #cdd7cf;
   border-radius: 999px;

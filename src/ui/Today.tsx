@@ -15,6 +15,7 @@ import {
   type Weakness,
 } from '../domain';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
+import { TutorCard } from './TutorCard';
 
 type TodayProps = {
   plan: DailyPlan | undefined;
@@ -120,6 +121,8 @@ export function Today({
           ) : null}
         </div>
       </div>
+
+      <TutorCard plan={plan} weaknesses={weaknesses} trainingLogs={trainingLogs} today={plan.date} />
 
       {weaknesses.length > 0 ? (
         <div className="weakness-row" aria-label="Hipóteses atuais">
