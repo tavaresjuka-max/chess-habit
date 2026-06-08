@@ -393,6 +393,32 @@ select {
   color: #7c3b20;
 }
 
+.rating-row {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.plan-block .rating-prompt {
+  margin: 0;
+  font-weight: 650;
+  color: #22303c;
+}
+
+.link-button {
+  min-height: auto;
+  border: none;
+  background: none;
+  color: #46515e;
+  text-decoration: underline;
+  padding: 4px 6px;
+}
+
+.link-button:hover {
+  background: none;
+  color: #1f3f36;
+}
+
 .app-error {
   width: min(100%, 560px);
   margin: 0;

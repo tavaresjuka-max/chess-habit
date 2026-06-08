@@ -289,6 +289,7 @@ function PlanBlockCard({
   onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
 }) {
+  const [isRating, setIsRating] = useState(false);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
 
@@ -307,40 +308,28 @@ function PlanBlockCard({
       <p className="stop-rule">{block.stopRule}</p>
       {block.feedback !== undefined ? <p className="feedback-note">Feedback: {formatFeedback(block.feedback)}</p> : null}
       {timerStatus !== undefined ? <p className={`timer-status ${timerStatus.kind}`}>{timerStatus.label}</p> : null}
-      <div className="button-row">
-        {block.destination.url !== undefined ? (
-          <a
-            className="button-link"
-            href={block.destination.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${isDone ? 'Abrir de novo' : 'Abrir no Lichess'}: ${block.title}`}
-            onClick={() => {
-              void onStartBlockTraining(block);
-            }}
-          >
-            {isDone ? 'Abrir de novo' : 'Abrir no Lichess'}
-          </a>
-        ) : isDone ? null : (
-          <button
-            type="button"
-            onClick={() => {
-              void onStartBlockTraining(block);
-            }}
-          >
-            Iniciar bloco
-          </button>
-        )}
-        {isDone ? null : (
-          <>
-            <button
-              type="button"
+
+      {isDone ? (
+        <div className="button-row">
+          {block.destination.url !== undefined ? (
+            <a
+              className="button-link"
+              href={block.destination.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Abrir de novo: ${block.title}`}
               onClick={() => {
-                void onCompleteBlockTraining(block.id);
+                void onStartBlockTraining(block);
               }}
             >
-              Concluir
-            </button>
+              Abrir de novo
+            </a>
+          ) : null}
+        </div>
+      ) : isRating ? (
+        <div className="rating-row" role="group" aria-label="Como foi o treino?">
+          <p className="rating-prompt">Como foi o treino?</p>
+          <div className="button-row">
             <button
               type="button"
               className="secondary-button"
@@ -348,7 +337,7 @@ function PlanBlockCard({
                 void onCompleteBlockTraining(block.id, 'easy');
               }}
             >
-              Foi facil
+              Fácil
             </button>
             <button
               type="button"
@@ -357,7 +346,7 @@ function PlanBlockCard({
                 void onCompleteBlockTraining(block.id, 'good');
               }}
             >
-              Foi bom
+              Bom
             </button>
             <button
               type="button"
@@ -366,20 +355,64 @@ function PlanBlockCard({
                 void onCompleteBlockTraining(block.id, 'hard');
               }}
             >
-              Foi dificil
+              Difícil
             </button>
             <button
               type="button"
-              className="secondary-button"
               onClick={() => {
-                void onSkipBlockTraining(block.id);
+                setIsRating(false);
+              }}
+              className="link-button"
+            >
+              Voltar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="button-row">
+          {block.destination.url !== undefined ? (
+            <a
+              className="button-link"
+              href={block.destination.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Abrir no Lichess: ${block.title}`}
+              onClick={() => {
+                void onStartBlockTraining(block);
               }}
             >
-              Pular
+              Abrir no Lichess
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                void onStartBlockTraining(block);
+              }}
+            >
+              Iniciar bloco
             </button>
-          </>
-        )}
-      </div>
+          )}
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => {
+              setIsRating(true);
+            }}
+          >
+            Concluir
+          </button>
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => {
+              void onSkipBlockTraining(block.id);
+            }}
+          >
+            Pular
+          </button>
+        </div>
+      )}
     </article>
   );
 }

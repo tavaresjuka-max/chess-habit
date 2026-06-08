@@ -53,16 +53,17 @@ describe('training flow', () => {
   it('hides destructive completion controls after a block is already done', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Foi bom' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
     await waitFor(() => {
       expect(screen.getByText('Feito')).toBeTruthy();
     });
 
     expect(screen.queryByRole('button', { name: 'Concluir' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Foi facil' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Foi bom' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Foi dificil' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Fácil' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Bom' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Difícil' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Pular' })).toBeNull();
     expect(screen.getByRole('link', { name: /Abrir de novo/i })).toBeTruthy();
   });
@@ -71,6 +72,7 @@ describe('training flow', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
     await waitFor(() => {
       expect(screen.getByText(/Treinou por menos de 1 min/i)).toBeTruthy();
@@ -83,14 +85,15 @@ describe('training flow', () => {
   });
 
   it.each([
-    ['Foi facil', 'easy', 'retrieval', 'https://lichess.org/training/fork'],
-    ['Foi bom', 'good', 'guided', 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p'],
-    ['Foi dificil', 'hard', 'explain', 'https://lichess.org/video?tags=beginner%2Ftactics'],
+    ['Fácil', 'easy', 'retrieval', 'https://lichess.org/training/fork'],
+    ['Bom', 'good', 'guided', 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p'],
+    ['Difícil', 'hard', 'explain', 'https://lichess.org/video?tags=beginner%2Ftactics'],
   ] satisfies Array<[string, PlanBlockFeedback, PlanResourceStage, string]>)(
     'uses feedback %s to adapt the next generated plan',
     async (buttonName, expectedFeedback, expectedStage, expectedUrl) => {
       render(<App />);
 
+      fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
       fireEvent.click(await screen.findByRole('button', { name: buttonName }));
 
       await waitFor(async () => {
@@ -113,6 +116,7 @@ describe('training flow', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
     await waitFor(() => {
       expect(screen.getByText('Feito')).toBeTruthy();
@@ -130,6 +134,21 @@ describe('training flow', () => {
       expect(reopenedLog?.completedAt).toBe(completedLog?.completedAt);
     });
     expect(screen.queryByText(/Treinando há/i)).toBeNull();
+  });
+
+  it('cancels completion with Voltar without finishing the block', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    expect(await screen.findByText('Como foi o treino?')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Concluir' })).toBeTruthy();
+    });
+    expect(screen.queryByText('Como foi o treino?')).toBeNull();
+    expect((await getFirstBlockLog())?.status).not.toBe('done');
   });
 
   it('syncs Lichess diagnosis even when the NDJSON stream has a broken line', async () => {

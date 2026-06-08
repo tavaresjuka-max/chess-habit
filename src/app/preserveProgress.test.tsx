@@ -25,6 +25,7 @@ describe('preserve progress across regeneration', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
     await waitFor(() => {
       expect(screen.getByText('Feito')).toBeTruthy();
