@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
 import type { LearnerBand, LearnerProfile, LichessOAuthToken, SessionMinutes } from '../domain';
 
@@ -36,7 +37,6 @@ export function Config({
   const [defaultSessionMinutes, setDefaultSessionMinutes] = useState<SessionMinutes>(
     initialProfile.defaultSessionMinutes,
   );
-  const [statusMessage, setStatusMessage] = useState<string | undefined>(undefined);
 
   async function handleSubmit() {
     await onSave({
@@ -47,7 +47,7 @@ export function Config({
       goals: initialProfile.goals,
       updatedAt: new Date().toISOString(),
     });
-    setStatusMessage('Configuração salva.');
+    toast.success('Configuração salva.');
   }
 
   async function handleExport() {
@@ -60,12 +60,12 @@ export function Config({
     link.download = `rotina-backup-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    setStatusMessage('Backup exportado.');
+    toast.success('Backup exportado.');
   }
 
   async function handleImportKnownManualSignals() {
     const count = await onImportKnownManualSignals();
-    setStatusMessage(`${String(count)} sinais manuais salvos.`);
+    toast.success(`${String(count)} sinais manuais salvos.`);
   }
 
   async function handleClear() {
@@ -76,7 +76,7 @@ export function Config({
     }
 
     await onClear();
-    setStatusMessage('Dados locais apagados.');
+    toast.success('Dados locais apagados.');
   }
 
   return (
@@ -201,7 +201,6 @@ export function Config({
         </div>
       </section>
 
-      {statusMessage !== undefined ? <p className="status-message">{statusMessage}</p> : null}
     </section>
   );
 }
