@@ -197,8 +197,22 @@ function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined)
     case 'hard':
       return 'explain';
     case 'good':
-      return latestThemeSignal.resourceStage ?? 'guided';
+      return getNextGoodResourceStage(latestThemeSignal.resourceStage);
     case 'easy':
+      return 'retrieval';
+    case undefined:
+      return 'guided';
+  }
+}
+
+function getNextGoodResourceStage(previousStage: PlanResourceStage | undefined): PlanResourceStage {
+  switch (previousStage) {
+    case 'explain':
+      return 'guided';
+    case 'guided':
+    case 'retrieval':
+    case 'transfer':
+    case 'review':
       return 'retrieval';
     case undefined:
       return 'guided';

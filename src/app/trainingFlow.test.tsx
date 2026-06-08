@@ -2,9 +2,9 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { LearnerProfile, PlanBlockFeedback, PlanResourceStage } from '../domain';
+import { generatePlan, type LearnerProfile, type PlanBlockFeedback, type PlanResourceStage } from '../domain';
 import { App } from '../ui/App';
-import { clearAll, getPlan, getTrainingLog, saveProfile } from '../infra/storage/appData';
+import { clearAll, getPlan, getTrainingLog, savePlan, saveProfile } from '../infra/storage/appData';
 
 const profile: LearnerProfile = {
   lichessUsername: 'jukasparov',
@@ -21,6 +21,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  vi.useRealTimers();
   cleanup();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -86,7 +87,7 @@ describe('training flow', () => {
 
   it.each([
     ['Fácil', 'easy', 'retrieval', 'https://lichess.org/training/fork'],
-    ['Bom', 'good', 'guided', 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p'],
+    ['Bom', 'good', 'retrieval', 'https://lichess.org/training/fork'],
     ['Difícil', 'hard', 'explain', 'https://lichess.org/video?tags=beginner%2Ftactics'],
   ] satisfies Array<[string, PlanBlockFeedback, PlanResourceStage, string]>)(
     'uses feedback %s to adapt the next generated plan',
@@ -111,6 +112,38 @@ describe('training flow', () => {
       });
     },
   );
+
+  it('uses yesterday feedback when creating a new daily plan', async () => {
+    const sessionProfile: LearnerProfile = { ...profile, defaultSessionMinutes: 30 };
+    const yesterdayPlan = generatePlan(sessionProfile, [], 30, '2026-06-07');
+
+    await clearAll();
+    await saveProfile(sessionProfile);
+    await savePlan({
+      ...yesterdayPlan,
+      blocks: yesterdayPlan.blocks.map((block) =>
+        block.title.includes('garfos')
+          ? {
+              ...block,
+              status: 'done',
+              feedback: 'good',
+            }
+          : block,
+      ),
+    });
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-06-08T10:00:00.000-03:00'));
+
+    render(<App />);
+
+    await waitFor(async () => {
+      const plan = await getPlan('2026-06-08');
+
+      expect(plan?.blocks[1]?.title).toContain('garfos');
+      expect(plan?.blocks[1]?.resourceStage).toBe('retrieval');
+      expect(plan?.blocks[1]?.destination.url).toBe('https://lichess.org/training/fork');
+    });
+  });
 
   it('reopens a done block without recreating an active log', async () => {
     render(<App />);

@@ -68,6 +68,9 @@ Implementado ate P3:
 - Ajuste de uso real em 2026-06-08: sem partida terminada especifica, blocos `review`/`transfer` nao devem
   abrir `https://lichess.org/analysis`; para garfos e outros temas taticos eles ficam em treino concreto
   do tema. Planos antigos com `Revisao curta` apontando para Analysis sao normalizados para o foco semanal.
+- Ajuste de uso real em 2026-06-08: plano diario nao pode reiniciar sempre na mesma licao guiada de
+  Practice. Ao criar/reparar o plano do dia, o app consulta o plano anterior salvo; `good` depois de
+  `guided` avanca para `retrieval`, abrindo puzzle theme variado como `https://lichess.org/training/fork`.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

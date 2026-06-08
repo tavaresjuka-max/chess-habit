@@ -29,6 +29,7 @@ import {
   clearAll,
   clearLichessOAuthToken,
   exportAllAsJson,
+  getLatestPlanBefore,
   getLichessStudyLink,
   getPlan,
   getTrainingLog,
@@ -149,12 +150,21 @@ export function useAppState(): AppState {
         const date = getTodayDate();
         const storedWeaknesses = await loadWeaknesses();
         const storedPlan = await getPlan(date);
+        const previousPlan = await getLatestPlanBefore(date);
         const storedTrainingLogs = await loadTrainingLogsForDate(date);
         const storedStudyLink = await getLichessStudyLink(date);
+        const normalizedStoredPlan =
+          storedPlan === undefined ? undefined : normalizePlanDestinations(storedPlan);
+        const normalizedPreviousPlan =
+          previousPlan === undefined ? undefined : normalizePlanDestinations(previousPlan);
         const plan =
-          storedPlan === undefined
-            ? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date)
-            : normalizePlanDestinations(storedPlan);
+          normalizedStoredPlan === undefined
+            ? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date, {
+                previousPlan: normalizedPreviousPlan,
+              })
+            : generatePlan(storedProfile, storedWeaknesses, toSessionMinutes(normalizedStoredPlan.sessionMinutes, storedProfile.defaultSessionMinutes), date, {
+                previousPlan: combinePlanHistory(normalizedStoredPlan, normalizedPreviousPlan),
+              });
 
         if (storedPlan === undefined || plan !== storedPlan) {
           await savePlan(plan);
@@ -661,4 +671,15 @@ function toSessionMinutes(minutes: number, fallback: SessionMinutes): SessionMin
     default:
       return fallback;
   }
+}
+
+function combinePlanHistory(currentPlan: DailyPlan, previousPlan: DailyPlan | undefined): DailyPlan {
+  if (previousPlan === undefined) {
+    return currentPlan;
+  }
+
+  return {
+    ...currentPlan,
+    blocks: [...previousPlan.blocks, ...currentPlan.blocks],
+  };
 }

@@ -42,7 +42,7 @@
   - [x] Catalogo Lichess tipado criado para recomendar Practice guiado, temas de puzzle, modos e filtros de video por fraqueza.
   - [x] Sintese da pasta `LEARN CHESS` aplicada em playbook de planos de estudo Lichess com guarda clean-room.
   - [x] Blocos de plano carregam `weeklyFocus`, `weaknessTag` e `resourceStage` para escolher Practice/video, puzzle theme ou Analysis conforme estagio.
-  - [x] Feedback `easy`/`good`/`hard` salvo no bloco/log local e usado ao regenerar plano: facil avanca para repeticao, bom preserva desafio saudavel, dificil volta para explicacao.
+  - [x] Feedback `easy`/`good`/`hard` salvo no bloco/log local e usado ao regenerar plano: facil avanca para repeticao, bom sai de licao guiada estatica para puzzles variados, dificil volta para explicacao.
   - [x] Roadmap local de proximos passos e sessao extra no mesmo dia quando sobrar tempo.
   - [x] OAuth/token local para reconciliar resultado real de puzzles.
   - [x] Lichess diagnostico secundario.
@@ -80,5 +80,10 @@
   - [x] Estagios `review`/`transfer` preferem treino concreto de tema antes de `https://lichess.org/analysis`.
   - [x] Planos antigos com `Revisao curta` + `/analysis` sao normalizados para o foco semanal quando carregados.
   - [x] Regressao coberta por testes de destino, gerador de plano, normalizacao e roadmap.
+- [x] **Ajuste pos-uso real: evitar repetir a mesma licao guiada de garfos (2026-06-08)**.
+  - [x] Plano de um novo dia usa o plano anterior salvo como memoria de progresso pedagogico.
+  - [x] Feedback `good` em estagio `guided` agora avanca para `retrieval`, abrindo puzzle theme variado (`/training/fork`) em vez do mesmo Practice estatico.
+  - [x] Plano ja salvo no dia tambem pode ser reparado ao carregar, preservando status/feedback existentes.
+  - [x] Regressao coberta por testes de gerador, storage e fluxo React com IndexedDB isolado.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

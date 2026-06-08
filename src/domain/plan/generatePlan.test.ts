@@ -145,6 +145,28 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');
   });
 
+  it('moves a good guided theme to varied retrieval puzzles on the next plan', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-07', {
+      previousPlan: {
+        ...previousPlan,
+        blocks: previousPlan.blocks.map((block, index) =>
+          index === 0
+            ? {
+                ...block,
+                status: 'done',
+                feedback: 'good',
+              }
+            : block,
+        ),
+      },
+    });
+
+    expect(plan.blocks[0]?.resourceStage).toBe('retrieval');
+    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
+    expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');
+  });
+
   it('moves a hard repeated theme back to an explanation resource', () => {
     const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {

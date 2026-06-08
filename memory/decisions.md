@@ -136,3 +136,11 @@ O dono pediu para fazer tudo ate P3 completo e congelar P4/P5. Decisao aplicada:
   nao da ferramenta pessoal atual.
 - Escopos OAuth ativos no app pessoal: `puzzle:read` e `study:write`; sem escopos de jogo, sem
   `puzzle:write`, sem mensagens, sem engine.
+
+## 2026-06-08: Licao Guiada Nao Deve Repetir Todo Dia
+
+Uso real mostrou que o foco fixo `fork` na faixa 800-1200 fazia o app abrir a mesma licao guiada do
+Lichess Practice em dias diferentes. Decisao: o plano novo deve consultar o plano anterior salvo como
+memoria de progresso, e feedback `good` depois de `guided` avanca para `retrieval`. Assim a rotina
+passa para puzzle theme variado (`/training/fork`) em vez de repetir o mesmo Practice estatico; `hard`
+continua voltando para explicacao.

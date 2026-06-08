@@ -6,6 +6,7 @@ import {
   clearAll,
   clearLichessOAuthToken,
   exportAllAsJson,
+  getLatestPlanBefore,
   getLichessStudyLink,
   getPlan,
   getTrainingLog,
@@ -55,6 +56,18 @@ describe('appData storage', () => {
 
     await expect(loadProfile()).resolves.toEqual(profile);
     await expect(getPlan('2026-06-06')).resolves.toEqual(plan);
+  });
+
+  it('loads the latest plan before a new daily plan date', async () => {
+    const firstPlan = generatePlan(profile, [], 15, '2026-06-06');
+    const secondPlan = generatePlan(profile, [], 15, '2026-06-07');
+
+    await savePlan(firstPlan);
+    await savePlan(secondPlan);
+
+    await expect(getLatestPlanBefore('2026-06-08')).resolves.toEqual(secondPlan);
+    await expect(getLatestPlanBefore('2026-06-07')).resolves.toEqual(firstPlan);
+    await expect(getLatestPlanBefore('2026-06-06')).resolves.toBeUndefined();
   });
 
   it('exports all records as JSON', async () => {

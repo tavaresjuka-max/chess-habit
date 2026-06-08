@@ -46,6 +46,10 @@ export async function getPlan(date: string): Promise<DailyPlan | undefined> {
   return db.plans.get(date);
 }
 
+export async function getLatestPlanBefore(date: string): Promise<DailyPlan | undefined> {
+  return db.plans.where('date').below(date).reverse().first();
+}
+
 export async function saveTrainingLog(log: TrainingLog): Promise<void> {
   await db.logs.put(log);
 }
