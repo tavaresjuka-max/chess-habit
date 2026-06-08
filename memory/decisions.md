@@ -160,3 +160,48 @@ Uso real mostrou que links como `https://lichess.org/video?tags=beginner%2Ftacti
 aluno numa pagina de busca/lista. Decisao: o app nao gera mais destinos `/video?tags=...`; quando
 usar video, deve ser aula direta `/video/:id`. Para explicacao de taticas, preferir Practice especifico
 do tema. Planos salvos com filtro generico de video sao normalizados pelo `weaknessTag`.
+
+## 2026-06-08: Adaptacao Acontece Na Proxima Sessao, Historico Feito Nao E Reescrito
+
+Uso real mostrou que o app parecia nao atualizar e, ao mesmo tempo, podia reescrever o bloco ja feito
+quando regenerava o plano. Decisao: bloco concluido e historico do que foi feito e deve ser preservado
+como estava. A adaptacao por feedback aparece no proximo bloco/sessao/dia. Se uma explicacao do tema
+ja foi marcada como dificil, a proxima sessao troca para treino variado do tema em vez de repetir a
+mesma licao guiada.
+
+Tambem fica decidido que o Professor Lemos deve explicitar fallback: quando nao ha fraquezas reais
+salvas, o card diz que o plano e inicial e precisa de Chess.com/Lichess atualizados para calibrar.
+Quando houver resultado real de puzzles reconciliado com `themeStats`, o diagnostico por tema pode
+vir antes do agregado; sem volume minimo, continua perguntando.
+
+Complemento da mesma decisao: a pergunta do Lemos deve ser acionavel. As respostas `Tempo`,
+`Calculo` e `Peca solta` viram sinais manuais locais (`time-trouble`, `fork` como proxy de calculo
+tatico curto, `hanging-piece`) sem apagar outros sinais `source:'outro'`. Isso mantem a trava de
+evidencia: o app registra a percepcao do aluno como hipotese, nao como fato engine.
+
+## 2026-06-08: Curadoria Lichess E Diretrizes De Conteudo E Copyright
+
+Apos auditoria profunda realizada por Antigravity (`docs/research/relatorio-antigravity-curadoria-lichess-professor-lemos-2026-06-08.md`), ficam decididas as seguintes regras de conteudo para o catalogo de recursos:
+
+1. **Rejeicao Estrita Por Copyright:** Qualquer estudo comunitario que adapte, transcreva ou reproduza livros de xadrez protegidos por direitos autorais (como o estudo de finais de peao adaptado de Paul Keres em `/study/dXKWlrkg`) sera descartado do catalogo ativo e catalogado como "rejeitado" para preservar a integridade clean-room do projeto.
+2. **Rejeicao Por Baixa Qualidade Pedagógica:** Recursos desorganizados, sem explicacoes claras ou com foco promocional/juvenil (como `/study/izZ71JC2`) sao marcados como valor D e descartados.
+3. **Novas Fontes De Elite Aprovadas:** A serie "Endgames You Must Know!" do autor NoseKnowsAll (do iniciante ao avancado) e o "Table of Contents" do autor jomega sao aprovados e incorporados como recursos pedagogicos comunitarios de altissimo valor para suprir a falta de ferramentas interativas nativas do Lichess em finais avancados.
+4. **Validacao De Vídeos:** Confirmado que o Lichess utiliza o proprio ID do Youtube como rota dos videos em `/video/:id`. Os IDs `-OoPm17P8xA` (Alex Astaneh - calculo) and `uhQhasudq9M` (Kostya Kavutskiy - mate) foram verificados como ativos e integrados a biblioteca oficial, resolvendo a ambiguidade de links quebrados.
+5. **Implantacao Etapa 2B:** jomega entra no catalogo ativo apenas como `needs-human-review`. Na checagem de link da implementacao, `Iof6LzcT`, `s3iOCawc`, `6JAUFQ5p` e `wzFrgluQ` responderam `200`; `g6vPzJv7` e `q9bJ8YdY` responderam `404` e nao devem ser usados.
+
+## 2026-06-08: Catalogo Premium Lichess Com Sinais Agregados De Puzzle
+
+Decisao: evoluir o catalogo estatico para uma camada premium local-first, sem abrir P4/P5.
+
+- `WeaknessTag` continua estavel; sub-habilidades vivem em `CatalogSkillNode` e mapeiam temas oficiais
+  de puzzle, estagios, duracoes, faixas e recursos curados.
+- A selecao de destino passa por `selectLichessResource`, que considera faixa, estagio, minutos,
+  `PuzzleThemeStats` recentes e recursos ja concluidos. `getDestinationForWeakness` fica como wrapper
+  compativel.
+- Puzzle Dashboard e Puzzle Replay entram somente via OAuth opt-in `puzzle:read`. Dashboard salva
+  agregados por tema; Replay descarta IDs imediatamente e salva apenas `theme`, `days`, `nb`,
+  `remainingCount` e `/training/{theme}` como destino publico seguro.
+- Estudos comunitarios `needs-human-review` nunca devem superar recurso oficial equivalente; recursos
+  `rejected` seguem fora do catalogo ativo.
+- Sem `puzzle:write`, Board API, Bot API, Challenge API, engine, mensagens, escopos de jogo, PGN
+  persistido, solucoes de puzzle, transcript ou comentario de estudo.

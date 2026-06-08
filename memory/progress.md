@@ -98,5 +98,35 @@
   - [x] Feedback `hard` em garfos/taticas volta para Practice concreto em vez de `/video?tags=beginner%2Ftactics`.
   - [x] Normalizador repara planos antigos com `/video?tags=...` quando ha `weaknessTag`.
   - [x] Regressao coberta por testes de catalogo, destinos, gerador, normalizador e fluxo React.
+- [x] **Professor Lemos Etapa 2A: personalizacao honesta e anti-repeticao (2026-06-08)**.
+  - [x] Plano executavel criado em `docs/superpowers/plans/2026-06-08-professor-lemos-tutor-etapa2a.md`.
+  - [x] `TutorCard` explicita fallback quando ainda faltam sinais reais suficientes.
+  - [x] Blocos concluidos nao sao mais reescritos por regeneracao; viram historico do que foi feito.
+  - [x] Adaptacao por feedback aparece na proxima sessao; depois de `hard` em explicacao, o tema troca para `retrieval` variado.
+  - [x] `summarizePuzzleActivity` salva `themeStats`, e `diagnose` usa tema de puzzle quando ha volume claro.
+  - [x] Pergunta do Lemos virou acao: `Tempo`, `Calculo` e `Peca solta` registram sinal manual local sem apagar sinais anteriores.
+  - [x] Card do Lemos oferece `Conferir puzzles` quando ha bloco de puzzle concluido sem resultado real reconciliado.
+  - [x] Fonte oficial Lichess `api-puzzle-activity` registrada em `docs/research/sources.md`.
+  - [x] Gate final verde: `npm run test`, `npm run lint`, `npm run build`; Browser smoke confirmou card de fallback, pergunta acionavel e sem overflow horizontal.
+- [x] **Curadoria Lichess profunda e auditoria de qualidade (2026-06-08)**:
+  - [x] Relatório completo assinado por Antigravity salvo em `docs/research/relatorio-antigravity-curadoria-lichess-professor-lemos-2026-06-08.md`.
+  - [x] Auditoria de links e verificação de copyright (descarte de estudos piratas e IDs inválidos).
+  - [x] Catalogação de novas fontes de alta qualidade (NoseKnowsAll Endgames, jomega TOC e atualizações).
+  - [x] Registro das fontes complementares em `docs/research/sources.md`.
+- [x] **Professor Lemos Etapa 2B: catalogo curado e ranking de recursos Lichess (implementada em 2026-06-08)**.
+  - [x] Plano de implantacao final criado em `docs/superpowers/plans/2026-06-08-professor-lemos-tutor-etapa2b-catalogo-curado.md`.
+  - [x] Enriquecer o catalogo Lichess com metadados de qualidade, idioma, risco de direitos, status de revisao e OAuth.
+  - [x] Adicionar videos diretos especificos da biblioteca Lichess; manter proibicao de filtros genericos `/video?tags=...`.
+  - [x] Adicionar estudos comunitarios seguros somente como reforco e manter rejeitados fora do catalogo ativo.
+  - [x] Ajustar ranking por estagio para evitar Analysis generico e priorizar Practice, puzzle themes, ferramentas e videos concretos.
+  - [x] Rodar gate final: `npm run lint`, `npm run test`, `npm run build` e smoke visual desktop/mobile.
+- [x] **Catalogo Premium Lichess do Professor Lemos (implementado em 2026-06-08)**.
+  - [x] Adicionar `CatalogSkillNode` e mapeamento de sub-habilidades por fraqueza, tema oficial, faixa, estagio e tempo.
+  - [x] Criar `selectLichessResource` com ranking por contexto, erros recentes e anti-repeticao, preservando `getDestinationForWeakness`.
+  - [x] Implementar Puzzle Dashboard e Puzzle Replay oficiais com OAuth `puzzle:read`, 429 como `LichessRateLimitError` e sem persistir IDs/PGN/solucoes.
+  - [x] Conectar `PuzzleThemeStats` de Activity/Dashboard/Replay ao gerador de plano e ao fluxo `Conferir puzzles`.
+  - [x] Adicionar campos de auditoria de catalogo: `lastLinkCheckStatus`, `replacementResourceId`, `reviewCadenceDays`.
+  - [x] Revalidar fontes oficiais em `docs/research/sources.md`.
+  - [x] Gate final: `npm run lint`, `npm run test` (181 testes), `npm run build`; smoke Browser/Playwright salvo em `output/playwright/premium-catalog-*-2026-06-08.png`.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

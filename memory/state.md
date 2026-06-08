@@ -1,6 +1,6 @@
 # Estado Atual
 
-Data: 2026-06-08 (atualizado apos fechamento do polish UX/UI).
+Data: 2026-06-08 (atualizado apos implementacao Catalogo Premium Lichess).
 
 ## Status
 
@@ -16,6 +16,19 @@ Data: 2026-06-08 (atualizado apos fechamento do polish UX/UI).
 - Professor Lemos Etapa 1 concluida em 2026-06-08: tela Hoje agora tem card dedicado com abertura,
   retorno apos ausencia, fechamento por feedback, reconhecimento sobrio de constancia e diagnostico
   agregado travado por evidencia.
+- Professor Lemos Etapa 2A concluida em 2026-06-08: o card explicita quando o plano esta em fallback
+  por falta de sinais reais, blocos concluidos deixam de ser reescritos ao regenerar, e a proxima
+  sessao troca para treino variado quando uma explicacao ja foi marcada como dificil. A pergunta do
+  Lemos agora pode virar sinal manual local por botao, e o card expõe atalho para conferir puzzles
+  quando houver log de puzzle sem resultado reconciliado.
+- Curadoria Lichess profunda e auditoria de qualidade (Antigravity) concluida em 2026-06-08: relatorio com 45 achados auditados, mapeamento de fraquezas e catalogacao de novos recursos de elite comunitarios (NoseKnowsAll, jomega) em `docs/research/relatorio-antigravity-curadoria-lichess-professor-lemos-2026-06-08.md`.
+- Professor Lemos Etapa 2B implementada em 2026-06-08: catalogo Lichess enriquecido com metadados
+  de curadoria, videos diretos, estudos comunitarios seguros como reforco, rejeitados fora do ativo,
+  ranking por estagio e normalizacao de destinos legados, sem abrir P4/P5.
+- Catalogo Premium Lichess implementado em 2026-06-08: camada de sub-habilidades (`CatalogSkillNode`),
+  seletor premium com faixa/estagio/tempo/erros recentes/recursos concluidos, Puzzle Dashboard e
+  Puzzle Replay via OAuth `puzzle:read`, e sinais agregados por tema sem persistir IDs de puzzle,
+  PGN, solucoes ou conteudo de estudos.
 - Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
@@ -44,10 +57,12 @@ Data: 2026-06-08 (atualizado apos fechamento do polish UX/UI).
 ## Proxima Etapa
 
 P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08;
-Professor Lemos Etapa 1 foi fechada em 2026-06-08. P4 e P5 estao congeladas por decisao do dono. A
-proxima etapa valida e usar o app pessoalmente por algumas sessoes reais e corrigir apenas dores
-pequenas observadas no uso. O diagnostico por tema via `puzzle:read` fica para a Etapa 2 propria,
-sem adiantar sync, backend, texto livre ou versao-comunidade.
+Professor Lemos Etapa 1, Etapa 2A e Etapa 2B foram fechadas em 2026-06-08. A curadoria profunda de
+recursos Lichess e o Catalogo Premium Lichess tambem foram concluidos em 2026-06-08. P4 e P5 estao congeladas por decisao do dono. A
+proxima etapa valida e usar o app pessoalmente por sessoes reais e corrigir dores pequenas observadas
+no uso, sem criar backend/sync/comunidade. Diagnostico por tema agora usa resultados de puzzle
+reconciliados quando houver `themeStats`; sem resultado real por tema, o tutor pergunta e permite
+registrar a resposta como sinal manual local.
 
 Implementado ate P3:
 
@@ -81,6 +96,23 @@ Implementado ate P3:
 - Professor Lemos Etapa 1 em 2026-06-08: dominio puro ganhou `computeConsistency`, `diagnose` e
   `buildSessionMessage`; a tela Hoje renderiza `TutorCard` depois do cabecalho. Sem rede nova, sem
   engine, sem PGN persistido e sem diagnostico por tema ainda.
+- Professor Lemos Etapa 2A em 2026-06-08: plano de implementacao registrado em
+  `docs/superpowers/plans/2026-06-08-professor-lemos-tutor-etapa2a.md`; `diagnose` usa `PuzzleThemeStats`
+  quando ha volume claro, `summarizePuzzleActivity` preserva `themeStats`, e o gerador aplica adaptacao
+  na proxima sessao sem reescrever blocos feitos. `createTutorQuestionSignal` registra respostas do
+  Lemos como sinais manuais sem apagar sinais anteriores.
+- Professor Lemos Etapa 2B em 2026-06-08: catalogo ativo passou a ter metadados de curadoria, 12 videos
+  diretos, 7 estudos comunitarios de reforco e lista separada de estudos rejeitados. Ranking por estagio
+  agora usa video direto em `explain`, Practice em `guided` quando existir, puzzle themes/ferramentas em
+  `retrieval/review/transfer`, Puzzle Streak para `time-trouble` e evita Analysis generico. Gate final
+  verde: `npm run test -- --run`, `npm run lint`, `npm run build`; smoke Playwright desktop/mobile salvo
+  em `output/playwright/catalog-2b-today-*-2026-06-08.png`.
+- Catalogo Premium Lichess em 2026-06-08: `fetchPuzzleDashboard` e `fetchPuzzleReplay` usam apenas
+  endpoints oficiais e escopo `puzzle:read`; replay salva somente `theme`, `days`, `nb`,
+  `remainingCount` e destino seguro `/training/{theme}`. O gerador passa `profile.band`, minutos e
+  `PuzzleThemeStats` para o seletor; revisao curta pode virar replay quando ha erro real no tema.
+  Gate verde: `npm run lint`, `npm run test`, `npm run build`; smoke Browser desktop Today/TutorCard e
+  Playwright CLI desktop/mobile salvos em `output/playwright/premium-catalog-*-2026-06-08.png`.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

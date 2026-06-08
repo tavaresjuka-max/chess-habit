@@ -250,6 +250,115 @@ sem violar clean-room, privacidade, PWA local-first ou fases congeladas.
 - Playwright via runtime bundled do Codex foi usado para capturar `Config`, `Hoje`, treino ativo e bloco
   concluido em desktop/mobile; artefatos salvos em `output/playwright/`.
 
+## Pesquisa Externa Em 2026-06-08: Curadoria Lichess Professor Lemos
+
+Pesquisa executada para `docs/research/relatorio-codex-curadoria-lichess-professor-lemos-2026-06-08.md`.
+Objetivo: mapear recursos oficiais, temas de puzzle, videos diretos, estudos comunitarios candidatos e
+viabilidade tecnica/API para o catalogo adaptativo do Professor Lemos. Nao houve scraping, download de
+PGN completo, copia de comentarios/capitulos, nem uso de conteudo pago/proprietario.
+
+- [Lichess Practice](https://lichess.org/practice): confirmou secoes oficiais Checkmates,
+  Fundamental Tactics, Advanced Tactics, Pawn Endgames e Rook Endgames, usadas como recursos A do catalogo.
+- [Lichess Practice source](https://raw.githubusercontent.com/lichess-org/lila/master/modules/practice/src/main/PracticeSections.scala)
+  e [PracticeStructure source](https://raw.githubusercontent.com/lichess-org/lila/master/modules/practice/src/main/PracticeStructure.scala):
+  revalidaram `sectionId`, `studyId`, titulos oficiais e estrutura de Practice.
+- [Lichess Learn](https://lichess.org/learn): confirmado como destino oficial para fundamentos basicos,
+  sem necessidade de OAuth do app.
+- [Lichess Puzzle Themes](https://lichess.org/training/themes) e
+  [puzzleTheme.xml](https://raw.githubusercontent.com/lichess-org/lila/master/translation/source/puzzleTheme.xml):
+  revalidaram slugs como `hangingPiece`, `fork`, `pin`, `skewer`, `discoveredAttack`, `mateIn1`,
+  `mateIn2`, `backRankMate`, `pawnEndgame`, `rookEndgame`, `defensiveMove`, `advantage`, `crushing`,
+  `long`, `veryLong` e `healthy mix`.
+- [Lichess API Tips](https://lichess.org/page/api-tips): revalidou regra de uma requisicao por vez e
+  espera minima de 1 minuto apos HTTP 429.
+- [Lichess Fair Play](https://lichess.org/page/fair-play): revalidou proibicao de assistencia externa
+  durante jogos em andamento; catalogo deve recomendar analise apenas de partidas terminadas.
+- [Lichess Database](https://database.lichess.org/): revalidou CC0 dos exports e formato dos puzzles,
+  mas a decisao desta rodada foi nao criar tabuleiro proprio nem persistir puzzles/PGNs.
+- [Puzzle activity](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-activity.yaml),
+  [Puzzle dashboard](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-dashboard-days.yaml),
+  [Puzzle next](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-next.yaml),
+  [Puzzle batch](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-batch-angle.yaml),
+  [Puzzle by ID](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-id.yaml) e
+  [Puzzle replay](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-replay-days-theme.yaml):
+  confirmaram viabilidade de leitura com `puzzle:read`, existencia de `puzzle:write` no batch solve
+  (proibido pelo projeto), e alerta oficial para nao enumerar puzzles via API.
+- [Create a Study](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/studies/api-study.yaml) e
+  [Import PGN into a Study](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/studies/api-study-studyId-import-pgn.yaml):
+  revalidaram `study:write`, limite de criacao/chapters e viabilidade do Study privado do dia com PGN
+  transiente e limpo.
+- [Study metadata/export specs](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/studies/api-study-by-username.yaml),
+  [study PGN export](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/studies/api-study-studyId.pgn.yaml) e
+  [chapter PGN export](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/studies/api-study-studyId-chapterId.pgn.yaml):
+  confirmaram que exportar estudos envolve PGN/comentarios/variacoes; usar apenas para verificacao
+  tecnica futura, nao para copiar conteudo comunitario.
+- [Games user export](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/games/api-games-user-username.yaml),
+  [User public data](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/users/api-user-username.yaml),
+  [Rating history](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/users/api-user-username-rating-history.yaml) e
+  [Perf stats](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/users/api-user-username-perf-perf.yaml):
+  revalidaram sinais publicos/terminados e parametros para evitar PGN completo (`moves=false`,
+  `pgnInJson=false`) quando o Lichess for fonte secundaria.
+- Videos diretos da biblioteca Lichess verificados como candidatos especificos:
+  [Opening Principles](https://lichess.org/video/gpsZAim-mYc),
+  [Hanging Pieces](https://lichess.org/video/wod7uXzkrTc),
+  [Fork](https://lichess.org/video/mbiR0tcdqBY),
+  [Pin](https://lichess.org/video/VjwSudAqLn8),
+  [Skewer](https://lichess.org/video/ZexQ1kow1MM),
+  [Discovered Attack](https://lichess.org/video/nMADfn1scbI),
+  [Back Rank](https://lichess.org/video/spMQR31h0-0),
+  [Mating Patterns](https://lichess.org/video/uhQhasudq9M),
+  [Pawn Endgames](https://lichess.org/video/QUqq7wSLE78),
+  [Calculation](https://lichess.org/video/-OoPm17P8xA),
+  [Avoid Blunders](https://lichess.org/video/AYy2A6HIcU0) e
+  [Convert Material Advantage](https://lichess.org/video/0-ouahZH8X4).
+- Estudos comunitários candidatos/verificados por busca manual responsável:
+  [Jomega Studies Table of Contents](https://lichess.org/study/vK3z4Pvu),
+  [Beginner: Tactics (jomega)](https://lichess.org/study/g6vPzJv7),
+  [Beginner: Simple Tactics I (jomega)](https://lichess.org/study/s3iOCawc),
+  [Beginner: Simple Tactics II (jomega)](https://lichess.org/study/6JAUFQ5p),
+  [Intermediate: Tactics Internalized (jomega)](https://lichess.org/study/q9bJ8YdY),
+  [Beginner Endgames You Must Know (NoseKnowsAll)](https://lichess.org/study/wukLYIXj),
+  [Intermediate Endgames You Must Know (NoseKnowsAll)](https://lichess.org/study/UsqmCsgC),
+  [Advanced Endgames You Must Know (NoseKnowsAll)](https://lichess.org/study/UO2zqigQ),
+  [Rook Endgames You Must Know (NoseKnowsAll)](https://lichess.org/study/bnboDhFM),
+  [Mate in 2 CAN YOU SEE IT?](https://lichess.org/study/APSzIEsV),
+  [Practical Endings: Pawns PART 1](https://lichess.org/study/dXKWlrkg) e
+  [Pawn Endgames!](https://lichess.org/study/izZ71JC2). Decisão: comunitários entram como candidatos com revisão humana; estudos com risco de direitos/qualidade foram marcados como D no relatório.
+
+## Pesquisa Pontual Em 2026-06-08: Implantacao Etapa 2B Catalogo Curado
+
+Pesquisa executada durante a implantacao do catalogo curado. Nao houve scraping, download de PGN,
+transcricao de estudos, copia de capitulos ou leitura de comentarios; a verificacao foi limitada a
+status HTTP `HEAD` sequencial de URLs publicas.
+
+- Videos diretos da biblioteca Lichess ativados no catalogo responderam `200`: `wod7uXzkrTc`,
+  `mbiR0tcdqBY`, `VjwSudAqLn8`, `ZexQ1kow1MM`, `nMADfn1scbI`, `spMQR31h0-0`, `uhQhasudq9M`,
+  `QUqq7wSLE78`, `-OoPm17P8xA`, `AYy2A6HIcU0` e `0-ouahZH8X4`.
+- Estudos NoseKnowsAll ativados como `approved` responderam `200`: `wukLYIXj`, `UsqmCsgC` e
+  `bnboDhFM`.
+- Estudos jomega `Iof6LzcT`, `s3iOCawc`, `6JAUFQ5p` e `wzFrgluQ` responderam `200` e entram como
+  `needs-human-review`; os candidatos `g6vPzJv7` e `q9bJ8YdY` responderam `404` e nao foram usados.
+- Estudos rejeitados continuam fora do catalogo ativo: `dXKWlrkg`, `izZ71JC2` e `APSzIEsV`.
+
+## Pesquisa Pontual Em 2026-06-08: Catalogo Premium Puzzle Dashboard/Replay
+
+Pesquisa executada antes da implementacao local-first do catalogo premium. Nao houve scraping nem
+persistencia de puzzle IDs, PGN, solucoes ou comentarios.
+
+- [Puzzle Dashboard endpoint](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-dashboard-days.yaml):
+  confirmou `GET /api/puzzle/dashboard/{days}`, resposta JSON e OAuth `puzzle:read`.
+- [PuzzleDashboard schema](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/schemas/PuzzleDashboard.yaml)
+  e [exemplo oficial](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/examples/puzzles-getYourPuzzleDashboard.json.yaml):
+  confirmaram campos `days`, `global` e `themes`, com agregados `nb`, `firstWins`,
+  `replayWins`, `puzzleRatingAvg` e `performance`. O app usa apenas agregados por tema.
+- [Puzzle Replay endpoint](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-replay-days-theme.yaml):
+  confirmou `GET /api/puzzle/replay/{days}/{theme}`, OAuth `puzzle:read` e 404 quando nao ha puzzles
+  para replay.
+- [PuzzleReplay schema](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/schemas/PuzzleReplay.yaml)
+  e [exemplo oficial](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/examples/puzzles-getPuzzlesToReplay.json.yaml):
+  confirmaram que a resposta inclui IDs em `remaining`; implementacao descarta esses IDs imediatamente
+  e salva apenas `theme`, `days`, `nb`, `remainingCount` e destino publico seguro `/training/{theme}`.
+
 ## Lichess
 
 - [Lichess API](https://lichess-org.github.io/api/): referencia oficial dos endpoints.
@@ -257,6 +366,7 @@ sem violar clean-room, privacidade, PWA local-first ou fases congeladas.
 - [Lichess Database](https://database.lichess.org/): base publica. O site informa que exports sao CC0 e inclui puzzles, jogos e avaliacoes.
 - [Lichess About](https://lichess.org/about): filosofia de app gratuito, livre, open-source e sustentado por doacoes.
 - [Lichess Terms of Service](https://lichess.org/page/tos): revisar antes de qualquer feature publica.
+- 2026-06-08: [lichess-org/api `api-puzzle-activity.yaml`](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-activity.yaml) e [schema `PuzzleActivity.yaml`](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/schemas/PuzzleActivity.yaml) confirmaram `GET /api/puzzle/activity`, resposta `application/x-ndjson`, OAuth `puzzle:read`, parametros `max`, `before`, `since`, e campos `date`, `win`, `puzzle.id`, `puzzle.rating`, `puzzle.themes`. Usado para resumir estatisticas locais por tema sem guardar PGN ou solucao.
 
 ## Chess.com
 
