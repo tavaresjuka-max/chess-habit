@@ -47,7 +47,7 @@ export function Config({
       goals: initialProfile.goals,
       updatedAt: new Date().toISOString(),
     });
-    setStatusMessage('Configuracao salva.');
+    setStatusMessage('Configuração salva.');
   }
 
   async function handleExport() {
@@ -81,7 +81,7 @@ export function Config({
 
   return (
     <section aria-labelledby="config-title" className="panel">
-      <h1 id="config-title">Config</h1>
+      <h1 id="config-title">Configuração</h1>
       <form
         className="form-grid"
         onSubmit={(event) => {
@@ -90,7 +90,7 @@ export function Config({
         }}
       >
         <label className="field">
-          <span>Usuario Lichess</span>
+          <span>Usuário Lichess</span>
           <input
             autoComplete="username"
             value={lichessUsername}
@@ -101,7 +101,7 @@ export function Config({
         </label>
 
         <label className="field">
-          <span>Usuario Chess.com</span>
+          <span>Usuário Chess.com</span>
           <input
             autoComplete="username"
             value={chesscomUsername}
@@ -125,7 +125,7 @@ export function Config({
         </label>
 
         <label className="field">
-          <span>Tempo padrao</span>
+          <span>Tempo padrão</span>
           <select
             value={defaultSessionMinutes}
             onChange={(event) => {
@@ -178,7 +178,7 @@ export function Config({
               void onDisconnectLichess();
             }}
           >
-            Remover conexao
+            Remover conexão
           </button>
         </div>
       </section>
@@ -197,7 +197,7 @@ function formatLichessConnection(
   }
 
   if (state === 'error') {
-    return 'Conexao Lichess precisa de atencao.';
+    return 'Conexão Lichess precisa de atenção.';
   }
 
   if (token === undefined) {

@@ -95,7 +95,7 @@ export function Today({
     return (
       <section aria-labelledby="today-title" className="panel">
         <h1 id="today-title">Hoje</h1>
-        <p>Salve sua configuracao para gerar o plano local.</p>
+        <p>Salve sua configuração para gerar o plano local.</p>
       </section>
     );
   }
@@ -109,7 +109,7 @@ export function Today({
         <div>
           <h1 id="today-title">Hoje</h1>
           <p>
-            {plan.date} - {sessionSummaries.length} {sessionSummaries.length === 1 ? 'sessao' : 'sessoes'} -{' '}
+            {plan.date} - {sessionSummaries.length} {sessionSummaries.length === 1 ? 'sessão' : 'sessões'} -{' '}
             {totalPlannedMinutes} min
           </p>
           {plan.weeklyFocus !== undefined ? (
@@ -225,7 +225,7 @@ export function Today({
             aria-labelledby={`session-${String(session.sessionNumber)}`}
           >
             <div className="session-heading">
-              <h2 id={`session-${String(session.sessionNumber)}`}>Sessao {session.sessionNumber}</h2>
+              <h2 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h2>
               <span>{session.minutes} min</span>
             </div>
             {session.blocks.map((block) => (
@@ -254,7 +254,7 @@ function RoadmapList({ items }: { items: TrainingRoadmapItem[] }) {
   return (
     <section className="roadmap-section" aria-labelledby="roadmap-title">
       <div className="section-subheading">
-        <h2 id="roadmap-title">Proximos passos</h2>
+        <h2 id="roadmap-title">Próximos passos</h2>
       </div>
       <ol className="roadmap-list">
         {items.map((item) => (
@@ -400,7 +400,7 @@ function formatTimerStatus(
   if (log.status === 'skipped') {
     return {
       kind: 'timer-skipped',
-      label: `Pulou apos ${formatElapsedMinutes(elapsedSeconds)}.`,
+      label: `Pulou após ${formatElapsedMinutes(elapsedSeconds)}.`,
     };
   }
 
@@ -413,22 +413,22 @@ function formatTimerStatus(
 
   return {
     kind: 'timer-running',
-    label: `Treinando ha ${formatElapsedMinutes(elapsedSeconds)}. Faltam ${formatElapsedMinutes(log.plannedSeconds - elapsedSeconds)}.`,
+    label: `Treinando há ${formatElapsedMinutes(elapsedSeconds)}. Faltam ${formatElapsedMinutes(log.plannedSeconds - elapsedSeconds)}.`,
   };
 }
 
 function formatResourceStage(stage: PlanBlock['resourceStage']): string {
   switch (stage) {
     case 'explain':
-      return 'explicacao';
+      return 'explicação';
     case 'guided':
       return 'guiado';
     case 'retrieval':
-      return 'repeticao';
+      return 'repetição';
     case 'transfer':
-      return 'transferencia';
+      return 'transferência';
     case 'review':
-      return 'revisao';
+      return 'revisão';
     case undefined:
       return 'treino';
   }
@@ -437,11 +437,11 @@ function formatResourceStage(stage: PlanBlock['resourceStage']): string {
 function formatFeedback(feedback: PlanBlockFeedback): string {
   switch (feedback) {
     case 'easy':
-      return 'facil';
+      return 'fácil';
     case 'good':
       return 'bom: interessante e desafiador';
     case 'hard':
-      return 'dificil';
+      return 'difícil';
   }
 }
 
@@ -472,7 +472,7 @@ function playTimerBeep(): void {
 function formatWeaknessTag(tag: Weakness['tag']): string {
   switch (tag) {
     case 'hanging-piece':
-      return 'pecas penduradas';
+      return 'peças penduradas';
     case 'fork':
       return 'garfos';
     case 'pin':
@@ -486,7 +486,7 @@ function formatWeaknessTag(tag: Weakness['tag']): string {
     case 'mate-in-2':
       return 'mate em 2';
     case 'back-rank':
-      return 'mate na ultima fileira';
+      return 'mate na última fileira';
     case 'opening-principles':
       return 'abertura';
     case 'time-trouble':
@@ -496,7 +496,7 @@ function formatWeaknessTag(tag: Weakness['tag']): string {
     case 'endgame-rook':
       return 'final de torres';
     case 'conversion':
-      return 'conversao';
+      return 'conversão';
     case 'blunder-rate':
       return 'anti-blunder';
   }
@@ -520,6 +520,6 @@ function formatRoadmapStatus(status: TrainingRoadmapItem['status']): string {
     case 'done':
       return 'Feito';
     case 'future':
-      return 'Proximo';
+      return 'Próximo';
   }
 }

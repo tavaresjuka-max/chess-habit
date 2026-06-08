@@ -13,6 +13,6 @@ describe('App smoke', () => {
     render(<App />);
 
     expect(await screen.findByRole('button', { name: 'Config' })).toBeTruthy();
-    expect(await screen.findByText('Usuario Lichess')).toBeTruthy();
+    expect(await screen.findByText('Usuário Lichess')).toBeTruthy();
   });
 });

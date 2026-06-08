@@ -42,7 +42,7 @@ describe('training flow', () => {
     fireEvent.click(openLink);
 
     await waitFor(() => {
-      expect(screen.getByText(/Treinando ha/i)).toBeTruthy();
+      expect(screen.getByText(/Treinando há/i)).toBeTruthy();
     });
 
     const log = await getFirstBlockLog();
@@ -129,7 +129,7 @@ describe('training flow', () => {
       expect(reopenedLog?.status).toBe('done');
       expect(reopenedLog?.completedAt).toBe(completedLog?.completedAt);
     });
-    expect(screen.queryByText(/Treinando ha/i)).toBeNull();
+    expect(screen.queryByText(/Treinando há/i)).toBeNull();
   });
 
   it('syncs Lichess diagnosis even when the NDJSON stream has a broken line', async () => {

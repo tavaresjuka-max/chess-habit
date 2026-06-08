@@ -21,7 +21,7 @@ export function App() {
   return (
     <main className="app-shell">
       <Toaster richColors position="bottom-right" />
-      <nav className="top-nav" aria-label="Navegacao principal">
+      <nav className="top-nav" aria-label="Navegação principal">
         <button
           className={shouldShowConfig ? 'nav-button' : 'nav-button nav-button-active'}
           type="button"
