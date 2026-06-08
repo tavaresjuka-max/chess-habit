@@ -171,7 +171,8 @@ describe('training flow', () => {
     vi.stubGlobal('fetch', fetchMock);
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Atualizar Lichess' }));
+    fireEvent.click(await screen.findByText('Diagnóstico'));
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar Lichess' }));
 
     expect(await screen.findByText(/Lichess atualizado com/i)).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -180,7 +181,8 @@ describe('training flow', () => {
   it('asks for Lichess connection before creating a Study', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Gerar Study' }));
+    fireEvent.click(await screen.findByText('Diagnóstico'));
+    fireEvent.click(screen.getByRole('button', { name: 'Gerar Study' }));
 
     expect(await screen.findByText('Conecte o Lichess para criar o Study do dia.')).toBeTruthy();
   });

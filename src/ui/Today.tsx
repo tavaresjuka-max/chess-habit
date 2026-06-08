@@ -118,91 +118,10 @@ export function Today({
             </p>
           ) : null}
         </div>
-        <div className="session-actions">
-          <label className="compact-field">
-            <span>Tempo</span>
-            <select
-              value={sessionMinutes}
-              onChange={(event) => {
-                void onSessionMinutesChange(Number(event.target.value) as SessionMinutes);
-              }}
-            >
-              {sessionOptions.map((minutes) => (
-                <option key={minutes} value={minutes}>
-                  {minutes} min
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={hasActiveTraining}
-            onClick={() => {
-              void onCreateNextSession(sessionMinutes);
-            }}
-          >
-            Fazer proxima sessao
-          </button>
-        </div>
-      </div>
-
-      <div className="diagnosis-strip" aria-live="polite">
-        <div className="diagnosis-actions">
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={diagnosisState === 'syncing'}
-            onClick={() => {
-              void onSyncChesscomDiagnosis();
-            }}
-          >
-            {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={lichessConnectionState === 'syncing'}
-            onClick={() => {
-              void onSyncLichessDiagnosis();
-            }}
-          >
-            {lichessConnectionState === 'syncing' ? 'Lichess...' : 'Atualizar Lichess'}
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={lichessConnectionState === 'syncing'}
-            onClick={() => {
-              void onReconcileLichessResults();
-            }}
-          >
-            Reconciliar puzzles
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={lichessConnectionState === 'syncing'}
-            onClick={() => {
-              void onCreateLichessStudy();
-            }}
-          >
-            Gerar Study
-          </button>
-        </div>
-        <div className="diagnosis-messages">
-          {diagnosisMessage !== undefined ? <p>{diagnosisMessage}</p> : null}
-          {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
-          {lichessStudyLink !== undefined ? (
-            <a className="button-link secondary-link" href={lichessStudyLink.url} target="_blank" rel="noreferrer">
-              Abrir Study do dia
-            </a>
-          ) : null}
-        </div>
       </div>
 
       {weaknesses.length > 0 ? (
-        <div className="weakness-row" aria-label="Hipoteses atuais">
+        <div className="weakness-row" aria-label="Hipóteses atuais">
           {weaknesses
             .slice()
             .sort((left, right) => right.score - left.score)
@@ -214,8 +133,6 @@ export function Today({
             ))}
         </div>
       ) : null}
-
-      <RoadmapList items={roadmap} />
 
       <div className="block-list">
         {sessionSummaries.map((session) => (
@@ -242,6 +159,95 @@ export function Today({
           </section>
         ))}
       </div>
+
+      <section className="next-session" aria-label="Próxima sessão">
+        <div className="session-actions">
+          <label className="compact-field">
+            <span>Tempo</span>
+            <select
+              value={sessionMinutes}
+              onChange={(event) => {
+                void onSessionMinutesChange(Number(event.target.value) as SessionMinutes);
+              }}
+            >
+              {sessionOptions.map((minutes) => (
+                <option key={minutes} value={minutes}>
+                  {minutes} min
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={hasActiveTraining}
+            onClick={() => {
+              void onCreateNextSession(sessionMinutes);
+            }}
+          >
+            Fazer próxima sessão
+          </button>
+        </div>
+      </section>
+
+      <RoadmapList items={roadmap} />
+
+      <details className="diagnosis-details">
+        <summary>Diagnóstico</summary>
+        <div className="diagnosis-strip" aria-live="polite">
+          <div className="diagnosis-actions">
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={diagnosisState === 'syncing'}
+              onClick={() => {
+                void onSyncChesscomDiagnosis();
+              }}
+            >
+              {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={lichessConnectionState === 'syncing'}
+              onClick={() => {
+                void onSyncLichessDiagnosis();
+              }}
+            >
+              {lichessConnectionState === 'syncing' ? 'Lichess...' : 'Atualizar Lichess'}
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={lichessConnectionState === 'syncing'}
+              onClick={() => {
+                void onReconcileLichessResults();
+              }}
+            >
+              Reconciliar puzzles
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={lichessConnectionState === 'syncing'}
+              onClick={() => {
+                void onCreateLichessStudy();
+              }}
+            >
+              Gerar Study
+            </button>
+          </div>
+          <div className="diagnosis-messages">
+            {diagnosisMessage !== undefined ? <p>{diagnosisMessage}</p> : null}
+            {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
+            {lichessStudyLink !== undefined ? (
+              <a className="button-link secondary-link" href={lichessStudyLink.url} target="_blank" rel="noreferrer">
+                Abrir Study do dia
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </details>
     </section>
   );
 }

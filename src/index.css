@@ -419,6 +419,29 @@ select {
   color: #1f3f36;
 }
 
+.next-session {
+  margin-top: 4px;
+}
+
+.diagnosis-details {
+  border: 1px solid #cdd7cf;
+  border-radius: 8px;
+  background: #fff;
+  margin-top: 16px;
+  padding: 4px 12px;
+}
+
+.diagnosis-details > summary {
+  cursor: pointer;
+  font-weight: 650;
+  color: #22303c;
+  padding: 10px 0;
+}
+
+.diagnosis-details[open] .diagnosis-strip {
+  margin: 8px 0 12px;
+}
+
 .app-error {
   width: min(100%, 560px);
   margin: 0;
