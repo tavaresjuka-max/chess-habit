@@ -57,7 +57,10 @@ export function normalizeDestination(destination: Destination, stage?: PlanResou
     }
   }
 
-  if (destination.url === 'https://lichess.org/practice' && destination.label.includes('finais de peoes')) {
+  if (
+    destination.url === 'https://lichess.org/practice' &&
+    (destination.label.includes('finais de peões') || destination.label.includes('finais de peoes'))
+  ) {
     return lichessDestinationsByWeakness['endgame-pawn'];
   }
 
@@ -77,7 +80,7 @@ function getResourceForWeaknessAndStage(tag: WeaknessTag, stage: PlanResourceSta
       kind: 'analysis-tool',
       title: 'Analysis board',
       label: 'Lichess Analysis: revisar partida terminada',
-      description: 'Prancheta de analise para revisar apenas partidas terminadas.',
+      description: 'Prancheta de análise para revisar apenas partidas terminadas.',
       url: analysisDestination.url,
       source: 'lichess-training-page',
       bands: ['0-800', '800-1200'],

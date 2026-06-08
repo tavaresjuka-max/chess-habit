@@ -30,15 +30,15 @@ type FutureRoadmapStep = {
 const futureRoadmapSteps = [
   {
     stage: 'retrieval',
-    title: (focusTitle) => `Repeticao: ${focusTitle}`,
+    title: (focusTitle) => `Repetição: ${focusTitle}`,
   },
   {
     stage: 'transfer',
-    title: (focusTitle) => `Transferencia: ${focusTitle} em partida`,
+    title: (focusTitle) => `Transferência: ${focusTitle} em partida`,
   },
   {
     stage: 'review',
-    title: (focusTitle) => `Revisao: ${focusTitle} sem pressa`,
+    title: (focusTitle) => `Revisão: ${focusTitle} sem pressa`,
   },
 ] satisfies readonly FutureRoadmapStep[];
 
@@ -97,7 +97,7 @@ export function createTrainingRoadmap(input: {
   const activeItems = getPlanSessionSummaries(input.activePlan).map((session) => ({
     id: `${input.activePlan.date}:session:${String(session.sessionNumber)}`,
     date: input.activePlan.date,
-    label: session.sessionNumber === 1 ? 'Hoje' : `Hoje, sessao ${String(session.sessionNumber)}`,
+    label: session.sessionNumber === 1 ? 'Hoje' : `Hoje, sessão ${String(session.sessionNumber)}`,
     minutes: session.minutes,
     title: session.title,
     destinationLabel: session.destinationLabel,
@@ -120,7 +120,7 @@ export function createTrainingRoadmap(input: {
     futureItems.push({
       id: `${date}:session:1`,
       date,
-      label: dayOffset === 1 ? 'Amanha' : `Em ${String(dayOffset)} dias`,
+      label: dayOffset === 1 ? 'Amanhã' : `Em ${String(dayOffset)} dias`,
       minutes: input.sessionMinutes,
       title: step.title(focus.title),
       destinationLabel: destination.label,

@@ -24,7 +24,7 @@ export class LichessRateLimitError extends Error {
   readonly retryAfterMs = 60_000;
 
   constructor() {
-    super('Lichess limitou as requisicoes agora. Espere pelo menos 1 minuto antes de tentar de novo.');
+    super('Lichess limitou as requisições agora. Espere pelo menos 1 minuto antes de tentar de novo.');
     this.name = 'LichessRateLimitError';
   }
 }

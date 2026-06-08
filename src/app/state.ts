@@ -266,7 +266,7 @@ export function useAppState(): AppState {
     }
 
     setDiagnosisState('syncing');
-    setDiagnosisMessage('Atualizando diagnostico Chess.com.');
+    setDiagnosisMessage('Atualizando diagnóstico Chess.com.');
 
     try {
       const signals = await importChesscomSignals(profile.chesscomUsername, {
@@ -291,8 +291,8 @@ export function useAppState(): AppState {
       setDiagnosisState('success');
       setDiagnosisMessage(
         nextWeaknesses.length === 0
-          ? `Diagnostico atualizado com ${String(signals.length)} sinais derivados. Ainda sem limiar suficiente; mantive plano conservador.`
-          : `Diagnostico atualizado com ${String(signals.length)} sinais derivados e ${String(nextWeaknesses.length)} hipoteses.`,
+          ? `Diagnóstico atualizado com ${String(signals.length)} sinais derivados. Ainda sem limiar suficiente; mantive plano conservador.`
+          : `Diagnóstico atualizado com ${String(signals.length)} sinais derivados e ${String(nextWeaknesses.length)} hipóteses.`,
       );
       setErrorMessage(undefined);
     } catch (error) {
@@ -358,7 +358,7 @@ export function useAppState(): AppState {
     }
 
     setLichessConnectionState('syncing');
-    setLichessMessage('Atualizando diagnostico Lichess.');
+    setLichessMessage('Atualizando diagnóstico Lichess.');
 
     try {
       const token = await loadLichessOAuthToken();

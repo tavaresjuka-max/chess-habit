@@ -58,7 +58,7 @@ describe('generatePlan', () => {
     const profile: LearnerProfile = { ...baseProfile, band: '0-800' };
     const plan = generatePlan(profile, [], 5, '2026-06-06');
 
-    expect(plan.blocks[0]?.title).toContain('pecas penduradas');
+    expect(plan.blocks[0]?.title).toContain('peças penduradas');
     expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/hangingPiece');
   });
 
@@ -92,14 +92,14 @@ describe('generatePlan', () => {
           tag: 'opening-principles',
           score: 0.8,
           confidence: 'medium',
-          evidence: 'A abertura 1...e5 apareceu varias vezes com resultado dificil.',
+          evidence: 'A abertura 1...e5 apareceu várias vezes com resultado difícil.',
         },
       ],
       15,
       '2026-06-06',
     );
 
-    expect(plan.blocks[0]?.title).toContain('principios de abertura');
+    expect(plan.blocks[0]?.title).toContain('princípios de abertura');
     expect(plan.blocks[0]?.destination).toEqual({
       source: 'lichess',
       label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
@@ -146,7 +146,7 @@ describe('generatePlan', () => {
 
     expect(plan.blocks[0]?.resourceStage).toBe('explain');
     expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/video?tags=beginner%2Ftactics');
-    expect(plan.blocks[0]?.task).toContain('Revise uma explicacao curta de garfos');
+    expect(plan.blocks[0]?.task).toContain('Revise uma explicação curta de garfos');
   });
 
   it('keeps a good repeated theme in the same resource stage', () => {

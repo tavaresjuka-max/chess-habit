@@ -28,7 +28,7 @@ export class ChesscomRateLimitError extends Error {
   readonly retryAfterMs: number;
 
   constructor(retryAfterMs = 60_000) {
-    super('Chess.com limitou as requisicoes agora. Espere pelo menos 1 minuto antes de tentar de novo.');
+    super('Chess.com limitou as requisições agora. Espere pelo menos 1 minuto antes de tentar de novo.');
     this.name = 'ChesscomRateLimitError';
     this.retryAfterMs = retryAfterMs;
   }
@@ -38,7 +38,7 @@ export async function importChesscomSignals(username: string, options: ImportChe
   const normalizedUsername = username.trim();
 
   if (normalizedUsername === '') {
-    throw new Error('Informe um usuario Chess.com antes de atualizar o diagnostico.');
+    throw new Error('Informe um usuário Chess.com antes de atualizar o diagnóstico.');
   }
 
   const observedAt = options.observedAt ?? new Date().toISOString();

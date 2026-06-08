@@ -99,7 +99,7 @@ function signalToCandidates(signal: Signal): WeaknessCandidate[] {
             contribution: signal.value.games,
             minContribution: 10,
             confidence: signal.confidence,
-            evidence: `Voce perdeu por tempo em ${String(signal.value.timeoutLosses)} partidas recentes; talvez um ritmo um pouco mais calmo ajude.`,
+            evidence: `Você perdeu por tempo em ${String(signal.value.timeoutLosses)} partidas recentes; talvez um ritmo um pouco mais calmo ajude.`,
           },
         ];
       }
@@ -113,7 +113,7 @@ function signalToCandidates(signal: Signal): WeaknessCandidate[] {
             contribution: signal.value.games,
             minContribution: 5,
             confidence: signal.confidence,
-            evidence: `A abertura ${signal.value.name} apareceu varias vezes com resultado dificil; hoje a revisao fica nos principios de abertura.`,
+            evidence: `A abertura ${signal.value.name} apareceu várias vezes com resultado difícil; hoje a revisão fica nos princípios de abertura.`,
           },
         ];
       }
@@ -128,7 +128,7 @@ function signalToCandidates(signal: Signal): WeaknessCandidate[] {
           confidence: signal.confidence,
           evidence:
             signal.value.note ??
-            'Ha um sinal manual registrado para este tema; hoje o plano pode testar essa hipotese com treino curto.',
+            'Há um sinal manual registrado para este tema; hoje o plano pode testar essa hipótese com treino curto.',
         },
       ];
 

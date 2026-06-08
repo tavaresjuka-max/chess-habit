@@ -17,7 +17,7 @@ describe('lichess study', () => {
     const pgn = buildDailyPlanStudyPgn(plan);
 
     expect(pgn).toContain('[Event "Tema do dia: garfos"]');
-    expect(pgn).toContain('{ Estude a licao guiada de garfo');
+    expect(pgn).toContain('{ Estude a lição guiada de garfo');
     expect(pgn).toContain('Destino: https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p');
     expect(pgn).not.toContain('[FEN');
   });

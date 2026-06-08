@@ -17,8 +17,8 @@ export function createKnownManualSignals(observedAt: string): Signal[] {
 
 const manualNoteByTag = {
   fork: 'Sinal manual: vale testar garfos e ganho de material em treino curto.',
-  'hanging-piece': 'Sinal manual: vale testar seguranca de pecas e capturas simples.',
+  'hanging-piece': 'Sinal manual: vale testar segurança de peças e capturas simples.',
   discovered: 'Sinal manual: vale testar ataques descobertos e cheque duplo.',
   'mate-in-2': 'Sinal manual: vale testar mates em 2 antes de subir volume.',
-  'endgame-pawn': 'Sinal manual: vale testar finais de peoes com revisao curta.',
+  'endgame-pawn': 'Sinal manual: vale testar finais de peões com revisão curta.',
 } satisfies Record<(typeof knownWeaknessTags)[number], string>;

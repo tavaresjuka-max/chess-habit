@@ -127,7 +127,7 @@ export async function revokeLichessOAuthToken(input: { token: string; fetcher?: 
   });
 
   if (!response.ok && response.status !== 401) {
-    throw new Error(`Lichess nao revogou o token: HTTP ${String(response.status)}.`);
+    throw new Error(`Lichess não revogou o token: HTTP ${String(response.status)}.`);
   }
 }
 

@@ -68,7 +68,7 @@ async function runLichessOAuthCompletion(): Promise<OAuthCompletionResult> {
 
     return {
       kind: 'cancelled',
-      message: 'O retorno do Lichess nao confere com a solicitacao local. Tente conectar de novo.',
+      message: 'O retorno do Lichess não confere com a solicitação local. Tente conectar de novo.',
     };
   }
 
@@ -101,10 +101,10 @@ function clearOAuthQueryFromUrl(): void {
 
 function oauthCancelMessage(error: string): string {
   if (error === 'access_denied') {
-    return 'Voce cancelou a conexao com o Lichess. Pode tentar de novo quando quiser.';
+    return 'Você cancelou a conexão com o Lichess. Pode tentar de novo quando quiser.';
   }
 
-  return `O Lichess recusou a conexao (${error}). Tente conectar de novo.`;
+  return `O Lichess recusou a conexão (${error}). Tente conectar de novo.`;
 }
 
 function readPendingOAuthRequest(): StoredOAuthRequest | undefined {

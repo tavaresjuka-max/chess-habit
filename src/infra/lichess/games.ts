@@ -78,7 +78,7 @@ export async function fetchLichessGames(options: ImportLichessSignalsOptions): P
   const username = options.username.trim();
 
   if (username === '') {
-    throw new Error('Usuario Lichess ausente para diagnostico.');
+    throw new Error('Usuário Lichess ausente para diagnóstico.');
   }
 
   const fetcher = options.fetcher ?? fetch;

@@ -37,7 +37,7 @@ describe('normalizePlanDestinations', () => {
       url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
     });
     expect(normalizedBlock?.task).toBe(
-      'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.',
+      'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.',
     );
   });
 
@@ -71,7 +71,7 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizedBlock?.destination.url).toBe('https://lichess.org/video/gpsZAim-mYc?tags=opening+principles');
     expect(normalizedBlock?.task).toBe(
-      'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.',
+      'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.',
     );
   });
 
@@ -109,7 +109,7 @@ describe('normalizePlanDestinations', () => {
       url: 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
     });
     expect(normalizedBlock?.task).toBe(
-      'Estude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.',
+      'Estude a lição guiada de garfo e procure dois alvos antes de confirmar o lance.',
     );
   });
 

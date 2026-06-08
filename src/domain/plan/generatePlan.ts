@@ -136,10 +136,10 @@ function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness, resourceSt
   switch (kind) {
     case 'aquecimento':
       return {
-        title: 'Aquecimento tactico',
-        task: 'Resolva puzzles simples e confirme se ha peca solta antes do primeiro lance candidato.',
-        stopRule: 'Pare ao fechar o tempo do bloco, mesmo se houver uma sequencia boa em andamento.',
-        reason: 'Aquecimento mantem seguranca de pecas presente mesmo quando o foco do dia e outro.',
+        title: 'Aquecimento tático',
+        task: 'Resolva puzzles simples e confirme se há peça solta antes do primeiro lance candidato.',
+        stopRule: 'Pare ao fechar o tempo do bloco, mesmo se houver uma sequência boa em andamento.',
+        reason: 'Aquecimento mantém segurança de peças presente mesmo quando o foco do dia é outro.',
         weaknessTag: 'blunder-rate',
       };
     case 'tema':
@@ -152,26 +152,26 @@ function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness, resourceSt
       };
     case 'revisao':
       return {
-        title: 'Revisao curta',
-        task: 'Revise uma posicao terminada e escreva mentalmente qual ameaca passou batida.',
-        stopRule: 'Pare depois de uma posicao bem entendida.',
-        reason: 'Revisao conecta puzzle com partida real sem sugerir lance ao vivo.',
+        title: 'Revisão curta',
+        task: 'Revise uma posição terminada e escreva mentalmente qual ameaça passou batida.',
+        stopRule: 'Pare depois de uma posição bem entendida.',
+        reason: 'Revisão conecta puzzle com partida real sem sugerir lance ao vivo.',
         weaknessTag: 'conversion',
       };
     case 'transferencia':
       return {
-        title: 'Transferencia para partida',
-        task: `Abra a analise de uma partida terminada e procure ${weaknessTitleByTag[primaryTheme]} em uma posicao menos limpa.`,
-        stopRule: 'Pare ao encontrar uma posicao terminada em que voce consiga explicar o plano em uma frase.',
-        reason: 'Transferencia evita que o tema fique preso ao formato de puzzle.',
+        title: 'Transferência para partida',
+        task: `Abra a análise de uma partida terminada e procure ${weaknessTitleByTag[primaryTheme]} em uma posição menos limpa.`,
+        stopRule: 'Pare ao encontrar uma posição terminada em que você consiga explicar o plano em uma frase.',
+        reason: 'Transferência evita que o tema fique preso ao formato de puzzle.',
         weaknessTag: primaryTheme,
       };
     case 'final':
       return {
-        title: 'Final basico',
-        task: 'Treine finais simples e conte material, rei ativo e promocao antes de calcular.',
-        stopRule: 'Pare no fim do tempo ou apos uma linha que voce consiga reconstruir sem olhar.',
-        reason: 'Finais curtos consolidam precisao sem depender de engine no app.',
+        title: 'Final básico',
+        task: 'Treine finais simples e conte material, rei ativo e promoção antes de calcular.',
+        stopRule: 'Pare no fim do tempo ou após uma linha que você consiga reconstruir sem olhar.',
+        reason: 'Finais curtos consolidam precisão sem depender de engine no app.',
         weaknessTag: 'endgame-pawn',
       };
   }
@@ -260,25 +260,25 @@ function selectPrimaryWeakness(profile: LearnerProfile, weaknesses: Weakness[]):
     tag: fallbackTag,
     score: 0,
     confidence: 'low',
-    evidence: 'Tema conservador da faixa atual enquanto ainda faltam sinais suficientes do historico real.',
+    evidence: 'Tema conservador da faixa atual enquanto ainda faltam sinais suficientes do histórico real.',
   };
 }
 
 const weaknessTitleByTag = {
-  'hanging-piece': 'pecas penduradas',
+  'hanging-piece': 'peças penduradas',
   fork: 'garfos',
   pin: 'cravadas',
   skewer: 'espetos',
   discovered: 'ataques descobertos',
   'mate-in-1': 'mate em 1',
   'mate-in-2': 'mate em 2',
-  'back-rank': 'mate na ultima fileira',
-  'opening-principles': 'principios de abertura',
-  'time-trouble': 'gestao de tempo',
-  'endgame-pawn': 'finais de peoes',
+  'back-rank': 'mate na última fileira',
+  'opening-principles': 'princípios de abertura',
+  'time-trouble': 'gestão de tempo',
+  'endgame-pawn': 'finais de peões',
   'endgame-rook': 'finais de torres',
-  conversion: 'conversao',
-  'blunder-rate': 'seguranca anti-blunder',
+  conversion: 'conversão',
+  'blunder-rate': 'segurança anti-blunder',
 } satisfies Record<WeaknessTag, string>;
 
 function getThemeTask(tag: WeaknessTag, stage: PlanResourceStage): string {
@@ -287,33 +287,33 @@ function getThemeTask(tag: WeaknessTag, stage: PlanResourceStage): string {
   }
 
   if (stage === 'explain') {
-    return `Revise uma explicacao curta de ${weaknessTitleByTag[tag]} e anote uma regra para testar no treino.`;
+    return `Revise uma explicação curta de ${weaknessTitleByTag[tag]} e anote uma regra para testar no treino.`;
   }
 
   switch (tag) {
     case 'fork':
-      return 'Estude a licao guiada de garfo e procure dois alvos antes de confirmar o lance.';
+      return 'Estude a lição guiada de garfo e procure dois alvos antes de confirmar o lance.';
     case 'hanging-piece':
-      return 'Treine puzzles de peca pendurada e confirme quem defende cada alvo.';
+      return 'Treine puzzles de peça pendurada e confirme quem defende cada alvo.';
     case 'mate-in-1':
     case 'mate-in-2':
     case 'back-rank':
-      return 'Estude o bloco guiado de mates curtos e fale a ameaca antes de clicar no primeiro lance.';
+      return 'Estude o bloco guiado de mates curtos e fale a ameaça antes de clicar no primeiro lance.';
     case 'opening-principles':
-      return 'Assista uma aula curta de abertura e anote uma regra para testar na proxima partida: centro, desenvolvimento ou rei seguro.';
+      return 'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.';
     case 'time-trouble':
-      return 'Revise uma partida terminada e marque onde o relogio passou a mandar na decisao.';
+      return 'Revise uma partida terminada e marque onde o relógio passou a mandar na decisão.';
     case 'endgame-pawn':
     case 'endgame-rook':
-      return 'Estude a licao guiada de final simples e conte plano, oposicao ou atividade antes de calcular.';
+      return 'Estude a lição guiada de final simples e conte plano, oposição ou atividade antes de calcular.';
     case 'conversion':
-      return 'Revise uma posicao ganha ja terminada e explique como transformar vantagem em ponto.';
+      return 'Revise uma posição ganha já terminada e explique como transformar vantagem em ponto.';
     case 'blunder-rate':
-      return 'Treine puzzles de seguranca de pecas e faca uma checagem curta antes de cada lance.';
+      return 'Treine puzzles de segurança de peças e faça uma checagem curta antes de cada lance.';
     case 'pin':
     case 'skewer':
     case 'discovered':
-      return 'Estude a licao guiada do padrao tatico e confirme a peca-alvo antes de escolher o lance.';
+      return 'Estude a lição guiada do padrão tático e confirme a peça-alvo antes de escolher o lance.';
   }
 }
 

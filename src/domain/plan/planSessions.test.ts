@@ -61,21 +61,21 @@ describe('plan sessions', () => {
     });
     expect(roadmap[1]).toMatchObject({
       date: '2026-06-07',
-      label: 'Amanha',
-      title: 'Repeticao: garfos',
+      label: 'Amanhã',
+      title: 'Repetição: garfos',
       destinationLabel: 'Puzzles Lichess: Fork',
       status: 'future',
     });
     expect(roadmap[2]).toMatchObject({
       date: '2026-06-08',
       label: 'Em 2 dias',
-      title: 'Transferencia: garfos em partida',
+      title: 'Transferência: garfos em partida',
       destinationLabel: 'Lichess Analysis: revisar partida terminada',
     });
     expect(roadmap[3]).toMatchObject({
       date: '2026-06-09',
       label: 'Em 3 dias',
-      title: 'Revisao: garfos sem pressa',
+      title: 'Revisão: garfos sem pressa',
       destinationLabel: 'Lichess Analysis: revisar partida terminada',
     });
   });
