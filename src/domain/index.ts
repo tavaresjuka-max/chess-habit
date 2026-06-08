@@ -5,6 +5,7 @@ export * from './plan/planSessions';
 export * from './plan/timeBudget';
 export * from './coach/coachCatalog';
 export * from './coach/diagnosis';
+export * from './coach/sessionMessage';
 export * from './metrics/consistency';
 export * from './manual/knownManualSignals';
 export * from './sources/destinations';
