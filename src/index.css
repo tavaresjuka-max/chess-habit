@@ -77,6 +77,16 @@ button:hover,
   background: #173129;
 }
 
+button > svg,
+.button-link > svg {
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+.nav-button > svg {
+  margin-right: 6px;
+}
+
 button:disabled,
 button[aria-disabled='true'] {
   cursor: not-allowed;

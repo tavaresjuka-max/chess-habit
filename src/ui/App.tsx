@@ -1,7 +1,8 @@
+import { CalendarDays, Settings } from 'lucide-react';
+import { Toaster } from 'sonner';
 import { useAppState } from '../app/state';
 import { Config } from './Config';
 import { Today } from './Today';
-import { Toaster } from 'sonner';
 
 export function App() {
   const appState = useAppState();
@@ -29,6 +30,7 @@ export function App() {
             appState.setActiveView('today');
           }}
         >
+          <CalendarDays aria-hidden="true" size={16} />
           Hoje
         </button>
         <button
@@ -38,6 +40,7 @@ export function App() {
             appState.setActiveView('config');
           }}
         >
+          <Settings aria-hidden="true" size={16} />
           Config
         </button>
       </nav>

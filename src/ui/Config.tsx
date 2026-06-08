@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
@@ -196,6 +197,7 @@ export function Config({
             Adicionar sinais manuais
           </button>
           <button type="button" className="danger-button" onClick={() => void handleClear()}>
+            <Trash2 aria-hidden="true" size={16} />
             Apagar tudo
           </button>
         </div>

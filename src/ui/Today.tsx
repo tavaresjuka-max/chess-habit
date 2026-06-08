@@ -1,3 +1,4 @@
+import { Check, ExternalLink, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   elapsedSecondsBetween,
@@ -204,6 +205,7 @@ export function Today({
                 void onSyncChesscomDiagnosis();
               }}
             >
+              <RefreshCw aria-hidden="true" size={16} />
               {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
             </button>
             <button
@@ -214,6 +216,7 @@ export function Today({
                 void onSyncLichessDiagnosis();
               }}
             >
+              <RefreshCw aria-hidden="true" size={16} />
               {lichessConnectionState === 'syncing' ? 'Lichess...' : 'Atualizar Lichess'}
             </button>
             <button
@@ -328,6 +331,7 @@ function PlanBlockCard({
                 void onStartBlockTraining(block);
               }}
             >
+              <ExternalLink aria-hidden="true" size={16} />
               Abrir de novo
             </a>
           ) : null}
@@ -387,6 +391,7 @@ function PlanBlockCard({
                 void onStartBlockTraining(block);
               }}
             >
+              <ExternalLink aria-hidden="true" size={16} />
               Abrir no Lichess
             </a>
           ) : (
@@ -406,6 +411,7 @@ function PlanBlockCard({
               setIsRating(true);
             }}
           >
+            <Check aria-hidden="true" size={16} />
             Concluir
           </button>
           <button
