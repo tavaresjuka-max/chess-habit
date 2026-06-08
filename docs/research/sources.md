@@ -97,6 +97,21 @@ nao baixa puzzles, nao persiste PGN e so guarda metadados de destinos oficiais.
   [Puzzle Storm](https://lichess.org/storm) e [Puzzles from player games](https://lichess.org/training/of-player):
   confirmaram destinos publicos de treino que podem ser recomendados sem criar tabuleiro proprio.
 
+## Pesquisa Pontual Em 2026-06-08: Videos Lichess Como Destino Concreto
+
+Pesquisa executada apos uso real mostrar que filtros de video como `/video?tags=beginner%2Ftactics`
+levavam a paginas de busca/lista, genericas demais para o bloco diario.
+
+- [Lichess routes source](https://github.com/lichess-org/lila/blob/master/conf/routes): confirmou as
+  rotas oficiais `GET /video` para a biblioteca e `GET /video/:id` para uma aula especifica.
+- [Lichess Video API source](https://raw.githubusercontent.com/lichess-org/lila/master/modules/video/src/main/VideoApi.scala):
+  confirmou que `byTags` recebe tags e retorna uma pagina paginada de videos; portanto `?tags=...` e
+  um filtro de biblioteca, nao uma aula fechada.
+- [Must-Know Opening Principles - Central Control](https://lichess.org/video/gpsZAim-mYc): revalidado
+  como aula direta de principios de abertura em `/video/:id`. Decisao de implementacao: destinos novos
+  do app podem usar video direto `/video/:id`, Practice ou puzzle theme; filtros genericos `/video?tags=...`
+  ficam apenas como legado a normalizar.
+
 ## Pesquisa Local Em 2026-06-06: LEARN CHESS
 
 Pesquisa executada para sintetizar auditorias, estudos de concorrentes e pesquisa pedagogica da pasta local

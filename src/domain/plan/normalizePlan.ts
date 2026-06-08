@@ -7,7 +7,11 @@ export function normalizePlanDestinations(plan: DailyPlan): DailyPlan {
     blocks: plan.blocks.map((block) => {
       const weaknessTag = getNormalizedWeaknessTag(block, plan);
       const destination = normalizeGenericAnalysisDestination(
-        normalizeDestination(block.destination, block.resourceStage),
+        normalizeGenericVideoFilterDestination(
+          normalizeDestination(block.destination, block.resourceStage),
+          block.resourceStage,
+          weaknessTag,
+        ),
         block.resourceStage,
         weaknessTag,
       );
@@ -55,6 +59,18 @@ function normalizeGenericAnalysisDestination(
   return getDestinationForWeakness(weaknessTag, resourceStage);
 }
 
+function normalizeGenericVideoFilterDestination(
+  destination: Destination,
+  resourceStage: DailyPlan['blocks'][number]['resourceStage'],
+  weaknessTag: DailyPlan['blocks'][number]['weaknessTag'],
+): Destination {
+  if (destination.url?.startsWith('https://lichess.org/video?tags=') !== true || weaknessTag === undefined) {
+    return destination;
+  }
+
+  return getDestinationForWeakness(weaknessTag, resourceStage ?? 'guided');
+}
+
 function getNormalizedTaskForDestinationUrl(url: string | undefined): string | undefined {
   switch (url) {
     case 'https://lichess.org/training/fork':
@@ -84,7 +100,9 @@ function getNormalizedTaskForDestinationUrl(url: string | undefined): string | u
     case 'https://lichess.org/practice/rook-endgames/basic-rook-endgames/pqUSUw8Y':
       return 'Estude a lição guiada de final simples e conte plano, oposição ou atividade antes de calcular.';
     case 'https://lichess.org/video?tags=beginner%2Fopening':
+    case 'https://lichess.org/video?tags=opening+principles':
     case 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles':
+    case 'https://lichess.org/video/gpsZAim-mYc':
       return 'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.';
     default:
       return undefined;

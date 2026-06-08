@@ -120,7 +120,7 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.destination).toEqual({
       source: 'lichess',
       label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
-      url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
+      url: 'https://lichess.org/video/gpsZAim-mYc',
     });
   });
 
@@ -184,7 +184,9 @@ describe('generatePlan', () => {
     });
 
     expect(plan.blocks[0]?.resourceStage).toBe('explain');
-    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/video?tags=beginner%2Ftactics');
+    expect(plan.blocks[0]?.destination.url).toBe(
+      'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
+    );
     expect(plan.blocks[0]?.task).toContain('Revise uma explicação curta de garfos');
   });
 

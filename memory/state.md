@@ -75,6 +75,9 @@ Implementado ate P3:
 - Ajuste de uso real em 2026-06-08: plano diario nao pode reiniciar sempre na mesma licao guiada de
   Practice. Ao criar/reparar o plano do dia, o app consulta o plano anterior salvo; `good` depois de
   `guided` avanca para `retrieval`, abrindo puzzle theme variado como `https://lichess.org/training/fork`.
+- Ajuste de uso real em 2026-06-08: filtros genericos da biblioteca de videos do Lichess (`/video?tags=...`)
+  nao sao mais destinos gerados. O app usa video direto `/video/:id`, Practice especifico ou puzzle theme;
+  planos antigos com filtro de video sao normalizados para recurso concreto da fraqueza.
 - Professor Lemos Etapa 1 em 2026-06-08: dominio puro ganhou `computeConsistency`, `diagnose` e
   `buildSessionMessage`; a tela Hoje renderiza `TutorCard` depois do cabecalho. Sem rede nova, sem
   engine, sem PGN persistido e sem diagnostico por tema ainda.

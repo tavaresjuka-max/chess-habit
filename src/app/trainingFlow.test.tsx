@@ -88,7 +88,7 @@ describe('training flow', () => {
   it.each([
     ['Fácil', 'easy', 'retrieval', 'https://lichess.org/training/fork'],
     ['Bom', 'good', 'retrieval', 'https://lichess.org/training/fork'],
-    ['Difícil', 'hard', 'explain', 'https://lichess.org/video?tags=beginner%2Ftactics'],
+    ['Difícil', 'hard', 'explain', 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p'],
   ] satisfies Array<[string, PlanBlockFeedback, PlanResourceStage, string]>)(
     'uses feedback %s to adapt the next generated plan',
     async (buttonName, expectedFeedback, expectedStage, expectedUrl) => {

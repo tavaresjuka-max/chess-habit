@@ -10,7 +10,7 @@ import {
 } from './resourceCatalog';
 
 const allowedResourceUrl =
-  /^https:\/\/lichess\.org\/(analysis|learn|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|streak|storm|training(?:\/(?:[A-Za-z0-9]+|of-player|themes))?|video(?:\/[A-Za-z0-9_-]+)?\?tags=[A-Za-z0-9%+'-]+(?:%2F[A-Za-z0-9%+'-]+)*)$/;
+  /^https:\/\/lichess\.org\/(analysis|learn|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|streak|storm|training(?:\/(?:[A-Za-z0-9]+|of-player|themes))?|video\/[A-Za-z0-9_-]+)$/;
 
 describe('lichessResourceCatalog', () => {
   it('catalogs official Lichess Practice studies and puzzle themes', () => {
@@ -25,6 +25,10 @@ describe('lichessResourceCatalog', () => {
         expect(resource.url).toMatch(allowedResourceUrl);
       }
     }
+  });
+
+  it('does not catalog generic video search pages as training resources', () => {
+    expect(lichessResourceCatalog.every((resource) => !resource.url?.includes('/video?'))).toBe(true);
   });
 
   it('has one primary recommendation for every weakness tag', () => {
@@ -73,7 +77,7 @@ describe('lichessResourceCatalog', () => {
     expect(destinationFromResource(getPrimaryLichessResourceForWeakness('opening-principles'))).toEqual({
       source: 'lichess',
       label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
-      url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
+      url: 'https://lichess.org/video/gpsZAim-mYc',
     });
   });
 });

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getDestinationForWeakness, lichessDestinationsByWeakness, normalizeDestination } from './destinations';
 
 const allowedLichessUrl =
-  /^https:\/\/lichess\.org\/(analysis|training\/[A-Za-z0-9]+|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|video\/[A-Za-z0-9_-]+\?tags=opening\+principles)$/;
+  /^https:\/\/lichess\.org\/(analysis|training\/[A-Za-z0-9]+|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|video\/[A-Za-z0-9_-]+)$/;
 
 describe('lichessDestinationsByWeakness', () => {
   it('uses only allowed Lichess destination formats', () => {
@@ -15,8 +15,19 @@ describe('lichessDestinationsByWeakness', () => {
 
   it('uses beginner opening lessons instead of free-form tools for opening principles', () => {
     expect(lichessDestinationsByWeakness['opening-principles'].url).toBe(
-      'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
+      'https://lichess.org/video/gpsZAim-mYc',
     );
+  });
+
+  it('never returns generic video search pages for generated weakness stages', () => {
+    const weaknessTags = Object.keys(lichessDestinationsByWeakness) as Array<keyof typeof lichessDestinationsByWeakness>;
+    const stages = ['explain', 'guided', 'retrieval', 'transfer', 'review'] as const;
+
+    for (const tag of weaknessTags) {
+      for (const stage of stages) {
+        expect(getDestinationForWeakness(tag, stage).url).not.toContain('/video?');
+      }
+    }
   });
 
   it('uses specific Practice studies instead of the generic Practice index when available', () => {

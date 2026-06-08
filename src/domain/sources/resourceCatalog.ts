@@ -6,7 +6,6 @@ export type LichessResourceKind =
   | 'practice-study'
   | 'puzzle-mode'
   | 'puzzle-theme'
-  | 'video-filter'
   | 'video-lesson';
 
 export type LichessCatalogSource =
@@ -474,42 +473,10 @@ export const lichessOtherResources = [
     title: 'Must-Know Opening Principles - Central Control',
     label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
     description: 'Aula específica de princípios de abertura: controle central, desenvolvimento e segurança do rei.',
-    url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
+    url: 'https://lichess.org/video/gpsZAim-mYc',
     source: 'lichess-video-library',
     recommendedFor: ['opening-principles'],
     priority: 100,
-  }),
-  videoFilter({
-    id: 'video:beginner-opening',
-    title: 'Beginner opening videos',
-    label: 'Lichess Videos: aulas de abertura para iniciantes',
-    tags: ['beginner', 'opening'],
-    recommendedFor: ['opening-principles'],
-    priority: 96,
-  }),
-  videoFilter({
-    id: 'video:beginner-fundamentals',
-    title: 'Beginner fundamentals videos',
-    label: 'Lichess Videos: fundamentos para iniciantes',
-    tags: ['beginner', 'fundamentals'],
-    recommendedFor: ['blunder-rate'],
-    priority: 54,
-  }),
-  videoFilter({
-    id: 'video:beginner-tactics',
-    title: 'Beginner tactics videos',
-    label: 'Lichess Videos: táticas para iniciantes',
-    tags: ['beginner', 'tactics'],
-    recommendedFor: ['fork', 'pin', 'skewer', 'discovered', 'hanging-piece'],
-    priority: 50,
-  }),
-  videoFilter({
-    id: 'video:beginner-endgame',
-    title: 'Beginner endgame videos',
-    label: 'Lichess Videos: finais para iniciantes',
-    tags: ['beginner', 'endgame'],
-    recommendedFor: ['endgame-pawn', 'endgame-rook'],
-    priority: 50,
   }),
   resource({
     id: 'analysis:finished-game-review',
@@ -601,27 +568,6 @@ function puzzleTheme(input: PuzzleThemeInput): LichessResource {
     bands: input.bands ?? allBands,
     recommendedFor: input.recommendedFor ?? [],
     priority: input.priority ?? 30,
-  });
-}
-
-function videoFilter(input: {
-  id: string;
-  title: string;
-  label: string;
-  tags: readonly string[];
-  recommendedFor: readonly WeaknessTag[];
-  priority: number;
-}): LichessResource {
-  return resource({
-    id: input.id,
-    kind: 'video-filter',
-    title: input.title,
-    label: input.label,
-    description: `Biblioteca de videos filtrada por ${input.tags.join(' + ')}.`,
-    url: `https://lichess.org/video?tags=${input.tags.map(encodeURIComponent).join('%2F')}`,
-    source: 'lichess-video-library',
-    recommendedFor: input.recommendedFor,
-    priority: input.priority,
   });
 }
 

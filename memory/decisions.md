@@ -153,3 +153,10 @@ lance a lance. O dominio usa funcoes puras sem rede/React: constancia, mensagem 
 agregado travado por evidencia. O retorno apos ausencia, nesta etapa pre-treino, e definido por
 `daysSinceLastSession >= 2`. Diagnostico por tema de puzzle via `puzzle:read` fica para plano proprio
 de Etapa 2.
+
+## 2026-06-08: Filtros De Video Do Lichess Nao Sao Tarefa Concreta
+
+Uso real mostrou que links como `https://lichess.org/video?tags=beginner%2Ftactics` ainda deixam o
+aluno numa pagina de busca/lista. Decisao: o app nao gera mais destinos `/video?tags=...`; quando
+usar video, deve ser aula direta `/video/:id`. Para explicacao de taticas, preferir Practice especifico
+do tema. Planos salvos com filtro generico de video sao normalizados pelo `weaknessTag`.

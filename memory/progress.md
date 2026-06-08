@@ -92,5 +92,11 @@
   - [x] `buildSessionMessage` cobre abertura, retorno e fechamento por feedback, com banlist testada.
   - [x] `TutorCard` renderizado em Hoje logo apos o cabecalho, com estado pre e pos-treino.
   - [x] Gate final verde: `npm run test`, `npm run lint`, `npm run build`; Browser validado em 1280x720 e 375x812 sem overflow horizontal.
+- [x] **Ajuste pos-uso real: remover filtros genericos de video Lichess (2026-06-08)**.
+  - [x] `video-filter` removido do catalogo de recursos recomendaveis.
+  - [x] Video de abertura usa rota direta `/video/gpsZAim-mYc`.
+  - [x] Feedback `hard` em garfos/taticas volta para Practice concreto em vez de `/video?tags=beginner%2Ftactics`.
+  - [x] Normalizador repara planos antigos com `/video?tags=...` quando ha `weaknessTag`.
+  - [x] Regressao coberta por testes de catalogo, destinos, gerador, normalizador e fluxo React.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

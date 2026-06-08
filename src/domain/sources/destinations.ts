@@ -11,11 +11,11 @@ const openingPrinciplesDestination = destinationFromResource(
   getPrimaryLichessResourceForWeakness('opening-principles'),
 );
 const resourceKindPreferenceByStage = {
-  explain: ['video-lesson', 'video-filter', 'practice-study', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
-  guided: ['practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
-  retrieval: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'analysis-tool'],
-  transfer: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'analysis-tool'],
-  review: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'analysis-tool'],
+  explain: ['video-lesson', 'practice-study', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
+  guided: ['practice-study', 'video-lesson', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
+  retrieval: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'learn-basics', 'analysis-tool'],
+  transfer: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'learn-basics', 'analysis-tool'],
+  review: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'learn-basics', 'analysis-tool'],
 } satisfies Record<PlanResourceStage, readonly LichessResourceKind[]>;
 
 export const lichessDestinationsByWeakness = {
@@ -81,7 +81,7 @@ function getResourceForWeaknessAndStage(tag: WeaknessTag, stage: PlanResourceSta
   if (stage === 'explain') {
     return (
       resources.find((candidate) => candidate.kind === 'video-lesson') ??
-      resources.find((candidate) => candidate.kind === 'video-filter') ??
+      resources.find((candidate) => candidate.kind === 'practice-study') ??
       primaryResource
     );
   }
@@ -114,6 +114,7 @@ function getLegacyDestinationForUrl(url: string): Destination | undefined {
     case 'https://lichess.org/training/mateIn2':
       return lichessDestinationsByWeakness['mate-in-2'];
     case 'https://lichess.org/video?tags=beginner%2Fopening':
+    case 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles':
     case 'https://lichess.org/video?tags=opening+principles':
       return lichessDestinationsByWeakness['opening-principles'];
     default:

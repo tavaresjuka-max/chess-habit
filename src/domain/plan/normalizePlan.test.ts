@@ -34,7 +34,7 @@ describe('normalizePlanDestinations', () => {
     expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
       label: 'Lichess Video: abertura - centro, desenvolvimento e rei seguro',
-      url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
+      url: 'https://lichess.org/video/gpsZAim-mYc',
     });
     expect(normalizedBlock?.task).toBe(
       'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.',
@@ -69,10 +69,47 @@ describe('normalizePlanDestinations', () => {
 
     const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
 
-    expect(normalizedBlock?.destination.url).toBe('https://lichess.org/video/gpsZAim-mYc?tags=opening+principles');
+    expect(normalizedBlock?.destination.url).toBe('https://lichess.org/video/gpsZAim-mYc');
     expect(normalizedBlock?.task).toBe(
       'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.',
     );
+  });
+
+  it('updates stored tactical video search filters to concrete Practice lessons', () => {
+    const plan: DailyPlan = {
+      date: '2026-06-06',
+      sessionMinutes: 15,
+      generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+      blocks: [
+        {
+          id: 'block-1',
+          title: 'Tema do dia: garfos',
+          source: 'lichess',
+          destination: {
+            source: 'lichess',
+            label: 'Lichess Videos: táticas para iniciantes',
+            url: 'https://lichess.org/video?tags=beginner%2Ftactics',
+          },
+          weaknessTag: 'fork',
+          resourceStage: 'explain',
+          estimatedMinutes: 10,
+          task: 'Revise uma explicação curta de garfos.',
+          stopRule: 'Pare no tempo.',
+          reason: 'Foi difícil ontem.',
+          coachNote: 'Calma.',
+          status: 'pending',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
+
+    expect(normalizedBlock?.destination).toEqual({
+      source: 'lichess',
+      label: 'Lichess Practice: The Fork',
+      url: 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
+    });
   });
 
   it('updates stored tactical blocks that still point to raw puzzle themes when Practice is better', () => {
