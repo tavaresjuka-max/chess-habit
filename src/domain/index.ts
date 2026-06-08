@@ -4,6 +4,7 @@ export * from './plan/normalizePlan';
 export * from './plan/planSessions';
 export * from './plan/timeBudget';
 export * from './coach/coachCatalog';
+export * from './metrics/consistency';
 export * from './manual/knownManualSignals';
 export * from './sources/destinations';
 export * from './sources/resourceCatalog';

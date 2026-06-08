@@ -156,3 +156,33 @@ export type TrainingLog = {
   result?: TrainingResult;
   updatedAt: string;
 };
+
+export type Consistency = {
+  currentStreakDays: number;
+  longestStreakDays: number;
+  daysSinceLastSession: number;
+  returnedAfterGap: boolean;
+};
+
+export type CoachMessagePhase = 'welcome' | 'close' | 'return';
+
+export type CoachMessage = {
+  phase: CoachMessagePhase;
+  lines: string[];
+};
+
+export type DiagnosisBasis = 'aggregate' | 'puzzle-theme';
+
+export type Diagnosis =
+  | {
+      kind: 'cause';
+      weaknessTag: WeaknessTag;
+      basis: DiagnosisBasis;
+      message: string;
+      procedure: string;
+    }
+  | { kind: 'question'; message: string };
+
+export type PuzzleThemeStat = { theme: string; attempts: number; losses: number };
+
+export type PuzzleThemeStats = { since: string; until: string; themes: PuzzleThemeStat[] };
