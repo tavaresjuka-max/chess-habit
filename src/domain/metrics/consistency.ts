@@ -4,6 +4,9 @@ const MS_PER_DAY = 86_400_000;
 
 function toUtcDayIndex(date: string): number {
   const [year, month, day] = date.split('-').map(Number);
+  if (year === undefined || month === undefined || day === undefined) {
+    throw new Error(`Invalid date: ${date}`);
+  }
   return Math.floor(Date.UTC(year, month - 1, day) / MS_PER_DAY);
 }
 
@@ -22,21 +25,27 @@ export function computeConsistency(logs: TrainingLog[], today: string): Consiste
   }
 
   const todayIndex = toUtcDayIndex(today);
-  const lastIndex = doneDays[doneDays.length - 1];
+  const lastIndex = doneDays.at(-1);
+  if (lastIndex === undefined) {
+    throw new Error('Expected at least one done training day.');
+  }
   const daysSinceLastSession = Math.max(0, todayIndex - lastIndex);
 
   let longestStreakDays = 1;
   let run = 1;
-  for (let i = 1; i < doneDays.length; i += 1) {
-    run = doneDays[i] - doneDays[i - 1] === 1 ? run + 1 : 1;
+  let previousDay = doneDays[0];
+  if (previousDay === undefined) {
+    throw new Error('Expected at least one done training day.');
+  }
+  for (const day of doneDays.slice(1)) {
+    run = day - previousDay === 1 ? run + 1 : 1;
     longestStreakDays = Math.max(longestStreakDays, run);
+    previousDay = day;
   }
 
   let currentRun = 1;
-  for (let i = doneDays.length - 1; i > 0; i -= 1) {
-    if (doneDays[i] - doneDays[i - 1] !== 1) {
-      break;
-    }
+  const doneDaySet = new Set(doneDays);
+  for (let day = lastIndex - 1; doneDaySet.has(day); day -= 1) {
     currentRun += 1;
   }
 

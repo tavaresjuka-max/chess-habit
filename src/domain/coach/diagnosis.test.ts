@@ -8,13 +8,13 @@ describe('diagnose', () => {
       { tag: 'blunder-rate', score: 0.6, confidence: 'medium', evidence: 'erros graves recentes' },
     ];
     const result = diagnose(weaknesses);
-    expect(result).toEqual({
-      kind: 'cause',
-      weaknessTag: 'blunder-rate',
-      basis: 'aggregate',
-      message: expect.stringContaining('peça'),
-      procedure: expect.stringContaining('defensores'),
-    });
+    expect(result.kind).toBe('cause');
+    if (result.kind === 'cause') {
+      expect(result.weaknessTag).toBe('blunder-rate');
+      expect(result.basis).toBe('aggregate');
+      expect(result.message).toContain('peça');
+      expect(result.procedure).toContain('defensores');
+    }
   });
 
   it('asks a question when confidence is too low', () => {
@@ -28,10 +28,11 @@ describe('diagnose', () => {
   });
 
   it('asks a question when there is no weakness at all', () => {
-    expect(diagnose([])).toEqual({
-      kind: 'question',
-      message: expect.stringContaining('O que pesou'),
-    });
+    const result = diagnose([]);
+    expect(result.kind).toBe('question');
+    if (result.kind === 'question') {
+      expect(result.message).toContain('O que pesou');
+    }
   });
 
   it('asks a question when the tag has no mapped procedure', () => {

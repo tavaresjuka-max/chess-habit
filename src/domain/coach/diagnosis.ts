@@ -44,7 +44,9 @@ const causeByTag: Partial<Record<WeaknessTag, { message: string; procedure: stri
 
 const QUESTION_MESSAGE = 'O que pesou mais hoje: tempo, cálculo ou peça solta?';
 
-export function diagnose(weaknesses: Weakness[], _puzzleThemeStats?: PuzzleThemeStats): Diagnosis {
+export function diagnose(weaknesses: Weakness[], puzzleThemeStats?: PuzzleThemeStats): Diagnosis {
+  void puzzleThemeStats;
+
   const primary = weaknesses[0];
 
   if (primary !== undefined && confidenceRank[primary.confidence] >= confidenceRank.medium && primary.score >= MIN_SCORE) {
