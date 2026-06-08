@@ -54,6 +54,23 @@ describe('generatePlan', () => {
     );
   });
 
+  it('keeps the short review on the daily theme instead of generic analysis', () => {
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
+
+    expect(plan.blocks[1]).toMatchObject({
+      title: 'Revisão curta',
+      weaknessTag: 'fork',
+      resourceStage: 'review',
+      destination: {
+        source: 'lichess',
+        label: 'Puzzles Lichess: Fork',
+        url: 'https://lichess.org/training/fork',
+      },
+    });
+    expect(plan.blocks[1]?.task).toContain('garfos');
+    expect(plan.blocks[1]?.task).not.toContain('análise de uma partida');
+  });
+
   it('uses hanging pieces as the fixed P0 theme for the 0-800 band', () => {
     const profile: LearnerProfile = { ...baseProfile, band: '0-800' };
     const plan = generatePlan(profile, [], 5, '2026-06-06');

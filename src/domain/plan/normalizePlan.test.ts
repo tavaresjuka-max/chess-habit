@@ -147,6 +147,84 @@ describe('normalizePlanDestinations', () => {
     expect(normalizedBlock?.task).toBe('Resolva puzzles de garfos e confirme a ideia antes do primeiro lance.');
   });
 
+  it('updates stored tactical review blocks that still point to generic analysis', () => {
+    const plan: DailyPlan = {
+      date: '2026-06-06',
+      sessionMinutes: 15,
+      generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+      blocks: [
+        {
+          id: 'block-2',
+          title: 'Revisão curta',
+          source: 'lichess',
+          destination: {
+            source: 'lichess',
+            label: 'Lichess Analysis: revisar partida terminada',
+            url: 'https://lichess.org/analysis',
+          },
+          weaknessTag: 'fork',
+          resourceStage: 'review',
+          estimatedMinutes: 5,
+          task: 'Revise uma posição terminada.',
+          stopRule: 'Pare no tempo.',
+          reason: 'Revisão curta.',
+          coachNote: 'Calma.',
+          status: 'pending',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
+
+    expect(normalizedBlock?.destination).toEqual({
+      source: 'lichess',
+      label: 'Puzzles Lichess: Fork',
+      url: 'https://lichess.org/training/fork',
+    });
+    expect(normalizedBlock?.task).toBe('Resolva puzzles de garfos e confirme a ideia antes do primeiro lance.');
+  });
+
+  it('uses weekly focus for old short review blocks that were tagged as conversion', () => {
+    const plan: DailyPlan = {
+      date: '2026-06-06',
+      sessionMinutes: 15,
+      weeklyFocus: {
+        tag: 'fork',
+        title: 'garfos',
+        reason: 'Tema do dia.',
+        startsOn: '2026-06-01',
+      },
+      generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+      blocks: [
+        {
+          id: 'block-2',
+          title: 'Revisão curta',
+          source: 'lichess',
+          destination: {
+            source: 'lichess',
+            label: 'Lichess Analysis: revisar partida terminada',
+            url: 'https://lichess.org/analysis',
+          },
+          weaknessTag: 'conversion',
+          resourceStage: 'review',
+          estimatedMinutes: 5,
+          task: 'Revise uma posição terminada.',
+          stopRule: 'Pare no tempo.',
+          reason: 'Revisão curta.',
+          coachNote: 'Calma.',
+          status: 'pending',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const normalizedBlock = normalizePlanDestinations(plan).blocks[0];
+
+    expect(normalizedBlock?.destination.url).toBe('https://lichess.org/training/fork');
+    expect(normalizedBlock?.weaknessTag).toBe('fork');
+  });
+
   it('keeps equivalent plans unchanged by value when no destination changes', () => {
     const plan: DailyPlan = {
       date: '2026-06-06',

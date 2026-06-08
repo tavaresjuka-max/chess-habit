@@ -153,16 +153,16 @@ function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness, resourceSt
     case 'revisao':
       return {
         title: 'Revisão curta',
-        task: 'Revise uma posição terminada e escreva mentalmente qual ameaça passou batida.',
+        task: `Revise ${weaknessTitleByTag[primaryTheme]} em um treino curto e explique mentalmente qual padrão decidiu a posição.`,
         stopRule: 'Pare depois de uma posição bem entendida.',
-        reason: 'Revisão conecta puzzle com partida real sem sugerir lance ao vivo.',
-        weaknessTag: 'conversion',
+        reason: 'Revisão consolida o tema do dia sem cair em uma análise genérica.',
+        weaknessTag: primaryTheme,
       };
     case 'transferencia':
       return {
         title: 'Transferência para partida',
-        task: `Abra a análise de uma partida terminada e procure ${weaknessTitleByTag[primaryTheme]} em uma posição menos limpa.`,
-        stopRule: 'Pare ao encontrar uma posição terminada em que você consiga explicar o plano em uma frase.',
+        task: `Resolva uma rodada menos guiada de ${weaknessTitleByTag[primaryTheme]} e procure o padrão antes de calcular lances candidatos.`,
+        stopRule: 'Pare ao encontrar uma posição em que você consiga explicar o plano em uma frase.',
         reason: 'Transferência evita que o tema fique preso ao formato de puzzle.',
         weaknessTag: primaryTheme,
       };

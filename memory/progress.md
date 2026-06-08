@@ -75,5 +75,10 @@
   - [x] Acessibilidade/polish CSS: foco visivel, cursor disabled correto, alvo mobile de 44px e microcopy PT-BR acentuada.
   - [x] Gate final reexecutado: `npm run lint`, `npm run test` e `npm run build` verdes.
   - [x] Checagem visual final Playwright em 1280x800 e 390x844; capturas `ux-polish-final-*-2026-06-08.png` salvas em `output/playwright/`.
+- [x] **Ajuste pos-uso real: revisao/transferencia sem Analysis generico (2026-06-08)**.
+  - [x] Blocos de revisao curta herdam o tema do dia em vez de virar `conversion` generico.
+  - [x] Estagios `review`/`transfer` preferem treino concreto de tema antes de `https://lichess.org/analysis`.
+  - [x] Planos antigos com `Revisao curta` + `/analysis` sao normalizados para o foco semanal quando carregados.
+  - [x] Regressao coberta por testes de destino, gerador de plano, normalizacao e roadmap.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

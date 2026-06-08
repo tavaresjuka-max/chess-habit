@@ -32,13 +32,14 @@ describe('lichessDestinationsByWeakness', () => {
     expect(getDestinationForWeakness('fork', 'retrieval').url).toBe('https://lichess.org/training/fork');
   });
 
-  it('uses Analysis for transfer and review stages', () => {
+  it('keeps tactical transfer and review on concrete training resources', () => {
     expect(getDestinationForWeakness('fork', 'transfer')).toEqual({
       source: 'lichess',
-      label: 'Lichess Analysis: revisar partida terminada',
-      url: 'https://lichess.org/analysis',
+      label: 'Puzzles Lichess: Fork',
+      url: 'https://lichess.org/training/fork',
     });
-    expect(getDestinationForWeakness('opening-principles', 'review').url).toBe('https://lichess.org/analysis');
+    expect(getDestinationForWeakness('fork', 'review').url).toBe('https://lichess.org/training/fork');
+    expect(getDestinationForWeakness('opening-principles', 'review').url).toBe('https://lichess.org/training/opening');
   });
 
   it('normalizes old opening-principles links that pointed to generic Learn', () => {

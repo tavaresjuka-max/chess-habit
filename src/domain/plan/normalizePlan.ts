@@ -1,11 +1,16 @@
-import { normalizeDestination } from '../sources/destinations';
-import type { DailyPlan } from '../types';
+import { getDestinationForWeakness, normalizeDestination } from '../sources/destinations';
+import type { DailyPlan, Destination } from '../types';
 
 export function normalizePlanDestinations(plan: DailyPlan): DailyPlan {
   return {
     ...plan,
     blocks: plan.blocks.map((block) => {
-      const destination = normalizeDestination(block.destination, block.resourceStage);
+      const weaknessTag = getNormalizedWeaknessTag(block, plan);
+      const destination = normalizeGenericAnalysisDestination(
+        normalizeDestination(block.destination, block.resourceStage),
+        block.resourceStage,
+        weaknessTag,
+      );
       const upgradedDestination = block.destination.url !== destination.url;
       const normalizedTask = getNormalizedTaskForDestinationUrl(destination.url);
       const shouldUseNormalizedTask =
@@ -14,12 +19,40 @@ export function normalizePlanDestinations(plan: DailyPlan): DailyPlan {
       return {
         ...block,
         sessionNumber: block.sessionNumber ?? 1,
+        ...(weaknessTag === undefined ? {} : { weaknessTag }),
         destination,
         source: destination.source,
         task: shouldUseNormalizedTask ? normalizedTask : block.task,
       };
     }),
   };
+}
+
+function getNormalizedWeaknessTag(
+  block: DailyPlan['blocks'][number],
+  plan: DailyPlan,
+): DailyPlan['blocks'][number]['weaknessTag'] {
+  if (block.title === 'Revisão curta' && block.weaknessTag === 'conversion') {
+    return plan.weeklyFocus?.tag ?? block.weaknessTag;
+  }
+
+  return block.weaknessTag;
+}
+
+function normalizeGenericAnalysisDestination(
+  destination: Destination,
+  resourceStage: DailyPlan['blocks'][number]['resourceStage'],
+  weaknessTag: DailyPlan['blocks'][number]['weaknessTag'],
+): Destination {
+  if (
+    destination.url !== 'https://lichess.org/analysis' ||
+    weaknessTag === undefined ||
+    (resourceStage !== 'review' && resourceStage !== 'transfer')
+  ) {
+    return destination;
+  }
+
+  return getDestinationForWeakness(weaknessTag, resourceStage);
 }
 
 function getNormalizedTaskForDestinationUrl(url: string | undefined): string | undefined {

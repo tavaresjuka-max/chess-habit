@@ -10,14 +10,12 @@ import {
 const openingPrinciplesDestination = destinationFromResource(
   getPrimaryLichessResourceForWeakness('opening-principles'),
 );
-const analysisDestination = destinationFromResource(getPrimaryLichessResourceForWeakness('conversion'));
-
 const resourceKindPreferenceByStage = {
   explain: ['video-lesson', 'video-filter', 'practice-study', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
   guided: ['practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'puzzle-theme', 'puzzle-mode', 'analysis-tool'],
   retrieval: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'analysis-tool'],
-  transfer: ['analysis-tool', 'puzzle-mode', 'puzzle-theme', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics'],
-  review: ['analysis-tool', 'puzzle-mode', 'puzzle-theme', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics'],
+  transfer: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'analysis-tool'],
+  review: ['puzzle-theme', 'puzzle-mode', 'practice-study', 'video-lesson', 'video-filter', 'learn-basics', 'analysis-tool'],
 } satisfies Record<PlanResourceStage, readonly LichessResourceKind[]>;
 
 export const lichessDestinationsByWeakness = {
@@ -73,21 +71,6 @@ export function normalizeDestination(destination: Destination, stage?: PlanResou
 
 function getResourceForWeaknessAndStage(tag: WeaknessTag, stage: PlanResourceStage): LichessResource {
   const primaryResource = getPrimaryLichessResourceForWeakness(tag);
-
-  if (stage === 'transfer' || stage === 'review') {
-    return {
-      id: 'analysis:finished-game-review',
-      kind: 'analysis-tool',
-      title: 'Analysis board',
-      label: 'Lichess Analysis: revisar partida terminada',
-      description: 'Prancheta de análise para revisar apenas partidas terminadas.',
-      url: analysisDestination.url,
-      source: 'lichess-training-page',
-      bands: ['0-800', '800-1200'],
-      recommendedFor: [tag],
-      priority: 100,
-    };
-  }
 
   if (stage === 'guided') {
     return primaryResource;

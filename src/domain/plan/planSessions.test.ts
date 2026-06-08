@@ -70,13 +70,13 @@ describe('plan sessions', () => {
       date: '2026-06-08',
       label: 'Em 2 dias',
       title: 'Transferência: garfos em partida',
-      destinationLabel: 'Lichess Analysis: revisar partida terminada',
+      destinationLabel: 'Puzzles Lichess: Fork',
     });
     expect(roadmap[3]).toMatchObject({
       date: '2026-06-09',
       label: 'Em 3 dias',
       title: 'Revisão: garfos sem pressa',
-      destinationLabel: 'Lichess Analysis: revisar partida terminada',
+      destinationLabel: 'Puzzles Lichess: Fork',
     });
   });
 });
