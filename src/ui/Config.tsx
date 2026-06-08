@@ -89,77 +89,78 @@ export function Config({
           void handleSubmit();
         }}
       >
-        <label className="field">
-          <span>Usuário Lichess</span>
-          <input
-            autoComplete="username"
-            value={lichessUsername}
-            onChange={(event) => {
-              setLichessUsername(event.target.value);
-            }}
-          />
-        </label>
+        <section className="config-section" aria-labelledby="config-essential-title">
+          <h2 id="config-essential-title">Essencial</h2>
+          <p className="config-hint">Dados usados para montar a rotina local e ajustar o tamanho das sessões.</p>
 
-        <label className="field">
-          <span>Usuário Chess.com</span>
-          <input
-            autoComplete="username"
-            value={chesscomUsername}
-            onChange={(event) => {
-              setChesscomUsername(event.target.value);
-            }}
-          />
-        </label>
+          <label className="field">
+            <span>Usuário Lichess</span>
+            <input
+              autoComplete="username"
+              value={lichessUsername}
+              onChange={(event) => {
+                setLichessUsername(event.target.value);
+              }}
+            />
+          </label>
 
-        <label className="field">
-          <span>Faixa atual</span>
-          <select
-            value={band}
-            onChange={(event) => {
-              setBand(event.target.value as LearnerBand);
-            }}
-          >
-            <option value="0-800">0-800</option>
-            <option value="800-1200">800-1200</option>
-          </select>
-        </label>
+          <label className="field">
+            <span>Usuário Chess.com</span>
+            <input
+              autoComplete="username"
+              value={chesscomUsername}
+              onChange={(event) => {
+                setChesscomUsername(event.target.value);
+              }}
+            />
+          </label>
 
-        <label className="field">
-          <span>Tempo padrão</span>
-          <select
-            value={defaultSessionMinutes}
-            onChange={(event) => {
-              setDefaultSessionMinutes(Number(event.target.value) as SessionMinutes);
-            }}
-          >
-            {sessionOptions.map((minutes) => (
-              <option key={minutes} value={minutes}>
-                {minutes} min
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="field">
+            <span>Faixa atual</span>
+            <select
+              value={band}
+              onChange={(event) => {
+                setBand(event.target.value as LearnerBand);
+              }}
+            >
+              <option value="0-800">0-800</option>
+              <option value="800-1200">800-1200</option>
+            </select>
+          </label>
 
-        <div className="button-row">
-          <button type="submit">Salvar</button>
-          <button type="button" className="secondary-button" onClick={() => void handleExport()}>
-            Exportar backup JSON
-          </button>
-          <button type="button" className="secondary-button" onClick={() => void handleImportKnownManualSignals()}>
-            Adicionar sinais manuais
-          </button>
-          <button type="button" className="danger-button" onClick={() => void handleClear()}>
-            Apagar tudo
-          </button>
-        </div>
+          <label className="field">
+            <span>Tempo padrão</span>
+            <select
+              value={defaultSessionMinutes}
+              onChange={(event) => {
+                setDefaultSessionMinutes(Number(event.target.value) as SessionMinutes);
+              }}
+            >
+              {sessionOptions.map((minutes) => (
+                <option key={minutes} value={minutes}>
+                  {minutes} min
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="button-row">
+            <button type="submit">Salvar</button>
+          </div>
+        </section>
       </form>
 
-      <section className="connection-box" aria-labelledby="lichess-connection-title" aria-live="polite">
-        <div>
-          <h2 id="lichess-connection-title">Lichess OAuth</h2>
-          <p>{formatLichessConnection(lichessToken, lichessConnectionState)}</p>
-          {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
-        </div>
+      <section
+        className="config-section connection-box"
+        aria-labelledby="lichess-connection-title"
+        aria-live="polite"
+      >
+        <h2 id="lichess-connection-title">
+          Lichess <span className="optional-tag">opcional</span>
+        </h2>
+        <p className="config-hint">Conectar habilita reconciliação de puzzles e criação do Study do dia.</p>
+        <p>{formatLichessConnection(lichessToken, lichessConnectionState)}</p>
+        {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
         <div className="button-row">
           <button
             type="button"
@@ -179,6 +180,23 @@ export function Config({
             }}
           >
             Remover conexão
+          </button>
+        </div>
+      </section>
+
+      <section className="config-section data-zone" aria-labelledby="config-data-title">
+        <h2 id="config-data-title">Dados locais</h2>
+        <p className="config-hint">Backups, sinais manuais e limpeza ficam só neste dispositivo.</p>
+
+        <div className="button-row">
+          <button type="button" className="secondary-button" onClick={() => void handleExport()}>
+            Exportar backup JSON
+          </button>
+          <button type="button" className="secondary-button" onClick={() => void handleImportKnownManualSignals()}>
+            Adicionar sinais manuais
+          </button>
+          <button type="button" className="danger-button" onClick={() => void handleClear()}>
+            Apagar tudo
           </button>
         </div>
       </section>

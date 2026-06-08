@@ -128,6 +128,44 @@ button[aria-disabled='true'] {
   margin-top: 20px;
 }
 
+.config-section {
+  border-top: 1px solid #cdd7cf;
+  display: grid;
+  gap: 12px;
+  padding: 18px 0;
+}
+
+.form-grid > .config-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.config-section > h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.config-hint {
+  margin: 0;
+  color: #46515e;
+}
+
+.optional-tag {
+  border: 1px solid #cdd7cf;
+  border-radius: 999px;
+  color: #46515e;
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 650;
+  margin-left: 6px;
+  padding: 2px 7px;
+  vertical-align: middle;
+}
+
+.data-zone {
+  border-color: #d8b6b2;
+}
+
 .field,
 .compact-field {
   display: grid;
@@ -159,11 +197,8 @@ select {
 }
 
 .connection-box {
-  border-top: 1px solid #cdd7cf;
   display: grid;
   gap: 10px;
-  margin-top: 22px;
-  padding-top: 18px;
 }
 
 .connection-box h2 {
