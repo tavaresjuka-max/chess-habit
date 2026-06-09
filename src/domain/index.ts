@@ -4,6 +4,7 @@ export * from './plan/normalizePlan';
 export * from './plan/planSessions';
 export * from './plan/timeBudget';
 export * from './coach/coachCatalog';
+export * from './coach/dayCompletionSummary';
 export * from './coach/diagnosis';
 export * from './coach/puzzleThemeStats';
 export * from './coach/sessionMessage';

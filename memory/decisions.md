@@ -205,3 +205,20 @@ Decisao: evoluir o catalogo estatico para uma camada premium local-first, sem ab
   `rejected` seguem fora do catalogo ativo.
 - Sem `puzzle:write`, Board API, Bot API, Challenge API, engine, mensagens, escopos de jogo, PGN
   persistido, solucoes de puzzle, transcript ou comentario de estudo.
+
+## 2026-06-08: Fechamento Do Dia Depois De Todos Os Blocos
+
+Uso real mostrou que marcar todos os blocos como feitos deixava a tela sem um encerramento claro.
+Decisao: quando todos os blocos do plano do dia deixam de estar `pending`, a tela Hoje mostra um
+cartao de fechamento objetivo com resumo de progresso local: blocos feitos, tempo registrado,
+feedback do dia, resultado real de puzzles apenas se ja estiver reconciliado e a proxima sessao do
+roadmap. O cartao usa tom adulto ("Dia concluido. Bom trabalho.") em vez de motivacional vazio e nao
+abre novas APIs nem persiste dados novos.
+
+## 2026-06-09: Abertura Externa So Depois De Persistir Log
+
+Para fechar a fase pessoal pos-P3 sem pendencia de navegacao externa, o clique em treino Lichess deve
+aguardar `onStartBlockTraining` salvar o log local antes de chamar `window.open`. Se o navegador
+bloquear nova aba, a navegacao na aba atual acontece somente depois da persistencia. Reabrir bloco
+feito continua sem recriar log ativo. Essa decisao nao abre P4/P5 e nao adiciona rede, engine,
+escopos OAuth ou dados persistidos novos.

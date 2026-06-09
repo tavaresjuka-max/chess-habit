@@ -323,6 +323,46 @@ select {
   padding-left: 10px;
 }
 
+.day-completion-card {
+  border: 1px solid #d5c68f;
+  border-radius: 8px;
+  background: #fffdf5;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+}
+
+.day-completion-card h2 {
+  margin: 0;
+  color: #463b16;
+  font-size: 1.05rem;
+}
+
+.day-completion-card p {
+  margin: 0;
+  color: #28323d;
+}
+
+.completion-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.completion-metrics li {
+  border: 1px solid #d8dddf;
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 650;
+  padding: 5px 9px;
+}
+
 .weakness-chip {
   border: 1px solid #cdd7cf;
   border-radius: 999px;

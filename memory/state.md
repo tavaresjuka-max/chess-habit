@@ -1,6 +1,6 @@
 # Estado Atual
 
-Data: 2026-06-08 (atualizado apos implementacao Catalogo Premium Lichess).
+Data: 2026-06-09 (atualizado apos estabilizacao final da fase pessoal pos-P3).
 
 ## Status
 
@@ -29,6 +29,9 @@ Data: 2026-06-08 (atualizado apos implementacao Catalogo Premium Lichess).
   seletor premium com faixa/estagio/tempo/erros recentes/recursos concluidos, Puzzle Dashboard e
   Puzzle Replay via OAuth `puzzle:read`, e sinais agregados por tema sem persistir IDs de puzzle,
   PGN, solucoes ou conteudo de estudos.
+- Estabilizacao final da fase pessoal pos-P3 concluida em 2026-06-09: abertura externa do Lichess
+  salva o log local antes de navegar, fechamento do dia cobre blocos feitos ou pulados, e nao ha
+  pendencias abertas na fase ativa alem de uso real continuo.
 - Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
@@ -77,8 +80,9 @@ Implementado ate P3:
   aulas/Practice/puzzle themes especificos.
 - Estabilizacao de 2026-06-07: blocos concluidos ocultam acoes destrutivas, abertura de treino usa
   link real com timer iniciado no clique, token OAuth expirado e limpo ao carregar, PWA config tem smoke
-  unitario e `state.ts` foi dividido em modulos auxiliares. Limite conhecido: em browser de aba unica,
-  links externos podem substituir a aba atual; o log ativo e persistido antes da saida e reaparece ao voltar.
+  unitario e `state.ts` foi dividido em modulos auxiliares. Em 2026-06-09, links externos passaram a
+  aguardar a persistencia do log antes de abrir o Lichess; se o navegador usar a aba atual, o treino ja
+  esta salvo antes da saida.
 - Polish de 2026-06-07/2026-06-08: `sonner` e `lucide-react` adicionados; Hoje ficou treino-first com
   diagnostico em `<details>`; card pendente mostra `Abrir no Lichess`, `Concluir` e `Pular`, e so conclui
   depois de `Facil`/`Bom`/`Dificil`; Config tem secoes Essencial, Lichess opcional e Dados locais;
@@ -113,6 +117,13 @@ Implementado ate P3:
   `PuzzleThemeStats` para o seletor; revisao curta pode virar replay quando ha erro real no tema.
   Gate verde: `npm run lint`, `npm run test`, `npm run build`; smoke Browser desktop Today/TutorCard e
   Playwright CLI desktop/mobile salvos em `output/playwright/premium-catalog-*-2026-06-08.png`.
+- Ajuste de uso real em 2026-06-08: ao concluir todos os blocos do dia, a tela Hoje mostra um resumo
+  de fechamento com blocos feitos, tempo registrado, feedback, placar de puzzles quando reconciliado
+  e a proxima sessao do roadmap. O placar curto do Professor Lemos tambem passou a pluralizar
+  corretamente `certo/errado`.
+- Estabilizacao final em 2026-06-09: o resumo de fechamento tambem aparece quando todos os blocos
+  foram pulados, sem contar bloco pulado como puzzle pendente; abertura/reabertura no Lichess aguarda
+  `saveTrainingLog` antes de chamar `window.open`.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

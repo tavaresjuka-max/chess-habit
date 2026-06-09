@@ -58,7 +58,7 @@
   - [x] Cobertura React adicionada para fluxo de treino, feedback `easy/good/hard`, Study sem OAuth e NDJSON quebrado.
   - [x] Configuracao PWA exportada e coberta por smoke unitario; build gera `sw.js` e manifest.
   - [x] `state.ts` refatorado para modulos de data, erro, OAuth, abertura externa e logs de treino.
-  - [ ] Limite conhecido: em browser de aba unica, `target="_blank"` pode navegar a aba atual; o log fica salvo e o timer reaparece ao voltar.
+  - [x] Limite mitigado em 2026-06-09: links externos agora aguardam salvar o log local antes de abrir o Lichess; se nova aba for bloqueada, a navegacao na aba atual acontece depois da persistencia.
 - [x] **Rodada UX/UI + pesquisa comunidade preparada (2026-06-07)**.
   - [x] Prompt multi-IA criado em `prompts/ux-ui-community-audit.md`.
   - [x] Pasta de relatorios designada em `docs/review/ux-ui-community-audit/`.
@@ -128,5 +128,16 @@
   - [x] Adicionar campos de auditoria de catalogo: `lastLinkCheckStatus`, `replacementResourceId`, `reviewCadenceDays`.
   - [x] Revalidar fontes oficiais em `docs/research/sources.md`.
   - [x] Gate final: `npm run lint`, `npm run test` (181 testes), `npm run build`; smoke Browser/Playwright salvo em `output/playwright/premium-catalog-*-2026-06-08.png`.
+- [x] **Ajuste pos-uso real: fechamento do dia na tela Hoje (2026-06-08)**.
+  - [x] `buildDayCompletionSummary` resume plano/logs/roadmap sem rede nova e sem dados sensiveis.
+  - [x] Hoje renderiza cartao de fechamento depois do Professor Lemos quando todos os blocos saem de `pending`.
+  - [x] Resumo mostra blocos feitos, minutos, feedback, puzzles reconciliados ou aviso de placar pendente, e proxima sessao.
+  - [x] Plural do placar curto do Professor Lemos corrigido (`1 errado`, `2 errados`).
+  - [x] Gate final: `npm run lint`, `npm run test` (185 testes), `npm run build`; Browser desktop e Playwright CLI mobile validados sem overflow aparente.
+- [x] **Estabilizacao final da fase pessoal pos-P3 (2026-06-09)**.
+  - [x] Abertura externa do Lichess passou a salvar/aguardar o log de treino antes de chamar `window.open`.
+  - [x] Fechamento do dia cobre tambem planos totalmente pulados, sem inventar placar de puzzle para bloco pulado.
+  - [x] Varredura estatica sem `TODO`, `FIXME`, `console.log`, `debugger`, `ts-ignore`, `unknown as` ou `as never` em `src/public`.
+  - [x] P4/P5 permanecem congeladas; nenhuma API, backend, engine, Board/Bot/Challenge API ou escopo novo foi aberto.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

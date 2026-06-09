@@ -1,11 +1,13 @@
 import { Check, ExternalLink, RefreshCw } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import {
+  buildDayCompletionSummary,
   elapsedSecondsBetween,
   formatElapsedMinutes,
   getPlanSessionSummaries,
   getPlanTotalMinutes,
   type DailyPlan,
+  type DayCompletionSummary,
   type LichessStudyLink,
   type PlanBlock,
   type PlanBlockFeedback,
@@ -107,6 +109,7 @@ export function Today({
 
   const sessionSummaries = getPlanSessionSummaries(plan);
   const totalPlannedMinutes = getPlanTotalMinutes(plan);
+  const dayCompletionSummary = buildDayCompletionSummary({ plan, trainingLogs, roadmap });
 
   return (
     <section aria-labelledby="today-title" className="panel today-panel">
@@ -133,6 +136,8 @@ export function Today({
         onAnswerTutorQuestion={onAnswerTutorQuestion}
         onReconcileLichessResults={onReconcileLichessResults}
       />
+
+      <DayCompletionCard summary={dayCompletionSummary} />
 
       {weaknesses.length > 0 ? (
         <div className="weakness-row" aria-label="Hipóteses atuais">
@@ -268,6 +273,28 @@ export function Today({
   );
 }
 
+function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefined }) {
+  if (summary === undefined) {
+    return null;
+  }
+
+  return (
+    <section className="day-completion-card" aria-labelledby="day-completion-title">
+      <div>
+        <h2 id="day-completion-title">{summary.heading}</h2>
+        <ul className="completion-metrics" aria-label="Resumo do treino">
+          {summary.metrics.map((metric) => (
+            <li key={metric}>{metric}</li>
+          ))}
+        </ul>
+      </div>
+      {summary.lines.map((line) => (
+        <p key={line}>{line}</p>
+      ))}
+    </section>
+  );
+}
+
 function RoadmapList({ items }: { items: TrainingRoadmapItem[] }) {
   if (items.length === 0) {
     return null;
@@ -312,8 +339,31 @@ function PlanBlockCard({
   onSkipBlockTraining: (blockId: string) => Promise<void>;
 }) {
   const [isRating, setIsRating] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
+
+  async function openTrainingDestination(event: MouseEvent<HTMLAnchorElement>): Promise<void> {
+    event.preventDefault();
+
+    if (block.destination.url === undefined || isOpening) {
+      return;
+    }
+
+    setIsOpening(true);
+
+    try {
+      await onStartBlockTraining(block);
+
+      const openedWindow = window.open(block.destination.url, '_blank', 'noopener,noreferrer');
+
+      if (openedWindow === null) {
+        window.location.assign(block.destination.url);
+      }
+    } finally {
+      setIsOpening(false);
+    }
+  }
 
   return (
     <article className="plan-block">
@@ -340,8 +390,9 @@ function PlanBlockCard({
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Abrir de novo: ${block.title}`}
-              onClick={() => {
-                void onStartBlockTraining(block);
+              aria-busy={isOpening}
+              onClick={(event) => {
+                void openTrainingDestination(event);
               }}
             >
               <ExternalLink aria-hidden="true" size={16} />
@@ -400,8 +451,9 @@ function PlanBlockCard({
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Abrir no Lichess: ${block.title}`}
-              onClick={() => {
-                void onStartBlockTraining(block);
+              aria-busy={isOpening}
+              onClick={(event) => {
+                void openTrainingDestination(event);
               }}
             >
               <ExternalLink aria-hidden="true" size={16} />

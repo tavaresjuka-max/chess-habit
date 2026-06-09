@@ -68,7 +68,7 @@ describe('buildSessionMessage', () => {
       lastFeedback: 'good',
       puzzleResult: result,
     });
-    expect(message.lines.some((line) => line.includes('4') && line.includes('1'))).toBe(true);
+    expect(message.lines).toContain('Nos puzzles: 4 certos, 1 errado.');
   });
 
   it('does not report dashboard aggregates as block puzzle numbers', () => {

@@ -26,6 +26,7 @@ const profile: LearnerProfile = {
 beforeEach(async () => {
   await clearAll();
   await saveProfile(profile);
+  vi.spyOn(window, 'open').mockReturnValue({} as Window);
 });
 
 afterEach(async () => {
@@ -54,6 +55,11 @@ describe('training flow', () => {
 
     const log = await getFirstBlockLog();
 
+    expect(window.open).toHaveBeenCalledWith(
+      'https://lichess.org/training/fork',
+      '_blank',
+      'noopener,noreferrer',
+    );
     expect(log?.status).toBe('active');
   });
 
@@ -73,6 +79,18 @@ describe('training flow', () => {
     expect(screen.queryByRole('button', { name: 'Difícil' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Pular' })).toBeNull();
     expect(screen.getByRole('link', { name: /Abrir de novo/i })).toBeTruthy();
+  });
+
+  it('shows a day completion summary after the final planned block is done', async () => {
+    render(<App />);
+
+    await clickFirstButton('Concluir');
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+
+    expect(await screen.findByRole('heading', { name: 'Dia concluído. Bom trabalho.' })).toBeTruthy();
+    expect(screen.getByText('1/1 bloco feito')).toBeTruthy();
+    expect(screen.getByText(/Feedback do dia: bom: 1/)).toBeTruthy();
+    expect(screen.getByText(/Na próxima sessão vamos estudar/)).toBeTruthy();
   });
 
   it('records zero elapsed seconds honestly when completing without starting first', async () => {
@@ -176,6 +194,11 @@ describe('training flow', () => {
       expect(reopenedLog?.status).toBe('done');
       expect(reopenedLog?.completedAt).toBe(completedLog?.completedAt);
     });
+    expect(window.open).toHaveBeenCalledWith(
+      'https://lichess.org/training/fork',
+      '_blank',
+      'noopener,noreferrer',
+    );
     expect(screen.queryByText(/Treinando há/i)).toBeNull();
   });
 

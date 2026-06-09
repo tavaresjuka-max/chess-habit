@@ -52,7 +52,7 @@ function puzzleLines(result: TrainingResult | undefined): string[] {
   if (result === undefined || result.kind !== 'puzzle-activity') {
     return [];
   }
-  return [`Nos puzzles: ${String(result.wins)} certos, ${String(result.losses)} errados.`];
+  return [`Nos puzzles: ${formatCount(result.wins, 'certo', 'certos')}, ${formatCount(result.losses, 'errado', 'errados')}.`];
 }
 
 function buildClose(context: SessionContext): CoachMessage {
@@ -68,4 +68,8 @@ export function buildSessionMessage(context: SessionContext): CoachMessage {
     return context.consistency.returnedAfterGap ? buildReturn(context) : buildWelcome(context);
   }
   return buildClose(context);
+}
+
+function formatCount(count: number, singular: string, plural: string): string {
+  return `${String(count)} ${count === 1 ? singular : plural}`;
 }
