@@ -173,6 +173,30 @@ describe('training flow', () => {
     });
   });
 
+  it('does not reopen yesterday guided Practice lesson when it had no feedback yet', async () => {
+    const sessionProfile: LearnerProfile = { ...profile, defaultSessionMinutes: 15 };
+    const yesterdayPlan = generatePlan(sessionProfile, [], 15, '2026-06-08');
+
+    await clearAll();
+    await saveProfile(sessionProfile);
+    await savePlan(yesterdayPlan);
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-06-09T10:00:00.000-03:00'));
+
+    render(<App />);
+
+    await waitFor(async () => {
+      const plan = await getPlan('2026-06-09');
+
+      expect(plan?.blocks[0]?.resourceStage).toBe('retrieval');
+      expect(plan?.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
+    });
+
+    const [firstTrainingLink] = await screen.findAllByRole('link', { name: /Abrir no Lichess/i });
+
+    expect(firstTrainingLink?.getAttribute('href')).toBe('https://lichess.org/training/fork');
+  });
+
   it('reopens a done block without recreating an active log', async () => {
     render(<App />);
 

@@ -359,6 +359,18 @@ persistencia de puzzle IDs, PGN, solucoes ou comentarios.
   confirmaram que a resposta inclui IDs em `remaining`; implementacao descarta esses IDs imediatamente
   e salva apenas `theme`, `days`, `nb`, `remainingCount` e destino publico seguro `/training/{theme}`.
 
+## Pesquisa Pontual Em 2026-06-09: Garfos Sem Repetir Practice Fixo
+
+Pesquisa executada apos uso real mostrar repeticao da aula fixa `The Fork` em dias consecutivos.
+
+- [Lichess Puzzle Themes](https://lichess.org/training/themes): revalidou que `Fork` e um tema publico
+  de puzzles com grande banco variado, adequado para repeticao diaria via `/training/fork`.
+- [Puzzles: Fork](https://lichess.org/training/fork): confirmado como destino publico de treino variado
+  por tema, sem criar tabuleiro proprio e sem API/escopo novo.
+- [Lichess Practice: The Fork](https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p):
+  confirmado como aula guiada fixa de Practice, apropriada como primeira explicacao mas inadequada para
+  repeticao automatica em dias seguidos.
+
 ## Lichess
 
 - [Lichess API](https://lichess-org.github.io/api/): referencia oficial dos endpoints.

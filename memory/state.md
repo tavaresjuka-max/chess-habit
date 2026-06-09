@@ -124,6 +124,9 @@ Implementado ate P3:
 - Estabilizacao final em 2026-06-09: o resumo de fechamento tambem aparece quando todos os blocos
   foram pulados, sem contar bloco pulado como puzzle pendente; abertura/reabertura no Lichess aguarda
   `saveTrainingLog` antes de chamar `window.open`.
+- Ajuste de uso real em 2026-06-09: aula guiada fixa de Practice (`The Fork`) nao deve repetir em dias
+  seguidos so porque o bloco anterior ficou sem feedback. Se o tema guiado ja apareceu em plano anterior,
+  o proximo plano usa treino variado de puzzles (`https://lichess.org/training/fork`).
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

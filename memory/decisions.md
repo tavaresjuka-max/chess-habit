@@ -222,3 +222,11 @@ aguardar `onStartBlockTraining` salvar o log local antes de chamar `window.open`
 bloquear nova aba, a navegacao na aba atual acontece somente depois da persistencia. Reabrir bloco
 feito continua sem recriar log ativo. Essa decisao nao abre P4/P5 e nao adiciona rede, engine,
 escopos OAuth ou dados persistidos novos.
+
+## 2026-06-09: Practice Fixo Nao Repete Sem Feedback
+
+Uso real mostrou que a licao guiada `The Fork` podia repetir em dias seguidos quando o bloco anterior
+ficava sem feedback, mesmo que o dono ja tivesse aberto/feito o treino no Lichess. Decisao: Practice
+fixo e primeira exposicao; se o mesmo tema guiado ja apareceu em plano anterior, o proximo plano usa
+`retrieval` com puzzle theme variado (`/training/fork`) mesmo sem feedback explicito. Feedback explicito
+continua tendo prioridade. Sem API nova, sem scraping, sem armazenar puzzle IDs/PGN/solucoes.

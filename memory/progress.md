@@ -139,5 +139,10 @@
   - [x] Fechamento do dia cobre tambem planos totalmente pulados, sem inventar placar de puzzle para bloco pulado.
   - [x] Varredura estatica sem `TODO`, `FIXME`, `console.log`, `debugger`, `ts-ignore`, `unknown as` ou `as never` em `src/public`.
   - [x] P4/P5 permanecem congeladas; nenhuma API, backend, engine, Board/Bot/Challenge API ou escopo novo foi aberto.
+- [x] **Ajuste pos-uso real: garfos sem repetir Practice fixo (2026-06-09)**.
+  - [x] Revalidado no Lichess que `Fork` existe como tema variado de puzzles em `/training/fork`.
+  - [x] Gerador agora trata aula guiada anterior sem feedback como exposicao suficiente para avancar a `retrieval`.
+  - [x] Plano de hoje repara destino repetido: se ontem havia `The Fork` pendente/sem feedback, hoje abre `Puzzles Lichess: Fork`.
+  - [x] Regressao coberta em dominio puro e fluxo React/Dexie.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

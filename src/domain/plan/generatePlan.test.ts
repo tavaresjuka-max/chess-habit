@@ -187,6 +187,28 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');
   });
 
+  it('does not repeat a prior guided Practice lesson even without feedback', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-08');
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-09', {
+      previousPlan,
+    });
+
+    expect(previousPlan.blocks[0]).toMatchObject({
+      resourceStage: 'guided',
+      destination: {
+        url: 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
+      },
+      status: 'pending',
+    });
+    expect(previousPlan.blocks[0]?.feedback).toBeUndefined();
+    expect(plan.blocks[0]?.resourceStage).toBe('retrieval');
+    expect(plan.blocks[0]?.destination).toMatchObject({
+      label: 'Puzzles Lichess: Fork',
+      url: 'https://lichess.org/training/fork',
+    });
+    expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');
+  });
+
   it('moves a hard repeated theme back to an explanation resource', () => {
     const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {

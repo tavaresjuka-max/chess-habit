@@ -31,8 +31,9 @@ type GeneratePlanOptions = {
 };
 
 type LatestThemeSignal = {
-  feedback: PlanBlockFeedback;
+  feedback?: PlanBlockFeedback;
   resourceStage?: PlanResourceStage;
+  source: 'feedback' | 'prior-guided';
 };
 
 const primaryThemeByBand = {
@@ -50,7 +51,12 @@ export function generatePlan(
   const primaryWeakness = selectPrimaryWeakness(profile, weaknesses);
   const updatedAt = toPlanTimestamp(date);
   const sessionNumber = options.sessionNumber ?? 1;
-  const latestThemeSignal = getLatestThemeSignalForWeakness(options.previousPlan, primaryWeakness.tag);
+  const latestThemeSignal = getLatestThemeSignalForWeakness(
+    options.previousPlan,
+    primaryWeakness.tag,
+    date,
+    sessionNumber,
+  );
   const completedResourceIds = getCompletedResourceIds(options.previousPlan, options.completedResourceIds);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
@@ -204,6 +210,10 @@ function getResourceStage(kind: PlanBlockKind, latestThemeSignal: LatestThemeSig
 }
 
 function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined): PlanResourceStage {
+  if (latestThemeSignal?.source === 'prior-guided') {
+    return 'retrieval';
+  }
+
   switch (latestThemeSignal?.feedback) {
     case 'hard':
       return latestThemeSignal.resourceStage === 'explain' ? 'retrieval' : 'explain';
@@ -230,24 +240,57 @@ function getNextGoodResourceStage(previousStage: PlanResourceStage | undefined):
   }
 }
 
-function getLatestThemeSignalForWeakness(plan: DailyPlan | undefined, tag: WeaknessTag): LatestThemeSignal | undefined {
+function getLatestThemeSignalForWeakness(
+  plan: DailyPlan | undefined,
+  tag: WeaknessTag,
+  currentDate: string,
+  currentSessionNumber: number,
+): LatestThemeSignal | undefined {
   if (plan === undefined) {
     return undefined;
   }
 
-  const block = plan.blocks
+  const themeBlocks = plan.blocks.filter((candidate) => candidate.weaknessTag === tag);
+  const block = themeBlocks
     .slice()
     .reverse()
-    .find((candidate) => candidate.weaknessTag === tag && candidate.feedback !== undefined);
+    .find((candidate) => candidate.feedback !== undefined);
 
   if (block?.feedback === undefined) {
-    return undefined;
+    const priorBlocks = themeBlocks.filter((candidate) => {
+      return isBeforeCurrentSession(candidate, currentDate, currentSessionNumber);
+    });
+    const guidedBlock = priorBlocks
+      .slice()
+      .reverse()
+      .find((candidate) => candidate.resourceStage === 'guided');
+
+    if (guidedBlock === undefined) {
+      return undefined;
+    }
+
+    return {
+      resourceStage: guidedBlock.resourceStage,
+      source: 'prior-guided',
+    };
   }
 
   return {
     feedback: block.feedback,
     resourceStage: block.resourceStage,
+    source: 'feedback',
   };
+}
+
+function isBeforeCurrentSession(block: PlanBlock, currentDate: string, currentSessionNumber: number): boolean {
+  const blockDate = block.id.slice(0, 10);
+  const blockSessionNumber = block.sessionNumber ?? 1;
+
+  if (blockDate < currentDate) {
+    return true;
+  }
+
+  return blockDate === currentDate && blockSessionNumber < currentSessionNumber;
 }
 
 function getCompletedResourceIds(
