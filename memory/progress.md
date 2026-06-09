@@ -152,5 +152,10 @@
   - [x] Bloco de aquecimento agora abre com saudacao simples do Professor Lemos e convite para ativar o cerebro.
   - [x] Texto reforca que aquecimento nao e prova de velocidade: olhar o tabuleiro inteiro, procurar pecas soltas e seguir com calma.
   - [x] Regressao coberta por teste de geracao de plano de 30 minutos, onde o aquecimento aparece como bloco proprio.
+- [x] **Correcao pos-uso real: abertura Lichess sem duplicar abas (2026-06-09)**.
+  - [x] Botao `Abrir no Lichess` nao usa mais fallback automatico para navegar a aba atual quando a nova aba retorna `null`.
+  - [x] Tela do Lemos permanece aberta; se popup for bloqueado, o app mostra aviso local apos salvar o log.
+  - [x] Plano salvo antigo com bloco guiado ja aberto localmente e reparado para puzzles variados de garfos (`/training/fork`).
+  - [x] Regressao coberta por testes de fluxo React/Dexie e gerador de plano.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

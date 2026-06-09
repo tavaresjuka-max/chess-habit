@@ -218,10 +218,21 @@ abre novas APIs nem persiste dados novos.
 ## 2026-06-09: Abertura Externa So Depois De Persistir Log
 
 Para fechar a fase pessoal pos-P3 sem pendencia de navegacao externa, o clique em treino Lichess deve
-aguardar `onStartBlockTraining` salvar o log local antes de chamar `window.open`. Se o navegador
-bloquear nova aba, a navegacao na aba atual acontece somente depois da persistencia. Reabrir bloco
+aguardar `onStartBlockTraining` salvar o log local antes de chamar a abertura externa. Reabrir bloco
 feito continua sem recriar log ativo. Essa decisao nao abre P4/P5 e nao adiciona rede, engine,
 escopos OAuth ou dados persistidos novos.
+
+## 2026-06-09: Abertura Do Lichess Nao Deve Tirar O Aluno Da Tela Do Lemos
+
+Uso real mostrou que `window.open(..., "noopener,noreferrer")` podia abrir uma nova aba e ainda assim
+retornar `null`; o app interpretava isso como popup bloqueado e chamava `window.location.assign`,
+carregando o Lichess tambem na aba atual. Decisao: treino externo nunca deve navegar automaticamente a
+aba atual. O app salva o log local, tenta abrir nova aba, corta `opener` quando houver handle e, se a
+aba for bloqueada, mostra aviso mantendo a tela do Lemos aberta.
+
+Complemento: se um bloco guiado de garfos ja tiver log local de abertura, mesmo ainda `pending`, isso
+conta como exposicao suficiente para reparar plano salvo antigo e trocar o proximo destino para
+`https://lichess.org/training/fork`.
 
 ## 2026-06-09: Practice Fixo Nao Repete Sem Feedback
 

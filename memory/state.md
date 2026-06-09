@@ -81,8 +81,8 @@ Implementado ate P3:
 - Estabilizacao de 2026-06-07: blocos concluidos ocultam acoes destrutivas, abertura de treino usa
   link real com timer iniciado no clique, token OAuth expirado e limpo ao carregar, PWA config tem smoke
   unitario e `state.ts` foi dividido em modulos auxiliares. Em 2026-06-09, links externos passaram a
-  aguardar a persistencia do log antes de abrir o Lichess; se o navegador usar a aba atual, o treino ja
-  esta salvo antes da saida.
+  aguardar a persistencia do log antes de abrir o Lichess; depois do ajuste de navegacao dupla, o app
+  preserva a tela do Lemos e nao usa fallback automatico para carregar o Lichess na aba atual.
 - Polish de 2026-06-07/2026-06-08: `sonner` e `lucide-react` adicionados; Hoje ficou treino-first com
   diagnostico em `<details>`; card pendente mostra `Abrir no Lichess`, `Concluir` e `Pular`, e so conclui
   depois de `Facil`/`Bom`/`Dificil`; Config tem secoes Essencial, Lichess opcional e Dados locais;
@@ -132,6 +132,9 @@ Implementado ate P3:
   alvos duplos, tipos de garfo e a ideia de preparar o padrao alguns lances antes.
 - Ajuste pedagogico em 2026-06-09: o bloco de aquecimento agora abre com saudacao simples do Professor
   Lemos, convite para ativar o cerebro e lembrete de que aquecimento nao e prova de velocidade.
+- Correcao de uso real em 2026-06-09: abrir treino no Lichess nao navega mais a aba atual quando a
+  nova aba retorna `null`; se o popup for bloqueado, a tela do Lemos fica aberta e mostra aviso. Plano
+  salvo antigo com aula guiada de garfos ja aberta localmente e reparado para puzzles variados.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

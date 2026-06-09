@@ -1,5 +1,6 @@
 import { Check, ExternalLink, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { openExternalUrl } from '../app/externalOpen';
 import {
   buildDayCompletionSummary,
   elapsedSecondsBetween,
@@ -340,6 +341,7 @@ function PlanBlockCard({
 }) {
   const [isRating, setIsRating] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
+  const [openWarning, setOpenWarning] = useState<string | undefined>(undefined);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
 
@@ -351,15 +353,11 @@ function PlanBlockCard({
     }
 
     setIsOpening(true);
+    setOpenWarning(undefined);
 
     try {
       await onStartBlockTraining(block);
-
-      const openedWindow = window.open(block.destination.url, '_blank', 'noopener,noreferrer');
-
-      if (openedWindow === null) {
-        window.location.assign(block.destination.url);
-      }
+      setOpenWarning(openExternalUrl(block.destination.url));
     } finally {
       setIsOpening(false);
     }
@@ -380,6 +378,11 @@ function PlanBlockCard({
       <p className="stop-rule">{block.stopRule}</p>
       {block.feedback !== undefined ? <p className="feedback-note">Feedback: {formatFeedback(block.feedback)}</p> : null}
       {timerStatus !== undefined ? <p className={`timer-status ${timerStatus.kind}`}>{timerStatus.label}</p> : null}
+      {openWarning !== undefined ? (
+        <p className="feedback-note" role="status">
+          {openWarning}
+        </p>
+      ) : null}
 
       {isDone ? (
         <div className="button-row">

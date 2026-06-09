@@ -162,15 +162,18 @@ export function useAppState(): AppState {
           storedPlan === undefined ? undefined : normalizePlanDestinations(storedPlan);
         const normalizedPreviousPlan =
           previousPlan === undefined ? undefined : normalizePlanDestinations(previousPlan);
+        const openedBlockIds = getOpenedTrainingBlockIds(storedTrainingLogs);
         const plan =
           normalizedStoredPlan === undefined
             ? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date, {
                 previousPlan: normalizedPreviousPlan,
                 recentThemeStats: buildPuzzleThemeStats(storedTrainingLogs),
+                openedBlockIds,
               })
             : generatePlan(storedProfile, storedWeaknesses, toSessionMinutes(normalizedStoredPlan.sessionMinutes, storedProfile.defaultSessionMinutes), date, {
                 previousPlan: combinePlanHistory(normalizedStoredPlan, normalizedPreviousPlan),
                 recentThemeStats: buildPuzzleThemeStats(storedTrainingLogs),
+                openedBlockIds,
               });
 
         if (storedPlan === undefined || plan !== storedPlan) {
@@ -206,6 +209,7 @@ export function useAppState(): AppState {
     const plan = generatePlan(nextProfile, weaknesses, nextProfile.defaultSessionMinutes, date, {
       previousPlan: todayPlan,
       recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+      openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
     });
 
     await saveStoredProfile(nextProfile);
@@ -229,6 +233,7 @@ export function useAppState(): AppState {
       const plan = generatePlan(profile, weaknesses, minutes, getTodayDate(), {
         previousPlan: todayPlan,
         recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
       });
 
       await savePlan(plan);
@@ -250,6 +255,7 @@ export function useAppState(): AppState {
         const date = getTodayDate();
         const plan = generatePlan(profile, weaknesses, minutes, date, {
           recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+          openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
         });
 
         await savePlan(plan);
@@ -264,6 +270,7 @@ export function useAppState(): AppState {
         previousPlan: todayPlan,
         sessionNumber: getNextPlanSessionNumber(todayPlan),
         recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
       });
       const nextPlan = appendPlanSession(todayPlan, sessionPlan);
 
@@ -308,6 +315,7 @@ export function useAppState(): AppState {
       const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
         previousPlan: todayPlan,
         recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
       });
 
       await replaceWeaknesses(nextWeaknesses);
@@ -344,6 +352,7 @@ export function useAppState(): AppState {
       const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
         previousPlan: todayPlan,
         recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
       });
 
       await savePlan(plan);
@@ -370,6 +379,7 @@ export function useAppState(): AppState {
         const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
           previousPlan: todayPlan,
           recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+          openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
         });
 
         await savePlan(plan);
@@ -435,6 +445,7 @@ export function useAppState(): AppState {
       const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
         previousPlan: todayPlan,
         recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
       });
 
       await replaceWeaknesses(nextWeaknesses);
@@ -484,6 +495,7 @@ export function useAppState(): AppState {
           {
             previousPlan: todayPlan,
             recentThemeStats: buildPuzzleThemeStats(nextTrainingLogs),
+            openedBlockIds: getOpenedTrainingBlockIds(nextTrainingLogs),
           },
         );
 
@@ -754,4 +766,8 @@ function combinePlanHistory(currentPlan: DailyPlan, previousPlan: DailyPlan | un
     ...currentPlan,
     blocks: [...previousPlan.blocks, ...currentPlan.blocks],
   };
+}
+
+function getOpenedTrainingBlockIds(logs: readonly TrainingLog[]): string[] {
+  return [...new Set(logs.map((log) => log.blockId))].sort();
 }

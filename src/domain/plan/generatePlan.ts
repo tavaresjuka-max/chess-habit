@@ -28,6 +28,7 @@ type GeneratePlanOptions = {
   sessionNumber?: number;
   recentThemeStats?: PuzzleThemeStats;
   completedResourceIds?: readonly string[];
+  openedBlockIds?: readonly string[];
 };
 
 type LatestThemeSignal = {
@@ -56,6 +57,7 @@ export function generatePlan(
     primaryWeakness.tag,
     date,
     sessionNumber,
+    options.openedBlockIds,
   );
   const completedResourceIds = getCompletedResourceIds(options.previousPlan, options.completedResourceIds);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
@@ -248,11 +250,13 @@ function getLatestThemeSignalForWeakness(
   tag: WeaknessTag,
   currentDate: string,
   currentSessionNumber: number,
+  openedBlockIds: readonly string[] = [],
 ): LatestThemeSignal | undefined {
   if (plan === undefined) {
     return undefined;
   }
 
+  const openedBlockIdSet = new Set(openedBlockIds);
   const themeBlocks = plan.blocks.filter((candidate) => candidate.weaknessTag === tag);
   const block = themeBlocks
     .slice()
@@ -263,10 +267,21 @@ function getLatestThemeSignalForWeakness(
     const priorBlocks = themeBlocks.filter((candidate) => {
       return isBeforeCurrentSession(candidate, currentDate, currentSessionNumber);
     });
-    const guidedBlock = priorBlocks
+    const priorGuidedBlock = priorBlocks
       .slice()
       .reverse()
       .find((candidate) => candidate.resourceStage === 'guided');
+    const openedGuidedBlock = themeBlocks
+      .slice()
+      .reverse()
+      .find((candidate) => {
+        return (
+          candidate.resourceStage === 'guided' &&
+          openedBlockIdSet.has(candidate.id) &&
+          isAtOrBeforeCurrentSession(candidate, currentDate, currentSessionNumber)
+        );
+      });
+    const guidedBlock = priorGuidedBlock ?? openedGuidedBlock;
 
     if (guidedBlock === undefined) {
       return undefined;
@@ -294,6 +309,17 @@ function isBeforeCurrentSession(block: PlanBlock, currentDate: string, currentSe
   }
 
   return blockDate === currentDate && blockSessionNumber < currentSessionNumber;
+}
+
+function isAtOrBeforeCurrentSession(block: PlanBlock, currentDate: string, currentSessionNumber: number): boolean {
+  const blockDate = block.id.slice(0, 10);
+  const blockSessionNumber = block.sessionNumber ?? 1;
+
+  if (blockDate < currentDate) {
+    return true;
+  }
+
+  return blockDate === currentDate && blockSessionNumber <= currentSessionNumber;
 }
 
 function getCompletedResourceIds(

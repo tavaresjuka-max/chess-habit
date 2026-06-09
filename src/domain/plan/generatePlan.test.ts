@@ -233,6 +233,27 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.coachNote).toContain('Garfo é quando uma peça sua ataca dois alvos');
   });
 
+  it('repairs a same-day guided Practice lesson after the block has been opened', () => {
+    const storedPlan = generatePlan(baseProfile, [], 15, '2026-06-09');
+    const openedBlockId = storedPlan.blocks[0]?.id;
+
+    if (openedBlockId === undefined) {
+      throw new Error('Expected a fork block.');
+    }
+
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-09', {
+      previousPlan: storedPlan,
+      openedBlockIds: [openedBlockId],
+    });
+
+    expect(storedPlan.blocks[0]?.resourceStage).toBe('guided');
+    expect(storedPlan.blocks[0]?.destination.url).toBe(
+      'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
+    );
+    expect(plan.blocks[0]?.resourceStage).toBe('retrieval');
+    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
+  });
+
   it('moves a hard repeated theme back to an explanation resource', () => {
     const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {

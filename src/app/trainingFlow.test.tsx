@@ -2,7 +2,13 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { generatePlan, type LearnerProfile, type PlanBlockFeedback, type PlanResourceStage } from '../domain';
+import {
+  createTrainingLog,
+  generatePlan,
+  type LearnerProfile,
+  type PlanBlockFeedback,
+  type PlanResourceStage,
+} from '../domain';
 import { App } from '../ui/App';
 import {
   clearAll,
@@ -12,6 +18,7 @@ import {
   saveLichessOAuthToken,
   savePlan,
   saveProfile,
+  saveTrainingLog,
 } from '../infra/storage/appData';
 
 const profile: LearnerProfile = {
@@ -39,7 +46,7 @@ afterEach(async () => {
 });
 
 describe('training flow', () => {
-  it('starts the local timer from a real Lichess link without relying on window.open', async () => {
+  it('starts the local timer from a real Lichess link and opens one external tab', async () => {
     render(<App />);
 
     const openLink = await screen.findByRole('link', { name: /Abrir no Lichess/i });
@@ -58,9 +65,26 @@ describe('training flow', () => {
     expect(window.open).toHaveBeenCalledWith(
       'https://lichess.org/training/fork',
       '_blank',
-      'noopener,noreferrer',
     );
     expect(log?.status).toBe('active');
+  });
+
+  it('keeps the Lemos screen when the training tab is blocked', async () => {
+    vi.mocked(window.open).mockReturnValueOnce(null);
+    render(<App />);
+
+    const openLink = await screen.findByRole('link', { name: /Abrir no Lichess/i });
+    const currentUrl = window.location.href;
+
+    fireEvent.click(openLink);
+
+    await waitFor(() => {
+      expect(screen.getByText(/bloqueou a nova aba/i)).toBeTruthy();
+    });
+
+    expect(window.location.href).toBe(currentUrl);
+    expect(screen.getByRole('heading', { name: 'Hoje' })).toBeTruthy();
+    expect((await getFirstBlockLog())?.status).toBe('active');
   });
 
   it('shows a simple Professor Lemos introduction before the guided fork lesson', async () => {
@@ -205,6 +229,42 @@ describe('training flow', () => {
     expect(firstTrainingLink?.getAttribute('href')).toBe('https://lichess.org/training/fork');
   });
 
+  it('repairs a saved guided fork lesson after it was already opened locally', async () => {
+    const sessionProfile: LearnerProfile = { ...profile, defaultSessionMinutes: 15 };
+    const stalePlan = generatePlan(sessionProfile, [], 15, '2026-06-09');
+    const staleBlock = stalePlan.blocks[0];
+
+    if (staleBlock === undefined) {
+      throw new Error('Expected a stale fork block.');
+    }
+
+    await clearAll();
+    await saveProfile(sessionProfile);
+    await savePlan(stalePlan);
+    await saveTrainingLog(
+      createTrainingLog({
+        block: staleBlock,
+        date: '2026-06-09',
+        startedAt: '2026-06-09T10:00:00.000Z',
+      }),
+    );
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-06-09T10:05:00.000-03:00'));
+
+    render(<App />);
+
+    await waitFor(async () => {
+      const plan = await getPlan('2026-06-09');
+
+      expect(plan?.blocks[0]?.resourceStage).toBe('retrieval');
+      expect(plan?.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
+    });
+
+    const [firstTrainingLink] = await screen.findAllByRole('link', { name: /Abrir no Lichess/i });
+
+    expect(firstTrainingLink?.getAttribute('href')).toBe('https://lichess.org/training/fork');
+  });
+
   it('reopens a done block without recreating an active log', async () => {
     render(<App />);
 
@@ -229,7 +289,6 @@ describe('training flow', () => {
     expect(window.open).toHaveBeenCalledWith(
       'https://lichess.org/training/fork',
       '_blank',
-      'noopener,noreferrer',
     );
     expect(screen.queryByText(/Treinando há/i)).toBeNull();
   });
