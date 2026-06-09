@@ -32,6 +32,9 @@ Data: 2026-06-09 (atualizado apos estabilizacao final da fase pessoal pos-P3).
 - Estabilizacao final da fase pessoal pos-P3 concluida em 2026-06-09: abertura externa do Lichess
   salva o log local antes de navegar, fechamento do dia cobre blocos feitos ou pulados, e nao ha
   pendencias abertas na fase ativa alem de uso real continuo.
+- Metas acumuladas da fase adicionadas em 2026-06-09: tela Hoje soma historico local de sessoes/horas
+  concluidas, mostra checkpoints de 6h/12h/24h e ciclos seguintes, e exibe evolucao por feedback e
+  puzzles reconciliados quando houver dados.
 - Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
@@ -138,6 +141,9 @@ Implementado ate P3:
 - Ajuste pedagogico em 2026-06-09: a tela Hoje agora mostra uma proposta de primeira fase do Professor
   Lemos antes dos blocos, com estimativa de horas/sessoes, checkpoint de reavaliacao e acoes locais
   para aprovar ou pedir revisao do plano. A estimativa nao promete rating.
+- Ajuste metodologico em 2026-06-09: a tela Hoje tambem mostra metas acumuladas por horas/sessoes:
+  checkpoints de 6h e 12h, primeiro ciclo de 24h e ciclos seguintes de 24h. O painel usa todos os logs
+  locais para progresso acumulado, mas nao conta logs diagnosticos como sessao/hora treinada.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

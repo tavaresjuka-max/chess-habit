@@ -270,3 +270,15 @@ aprovar ou pedir revisao. A estimativa e explicitamente uma janela de treino, na
 A resposta (`approved` ou `revision-requested` com nota livre) fica persistida no plano local do dia e
 e preservada se o plano for regenerado no mesmo dia. Nao ha nova API, backend, scraping, engine,
 escopo OAuth, P4/P5 ou dado sensivel novo.
+
+## 2026-06-09: Metas Acumuladas Por Sessoes E Horas
+
+Uso real pediu uma visao mais clara de fase: primeiras horas concluidas, progresso por sessoes e
+estatisticas do que melhorou. Decisao: a tela Hoje deve mostrar um cartao local de metas da fase com
+checkpoints em 6h e 12h, primeiro ciclo em 24h e ciclos seguintes de 24h. O metodo mede horas e
+sessoes concluidas a partir dos logs locais, sem prometer rating.
+
+As estatisticas exibidas podem usar feedback local e resultados de puzzles reconciliados pelo Lichess
+quando existirem. Logs diagnosticos de Puzzle Dashboard/Replay entram nas estatisticas de puzzles, mas
+nao contam como sessao treinada nem como hora treinada. A tela carrega historico completo de logs para
+o painel acumulado, mantendo a geracao do plano do dia baseada apenas nos logs do dia.

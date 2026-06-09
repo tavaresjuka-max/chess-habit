@@ -42,6 +42,7 @@ import {
   loadLichessOAuthToken,
   loadProfile,
   loadSignals,
+  loadTrainingLogs,
   loadTrainingLogsForDate,
   loadWeaknesses,
   replaceSignalsForSource,
@@ -81,6 +82,7 @@ export type AppState = {
   readonly lichessMessage: string | undefined;
   readonly sessionMinutes: SessionMinutes;
   readonly trainingLogs: TrainingLog[];
+  readonly allTrainingLogs: TrainingLog[];
   readonly weaknesses: Weakness[];
   readonly diagnosisState: DiagnosisState;
   readonly diagnosisMessage: string | undefined;
@@ -113,6 +115,7 @@ export function useAppState(): AppState {
   const [todayPlan, setTodayPlan] = useState<DailyPlan | undefined>(undefined);
   const [sessionMinutes, setSessionMinutes] = useState<SessionMinutes>(15);
   const [trainingLogs, setTrainingLogs] = useState<TrainingLog[]>([]);
+  const [allTrainingLogs, setAllTrainingLogs] = useState<TrainingLog[]>([]);
   const [weaknesses, setWeaknesses] = useState<Weakness[]>([]);
   const [diagnosisState, setDiagnosisState] = useState<DiagnosisState>('idle');
   const [diagnosisMessage, setDiagnosisMessage] = useState<string | undefined>(undefined);
@@ -159,6 +162,7 @@ export function useAppState(): AppState {
         const storedWeaknesses = await loadWeaknesses();
         const storedPlan = await getPlan(date);
         const previousPlan = await getLatestPlanBefore(date);
+        const storedAllTrainingLogs = await loadTrainingLogs();
         const storedTrainingLogs = await loadTrainingLogsForDate(date);
         const storedStudyLink = await getLichessStudyLink(date);
         const normalizedStoredPlan =
@@ -186,6 +190,7 @@ export function useAppState(): AppState {
         setProfile(storedProfile);
         setSessionMinutes(toSessionMinutes(plan.sessionMinutes, storedProfile.defaultSessionMinutes));
         setTrainingLogs(storedTrainingLogs);
+        setAllTrainingLogs(storedAllTrainingLogs);
         setWeaknesses(storedWeaknesses);
         setLichessStudyLink(storedStudyLink);
         setTodayPlan(plan);
@@ -224,6 +229,7 @@ export function useAppState(): AppState {
     setActiveView('today');
     setErrorMessage(undefined);
     setTrainingLogs(await loadTrainingLogsForDate(date));
+    setAllTrainingLogs(await loadTrainingLogs());
   }, [todayPlan, trainingLogs, weaknesses]);
 
   const regeneratePlan = useCallback(
@@ -265,6 +271,7 @@ export function useAppState(): AppState {
         setSessionMinutes(minutes);
         setTodayPlan(plan);
         setTrainingLogs(await loadTrainingLogsForDate(date));
+        setAllTrainingLogs(await loadTrainingLogs());
         setErrorMessage(undefined);
         return;
       }
@@ -281,6 +288,7 @@ export function useAppState(): AppState {
       setSessionMinutes(minutes);
       setTodayPlan(nextPlan);
       setTrainingLogs(await loadTrainingLogsForDate(todayPlan.date));
+      setAllTrainingLogs(await loadTrainingLogs());
       setErrorMessage(undefined);
     },
     [profile, todayPlan, trainingLogs, weaknesses],
@@ -488,6 +496,7 @@ export function useAppState(): AppState {
       }
 
       const nextTrainingLogs = mergeTrainingLogs(trainingLogs, reconciledLogs);
+      const nextAllTrainingLogs = mergeTrainingLogs(allTrainingLogs, reconciledLogs);
 
       if (profile !== undefined && todayPlan !== undefined) {
         const nextPlan = generatePlan(
@@ -507,6 +516,7 @@ export function useAppState(): AppState {
       }
 
       setTrainingLogs(nextTrainingLogs);
+      setAllTrainingLogs(nextAllTrainingLogs);
       setLichessConnectionState('connected');
       setLichessMessage(
         reconciledLogs.length === 0
@@ -517,7 +527,7 @@ export function useAppState(): AppState {
       setLichessConnectionState('error');
       setLichessMessage(toLichessErrorMessage(error));
     }
-  }, [profile, todayPlan, trainingLogs, weaknesses]);
+  }, [allTrainingLogs, profile, todayPlan, trainingLogs, weaknesses]);
 
   const createLichessStudy = useCallback(async () => {
     if (todayPlan === undefined) {
@@ -632,9 +642,10 @@ export function useAppState(): AppState {
 
         await saveTrainingLog(log);
         setTrainingLogs(upsertTrainingLog(trainingLogs, log));
+        setAllTrainingLogs(upsertTrainingLog(allTrainingLogs, log));
       }
     },
-    [todayPlan, trainingLogs],
+    [allTrainingLogs, todayPlan, trainingLogs],
   );
 
   const updateBlockStatusWithTrainingLog = useCallback(
@@ -666,6 +677,7 @@ export function useAppState(): AppState {
 
           await saveTrainingLog(reconcileOutcome.log);
           setTrainingLogs(upsertTrainingLog(trainingLogs, reconcileOutcome.log));
+          setAllTrainingLogs(upsertTrainingLog(allTrainingLogs, reconcileOutcome.log));
 
           if (reconcileOutcome.warning !== undefined) {
             setLichessMessage(reconcileOutcome.warning);
@@ -681,6 +693,7 @@ export function useAppState(): AppState {
 
         await saveTrainingLog(skippedLog);
         setTrainingLogs(upsertTrainingLog(trainingLogs, skippedLog));
+        setAllTrainingLogs(upsertTrainingLog(allTrainingLogs, skippedLog));
       }
 
       const nextPlan: DailyPlan = {
@@ -701,7 +714,7 @@ export function useAppState(): AppState {
       setTodayPlan(nextPlan);
       setErrorMessage(undefined);
     },
-    [todayPlan, trainingLogs],
+    [allTrainingLogs, todayPlan, trainingLogs],
   );
 
   const skipBlockTraining = useCallback(
@@ -717,6 +730,7 @@ export function useAppState(): AppState {
     setTodayPlan(undefined);
     setSessionMinutes(15);
     setTrainingLogs([]);
+    setAllTrainingLogs([]);
     setWeaknesses([]);
     setLichessToken(undefined);
     setLichessStudyLink(undefined);
@@ -748,6 +762,7 @@ export function useAppState(): AppState {
     lichessMessage,
     sessionMinutes,
     trainingLogs,
+    allTrainingLogs,
     weaknesses,
     diagnosisState,
     diagnosisMessage,

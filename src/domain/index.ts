@@ -8,6 +8,7 @@ export * from './coach/dayCompletionSummary';
 export * from './coach/diagnosis';
 export * from './coach/learningPlanProposal';
 export * from './coach/puzzleThemeStats';
+export * from './coach/sessionMilestones';
 export * from './coach/sessionMessage';
 export * from './metrics/consistency';
 export * from './manual/knownManualSignals';

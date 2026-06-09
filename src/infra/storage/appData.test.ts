@@ -14,6 +14,7 @@ import {
   loadLichessOAuthToken,
   loadProfile,
   loadSignals,
+  loadTrainingLogs,
   loadTrainingLogsForDate,
   loadWeaknesses,
   replaceSignalsForSource,
@@ -115,6 +116,7 @@ describe('appData storage', () => {
     await saveTrainingLog(log);
 
     await expect(getTrainingLog(log.id)).resolves.toEqual(log);
+    await expect(loadTrainingLogs()).resolves.toEqual([log]);
     await expect(loadTrainingLogsForDate('2026-06-06')).resolves.toEqual([log]);
   });
 

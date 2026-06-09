@@ -58,6 +58,10 @@ export async function getTrainingLog(id: string): Promise<TrainingLog | undefine
   return db.logs.get(id);
 }
 
+export async function loadTrainingLogs(): Promise<TrainingLog[]> {
+  return db.logs.toArray();
+}
+
 export async function loadTrainingLogsForDate(date: string): Promise<TrainingLog[]> {
   return db.logs.where('date').equals(date).toArray();
 }

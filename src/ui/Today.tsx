@@ -4,6 +4,7 @@ import { openExternalUrl } from '../app/externalOpen';
 import {
   buildLearningPlanProposal,
   buildDayCompletionSummary,
+  buildSessionMilestoneSummary,
   elapsedSecondsBetween,
   formatElapsedMinutes,
   getPlanSessionSummaries,
@@ -21,6 +22,7 @@ import {
 } from '../domain';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
+import { SessionMilestonesCard } from './SessionMilestonesCard';
 import { TutorCard } from './TutorCard';
 
 type TodayProps = {
@@ -28,6 +30,7 @@ type TodayProps = {
   roadmap: TrainingRoadmapItem[];
   sessionMinutes: SessionMinutes;
   trainingLogs: TrainingLog[];
+  allTrainingLogs: TrainingLog[];
   weaknesses: Weakness[];
   diagnosisState: DiagnosisState;
   diagnosisMessage: string | undefined;
@@ -55,6 +58,7 @@ export function Today({
   roadmap,
   sessionMinutes,
   trainingLogs,
+  allTrainingLogs,
   weaknesses,
   diagnosisState,
   diagnosisMessage,
@@ -117,6 +121,7 @@ export function Today({
   const sessionSummaries = getPlanSessionSummaries(plan);
   const totalPlannedMinutes = getPlanTotalMinutes(plan);
   const dayCompletionSummary = buildDayCompletionSummary({ plan, trainingLogs, roadmap });
+  const sessionMilestoneSummary = buildSessionMilestoneSummary({ logs: allTrainingLogs, sessionMinutes });
   const learningPlanProposal = buildLearningPlanProposal({
     plan,
     roadmap,
@@ -156,6 +161,8 @@ export function Today({
         onApprovePlan={onApproveLearningPlan}
         onRequestPlanRevision={onRequestLearningPlanRevision}
       />
+
+      <SessionMilestonesCard summary={sessionMilestoneSummary} />
 
       <DayCompletionCard summary={dayCompletionSummary} />
 

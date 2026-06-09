@@ -81,6 +81,7 @@ export function App() {
           roadmap={appState.roadmap}
           sessionMinutes={appState.sessionMinutes}
           trainingLogs={appState.trainingLogs}
+          allTrainingLogs={appState.allTrainingLogs}
           weaknesses={appState.weaknesses}
           diagnosisState={appState.diagnosisState}
           diagnosisMessage={appState.diagnosisMessage}

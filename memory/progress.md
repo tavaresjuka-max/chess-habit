@@ -162,5 +162,11 @@
   - [x] Proposta inclui foco, itens de estudo, estimativa de horas/sessoes, ritmo por tempo escolhido e checkpoint de reavaliacao.
   - [x] Usuario pode aprovar o plano ou pedir revisao com nota livre e sugestoes como mais exercicios, mais partidas e sessoes de 30 min.
   - [x] Resposta fica no plano local do dia e e preservada quando o plano e regenerado no mesmo dia.
+- [x] **Ajuste metodologico: metas acumuladas da fase (2026-06-09)**.
+  - [x] Dominio puro calcula progresso por sessoes e horas concluidas a partir dos logs locais.
+  - [x] Checkpoints definidos em 6h e 12h, primeiro ciclo em 24h e ciclos seguintes de 24h.
+  - [x] Tela Hoje mostra meta atual, proximos marcos e estatisticas de sessoes, horas, blocos e puzzles reconciliados.
+  - [x] Historico completo de logs e carregado para metas acumuladas; plano do dia continua usando apenas logs do dia.
+  - [x] Logs diagnosticos do Lichess entram nas estatisticas de puzzles, mas nao contam como sessao/hora treinada.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

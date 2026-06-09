@@ -159,6 +159,20 @@ describe('training flow', () => {
     expect(screen.getByText(/Na próxima sessão vamos estudar/)).toBeTruthy();
   });
 
+  it('updates accumulated phase milestones after completing a block', async () => {
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: 'Metas da fase' })).toBeTruthy();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('0h de 6h - 1 de 72 sessoes previstas.')).toBeTruthy();
+    });
+    expect(screen.getByText('sessao concluida')).toBeTruthy();
+  });
+
   it('records zero elapsed seconds honestly when completing without starting first', async () => {
     render(<App />);
 
