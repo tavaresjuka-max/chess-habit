@@ -1,4 +1,5 @@
 import type { PlanBlockKind } from '../plan/timeBudget';
+import type { PlanResourceStage, WeaknessTag } from '../types';
 
 export const coachNotesByBlockKind = {
   aquecimento:
@@ -13,6 +14,13 @@ export const coachNotesByBlockKind = {
     'Feche com calma e precisão. Final bom nasce de rei ativo, peões contados e plano simples. Se a linha ficar nebulosa, volte um lance e reduza a posição a uma pergunta concreta.',
 } satisfies Record<PlanBlockKind, string>;
 
-export function getCoachNote(kind: PlanBlockKind): string {
+export function getCoachNote(
+  kind: PlanBlockKind,
+  context: { weaknessTag?: WeaknessTag; resourceStage?: PlanResourceStage } = {},
+): string {
+  if (kind === 'tema' && context.weaknessTag === 'fork') {
+    return 'Garfo é quando uma peça sua ataca dois alvos ao mesmo tempo. Neste treino você vai ver garfos com cavalo, bispo, peão e dama. Isso importa porque o rival consegue salvar um alvo, mas o outro pode cair. No começo você aprende a ver o desenho; com treino, começa a preparar o garfo alguns lances antes.';
+  }
+
   return coachNotesByBlockKind[kind];
 }

@@ -63,6 +63,14 @@ describe('training flow', () => {
     expect(log?.status).toBe('active');
   });
 
+  it('shows a simple Professor Lemos introduction before the guided fork lesson', async () => {
+    render(<App />);
+
+    expect(await screen.findByText(/Garfo é quando uma peça sua ataca dois alvos ao mesmo tempo/)).toBeTruthy();
+    expect(screen.getByText(/cavalo, bispo, peão e dama/)).toBeTruthy();
+    expect(screen.getByText(/preparar o garfo alguns lances antes/)).toBeTruthy();
+  });
+
   it('hides destructive completion controls after a block is already done', async () => {
     render(<App />);
 

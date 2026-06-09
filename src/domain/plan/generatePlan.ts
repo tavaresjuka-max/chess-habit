@@ -121,7 +121,10 @@ function createPlanBlock(input: {
     task: copy.task,
     stopRule: copy.stopRule,
     reason: copy.reason,
-    coachNote: getCoachNote(input.kind),
+    coachNote: getCoachNote(input.kind, {
+      weaknessTag: copy.weaknessTag,
+      resourceStage,
+    }),
     status: 'pending',
     updatedAt: input.updatedAt,
   };

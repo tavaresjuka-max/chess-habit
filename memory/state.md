@@ -127,6 +127,9 @@ Implementado ate P3:
 - Ajuste de uso real em 2026-06-09: aula guiada fixa de Practice (`The Fork`) nao deve repetir em dias
   seguidos so porque o bloco anterior ficou sem feedback. Se o tema guiado ja apareceu em plano anterior,
   o proximo plano usa treino variado de puzzles (`https://lichess.org/training/fork`).
+- Ajuste pedagogico em 2026-06-09: no bloco principal de garfos, seja aula guiada ou puzzles variados,
+  o Professor Lemos agora introduz o conceito em linguagem simples antes de abrir o Lichess, explicando
+  alvos duplos, tipos de garfo e a ideia de preparar o padrao alguns lances antes.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

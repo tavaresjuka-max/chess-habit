@@ -230,3 +230,12 @@ ficava sem feedback, mesmo que o dono ja tivesse aberto/feito o treino no Liches
 fixo e primeira exposicao; se o mesmo tema guiado ja apareceu em plano anterior, o proximo plano usa
 `retrieval` com puzzle theme variado (`/training/fork`) mesmo sem feedback explicito. Feedback explicito
 continua tendo prioridade. Sem API nova, sem scraping, sem armazenar puzzle IDs/PGN/solucoes.
+
+## 2026-06-09: Professor Lemos Introduz O Conceito Antes Da Aula
+
+Uso real mostrou que abrir um treino de garfos sem uma introducao deixava o exercicio mecanico demais.
+Decisao: quando o bloco principal do dia for garfos, seja aula guiada ou puzzles variados, a nota do
+Professor Lemos deve explicar em linguagem simples o que e um garfo, por que ele importa, quais pecas
+podem dar garfo (cavalo, bispo, peao, dama) e que o objetivo do treino e aprender a ver e preparar esse
+padrao alguns lances antes. O texto deve ser curto, simples e adequado a um aluno jovem/iniciante, sem
+termos dificeis nem promessa de rating.

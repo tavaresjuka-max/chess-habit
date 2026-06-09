@@ -144,5 +144,9 @@
   - [x] Gerador agora trata aula guiada anterior sem feedback como exposicao suficiente para avancar a `retrieval`.
   - [x] Plano de hoje repara destino repetido: se ontem havia `The Fork` pendente/sem feedback, hoje abre `Puzzles Lichess: Fork`.
   - [x] Regressao coberta em dominio puro e fluxo React/Dexie.
+- [x] **Ajuste pedagogico: introducao simples para garfos guiados (2026-06-09)**.
+  - [x] Nota contextual do Professor Lemos explica o que e garfo e por que treinar o padrao.
+  - [x] Texto cita garfos com cavalo, bispo, peao e dama e prepara o aluno para ver o padrao com antecedencia.
+  - [x] Introducao entra no bloco principal de garfos, tanto em aula guiada quanto em puzzles variados, e no Study do dia; sem rede nova, sem conteudo copiado e sem tabuleiro proprio.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.
