@@ -148,5 +148,9 @@
   - [x] Nota contextual do Professor Lemos explica o que e garfo e por que treinar o padrao.
   - [x] Texto cita garfos com cavalo, bispo, peao e dama e prepara o aluno para ver o padrao com antecedencia.
   - [x] Introducao entra no bloco principal de garfos, tanto em aula guiada quanto em puzzles variados, e no Study do dia; sem rede nova, sem conteudo copiado e sem tabuleiro proprio.
+- [x] **Ajuste pedagogico: saudacao no aquecimento (2026-06-09)**.
+  - [x] Bloco de aquecimento agora abre com saudacao simples do Professor Lemos e convite para ativar o cerebro.
+  - [x] Texto reforca que aquecimento nao e prova de velocidade: olhar o tabuleiro inteiro, procurar pecas soltas e seguir com calma.
+  - [x] Regressao coberta por teste de geracao de plano de 30 minutos, onde o aquecimento aparece como bloco proprio.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

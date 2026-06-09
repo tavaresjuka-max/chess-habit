@@ -3,7 +3,7 @@ import type { PlanResourceStage, WeaknessTag } from '../types';
 
 export const coachNotesByBlockKind = {
   aquecimento:
-    'Comece leve e observe o tabuleiro inteiro antes de clicar. O objetivo aqui é acordar a visão, não correr. Se errar, nomeie a ameaça que passou batida e siga para o próximo.',
+    'Olá. Que bom ver você novamente. Que tal ativarmos o cérebro com um aquecimento rápido? Não é prova de velocidade: olhe o tabuleiro inteiro, procure peças soltas e siga com calma.',
   tema:
     'Hoje o foco é repetição deliberada de um padrão. Procure a ideia antes do lance: alvo, defensor e consequência material. Pare quando a regra de parada bater, mesmo se estiver embalado.',
   revisao:

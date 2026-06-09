@@ -130,6 +130,8 @@ Implementado ate P3:
 - Ajuste pedagogico em 2026-06-09: no bloco principal de garfos, seja aula guiada ou puzzles variados,
   o Professor Lemos agora introduz o conceito em linguagem simples antes de abrir o Lichess, explicando
   alvos duplos, tipos de garfo e a ideia de preparar o padrao alguns lances antes.
+- Ajuste pedagogico em 2026-06-09: o bloco de aquecimento agora abre com saudacao simples do Professor
+  Lemos, convite para ativar o cerebro e lembrete de que aquecimento nao e prova de velocidade.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

@@ -239,3 +239,11 @@ Professor Lemos deve explicar em linguagem simples o que e um garfo, por que ele
 podem dar garfo (cavalo, bispo, peao, dama) e que o objetivo do treino e aprender a ver e preparar esse
 padrao alguns lances antes. O texto deve ser curto, simples e adequado a um aluno jovem/iniciante, sem
 termos dificeis nem promessa de rating.
+
+## 2026-06-09: Aquecimento Abre Com Saudacao Simples Do Lemos
+
+Uso real pediu que o aquecimento nao fosse apenas uma tarefa seca. Decisao: o bloco de aquecimento
+deve abrir com uma saudacao curta ("que bom ver voce novamente") e um convite simples para ativar o
+cerebro antes do treino. O texto deve lembrar que aquecimento nao e prova de velocidade: olhar o
+tabuleiro inteiro, procurar pecas soltas e seguir com calma. Sem infantilizar, sem promessa de
+resultado e sem termos dificeis.

@@ -39,6 +39,19 @@ describe('generatePlan', () => {
     expect(plan.blocks.every((block) => block.status === 'pending')).toBe(true);
   });
 
+  it('introduces the warmup with a simple Professor Lemos greeting', () => {
+    const plan = generatePlan(baseProfile, [], 30, '2026-06-06');
+    const warmup = plan.blocks[0];
+
+    expect(warmup).toMatchObject({
+      title: 'Aquecimento tático',
+      resourceStage: 'retrieval',
+    });
+    expect(warmup?.coachNote).toContain('Que bom ver você novamente');
+    expect(warmup?.coachNote).toContain('ativarmos o cérebro');
+    expect(warmup?.coachNote).toContain('Não é prova de velocidade');
+  });
+
   it('uses fork as the fixed P0 theme for the 800-1200 band', () => {
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
 
