@@ -94,6 +94,8 @@ export function App() {
           onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
           onReconcileLichessResults={appState.reconcileLichessResults}
           onCreateLichessStudy={appState.createLichessStudy}
+          onApproveLearningPlan={appState.approveLearningPlan}
+          onRequestLearningPlanRevision={appState.requestLearningPlanRevision}
           onStartBlockTraining={appState.startBlockTraining}
           onCompleteBlockTraining={appState.completeBlockTraining}
           onSkipBlockTraining={appState.skipBlockTraining}

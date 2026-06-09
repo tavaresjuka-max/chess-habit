@@ -91,8 +91,42 @@ describe('training flow', () => {
     render(<App />);
 
     expect(await screen.findByText(/Garfo é quando uma peça sua ataca dois alvos ao mesmo tempo/)).toBeTruthy();
-    expect(screen.getByText(/cavalo, bispo, peão e dama/)).toBeTruthy();
-    expect(screen.getByText(/preparar o garfo alguns lances antes/)).toBeTruthy();
+    expect(screen.getAllByText(/cavalo, bispo, peão e dama/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/preparar o garfo alguns lances antes/).length).toBeGreaterThan(0);
+  });
+
+  it('stores approval of the Professor Lemos learning plan proposal', async () => {
+    render(<App />);
+
+    expect(await screen.findByText('Entendi o que você precisa.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Aprovar plano' }));
+
+    await waitFor(async () => {
+      const plan = await getPlan(getTodayDateForTest());
+
+      expect(plan?.learningPlanResponse?.status).toBe('approved');
+    });
+    expect(screen.getByText(/Plano aprovado/)).toBeTruthy();
+  });
+
+  it('stores a revision request for the Professor Lemos learning plan proposal', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Revisar plano' }));
+    fireEvent.change(screen.getByLabelText('O que você quer mudar?'), {
+      target: { value: 'Quero mais exercícios e partidas de 15+10.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar revisão' }));
+
+    await waitFor(async () => {
+      const plan = await getPlan(getTodayDateForTest());
+
+      expect(plan?.learningPlanResponse).toMatchObject({
+        status: 'revision-requested',
+        note: 'Quero mais exercícios e partidas de 15+10.',
+      });
+    });
+    expect(screen.getByText('Revisão registrada.')).toBeTruthy();
   });
 
   it('hides destructive completion controls after a block is already done', async () => {

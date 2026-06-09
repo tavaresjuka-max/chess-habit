@@ -14,6 +14,7 @@ import {
   skipTrainingLog,
   type DailyPlan,
   type LearnerProfile,
+  type LearningPlanResponse,
   type LichessOAuthToken,
   type LichessStudyLink,
   type PlanBlock,
@@ -96,6 +97,8 @@ export type AppState = {
   readonly syncLichessDiagnosis: () => Promise<void>;
   readonly reconcileLichessResults: () => Promise<void>;
   readonly createLichessStudy: () => Promise<void>;
+  readonly approveLearningPlan: () => Promise<void>;
+  readonly requestLearningPlanRevision: (note: string) => Promise<void>;
   readonly startBlockTraining: (block: PlanBlock) => Promise<void>;
   readonly completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   readonly skipBlockTraining: (blockId: string) => Promise<void>;
@@ -573,6 +576,42 @@ export function useAppState(): AppState {
     }
   }, [todayPlan]);
 
+  const updateLearningPlanResponse = useCallback(
+    async (response: LearningPlanResponse) => {
+      if (todayPlan === undefined) {
+        return;
+      }
+
+      const nextPlan: DailyPlan = {
+        ...todayPlan,
+        learningPlanResponse: response,
+      };
+
+      await savePlan(nextPlan);
+      setTodayPlan(nextPlan);
+      setErrorMessage(undefined);
+    },
+    [todayPlan],
+  );
+
+  const approveLearningPlan = useCallback(async () => {
+    await updateLearningPlanResponse({
+      status: 'approved',
+      updatedAt: new Date().toISOString(),
+    });
+  }, [updateLearningPlanResponse]);
+
+  const requestLearningPlanRevision = useCallback(
+    async (note: string) => {
+      await updateLearningPlanResponse({
+        status: 'revision-requested',
+        note,
+        updatedAt: new Date().toISOString(),
+      });
+    },
+    [updateLearningPlanResponse],
+  );
+
   const startBlockTraining = useCallback(
     async (block: PlanBlock) => {
       if (todayPlan === undefined) {
@@ -725,6 +764,8 @@ export function useAppState(): AppState {
     syncLichessDiagnosis,
     reconcileLichessResults,
     createLichessStudy,
+    approveLearningPlan,
+    requestLearningPlanRevision,
     startBlockTraining,
     completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) =>
       updateBlockStatusWithTrainingLog(blockId, 'done', feedback),

@@ -2,6 +2,7 @@ import { Check, ExternalLink, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { openExternalUrl } from '../app/externalOpen';
 import {
+  buildLearningPlanProposal,
   buildDayCompletionSummary,
   elapsedSecondsBetween,
   formatElapsedMinutes,
@@ -19,6 +20,7 @@ import {
   type Weakness,
 } from '../domain';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
+import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 import { TutorCard } from './TutorCard';
 
 type TodayProps = {
@@ -39,6 +41,8 @@ type TodayProps = {
   onSyncLichessDiagnosis: () => Promise<void>;
   onReconcileLichessResults: () => Promise<void>;
   onCreateLichessStudy: () => Promise<void>;
+  onApproveLearningPlan: () => Promise<void>;
+  onRequestLearningPlanRevision: (note: string) => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
   onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
@@ -64,6 +68,8 @@ export function Today({
   onSyncLichessDiagnosis,
   onReconcileLichessResults,
   onCreateLichessStudy,
+  onApproveLearningPlan,
+  onRequestLearningPlanRevision,
   onStartBlockTraining,
   onCompleteBlockTraining,
   onSkipBlockTraining,
@@ -111,6 +117,12 @@ export function Today({
   const sessionSummaries = getPlanSessionSummaries(plan);
   const totalPlannedMinutes = getPlanTotalMinutes(plan);
   const dayCompletionSummary = buildDayCompletionSummary({ plan, trainingLogs, roadmap });
+  const learningPlanProposal = buildLearningPlanProposal({
+    plan,
+    roadmap,
+    sessionMinutes,
+    weaknesses,
+  });
 
   return (
     <section aria-labelledby="today-title" className="panel today-panel">
@@ -136,6 +148,13 @@ export function Today({
         today={plan.date}
         onAnswerTutorQuestion={onAnswerTutorQuestion}
         onReconcileLichessResults={onReconcileLichessResults}
+      />
+
+      <LearningPlanProposalCard
+        proposal={learningPlanProposal}
+        response={plan.learningPlanResponse}
+        onApprovePlan={onApproveLearningPlan}
+        onRequestPlanRevision={onRequestLearningPlanRevision}
       />
 
       <DayCompletionCard summary={dayCompletionSummary} />

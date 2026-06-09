@@ -157,5 +157,10 @@
   - [x] Tela do Lemos permanece aberta; se popup for bloqueado, o app mostra aviso local apos salvar o log.
   - [x] Plano salvo antigo com bloco guiado ja aberto localmente e reparado para puzzles variados de garfos (`/training/fork`).
   - [x] Regressao coberta por testes de fluxo React/Dexie e gerador de plano.
+- [x] **Ajuste pedagogico: proposta de fase antes do treino (2026-06-09)**.
+  - [x] Professor Lemos mostra uma proposta de primeira fase antes dos blocos de treino.
+  - [x] Proposta inclui foco, itens de estudo, estimativa de horas/sessoes, ritmo por tempo escolhido e checkpoint de reavaliacao.
+  - [x] Usuario pode aprovar o plano ou pedir revisao com nota livre e sugestoes como mais exercicios, mais partidas e sessoes de 30 min.
+  - [x] Resposta fica no plano local do dia e e preservada quando o plano e regenerado no mesmo dia.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

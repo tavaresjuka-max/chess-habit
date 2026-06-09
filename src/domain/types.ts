@@ -62,6 +62,25 @@ export type PlanResourceStage = 'explain' | 'guided' | 'retrieval' | 'transfer' 
 
 export type PlanBlockFeedback = 'easy' | 'good' | 'hard';
 
+export type LearningPlanResponseStatus = 'approved' | 'revision-requested';
+
+export type LearningPlanResponse = {
+  status: LearningPlanResponseStatus;
+  note?: string;
+  updatedAt: string;
+};
+
+export type LearningPlanProposal = {
+  heading: string;
+  intro: string;
+  phaseTitle: string;
+  focusItems: string[];
+  estimate: string;
+  checkpoint: string;
+  caveat: string;
+  reviewPrompt: string;
+};
+
 export type LichessOAuthScope = 'puzzle:read' | 'study:write';
 
 export type LichessOAuthToken = {
@@ -121,6 +140,7 @@ export type DailyPlan = {
   date: string;
   sessionMinutes: number;
   weeklyFocus?: WeeklyFocus;
+  learningPlanResponse?: LearningPlanResponse;
   blocks: PlanBlock[];
   generatedFromWeaknessesAt: string;
 };

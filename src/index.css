@@ -189,7 +189,8 @@ button[aria-disabled='true'] {
 }
 
 input,
-select {
+select,
+textarea {
   min-height: 40px;
   border: 1px solid #aab5ad;
   border-radius: 6px;
@@ -197,6 +198,11 @@ select {
   color: #111827;
   font: inherit;
   padding: 8px 10px;
+}
+
+textarea {
+  min-height: 96px;
+  resize: vertical;
 }
 
 .button-row {
@@ -321,6 +327,83 @@ select {
 .tutor-diagnosis {
   border-left: 3px solid #7c9a7e;
   padding-left: 10px;
+}
+
+.learning-plan-card {
+  border: 1px solid #b9c7bd;
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
+.learning-plan-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.learning-plan-heading > svg {
+  color: #1f3f36;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.learning-plan-card h2 {
+  margin: 0 0 4px;
+  color: #1f3f36;
+  font-size: 1.05rem;
+}
+
+.learning-plan-summary {
+  border-left: 3px solid #7c9a7e;
+  display: grid;
+  gap: 8px;
+  padding-left: 10px;
+}
+
+.learning-plan-summary ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.learning-plan-caveat,
+.learning-plan-status,
+.learning-plan-review-note {
+  color: #46515e;
+}
+
+.learning-plan-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+}
+
+.learning-plan-status > svg {
+  color: #1f5130;
+  flex-shrink: 0;
+}
+
+.learning-plan-review-note {
+  border-radius: 6px;
+  background: #eef4f1;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.learning-plan-review-note p {
+  margin: 0;
+}
+
+.learning-plan-review-form {
+  display: grid;
+  gap: 10px;
 }
 
 .day-completion-card {

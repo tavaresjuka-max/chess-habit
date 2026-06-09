@@ -400,6 +400,24 @@ describe('generatePlan', () => {
     expect(plan.blocks.every((block) => block.feedback === undefined)).toBe(true);
   });
 
+  it('preserves the local learning-plan response when regenerating the same date', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-09');
+    const plan = generatePlan(baseProfile, [], 30, '2026-06-09', {
+      previousPlan: {
+        ...previousPlan,
+        learningPlanResponse: {
+          status: 'approved',
+          updatedAt: '2026-06-09T10:00:00.000Z',
+        },
+      },
+    });
+
+    expect(plan.learningPlanResponse).toEqual({
+      status: 'approved',
+      updatedAt: '2026-06-09T10:00:00.000Z',
+    });
+  });
+
   it('is deterministic for the same inputs', () => {
     const sessionMinutes: SessionMinutes = 30;
     const first = generatePlan(baseProfile, [], sessionMinutes, '2026-06-06');

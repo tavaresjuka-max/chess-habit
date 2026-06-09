@@ -61,6 +61,8 @@ export function generatePlan(
   );
   const completedResourceIds = getCompletedResourceIds(options.previousPlan, options.completedResourceIds);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
+  const learningPlanResponse =
+    options.previousPlan?.date === date ? options.previousPlan.learningPlanResponse : undefined;
   const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
     inheritPreviousProgress(
       createPlanBlock({
@@ -84,6 +86,7 @@ export function generatePlan(
     date,
     sessionMinutes,
     weeklyFocus,
+    ...(learningPlanResponse === undefined ? {} : { learningPlanResponse }),
     blocks,
     generatedFromWeaknessesAt: updatedAt,
   };

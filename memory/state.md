@@ -135,6 +135,9 @@ Implementado ate P3:
 - Correcao de uso real em 2026-06-09: abrir treino no Lichess nao navega mais a aba atual quando a
   nova aba retorna `null`; se o popup for bloqueado, a tela do Lemos fica aberta e mostra aviso. Plano
   salvo antigo com aula guiada de garfos ja aberta localmente e reparado para puzzles variados.
+- Ajuste pedagogico em 2026-06-09: a tela Hoje agora mostra uma proposta de primeira fase do Professor
+  Lemos antes dos blocos, com estimativa de horas/sessoes, checkpoint de reavaliacao e acoes locais
+  para aprovar ou pedir revisao do plano. A estimativa nao promete rating.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

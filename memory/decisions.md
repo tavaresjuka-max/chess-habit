@@ -258,3 +258,15 @@ deve abrir com uma saudacao curta ("que bom ver voce novamente") e um convite si
 cerebro antes do treino. O texto deve lembrar que aquecimento nao e prova de velocidade: olhar o
 tabuleiro inteiro, procurar pecas soltas e seguir com calma. Sem infantilizar, sem promessa de
 resultado e sem termos dificeis.
+
+## 2026-06-09: Lemos Deve Propor Uma Fase Antes Do Treino
+
+Uso real mostrou que o aluno abria a tela Hoje sem entender para onde o treino ia levar, quanto tempo
+a primeira fase poderia levar ou quando haveria reavaliacao. Decisao: antes da lista de blocos, a tela
+Hoje mostra uma proposta local do Professor Lemos com: "entendi o que voce precisa", foco da primeira
+fase, itens que serao treinados, estimativa de horas/sessoes, checkpoint de revisao e botoes para
+aprovar ou pedir revisao. A estimativa e explicitamente uma janela de treino, nao promessa de rating.
+
+A resposta (`approved` ou `revision-requested` com nota livre) fica persistida no plano local do dia e
+e preservada se o plano for regenerado no mesmo dia. Nao ha nova API, backend, scraping, engine,
+escopo OAuth, P4/P5 ou dado sensivel novo.
