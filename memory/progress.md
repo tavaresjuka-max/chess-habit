@@ -168,5 +168,12 @@
   - [x] Tela Hoje mostra meta atual, proximos marcos e estatisticas de sessoes, horas, blocos e puzzles reconciliados.
   - [x] Historico completo de logs e carregado para metas acumuladas; plano do dia continua usando apenas logs do dia.
   - [x] Logs diagnosticos do Lichess entram nas estatisticas de puzzles, mas nao contam como sessao/hora treinada.
+- [ ] **Implementacao do Metodo Professor Lemos no app (iniciada em 2026-06-10)**.
+  - [ ] Organizar relatorios de pesquisa na pasta `docs/research/` e atualizar memoria.
+  - [ ] Adicionar camada de dominio das 5 trilhas, pendencias, mastery, diplomas e selecao de trilha.
+  - [ ] Persistir trilhas, pendencias e tentativas de diploma em Dexie schema v4.
+  - [ ] Expandir o plano diario com trilha ativa, pergunta-guia, prioridade para pendencias vencidas e ratio de revisao adaptativo.
+  - [ ] Mostrar pendencias, trilha ativa, checkpoint de diploma e sugestao de pendencia apos feedback dificil na tela Hoje.
+  - [ ] Enriquecer o Study do dia com trilha, pergunta-guia, tarefa, stop rule e destino.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

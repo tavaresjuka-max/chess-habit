@@ -62,6 +62,11 @@ Data: 2026-06-09 (atualizado apos estabilizacao final da fase pessoal pos-P3).
 
 ## Proxima Etapa
 
+- Implementacao do Metodo Professor Lemos (5 trilhas) iniciada em 2026-06-10:
+  camada de dominio, pendencias, Dexie v4, plano com trilha ativa, catalogo expandido,
+  UI da tela Hoje, diplomas e Study enriquecido. Commits 1-9 descritos em
+  `prompts/codex-implementar-metodo-professor-lemos.md`.
+
 P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08;
 Professor Lemos Etapa 1, Etapa 2A e Etapa 2B foram fechadas em 2026-06-08. A curadoria profunda de
 recursos Lichess e o Catalogo Premium Lichess tambem foram concluidos em 2026-06-08. P4 e P5 estao congeladas por decisao do dono. A
