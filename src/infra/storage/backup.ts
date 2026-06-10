@@ -32,7 +32,7 @@ export type BackupFile = {
 };
 
 type SubtleCryptoLike = {
-  digest: (algorithm: string, data: Uint8Array) => Promise<ArrayBuffer>;
+  digest: (algorithm: string, data: BufferSource) => Promise<ArrayBuffer>;
 };
 
 function getSubtleCrypto(): SubtleCryptoLike | undefined {

@@ -1,3 +1,4 @@
+import { createId } from '../ids';
 import type { PlanBlockFeedback, TrainingLog, WeaknessTag } from '../types';
 import type { MethodTrackId, PendingTrainingItem } from './types';
 
@@ -25,7 +26,7 @@ export function createPendingItemFromFeedback(
   const now = new Date().toISOString();
 
   return {
-    id: `pending-${log.id}-${String(Date.now())}`,
+    id: `pending-${createId()}`,
     origin: 'puzzle',
     title: `Revisar: ${log.blockTitle}`,
     weaknessTag,
@@ -56,7 +57,7 @@ export function createPendingItemFromTheme(
   const now = new Date().toISOString();
 
   return {
-    id: `pending-theme-${theme}-${String(Date.now())}`,
+    id: `pending-theme-${createId()}`,
     origin: 'puzzle',
     title: `Revisar tema: ${theme} (${String(lossCount)} erros)`,
     weaknessTag,

@@ -81,15 +81,45 @@ export async function loadTrainingLogsForDate(date: string): Promise<TrainingLog
   return db.logs.where('date').equals(date).toArray();
 }
 
-export async function loadSignals(): Promise<Signal[]> {
-  const records = await db.signals.toArray();
-  return records.map(fromSignalRecord);
+const softDeletePurgeDays = 90;
+
+function getPurgeCutoff(nowIso: string): string {
+  const cutoff = new Date(nowIso);
+
+  cutoff.setDate(cutoff.getDate() - softDeletePurgeDays);
+
+  return cutoff.toISOString();
 }
 
+export async function loadSignals(): Promise<Signal[]> {
+  // Com ids UUID a ordem da chave primaria e aleatoria; ordenar por observedAt
+  // mantem a ordem cronologica que o restante do app espera.
+  const records = await db.signals.orderBy('observedAt').toArray();
+
+  return records.filter((record) => record.deletedAt === undefined).map(fromSignalRecord);
+}
+
+// Substituicao logica, nao fisica: os registros antigos da fonte recebem
+// deletedAt (soft delete) e so sao purgados apos 90 dias. Isso preserva o
+// historico para merge por registro quando o sync (P4) for descongelado.
 export async function replaceSignalsForSource(source: SourceId, signals: Signal[]): Promise<void> {
+  const now = new Date().toISOString();
+  const purgeCutoff = getPurgeCutoff(now);
+
   await db.transaction('rw', db.signals, async () => {
-    await db.signals.where('source').equals(source).delete();
-    await db.signals.bulkPut(signals.map((signal, index) => toSignalRecord(signal, index)));
+    await db.signals
+      .where('source')
+      .equals(source)
+      .modify((record) => {
+        if (record.deletedAt === undefined) {
+          record.deletedAt = now;
+          record.updatedAt = now;
+        }
+      });
+    await db.signals
+      .filter((record) => record.deletedAt !== undefined && record.deletedAt < purgeCutoff)
+      .delete();
+    await db.signals.bulkPut(signals.map((signal) => toSignalRecord(signal, now)));
   });
 }
 
@@ -98,22 +128,31 @@ export async function appendSignals(signals: Signal[]): Promise<void> {
     return;
   }
 
-  await db.transaction('rw', db.signals, async () => {
-    const offset = await db.signals.count();
+  const now = new Date().toISOString();
 
-    await db.signals.bulkPut(signals.map((signal, index) => toSignalRecord(signal, offset + index)));
-  });
+  await db.signals.bulkPut(signals.map((signal) => toSignalRecord(signal, now)));
 }
 
 export async function loadWeaknesses(): Promise<Weakness[]> {
   const records = await db.weaknesses.toArray();
-  return records.map(fromWeaknessRecord);
+
+  return records.filter((record) => record.deletedAt === undefined).map(fromWeaknessRecord);
 }
 
+// Upsert por tag (merge-key natural): tags que sairam do diagnostico recebem
+// deletedAt; tags presentes sao regravadas sem deletedAt (revividas).
 export async function replaceWeaknesses(weaknesses: Weakness[]): Promise<void> {
+  const now = new Date().toISOString();
+  const nextTags = new Set(weaknesses.map((weakness) => weakness.tag));
+
   await db.transaction('rw', db.weaknesses, async () => {
-    await db.weaknesses.clear();
-    await db.weaknesses.bulkPut(weaknesses.map(toWeaknessRecord));
+    await db.weaknesses.toCollection().modify((record) => {
+      if (!nextTags.has(record.tag) && record.deletedAt === undefined) {
+        record.deletedAt = now;
+        record.updatedAt = now;
+      }
+    });
+    await db.weaknesses.bulkPut(weaknesses.map((weakness) => toWeaknessRecord(weakness, now)));
   });
 }
 
@@ -345,10 +384,21 @@ function fromLichessOAuthTokenRecord(record: LichessOAuthTokenRecord): LichessOA
   };
 }
 
-function toSignalRecord(signal: Signal, index: number): SignalRecord {
+function createRecordId(): string {
+  const cryptoObject = globalThis.crypto as { randomUUID?: () => string } | undefined;
+
+  if (cryptoObject?.randomUUID !== undefined) {
+    return cryptoObject.randomUUID();
+  }
+
+  return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function toSignalRecord(signal: Signal, updatedAt: string): SignalRecord {
   return {
     ...signal,
-    id: `${signal.source}:${signal.value.kind}:${signal.observedAt}:${String(index).padStart(4, '0')}`,
+    id: createRecordId(),
+    updatedAt,
   };
 }
 
@@ -361,10 +411,11 @@ function fromSignalRecord(record: SignalRecord): Signal {
   };
 }
 
-function toWeaknessRecord(weakness: Weakness): WeaknessRecord {
+function toWeaknessRecord(weakness: Weakness, updatedAt: string): WeaknessRecord {
   return {
     ...weakness,
     id: weakness.tag,
+    updatedAt,
   };
 }
 

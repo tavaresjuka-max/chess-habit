@@ -180,6 +180,62 @@ describe('appData storage', () => {
     await expect(loadWeaknesses()).resolves.toEqual([weakness]);
   });
 
+  it('soft-deletes replaced signals instead of physically removing them', async () => {
+    const oldSignal: Signal = {
+      source: 'chesscom',
+      confidence: 'medium',
+      observedAt: '2026-06-01T00:00:00.000Z',
+      value: { kind: 'clock', timeoutLosses: 2, games: 10 },
+    };
+    const newSignal: Signal = {
+      source: 'chesscom',
+      confidence: 'high',
+      observedAt: '2026-06-10T00:00:00.000Z',
+      value: { kind: 'clock', timeoutLosses: 1, games: 12 },
+    };
+
+    await replaceSignalsForSource('chesscom', [oldSignal]);
+    await replaceSignalsForSource('chesscom', [newSignal]);
+
+    await expect(loadSignals()).resolves.toEqual([newSignal]);
+
+    const allRecords = await db.signals.toArray();
+
+    expect(allRecords).toHaveLength(2);
+    expect(allRecords.every((record) => record.updatedAt !== '')).toBe(true);
+    expect(allRecords.filter((record) => record.deletedAt !== undefined)).toHaveLength(1);
+  });
+
+  it('soft-deletes weaknesses that left the diagnosis and revives returning tags', async () => {
+    const forkWeakness: Weakness = {
+      tag: 'fork',
+      score: 0.7,
+      confidence: 'medium',
+      evidence: 'Sinal possivel em garfos.',
+    };
+    const pinWeakness: Weakness = {
+      tag: 'pin',
+      score: 0.5,
+      confidence: 'low',
+      evidence: 'Sinal possivel em cravadas.',
+    };
+
+    await replaceWeaknesses([forkWeakness, pinWeakness]);
+    await replaceWeaknesses([forkWeakness]);
+
+    await expect(loadWeaknesses()).resolves.toEqual([forkWeakness]);
+
+    const allRecords = await db.weaknesses.toArray();
+
+    expect(allRecords).toHaveLength(2);
+    expect(allRecords.find((record) => record.tag === 'pin')?.deletedAt).toBeDefined();
+
+    await replaceWeaknesses([forkWeakness, pinWeakness]);
+
+    await expect(loadWeaknesses()).resolves.toEqual([forkWeakness, pinWeakness]);
+    expect((await db.weaknesses.toArray()).every((record) => record.deletedAt === undefined)).toBe(true);
+  });
+
   it('appends manual tutor signals without deleting existing source signals', async () => {
     const existingSignal: Signal = {
       source: 'outro',

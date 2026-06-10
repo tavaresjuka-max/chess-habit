@@ -21,12 +21,18 @@ export type PlanRecord = DailyPlan;
 
 export type LearningLogRecord = TrainingLog;
 
+// updatedAt universal + deletedAt (soft delete) preparam o merge por registro
+// do P4 (sync): nenhum replace fisico destrutivo nessas tabelas.
 export type SignalRecord = Signal & {
   id: string;
+  updatedAt: string;
+  deletedAt?: string;
 };
 
 export type WeaknessRecord = Weakness & {
   id: string;
+  updatedAt: string;
+  deletedAt?: string;
 };
 
 export type ChesscomMonthSignalCacheRecord = ChesscomMonthCache;
@@ -108,6 +114,28 @@ export class TutorDatabase extends Dexie {
     this.version(6).stores({
       autoBackup: 'id',
     });
+
+    this.version(7)
+      .stores({
+        signals: 'id, source, observedAt, updatedAt',
+        weaknesses: 'id, tag, confidence, updatedAt',
+      })
+      .upgrade(async (transaction) => {
+        const now = new Date().toISOString();
+
+        await transaction
+          .table('signals')
+          .toCollection()
+          .modify((record: Partial<SignalRecord>) => {
+            record.updatedAt ??= record.observedAt ?? now;
+          });
+        await transaction
+          .table('weaknesses')
+          .toCollection()
+          .modify((record: Partial<WeaknessRecord>) => {
+            record.updatedAt ??= now;
+          });
+      });
   }
 }
 
