@@ -57,6 +57,22 @@
   --line: #d9d4c6;
   --line-soft: #e6e2d6;
 
+  /* Derivados semanticos */
+  --gold-900: #463b16;
+  --milestone-done: #3f8f5f;
+  --milestone-line: #8da8bc;
+  --roadmap-done-bg: #f4fbf5;
+  --peach-bg: #f3e2d7;
+  --peach-fg: #7c3b20;
+  --danger-soft: #e0c4c0;
+  --nav-bg: rgba(255, 253, 249, 0.86);
+  --accent-text: var(--green-700);
+  --brand-a: #2c5446;
+  --brand-b: #122a22;
+  --halo: #fbfaf5;
+
+  color-scheme: light;
+
   /* Geometria */
   --radius-lg: 14px;
   --radius-md: 10px;
@@ -75,7 +91,7 @@
 
   color: var(--ink-900);
   background:
-    radial-gradient(1200px 500px at 50% -200px, #fbfaf5 0%, transparent 70%),
+    radial-gradient(1200px 500px at 50% -200px, var(--halo) 0%, transparent 70%),
     var(--paper);
   font-family:
     'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -152,7 +168,7 @@ h3 {
   gap: 6px;
   border: 1px solid var(--line-soft);
   border-radius: var(--radius-lg);
-  background: rgba(255, 253, 249, 0.86);
+  background: var(--nav-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
@@ -163,7 +179,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--green-800);
+  color: var(--accent-text);
   font-weight: 780;
   font-size: 1.02rem;
   letter-spacing: -0.01em;
@@ -179,7 +195,7 @@ h3 {
   width: 26px;
   height: 26px;
   border-radius: 8px;
-  background: linear-gradient(150deg, var(--green-600), var(--green-900));
+  background: linear-gradient(150deg, var(--brand-a), var(--brand-b));
   color: #f3efdf;
   font-size: 1rem;
   line-height: 1;
@@ -203,7 +219,7 @@ h3 {
 
 .nav-button:hover {
   background: var(--green-050);
-  color: var(--green-800);
+  color: var(--accent-text);
   box-shadow: none;
   transform: none;
 }
@@ -292,7 +308,7 @@ button[aria-disabled='true'] {
 .secondary-link:hover {
   background: var(--green-050);
   border-color: var(--green-300);
-  color: var(--green-800);
+  color: var(--accent-text);
 }
 
 .danger-button {
@@ -317,7 +333,7 @@ button[aria-disabled='true'] {
 
 .link-button:hover {
   background: none;
-  color: var(--green-700);
+  color: var(--accent-text);
   transform: none;
   box-shadow: none;
 }
@@ -375,7 +391,7 @@ button[aria-disabled='true'] {
 }
 
 .data-zone {
-  border-color: #e0c4c0;
+  border-color: var(--danger-soft);
 }
 
 .field,
@@ -568,7 +584,7 @@ textarea {
 
 .tutor-card h2 {
   margin: 0;
-  color: var(--green-700);
+  color: var(--accent-text);
   font-size: 1.05rem;
 }
 
@@ -599,14 +615,14 @@ textarea {
 }
 
 .learning-plan-heading > svg {
-  color: var(--green-700);
+  color: var(--accent-text);
   flex-shrink: 0;
   margin-top: 2px;
 }
 
 .learning-plan-card h2 {
   margin: 0 0 4px;
-  color: var(--green-700);
+  color: var(--accent-text);
   font-size: 1.05rem;
 }
 
@@ -850,7 +866,7 @@ textarea {
 }
 
 .milestone-done {
-  border-left-color: #3f8f5f;
+  border-left-color: var(--milestone-done);
 }
 
 .milestone-current {
@@ -862,7 +878,7 @@ textarea {
 }
 
 .session-milestone-lines {
-  border-left: 3px solid #8da8bc;
+  border-left: 3px solid var(--milestone-line);
   display: grid;
   gap: 6px;
   padding-left: 10px;
@@ -1031,7 +1047,7 @@ textarea {
 
 .pending-review-card h2 {
   margin: 0 0 4px;
-  color: #463b16;
+  color: var(--gold-900);
   font-size: 1.05rem;
 }
 
@@ -1066,7 +1082,7 @@ textarea {
 
 .day-completion-card h2 {
   margin: 0;
-  color: #463b16;
+  color: var(--gold-900);
   font-size: 1.05rem;
 }
 
@@ -1145,7 +1161,7 @@ textarea {
 }
 
 .roadmap-done {
-  background: #f4fbf5;
+  background: var(--roadmap-done-bg);
 }
 
 /* ---------- Blocos do plano ---------- */
@@ -1207,7 +1223,7 @@ textarea {
 
 .timer-running {
   background: var(--green-050);
-  color: var(--green-700);
+  color: var(--accent-text);
 }
 
 .timer-over {
@@ -1244,8 +1260,8 @@ textarea {
 }
 
 .status-skipped {
-  background: #f3e2d7;
-  color: #7c3b20;
+  background: var(--peach-bg);
+  color: var(--peach-fg);
 }
 
 .rating-row {
@@ -1283,7 +1299,7 @@ textarea {
 }
 
 .diagnosis-details > summary:hover {
-  color: var(--green-700);
+  color: var(--accent-text);
 }
 
 .diagnosis-details[open] .diagnosis-strip {
@@ -1293,6 +1309,72 @@ textarea {
 .app-error {
   width: min(100%, 560px);
   margin: 0;
+}
+
+/* ---------- Tema escuro ---------- */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Tinta clara sobre verde-noite */
+    --ink-900: #e6eae4;
+    --ink-700: #cdd5cd;
+    --ink-600: #9fab9f;
+    --ink-500: #87938a;
+
+    /* Verde: 900 vira tinta de titulo clara; acoes seguem profundas */
+    --green-900: #cfe3d6;
+    --green-700: #2e6b54;
+    --green-600: #3a7d63;
+    --green-300: #56806a;
+    --green-100: #24382e;
+    --green-050: #1e2a24;
+
+    --paper: #131a16;
+    --paper-deep: #0f1512;
+    --surface: #18211c;
+    --surface-raised: #1d2722;
+
+    --gold-900: #ead9a8;
+    --gold-700: #d9bf7e;
+    --gold-600: #c8ad69;
+    --gold-300: #6b5a2a;
+    --gold-100: #4a3f1e;
+    --gold-050: #221d10;
+
+    --slate-800: #c4d6e6;
+    --slate-700: #a8c2d8;
+    --slate-500: #5c97bd;
+    --slate-200: #32465a;
+    --slate-100: #263646;
+    --slate-050: #161f28;
+
+    --ok-bg: #1c3a26;
+    --ok-fg: #9fd6ad;
+    --warn-bg: #40301a;
+    --warn-fg: #e6b577;
+    --skip-bg: #232b33;
+    --skip-fg: #b9c4cf;
+    --danger-600: #b25049;
+    --danger-700: #8f3b35;
+
+    --line: #36403a;
+    --line-soft: #2a332d;
+
+    --milestone-done: #4fae74;
+    --milestone-line: #4a6377;
+    --roadmap-done-bg: #1b2a20;
+    --peach-bg: #3d2a1e;
+    --peach-fg: #e0a988;
+    --danger-soft: #5a3331;
+    --nav-bg: rgba(22, 30, 26, 0.86);
+    --accent-text: #9fc2ab;
+    --halo: #18211c;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.45);
+
+    color-scheme: dark;
+  }
 }
 
 /* ---------- Acessibilidade de movimento ---------- */
