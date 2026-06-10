@@ -4,6 +4,7 @@ import {
   buildPuzzleThemeStats,
   computeConsistency,
   detectWeaknesses,
+  filterFreshSignals,
   getReturnSessionMinutes,
   createKnownManualSignals,
   createTutorQuestionSignal,
@@ -88,7 +89,7 @@ import {
   upsertTrainingLog,
 } from './trainingLogFlow';
 
-export type AppView = 'today' | 'config';
+export type AppView = 'today' | 'progress' | 'config';
 
 export type LoadState = 'loading' | 'ready' | 'error';
 export type DiagnosisState = 'idle' | 'syncing' | 'success' | 'error';
@@ -426,7 +427,7 @@ export function useAppState(): AppState {
       await replaceSignalsForSource('chesscom', signals);
 
       const allSignals = await loadSignals();
-      const nextWeaknesses = detectWeaknesses(allSignals);
+      const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
       const date = getTodayDate();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
@@ -461,7 +462,7 @@ export function useAppState(): AppState {
     await replaceSignalsForSource('outro', manualSignals);
 
     const allSignals = await loadSignals();
-    const nextWeaknesses = detectWeaknesses(allSignals);
+    const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
 
     await replaceWeaknesses(nextWeaknesses);
     setWeaknesses(nextWeaknesses);
@@ -491,7 +492,7 @@ export function useAppState(): AppState {
       await appendSignals([signal]);
 
       const allSignals = await loadSignals();
-      const nextWeaknesses = detectWeaknesses(allSignals);
+      const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
 
       await replaceWeaknesses(nextWeaknesses);
       setWeaknesses(nextWeaknesses);
@@ -565,7 +566,7 @@ export function useAppState(): AppState {
       await replaceSignalsForSource('lichess', signals);
 
       const allSignals = await loadSignals();
-      const nextWeaknesses = detectWeaknesses(allSignals);
+      const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
       const date = getTodayDate();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {

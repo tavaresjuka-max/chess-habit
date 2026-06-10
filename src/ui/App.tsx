@@ -1,12 +1,16 @@
-import { CalendarDays, Settings } from 'lucide-react';
+import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
 import { Toaster } from 'sonner';
+import { getTodayDate } from '../app/date';
 import { useAppState } from '../app/state';
 import { Config } from './Config';
+import { Progress } from './Progress';
 import { Today } from './Today';
 
 export function App() {
   const appState = useAppState();
-  const shouldShowConfig = appState.activeView === 'config' || appState.profile === undefined;
+  const activeView = appState.profile === undefined ? 'config' : appState.activeView;
+  const shouldShowConfig = activeView === 'config';
+  const shouldShowProgress = activeView === 'progress';
 
   if (appState.loadState === 'loading') {
     return (
@@ -24,7 +28,7 @@ export function App() {
       <Toaster richColors position="bottom-right" />
       <nav className="top-nav" aria-label="Navegação principal">
         <button
-          className={shouldShowConfig ? 'nav-button' : 'nav-button nav-button-active'}
+          className={activeView === 'today' ? 'nav-button nav-button-active' : 'nav-button'}
           type="button"
           onClick={() => {
             appState.setActiveView('today');
@@ -32,6 +36,16 @@ export function App() {
         >
           <CalendarDays aria-hidden="true" size={16} />
           Hoje
+        </button>
+        <button
+          className={shouldShowProgress ? 'nav-button nav-button-active' : 'nav-button'}
+          type="button"
+          onClick={() => {
+            appState.setActiveView('progress');
+          }}
+        >
+          <ChartNoAxesColumn aria-hidden="true" size={16} />
+          Progresso
         </button>
         <button
           className={shouldShowConfig ? 'nav-button nav-button-active' : 'nav-button'}
@@ -81,6 +95,13 @@ export function App() {
           onExport={appState.exportBackup}
           onImportBackup={appState.importBackup}
           onClear={appState.clearAllData}
+        />
+      ) : shouldShowProgress ? (
+        <Progress
+          today={appState.todayPlan?.date ?? getTodayDate()}
+          allTrainingLogs={appState.allTrainingLogs}
+          diplomaAttempts={appState.diplomaAttempts}
+          weaknesses={appState.weaknesses}
         />
       ) : (
         <Today

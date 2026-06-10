@@ -236,6 +236,7 @@ export type TrainingLog = {
   status: TrainingLogStatus;
   feedback?: PlanBlockFeedback;
   result?: TrainingResult;
+  methodTrackId?: MethodTrackId;
   updatedAt: string;
 };
 

@@ -12,6 +12,7 @@ export function createTrainingLog(input: { block: PlanBlock; date: string; start
     startedAt: input.startedAt,
     timeLimitReached: false,
     status: 'active',
+    ...(input.block.methodTrackId === undefined ? {} : { methodTrackId: input.block.methodTrackId }),
     updatedAt: input.startedAt,
   };
 }

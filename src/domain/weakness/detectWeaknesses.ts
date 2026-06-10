@@ -20,6 +20,28 @@ const confidenceRank = {
   high: 2,
 } satisfies Record<Confidence, number>;
 
+// Politica de decaimento (Corte 5, achado Gemini): sinais com mais de 90 dias
+// nao descrevem mais o jogador de hoje e saem do diagnostico.
+const SIGNAL_MAX_AGE_DAYS = 90;
+
+export function filterFreshSignals(
+  signals: Signal[],
+  nowIso: string,
+  maxAgeDays = SIGNAL_MAX_AGE_DAYS,
+): Signal[] {
+  const cutoff = Date.parse(nowIso) - maxAgeDays * 86_400_000;
+
+  if (Number.isNaN(cutoff)) {
+    return signals;
+  }
+
+  return signals.filter((signal) => {
+    const observed = Date.parse(signal.observedAt);
+
+    return Number.isNaN(observed) || observed >= cutoff;
+  });
+}
+
 export function detectWeaknesses(signals: Signal[]): Weakness[] {
   const weaknesses = detectNonColorWeaknesses(signals);
   const colorWeakness = detectColorWeakness(signals);
