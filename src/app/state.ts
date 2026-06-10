@@ -59,6 +59,7 @@ import {
   saveTrainingLog,
   updatePendingItemStatus,
 } from '../infra/storage/appData';
+import { requestPersistentStorage, type StoragePersistenceStatus } from '../infra/storage/persistence';
 import { getTodayDate } from './date';
 import { toDiagnosisErrorMessage, toErrorMessage, toLichessErrorMessage } from './errorMessages';
 import { openExternalUrl } from './externalOpen';
@@ -96,6 +97,7 @@ export type AppState = {
   readonly diagnosisState: DiagnosisState;
   readonly diagnosisMessage: string | undefined;
   readonly errorMessage: string | undefined;
+  readonly storagePersistence: StoragePersistenceStatus | undefined;
   readonly setActiveView: (view: AppView) => void;
   readonly saveProfile: (profile: LearnerProfile) => Promise<void>;
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
@@ -138,12 +140,19 @@ export function useAppState(): AppState {
   const [lichessConnectionState, setLichessConnectionState] = useState<LichessConnectionState>('disconnected');
   const [lichessMessage, setLichessMessage] = useState<string | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+  const [storagePersistence, setStoragePersistence] = useState<StoragePersistenceStatus | undefined>(undefined);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadAppData() {
       try {
+        const persistenceStatus = await requestPersistentStorage();
+
+        if (isMounted) {
+          setStoragePersistence(persistenceStatus);
+        }
+
         const completion = await completeLichessOAuthIfNeeded();
         const storedProfile = await loadProfile();
 
@@ -899,6 +908,7 @@ export function useAppState(): AppState {
     diagnosisState,
     diagnosisMessage,
     errorMessage,
+    storagePersistence,
     setActiveView,
     saveProfile,
     regeneratePlan,

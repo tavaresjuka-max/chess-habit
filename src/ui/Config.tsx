@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
 import type { LearnerBand, LearnerProfile, LichessOAuthToken, SessionMinutes } from '../domain';
+import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
 
 type ConfigProps = {
   profile: LearnerProfile | undefined;
   lichessToken: LichessOAuthToken | undefined;
   lichessConnectionState: LichessConnectionState;
   lichessMessage: string | undefined;
+  storagePersistence: StoragePersistenceStatus | undefined;
   onSave: (profile: LearnerProfile) => Promise<void>;
   onConnectLichess: () => Promise<void>;
   onDisconnectLichess: () => Promise<void>;
@@ -24,6 +26,7 @@ export function Config({
   lichessToken,
   lichessConnectionState,
   lichessMessage,
+  storagePersistence,
   onSave,
   onConnectLichess,
   onDisconnectLichess,
@@ -188,6 +191,9 @@ export function Config({
       <section className="config-section data-zone" aria-labelledby="config-data-title">
         <h2 id="config-data-title">Dados locais</h2>
         <p className="config-hint">Backups, sinais manuais e limpeza ficam só neste dispositivo.</p>
+        {storagePersistence !== undefined ? (
+          <p aria-live="polite">{describePersistenceStatus(storagePersistence)}</p>
+        ) : null}
 
         <div className="button-row">
           <button type="button" className="secondary-button" onClick={() => void handleExport()}>

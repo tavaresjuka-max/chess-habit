@@ -68,6 +68,7 @@ export function App() {
           lichessToken={appState.lichessToken}
           lichessConnectionState={appState.lichessConnectionState}
           lichessMessage={appState.lichessMessage}
+          storagePersistence={appState.storagePersistence}
           onSave={appState.saveProfile}
           onConnectLichess={appState.connectLichess}
           onDisconnectLichess={appState.disconnectLichess}
