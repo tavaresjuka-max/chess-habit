@@ -379,6 +379,7 @@ Pesquisa executada apos uso real mostrar repeticao da aula fixa `The Fork` em di
 - [Lichess About](https://lichess.org/about): filosofia de app gratuito, livre, open-source e sustentado por doacoes.
 - [Lichess Terms of Service](https://lichess.org/page/tos): revisar antes de qualquer feature publica.
 - 2026-06-08: [lichess-org/api `api-puzzle-activity.yaml`](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/puzzles/api-puzzle-activity.yaml) e [schema `PuzzleActivity.yaml`](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/schemas/PuzzleActivity.yaml) confirmaram `GET /api/puzzle/activity`, resposta `application/x-ndjson`, OAuth `puzzle:read`, parametros `max`, `before`, `since`, e campos `date`, `win`, `puzzle.id`, `puzzle.rating`, `puzzle.themes`. Usado para resumir estatisticas locais por tema sem guardar PGN ou solucao.
+- 2026-06-10: [lichess-org/api `api-study.yaml`](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/studies/api-study.yaml) e [`api-study-studyId-import-pgn.yaml`](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/studies/api-study-studyId-import-pgn.yaml) confirmaram `POST /api/study`, `POST /api/study/{studyId}/import-pgn`, OAuth `study:write`, corpo `application/x-www-form-urlencoded`, PGN com multiplos jogos criando multiplos capitulos e limite oficial de 64 capitulos por Study.
 
 ## Chess.com
 

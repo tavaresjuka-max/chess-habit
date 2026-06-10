@@ -1,4 +1,5 @@
 import type { DailyPlan, LichessStudyLink, PlanBlock } from '../../domain';
+import { getMethodTrackTitle } from '../../domain/method/methodTracks';
 import { LichessRateLimitError } from './puzzleActivity';
 
 export type CreateStudyResponse = {
@@ -21,6 +22,7 @@ export type CreateDailyStudyOptions = {
 };
 
 const lichessBaseUrl = 'https://lichess.org';
+const maxStudyChaptersPerImport = 64;
 
 export async function createDailyStudy(options: CreateDailyStudyOptions): Promise<LichessStudyLink> {
   const token = options.token.trim();
@@ -153,16 +155,23 @@ export async function importPgnToStudy(input: {
 }
 
 export function buildDailyPlanStudyPgn(plan: DailyPlan): string {
+  if (plan.blocks.length > maxStudyChaptersPerImport) {
+    throw new Error('Lichess Study aceita no maximo 64 capitulos por import.');
+  }
+
   return plan.blocks.map((block, index) => buildBlockPgn(plan, block, index + 1)).join('\n\n\n');
 }
 
 function buildBlockPgn(plan: DailyPlan, block: PlanBlock, round: number): string {
   const date = plan.date.replace(/-/g, '.');
+  const trackTitle = block.methodTrackId === undefined ? 'Treino' : getMethodTrackTitle(block.methodTrackId);
   const comments = [
+    `Trilha: ${trackTitle}`,
+    block.guidingQuestion === undefined ? undefined : `Pergunta: ${block.guidingQuestion}`,
     block.reason,
-    block.task,
+    `Tarefa: ${block.task}`,
     block.coachNote,
-    block.stopRule,
+    `Stop Rule: ${block.stopRule}`,
     block.destination.url === undefined ? undefined : `Destino: ${block.destination.url}`,
   ]
     .filter((line): line is string => line !== undefined && line.trim() !== '')

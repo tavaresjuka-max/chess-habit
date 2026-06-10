@@ -17,10 +17,56 @@ describe('lichess study', () => {
     const pgn = buildDailyPlanStudyPgn(plan);
 
     expect(pgn).toContain('[Event "Tema do dia: garfos"]');
-    expect(pgn).toContain('{ Estude a lição guiada de garfo');
+    expect(pgn).toContain('{ Tarefa: Estude a lição guiada de garfo');
     expect(pgn).toContain('Destino: https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p');
     expect(pgn).toContain('{ Garfo é quando uma peça sua ataca dois alvos ao mesmo tempo.');
     expect(pgn).not.toContain('[FEN');
+  });
+
+  it('adds method track and guiding question comments to Study chapters', () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    const [baseBlock] = plan.blocks;
+
+    if (baseBlock === undefined) {
+      throw new Error('Fixture plan should have at least one block.');
+    }
+
+    const pgn = buildDailyPlanStudyPgn({
+      ...plan,
+      blocks: [
+        {
+          ...baseBlock,
+          methodTrackId: 'calculation-bridge',
+          guidingQuestion: 'Quais s\u00e3o meus 2 candidatos?',
+        },
+      ],
+    });
+
+    expect(pgn).toContain('{ Trilha: C\u00e1lculo Ponte 800-1200 }');
+    expect(pgn).toContain('{ Pergunta: Quais s\u00e3o meus 2 candidatos? }');
+    expect(pgn).toContain('{ Tarefa: ');
+    expect(pgn).toContain('{ Stop Rule: ');
+    expect(pgn).toContain('{ Destino: ');
+  });
+
+  it('rejects plans with more than 64 Study chapters', () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    const [baseBlock] = plan.blocks;
+
+    if (baseBlock === undefined) {
+      throw new Error('Fixture plan should have at least one block.');
+    }
+
+    expect(() =>
+      buildDailyPlanStudyPgn({
+        ...plan,
+        blocks: Array.from({ length: 65 }, (_, index) => ({
+          ...baseBlock,
+          id: `block-${String(index + 1)}`,
+          title: `Bloco ${String(index + 1)}`,
+        })),
+      }),
+    ).toThrow('Lichess Study aceita no maximo 64 capitulos por import.');
   });
 
   it('creates a private study and imports the plan PGN with study:write bearer token', async () => {
