@@ -6,6 +6,15 @@ import { Config } from './Config';
 import { Progress } from './Progress';
 import { Today } from './Today';
 
+// jsdom nao implementa matchMedia; o tema do toast cai em light nos testes.
+function getPreferredToastTheme(): 'light' | 'dark' {
+  if (typeof window.matchMedia !== 'function') {
+    return 'light';
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 export function App() {
   const appState = useAppState();
   const activeView = appState.profile === undefined ? 'config' : appState.activeView;
@@ -15,8 +24,11 @@ export function App() {
   if (appState.loadState === 'loading') {
     return (
       <main className="app-shell">
-        <section className="panel" aria-live="polite">
-          <h1>Rotina</h1>
+        <section className="panel loading-panel" aria-live="polite">
+          <span className="brand brand-loading" aria-hidden="true">
+            <span className="brand-mark">♞</span>
+            <span>Rotina</span>
+          </span>
           <p>Carregando seus dados locais.</p>
         </section>
       </main>
@@ -25,7 +37,7 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <Toaster richColors position="bottom-right" />
+      <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
       <nav className="top-nav" aria-label="Navegação principal">
         <span className="brand" aria-hidden="true">
           <span className="brand-mark">♞</span>

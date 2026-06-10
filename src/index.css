@@ -202,6 +202,37 @@ h3 {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
+.loading-panel {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding-top: 24px;
+}
+
+.brand-loading {
+  font-size: 1.4rem;
+  padding: 0;
+}
+
+.brand-loading .brand-mark {
+  width: 34px;
+  height: 34px;
+  font-size: 1.3rem;
+  animation: brand-pulse 1.6s var(--ease) infinite;
+}
+
+@keyframes brand-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.94);
+    opacity: 0.85;
+  }
+}
+
 .nav-button {
   flex: 1;
   min-height: 36px;
