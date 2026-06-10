@@ -14,7 +14,12 @@ A fase de codigo da ferramenta pessoal foi **aberta pelo dono**. Codigo e permit
 lida e suas correcoes tecnicas/legais foram aceitas; suas recomendacoes de "validar mercado antes de
 codar" nao se aplicam a ferramenta pessoal e ficam reservadas para a Fase P5.
 
-Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
+Specs vigentes: `docs/superpowers/specs/2026-06-08-professor-lemos-tutor-design.md` (tutor:
+envelope de sessao, diagnostico, constancia) e
+`docs/superpowers/specs/2026-06-10-metodo-5-trilhas-design.md` (metodo 5 trilhas, as-built).
+Specs anteriores (2026-06-06, 2026-06-07) estao executados e valem como historico.
+Roadmap vigente: plano consolidado de cortes 0-8 em
+`docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md` (aprovado pelo dono em 2026-06-10).
 
 ## Regras Inquebraveis
 
