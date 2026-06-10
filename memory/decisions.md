@@ -414,9 +414,9 @@ painel amplo de progresso). Decisoes aplicadas:
 - Rodada de contestacao aberta: prompts em `prompts/analise-geral-2026-06-10/` para DeepSeek,
   Gemini e Codex gerarem relatorios nomeados em `docs/review/`. Implementacao apenas depois da
   contra-argumentacao do Claude e arbitragem final.
-- Pendentes de decisao do dono apos o debate: teto do curso (C-1), desenho da meta escondida
-  (C-2), spec de recompensas TDAH (C-3), promocao do spec do metodo para `docs/superpowers/specs/`
-  (A-3), renomeacao/nota do ADR-006 (A-4) e LICENSE AGPL-3.0 (A-6).
+- ~~Pendentes de decisao do dono apos o debate~~ (nota stale corrigida em 2026-06-10): C-1,
+  C-2 e C-3 foram fechadas na secao "Decisoes Pos-Analise Geral" acima (itens 1-3). A-3, A-4 e
+  A-6 foram fechadas na rodada 2 pos-arbitragem (ver secao "Decisoes da Rodada 2" abaixo).
 
 ## 2026-06-10: Organizacao Pos-Metodo
 
@@ -429,3 +429,32 @@ Para reduzir ruído operacional depois da implementação do Metodo Professor Le
   `docs/pedagogy/`.
 - Scripts de download/conversao/auditoria de acervo ficam em `scripts/research/`, fora do runtime do app.
 - Downloads, caches, PDFs e colecoes pessoais permanecem fora do Git por higiene e direitos autorais.
+
+## 2026-06-10: Decisoes da Rodada 2 (pos-arbitragem das contestacoes)
+
+Apos a arbitragem dos tres relatorios de contestacao
+(`docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md`), o dono respondeu a
+todas as perguntas pendentes e travou as seguintes decisoes:
+
+1. **Sequencia de cortes aprovada como esta**: 0 Higiene → 1 Data Safety v1 → 2 Spine 0-2200 →
+   3 Placement v1 → 4 Relatorio pos-sessao → 5 Painel Progresso MVP → 6 Importacao de
+   atividade livre → 7 Badges (spec em paralelo desde os cortes 1-3) → 8 Curriculo denso.
+2. **LICENSE AGPL-3.0 confirmada** (A-6 fechado). Copyright holder: **Juka Tavarez**.
+   O argumento do DeepSeek para adiar foi rejeitado (a clausula 13 da AGPL cobre SaaS).
+3. **Comunicacao publica "0→autonomia"** aprovada; 2200 fica apenas como referencia interna
+   de sequenciamento do modelo de bandas. Refina o C-1 sem alterar o teto tecnico.
+4. **Trilha paralela de validacao de eficacia aprovada**: registrar baseline desde ja
+   (acerto por tema-foco, blunders/partida, taxa de conclusao de sessao, tempo ate retorno),
+   revisao em ~4 semanas (≈2026-07-08); resultado vira gate do Corte 8. Nao bloqueia cortes.
+5. **Execucao autonoma**: Claude executa corte a corte sem checkpoint obrigatorio, parando
+   apenas diante de decisao de produto nao coberta pelas decisoes registradas.
+6. **Spine com 7 bandas** (Corte 2): 0-400, 400-800, 800-1000, 1000-1200, 1200-1600,
+   1600-2000, 2000-2200. Degraus menores no inicio (metas pequenas, TDAH-friendly);
+   migracao Dexie divide '0-800' e '800-1200' em duas bandas cada.
+7. **Placement v1 = automatico + autorrelato** (Corte 3): com login Lichess, leitura do
+   historico de puzzles via escopo `puzzle:read` ja permitido; sem login, deep link
+   `/training/<tema>` + autorrelato. Sem tabuleiro proprio, sem novo escopo OAuth.
+
+A-3 fechado: a correcao e ESCREVER o spec de design do metodo 5 trilhas implementado em
+`docs/superpowers/specs/` (nao mover arquivo) e atualizar o ponteiro de `AGENTS.md`.
+A-4 fechado: ADR-006 recebe adendo/nota, sem renomear arquivo (imutabilidade de ADR).
