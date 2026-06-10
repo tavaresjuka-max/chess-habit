@@ -1,40 +1,48 @@
-# Lichess Tutor
+# Lichess Tutor (nome interno de trabalho)
 
-Status: planejamento e auditoria.
+Status: ferramenta pessoal funcional (P0-P3 concluídas + Método Professor Lemos implementado).
+P4 (sync) e P5 (versão-comunidade) congeladas por decisão do dono.
 
-Lichess Tutor sera uma PWA gratuita e open-source para ajudar estudantes a treinarem melhor usando o Lichess. O app nao quer substituir o Lichess, nem criar outro tabuleiro de xadrez. Ele organiza rotina, interpreta historico publico/autorizado, sugere a aula do dia, acompanha progresso e abre o treino no Lichess.
+Lichess Tutor é uma PWA gratuita, local-first e open-source (AGPL-3.0 planejada) que ajuda o
+aluno a treinar melhor usando o Lichess. O app não substitui o Lichess nem cria outro tabuleiro:
+ele diagnostica fraquezas a partir do histórico real (Chess.com/Lichess), monta o plano do dia,
+abre o treino certo no Lichess, registra progresso e adapta as próximas sessões.
 
-Este projeto ainda nao contem app, backend, banco, `package.json`, `src` ou codigo executavel. Esta pasta existe para documentar a ideia antes de outras IAs e revisores avaliarem a arquitetura.
+## O que já existe
 
-## Posicao Do Produto
+- App React + Vite + TypeScript + PWA + Dexie (IndexedDB), domínio puro testado.
+- Diagnóstico: Chess.com PubAPI (primário) + Lichess (secundário) + sinais manuais. Parse de
+  PGN transiente; só sinais derivados são persistidos.
+- Plano diário sensível ao tempo (5/15/30/60 min) com loop sinal → fraqueza → foco → recurso
+  Lichess → treino → resultado → ajuste.
+- OAuth PKCE opt-in mínimo: `puzzle:read` (reconciliar puzzles) e `study:write` (Study do dia).
+- Método Professor Lemos: 5 trilhas, pendências com repetição espaçada, diplomas (Peão/Torre/Rei),
+  proposta de fase, metas acumuladas por horas/sessões.
+- Gate de qualidade: `npm run lint && npm run test && npm run build`.
 
-- Gratis para todos.
-- Open-source, com licenca planejada AGPL-3.0.
-- Sem anuncios, paywall, venda de dados ou beneficio funcional pago.
-- Doacao apenas por link externo; apoiador e reconhecimento moral.
-- PWA para computador e mobile.
-- Login planejado com Lichess OAuth PKCE.
-- Sincronizacao planejada entre dispositivos.
-- Treino no MVP abre paginas do Lichess.
-- Chess.com entra somente como importador publico simples.
+## Posição do produto
+
+- Grátis para todos; sem anúncios, paywall, venda de dados ou benefício funcional pago.
+- Doação apenas por link externo, só na versão-comunidade (P5, congelada).
+- Treino abre no Lichess; sem tabuleiro próprio, sem engine, sem ajuda em partida ao vivo.
+- Privacidade local-first: sem PGN completo persistido, sem tokens em export/logs.
 
 ## Aviso
 
-Lichess Tutor sera um app nao oficial. Nao e afiliado, endossado ou mantido pelo Lichess. O nome Lichess e usado apenas para indicar integracao e destino de treino.
+App não oficial. Não é afiliado, endossado ou mantido pelo Lichess. O nome interno será
+substituído antes de qualquer comunicação pública (P5), por causa da feature oficial
+`lichess.org/tutor`.
 
-## Leia Primeiro
+## Leia primeiro
 
-1. `PLANO.md`
-2. `AGENTS.md`
-3. `memory/project.md`
-4. `docs/review/ai-audit-pack.md`
-5. `docs/research/sources.md`
+1. `docs/VISAO.md` — visão de longo prazo do dono (2026-06-10)
+2. `AGENTS.md` — regras canônicas para agentes
+3. `PLANO.md` — fases e escopo vigente
+4. `docs/pedagogy/metodo-professor-lemos.md` — método pedagógico canônico
+5. `memory/state.md` e `memory/decisions.md` — estado e decisões vivas
 
-## Separacao Do Workspace
+## Separação do workspace
 
-- `chessking-tutor`: app antigo pago, baseado em Chess King e Chess.com.
-- `chessking-assets`: APK e material extraido do app pago anterior.
-- `lichess-tutor`: nova proposta aberta, gratuita e Lichess-first.
-
-Nenhum material extraido, conteudo proprietario ou fluxo do app pago anterior deve entrar aqui.
-
+- `chessking-tutor` / `chessking-assets`: app pago anterior e seus materiais. **Nada** de lá
+  entra aqui (clean-room).
+- `lichess-tutor`: este projeto, aberto, gratuito e Lichess-first.

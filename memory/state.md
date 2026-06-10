@@ -1,6 +1,6 @@
 # Estado Atual
 
-Data: 2026-06-09 (atualizado apos estabilizacao final da fase pessoal pos-P3).
+Data: 2026-06-10 (atualizado apos conclusao do Metodo Professor Lemos e registro da visao do dono).
 
 ## Status
 
@@ -80,10 +80,18 @@ Data: 2026-06-09 (atualizado apos estabilizacao final da fase pessoal pos-P3).
 
 ## Proxima Etapa
 
-- Implementacao do Metodo Professor Lemos (5 trilhas) iniciada em 2026-06-10:
-  camada de dominio, pendencias, Dexie v4, plano com trilha ativa, catalogo expandido,
-  UI da tela Hoje, diplomas e Study enriquecido. Commits 1-9 descritos em
-  `prompts/archive/2026-06-method/codex-implementar-metodo-professor-lemos.md`.
+- Implementacao do Metodo Professor Lemos (5 trilhas) **CONCLUIDA em 2026-06-10**: os 9 commits
+  descritos em `prompts/archive/2026-06-method/codex-implementar-metodo-professor-lemos.md` foram
+  executados (dominio de metodo, pendencias com repeticao espacada, diplomas, Dexie v4, plano com
+  trilha ativa, catalogo expandido, UI da tela Hoje, Study enriquecido, organizacao final).
+  Gate verde em 2026-06-10: lint OK, 250 testes em 41 arquivos OK, build PWA OK.
+- Visao de longo prazo do dono registrada em 2026-06-10 em `docs/VISAO.md` (curso completo,
+  placement por questionario+historico, recompensa por esforco, importacao de atividade livre,
+  painel de progresso amplo, treinador que analisa sessao e explica a proxima).
+- Rodada de debate aberta em 2026-06-10: relatorio profundo do Claude em
+  `docs/review/relatorio-claude-analise-geral-2026-06-10.md`; prompts de contestacao para
+  DeepSeek/Gemini/Codex em `prompts/analise-geral-2026-06-10/`. Implementacao do que sair do
+  debate so depois da contra-argumentacao e arbitragem.
 
 P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08;
 Professor Lemos Etapa 1, Etapa 2A e Etapa 2B foram fechadas em 2026-06-08. A curadoria profunda de

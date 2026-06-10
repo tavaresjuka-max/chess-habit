@@ -197,7 +197,7 @@ Após a análise pedagógica executada por Gemini em `analise-acervo-ONDA2-GEMIN
 3. **Progressão Enxuta de Finais de de la Villa:** O currículo de finais será enquadrado no pool das posições essenciais práticas do livro *100 Endgames You Must Know* (Jesus de la Villa) e do clássico em PT-BR *Técnicas de Finais em Xadrez* (Euwe & Hooper).
 4. **Cálculo Avançado de Kotov e Aagaard (1400+):** A faixa de cálculo profundo adotará a disciplina de listar lances candidatos e calcular ramificações de forma serial sem desvios, com foco na profilaxia ativa (resposta mais forte do oponente).
 5. **Redundâncias Descartadas:** Cerca de 30% da Onda 2 (manuais genéricos "Chess for Beginners" rasos auto-publicados) foi arquivada para poupar espaço.
-5. **Implantacao Etapa 2B:** jomega entra no catalogo ativo apenas como `needs-human-review`. Na checagem de link da implementacao, `Iof6LzcT`, `s3iOCawc`, `6JAUFQ5p` e `wzFrgluQ` responderam `200`; `g6vPzJv7` e `q9bJ8YdY` responderam `404` e nao devem ser usados.
+6. **Implantacao Etapa 2B:** jomega entra no catalogo ativo apenas como `needs-human-review`. Na checagem de link da implementacao, `Iof6LzcT`, `s3iOCawc`, `6JAUFQ5p` e `wzFrgluQ` responderam `200`; `g6vPzJv7` e `q9bJ8YdY` responderam `404` e nao devem ser usados.
 
 ## 2026-06-08: Catalogo Premium Lichess Com Sinais Agregados De Puzzle
 
@@ -379,6 +379,29 @@ A análise do lote de downloads (Conjunto A) e da Onda 3 (Conjunto B) introduziu
 1. **Tratamento de Pendências e Autorreflexão**: O estudo de Gevorgyan (2024) comprovou que a autorreflexão e estudo específico sobre exercícios e tarefas não resolvidos tem a maior correlação estatística ($r=0.29$) com o avanço enxadrístico, seguido pela justificação verbal da lógica ($r=0.18$). Adota-se o formato de treino **Tratamento de Pendências** (Christofoletti 2007) para que o jogador re-resolva ativamente seus próprios erros locais e puzzles falhados.
 2. **Milestones baseados em Diplomas**: Em vez de depender de rating para medir avanço, adota-se a estrutura brasileira de Tirado & Silva (1999) baseada em 3 marcos claros de avaliação teórica: **Diploma do Peão** (0-600), **Diploma da Torre** (600-1000) e **Diploma do Rei** (1000-1200), que servem como travas didáticas no gerador de planos para consolidar as bandas de aprendizagem de forma estruturada.
 3. **Restrição de Motores (Engines)**: Conforme Zorić (2025), engines como Fritz/Stockfish devem ser tratados puramente como ferramentas de apoio e preparação do instrutor (ou do gerador interno do app), sendo desencorajados como parceiros ou juízes diretos de treino do estudante, priorizando o Lichess Study interativo.
+
+## 2026-06-10: Visao Do Dono Registrada E Rodada De Debate Da Analise Geral
+
+O dono declarou a visao de longo prazo (curso completo 0->topo, placement por questionario +
+historico Lichess/Chess.com, pesquisa pedagogica continua, plataforma colaborativa futura, UX
+familiar Lichess/Chess.com, gratis com doacao, recompensa por ESFORCO e horas — nunca rating,
+treinador que analisa cada sessao e explica a proxima, botao de importar atividade livre,
+painel amplo de progresso). Decisoes aplicadas:
+
+- A visao fica registrada como documento canonico em `docs/VISAO.md`. Ela orienta direcao,
+  mas so vira escopo ativo por decisao explicita registrada aqui. P4/P5 continuam congeladas.
+- Analise geral profunda do projeto contra a visao: `docs/review/relatorio-claude-analise-geral-2026-06-10.md`
+  (6 erros/staleness, 6 contradicoes/ambiguidades, risco critico R-1 de perda de dados em
+  IndexedDB, 11 lacunas, 8 cortes priorizados).
+- Correcoes de staleness aplicadas no mesmo dia: README reescrito (dizia que nao havia
+  codigo), `memory/state.md` atualizado (metodo concluido, nao "iniciado"), numeracao duplicada
+  da secao Onda 2 corrigida neste arquivo.
+- Rodada de contestacao aberta: prompts em `prompts/analise-geral-2026-06-10/` para DeepSeek,
+  Gemini e Codex gerarem relatorios nomeados em `docs/review/`. Implementacao apenas depois da
+  contra-argumentacao do Claude e arbitragem final.
+- Pendentes de decisao do dono apos o debate: teto do curso (C-1), desenho da meta escondida
+  (C-2), spec de recompensas TDAH (C-3), promocao do spec do metodo para `docs/superpowers/specs/`
+  (A-3), renomeacao/nota do ADR-006 (A-4) e LICENSE AGPL-3.0 (A-6).
 
 ## 2026-06-10: Organizacao Pos-Metodo
 
