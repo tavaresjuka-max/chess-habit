@@ -7,8 +7,10 @@ ativo por decisão explícita do dono registrada em `memory/decisions.md`.
 
 ## Declaração do dono (2026-06-10, estruturada)
 
-1. **Curso completo do 0 ao topo.** O dono escreveu "0 ao 3000"; o teto honesto está em
-   debate (ver `docs/review/relatorio-claude-analise-geral-2026-06-10.md`, achado C-1).
+1. **Curso completo do 0 à autonomia.** O dono escreveu "0 ao 3000"; decidido em
+   2026-06-10 (C-1 + refinamento da rodada 2): comunicação pública é **"0→autonomia"**;
+   2200 é apenas referência INTERNA de sequenciamento do modelo de bandas, nunca promessa
+   de rating na UI ou na comunicação do curso.
 2. **Avaliação de entrada (placement).** Onde a pessoa entra no curso, baseada em
    questionário + histórico Lichess e Chess.com.
 3. **Pesquisa pedagógica contínua.** Continuar baixando livros/teses legais e integrando
@@ -43,7 +45,10 @@ ativo por decisão explícita do dono registrada em `memory/decisions.md`.
 
 ## Decisões tomadas em 2026-06-10 (após leitura do relatório de análise)
 
-- **Teto do curso**: 0→2200, faixa 2200+ = autonomia. "3000" era número informal.
+- **Teto do curso**: 0→2200 como referência interna, faixa 2200+ = autonomia. "3000" era
+  número informal. Rodada 2 (2026-06-10): comunicação pública usa "0→autonomia"; o spine
+  interno terá 7 bandas (0-400, 400-800, 800-1000, 1000-1200, 1200-1600, 1600-2000,
+  2000-2200) — ver `memory/decisions.md`, "Decisoes da Rodada 2".
 - **Meta escondida**: marcos elásticos (100h / 500h / 1.000h+) com metas semanais/mensais
   visíveis. Base na literatura do projeto (Charness 2005, Campitelli & Gobet 2011), não
   "30 mil horas".

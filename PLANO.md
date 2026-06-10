@@ -2,8 +2,11 @@
 
 > REVISADO em 2026-06-06: o dono escolheu a moldura **pessoal primeiro, comunidade depois**.
 > Substitui o plano anterior orientado a "validacao de mercado antes de codar" (aquele frame fica
-> reservado para a Fase P5/comunidade). Spec de execucao vigente:
-> `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
+> reservado para a Fase P5/comunidade). Specs vigentes: tutor
+> (`docs/superpowers/specs/2026-06-08-professor-lemos-tutor-design.md`) e metodo 5 trilhas
+> (`docs/superpowers/specs/2026-06-10-metodo-5-trilhas-design.md`).
+> REVISADO em 2026-06-10 (rodada 2): roadmap ativo passa a ser o plano de cortes 0-8 aprovado
+> pelo dono em `docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md`.
 
 ## Moldura
 
@@ -16,7 +19,10 @@ decisao do dono. OAuth pessoal foi autorizado como opt-in com escopos minimos (`
 
 PWA local-first que entende as fraquezas do dono a partir do historico real do Lichess, gera um plano
 adaptado ao tempo disponivel (5/15/30/60 min), abre a tarefa certa no Lichess, registra progresso,
-pede feedback curto e adapta as proximas licoes. Foco pessoal: faixa 0-1200.
+pede feedback curto e adapta as proximas licoes. Horizonte do curso: **0→autonomia** (o aluno
+estuda ate nao precisar mais do app). Referencia interna de sequenciamento: bandas ate 2200
+(7 bandas: 0-400, 400-800, 800-1000, 1000-1200, 1200-1600, 1600-2000, 2000-2200 — Corte 2).
+Foco pessoal atual: faixa 0-1200. Nenhuma promessa de rating na UI ou comunicacao.
 
 ## Nao Escopo (ferramenta pessoal)
 
@@ -43,10 +49,12 @@ congelada para P4, se o dono descongelar sync depois.
 | **P4** | **Congelada por decisao do dono em 2026-06-06:** sync PC<->celular, D1 e "outro estudo" texto livre |
 | **P5** | **Congelada por decisao do dono em 2026-06-06:** versao-comunidade, renomeacao, disclaimers e polish publico |
 
-## Curriculo pessoal (0-1200)
+## Curriculo pessoal (0-1200 hoje; spine ate 2200 no Corte 2)
 
 - 0-800: regras, checar ameacas, mate em 1, pecas penduradas, capturas seguras.
 - 800-1200: taticas curtas, mate em 2, finais basicos, revisao de erros, partidas rapid lentas.
+- 1200-2200: spine de bandas entra no Corte 2 (sem conteudo denso); conteudo denso e o
+  Corte 8, dependente de pesquisa dirigida e da trilha de validacao de eficacia.
 
 ## Correcoes herdadas da auditoria (aceitas)
 
@@ -60,7 +68,7 @@ slugs Lichess por allowlist oficial/manual; erro/offline especificados; linguage
 
 ## Modelo
 
-Gratuito e open-source (AGPL-3.0 planejada). Sem anuncio, sem paywall, sem venda de dados. Doacao por
+Gratuito e open-source (AGPL-3.0 — LICENSE adicionada em 2026-06-10). Sem anuncio, sem paywall, sem venda de dados. Doacao por
 link externo so na versao-comunidade congelada.
 
 ## Aviso De Afiliacao
