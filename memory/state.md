@@ -90,6 +90,20 @@ e conclusao dos Cortes 0 e 1 do plano consolidado).
   - Spec de badges em rascunho para aprovacao do dono:
     `docs/superpowers/specs/2026-06-10-badges-spec-draft.md` (implementacao bloqueada por C-3).
   Gate final verde: lint OK, 307 testes em 51 arquivos OK, build PWA OK.
+- **Passada visual premium CONCLUIDA em 2026-06-10** (mandato de polimento do dono):
+  - Design tokens completos em `src/index.css` (familias de cor, raios, sombras, movimento);
+    nenhum hex solto em componente.
+  - Tipografia Inter Variable self-hosted via `@fontsource-variable/inter` (SIL OFL);
+    subset latino no precache offline da PWA. Numeros tabulares em todas as metricas.
+  - Tema "tabuleiro e papel" (verde profundo/papel quente/ambar/ardosia) + **tema escuro
+    automatico** por `prefers-color-scheme` remapeando tokens (sem JS, sem flash);
+    `--accent-text` desacopla texto de destaque de superficies de botao.
+  - Identidade: wordmark "Rotina" com cavalo no nav sticky com blur; loading com marca pulsante;
+    toasts seguem o tema do sistema (guard para jsdom).
+  - Hierarquia de botoes (primario gradiente com lift, secundario outline, danger), focus rings,
+    hover de cards, barras de progresso animadas, `prefers-reduced-motion` respeitado.
+  Referencias: familiaridade Lichess (sem replica de paleta), minimalismo Linear/Stripe.
+  Gate verde apos cada commit da passada.
 
 ## Decisoes Vigentes
 
