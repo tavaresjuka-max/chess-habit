@@ -13,6 +13,7 @@ import {
   getLichessStudyLink,
   getPlan,
   getTrainingLog,
+  loadBackupMeta,
   loadLichessOAuthToken,
   loadDiplomaAttempts,
   loadMethodTracks,
@@ -38,14 +39,20 @@ import {
 } from './appData';
 
 type ExportPayload = {
-  profile: object[];
-  plans: object[];
-  logs: object[];
-  signals: object[];
-  weaknesses: object[];
-  methodTracks: object[];
-  pendingItems: object[];
-  diplomaAttempts: object[];
+  format: string;
+  version: number;
+  exportedAt: string;
+  checksum: string;
+  data: {
+    profile: object[];
+    plans: object[];
+    logs: object[];
+    signals: object[];
+    weaknesses: object[];
+    methodTracks: object[];
+    pendingItems: object[];
+    diplomaAttempts: object[];
+  };
 };
 
 const profile: LearnerProfile = {
@@ -90,21 +97,31 @@ describe('appData storage', () => {
     await expect(getLatestPlanBefore('2026-06-06')).resolves.toBeUndefined();
   });
 
-  it('exports all records as JSON', async () => {
+  it('exports all records as a versioned backup file with checksum and metadata', async () => {
     await saveProfile(profile);
     await savePlan(generatePlan(profile, [], 5, '2026-06-06'));
 
-    const exported = await exportAllAsJson();
+    const exported = await exportAllAsJson('2026-06-10T12:00:00.000Z');
     const payload = JSON.parse(exported) as ExportPayload;
 
-    expect(payload.profile).toHaveLength(1);
-    expect(payload.plans).toHaveLength(1);
-    expect(payload.logs).toHaveLength(0);
-    expect(payload.signals).toHaveLength(0);
-    expect(payload.weaknesses).toHaveLength(0);
-    expect(payload.methodTracks).toHaveLength(0);
-    expect(payload.pendingItems).toHaveLength(0);
-    expect(payload.diplomaAttempts).toHaveLength(0);
+    expect(payload.format).toBe('lichess-tutor-backup');
+    expect(payload.version).toBe(1);
+    expect(payload.exportedAt).toBe('2026-06-10T12:00:00.000Z');
+    expect(payload.checksum).toMatch(/^(sha256|fnv1a):/);
+    expect(payload.data.profile).toHaveLength(1);
+    expect(payload.data.plans).toHaveLength(1);
+    expect(payload.data.logs).toHaveLength(0);
+    expect(payload.data.signals).toHaveLength(0);
+    expect(payload.data.weaknesses).toHaveLength(0);
+    expect(payload.data.methodTracks).toHaveLength(0);
+    expect(payload.data.pendingItems).toHaveLength(0);
+    expect(payload.data.diplomaAttempts).toHaveLength(0);
+
+    const meta = await loadBackupMeta();
+
+    expect(meta?.exportedAt).toBe('2026-06-10T12:00:00.000Z');
+    expect(meta?.checksum).toBe(payload.checksum);
+    expect(meta?.recordCount).toBe(2);
   });
 
   it('clears local records', async () => {
@@ -258,9 +275,9 @@ describe('appData storage', () => {
     const exported = await exportAllAsJson();
     const payload = JSON.parse(exported) as ExportPayload;
 
-    expect(payload.methodTracks).toEqual([methodTrack]);
-    expect(payload.pendingItems).toHaveLength(1);
-    expect(payload.diplomaAttempts).toEqual([diplomaAttempt]);
+    expect(payload.data.methodTracks).toEqual([methodTrack]);
+    expect(payload.data.pendingItems).toHaveLength(1);
+    expect(payload.data.diplomaAttempts).toEqual([diplomaAttempt]);
     expect(exported).not.toContain('lio_method_secret');
   });
 

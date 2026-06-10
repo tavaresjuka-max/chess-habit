@@ -10,7 +10,15 @@ import type {
 } from '../../domain';
 import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
-import { db, type LichessOAuthTokenRecord, type ProfileRecord, type SignalRecord, type WeaknessRecord } from './db';
+import { countBackupRecords, createBackupFile, type BackupData } from './backup';
+import {
+  db,
+  type BackupMetaRecord,
+  type LichessOAuthTokenRecord,
+  type ProfileRecord,
+  type SignalRecord,
+  type WeaknessRecord,
+} from './db';
 
 const defaultProfileId: ProfileRecord['id'] = 'default';
 const lichessTokenId: LichessOAuthTokenRecord['id'] = 'lichess';
@@ -185,8 +193,8 @@ export async function saveDiplomaAttempt(attempt: DiplomaAttempt): Promise<void>
   await db.diplomaAttempts.put(attempt);
 }
 
-export async function exportAllAsJson(): Promise<string> {
-  const payload = {
+export async function exportAllAsJson(nowIso = new Date().toISOString()): Promise<string> {
+  const data: BackupData = {
     profile: await db.profile.toArray(),
     plans: await db.plans.toArray(),
     logs: await db.logs.toArray(),
@@ -197,7 +205,20 @@ export async function exportAllAsJson(): Promise<string> {
     diplomaAttempts: await db.diplomaAttempts.toArray(),
   };
 
-  return JSON.stringify(payload, null, 2);
+  const backupFile = await createBackupFile(data, nowIso);
+
+  await db.backupMeta.put({
+    id: 'last-export',
+    exportedAt: backupFile.exportedAt,
+    checksum: backupFile.checksum,
+    recordCount: countBackupRecords(data),
+  });
+
+  return JSON.stringify(backupFile, null, 2);
+}
+
+export async function loadBackupMeta(): Promise<BackupMetaRecord | undefined> {
+  return db.backupMeta.get('last-export');
 }
 
 export async function clearAll(): Promise<void> {
@@ -215,6 +236,7 @@ export async function clearAll(): Promise<void> {
       db.methodTracks,
       db.pendingItems,
       db.diplomaAttempts,
+      db.backupMeta,
     ],
     async () => {
       await db.profile.clear();
@@ -228,6 +250,7 @@ export async function clearAll(): Promise<void> {
       await db.methodTracks.clear();
       await db.pendingItems.clear();
       await db.diplomaAttempts.clear();
+      await db.backupMeta.clear();
     },
   );
 }

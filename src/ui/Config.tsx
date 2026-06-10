@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
 import type { LearnerBand, LearnerProfile, LichessOAuthToken, SessionMinutes } from '../domain';
+import type { BackupMetaRecord } from '../infra/storage/db';
 import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
 
 type ConfigProps = {
@@ -11,6 +12,7 @@ type ConfigProps = {
   lichessConnectionState: LichessConnectionState;
   lichessMessage: string | undefined;
   storagePersistence: StoragePersistenceStatus | undefined;
+  backupMeta: BackupMetaRecord | undefined;
   onSave: (profile: LearnerProfile) => Promise<void>;
   onConnectLichess: () => Promise<void>;
   onDisconnectLichess: () => Promise<void>;
@@ -27,6 +29,7 @@ export function Config({
   lichessConnectionState,
   lichessMessage,
   storagePersistence,
+  backupMeta,
   onSave,
   onConnectLichess,
   onDisconnectLichess,
@@ -194,6 +197,7 @@ export function Config({
         {storagePersistence !== undefined ? (
           <p aria-live="polite">{describePersistenceStatus(storagePersistence)}</p>
         ) : null}
+        <p>{formatBackupMeta(backupMeta)}</p>
 
         <div className="button-row">
           <button type="button" className="secondary-button" onClick={() => void handleExport()}>
@@ -211,6 +215,19 @@ export function Config({
 
     </section>
   );
+}
+
+function formatBackupMeta(meta: BackupMetaRecord | undefined): string {
+  if (meta === undefined) {
+    return 'Nenhum backup exportado ainda. Exporte um backup para proteger seu progresso.';
+  }
+
+  const date = new Date(meta.exportedAt);
+  const formatted = Number.isNaN(date.getTime())
+    ? meta.exportedAt
+    : date.toLocaleString('pt-BR');
+
+  return `Último backup: ${formatted} (${String(meta.recordCount)} registros).`;
 }
 
 function formatLichessConnection(

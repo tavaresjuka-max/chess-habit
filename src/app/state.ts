@@ -35,6 +35,7 @@ import {
   clearAll,
   clearLichessOAuthToken,
   exportAllAsJson,
+  loadBackupMeta,
   appendSignals,
   getLatestPlanBefore,
   getLichessStudyLink,
@@ -59,6 +60,7 @@ import {
   saveTrainingLog,
   updatePendingItemStatus,
 } from '../infra/storage/appData';
+import type { BackupMetaRecord } from '../infra/storage/db';
 import { requestPersistentStorage, type StoragePersistenceStatus } from '../infra/storage/persistence';
 import { getTodayDate } from './date';
 import { toDiagnosisErrorMessage, toErrorMessage, toLichessErrorMessage } from './errorMessages';
@@ -98,6 +100,7 @@ export type AppState = {
   readonly diagnosisMessage: string | undefined;
   readonly errorMessage: string | undefined;
   readonly storagePersistence: StoragePersistenceStatus | undefined;
+  readonly backupMeta: BackupMetaRecord | undefined;
   readonly setActiveView: (view: AppView) => void;
   readonly saveProfile: (profile: LearnerProfile) => Promise<void>;
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
@@ -141,6 +144,7 @@ export function useAppState(): AppState {
   const [lichessMessage, setLichessMessage] = useState<string | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [storagePersistence, setStoragePersistence] = useState<StoragePersistenceStatus | undefined>(undefined);
+  const [backupMeta, setBackupMeta] = useState<BackupMetaRecord | undefined>(undefined);
 
   useEffect(() => {
     let isMounted = true;
@@ -148,9 +152,11 @@ export function useAppState(): AppState {
     async function loadAppData() {
       try {
         const persistenceStatus = await requestPersistentStorage();
+        const storedBackupMeta = await loadBackupMeta();
 
         if (isMounted) {
           setStoragePersistence(persistenceStatus);
+          setBackupMeta(storedBackupMeta);
         }
 
         const completion = await completeLichessOAuthIfNeeded();
@@ -863,6 +869,7 @@ export function useAppState(): AppState {
 
   const clearAllData = useCallback(async () => {
     await clearAll();
+    setBackupMeta(undefined);
     setProfile(undefined);
     setTodayPlan(undefined);
     setSessionMinutes(15);
@@ -909,6 +916,7 @@ export function useAppState(): AppState {
     diagnosisMessage,
     errorMessage,
     storagePersistence,
+    backupMeta,
     setActiveView,
     saveProfile,
     regeneratePlan,
@@ -930,7 +938,13 @@ export function useAppState(): AppState {
     completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) =>
       updateBlockStatusWithTrainingLog(blockId, 'done', feedback),
     skipBlockTraining,
-    exportBackup: exportAllAsJson,
+    exportBackup: async () => {
+      const json = await exportAllAsJson();
+
+      setBackupMeta(await loadBackupMeta());
+
+      return json;
+    },
     clearAllData,
   };
 }

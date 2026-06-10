@@ -43,6 +43,13 @@ export type PendingItemRecord = PendingTrainingItem;
 
 export type DiplomaAttemptRecord = DiplomaAttempt;
 
+export type BackupMetaRecord = {
+  id: 'last-export';
+  exportedAt: string;
+  checksum: string;
+  recordCount: number;
+};
+
 export class TutorDatabase extends Dexie {
   profile!: Table<ProfileRecord, string>;
   plans!: Table<PlanRecord, string>;
@@ -55,6 +62,7 @@ export class TutorDatabase extends Dexie {
   methodTracks!: Table<MethodTrackRecord, string>;
   pendingItems!: Table<PendingItemRecord, string>;
   diplomaAttempts!: Table<DiplomaAttemptRecord, string>;
+  backupMeta!: Table<BackupMetaRecord, string>;
 
   constructor(name = storageDatabaseName) {
     super(name);
@@ -80,6 +88,10 @@ export class TutorDatabase extends Dexie {
       methodTracks: 'id, status, updatedAt',
       pendingItems: 'id, status, dueAt, methodTrackId, weaknessTag, updatedAt',
       diplomaAttempts: 'id, diplomaId, sectionId, createdAt, updatedAt',
+    });
+
+    this.version(5).stores({
+      backupMeta: 'id',
     });
   }
 }

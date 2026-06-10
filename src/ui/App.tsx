@@ -69,6 +69,7 @@ export function App() {
           lichessConnectionState={appState.lichessConnectionState}
           lichessMessage={appState.lichessMessage}
           storagePersistence={appState.storagePersistence}
+          backupMeta={appState.backupMeta}
           onSave={appState.saveProfile}
           onConnectLichess={appState.connectLichess}
           onDisconnectLichess={appState.disconnectLichess}
