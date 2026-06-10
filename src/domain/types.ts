@@ -1,3 +1,5 @@
+import type { DrillFormatId, MethodTrackId } from './method/types';
+
 export type SourceId = 'lichess' | 'chesscom' | 'outro';
 
 export type Destination = {
@@ -133,6 +135,12 @@ export type PlanBlock = {
   coachNote: string;
   status: 'pending' | 'done' | 'skipped';
   feedback?: PlanBlockFeedback;
+  methodTrackId?: MethodTrackId;
+  methodStepId?: string;
+  pendingItemId?: string;
+  masteryTarget?: 'advance' | 'review' | 'regress';
+  drillFormatId?: DrillFormatId;
+  guidingQuestion?: string;
   updatedAt: string;
 };
 
