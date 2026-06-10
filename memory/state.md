@@ -68,7 +68,28 @@ e conclusao dos Cortes 0 e 1 do plano consolidado).
   opt-in via File System Access com fallback honesto e protecao contra sobrescrever backup bom
   com base vazia; schema Dexie v7 sync-ready (updatedAt universal em signals/weaknesses, soft
   delete com purga de 90 dias, fim dos replaces destrutivos, ids UUID em signals/pendencias).
-  Gate verde: lint OK, 273 testes em 44 arquivos OK, build PWA OK.
+- **Cortes 2-6 CONCLUIDOS em 2026-06-10** (execucao autonoma autorizada pelo dono):
+  - Corte 2: spine de 7 bandas 0-2200 (`LearnerBand`), migracao Dexie v8 dos perfis
+    ('0-800'->'400-800', '800-1200'->'800-1000'), catalogo reutiliza conteudo improving acima
+    de 1200 ate o Corte 8.
+  - Corte 3: Placement v1 — `computePlacement`/`applyCalibration` puros (questionario de 3
+    perguntas + rating conhecido opcional + calibracao por ~10 puzzles via deep link com
+    autorrelato), confianca explicita, `PlacementCard` na Config aplica a banda em 1 clique.
+  - Corte 4: relatorio pos-sessao por maquina de regras (`sessionReport.ts`): porque do
+    proximo passo (hard -> volta um estagio; easy em explain -> avanca), trava de evidencia
+    (sem sinal -> pergunta), digest semanal na Hoje, e recalibracao de retorno (gap >= 7 dias
+    -> plano novo nasce com 15 min + nota acolhedora).
+  - Corte 5: tela Progresso (3a aba): mapa de habilidades por tema (dashboard mais recente
+    vence para nao duplicar), esforco por trilha (`TrainingLog.methodTrackId` novo), diplomas,
+    tendencia semana vs semana, decay de sinais >90 dias no diagnostico (`filterFreshSignals`).
+  - Corte 6: botao "Importar atividade livre" (puzzle:read, janela 48h/ultima importacao,
+    dedup contra janelas de blocos, sem tempo inventado) + bound de recencia de 3 meses
+    enforced no chesscomClient (achado Codex).
+  - Trilha paralela: linha de base de eficacia na tela Progresso (4 metricas aprovadas;
+    revisao ~2026-07-08).
+  - Spec de badges em rascunho para aprovacao do dono:
+    `docs/superpowers/specs/2026-06-10-badges-spec-draft.md` (implementacao bloqueada por C-3).
+  Gate final verde: lint OK, 307 testes em 51 arquivos OK, build PWA OK.
 
 ## Decisoes Vigentes
 
