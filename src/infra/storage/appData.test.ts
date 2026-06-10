@@ -1,7 +1,9 @@
 import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it } from 'vitest';
 import { generatePlan } from '../../domain';
+import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
 import type { LearnerProfile, Signal, Weakness } from '../../domain';
+import { db } from './db';
 import {
   appendSignals,
   clearAll,
@@ -12,6 +14,9 @@ import {
   getPlan,
   getTrainingLog,
   loadLichessOAuthToken,
+  loadDiplomaAttempts,
+  loadMethodTracks,
+  loadOpenPendingItems,
   loadProfile,
   loadSignals,
   loadTrainingLogs,
@@ -22,10 +27,14 @@ import {
   saveChesscomMonthCache,
   saveLichessOAuthToken,
   saveLichessStudyLink,
+  saveDiplomaAttempt,
+  saveMethodTrack,
+  savePendingItem,
   savePlan,
   saveProfile,
   loadChesscomMonthCache,
   saveTrainingLog,
+  updatePendingItemStatus,
 } from './appData';
 
 type ExportPayload = {
@@ -34,6 +43,9 @@ type ExportPayload = {
   logs: object[];
   signals: object[];
   weaknesses: object[];
+  methodTracks: object[];
+  pendingItems: object[];
+  diplomaAttempts: object[];
 };
 
 const profile: LearnerProfile = {
@@ -50,6 +62,12 @@ afterEach(async () => {
 });
 
 describe('appData storage', () => {
+  it('creates Dexie v4 method tables', () => {
+    expect(db.tables.map((table) => table.name)).toEqual(
+      expect.arrayContaining(['methodTracks', 'pendingItems', 'diplomaAttempts']),
+    );
+  });
+
   it('saves and loads profile and daily plan', async () => {
     const plan = generatePlan(profile, [], 15, '2026-06-06');
 
@@ -84,6 +102,9 @@ describe('appData storage', () => {
     expect(payload.logs).toHaveLength(0);
     expect(payload.signals).toHaveLength(0);
     expect(payload.weaknesses).toHaveLength(0);
+    expect(payload.methodTracks).toHaveLength(0);
+    expect(payload.pendingItems).toHaveLength(0);
+    expect(payload.diplomaAttempts).toHaveLength(0);
   });
 
   it('clears local records', async () => {
@@ -205,6 +226,56 @@ describe('appData storage', () => {
     await expect(loadLichessOAuthToken()).resolves.toBeUndefined();
   });
 
+  it('saves pending items and loads only open ones', async () => {
+    const item = createPendingItem();
+
+    await savePendingItem(item);
+
+    await expect(loadOpenPendingItems()).resolves.toEqual([item]);
+  });
+
+  it('removes done pending items from the open list', async () => {
+    const item = createPendingItem();
+
+    await savePendingItem(item);
+    await updatePendingItemStatus(item.id, 'done');
+
+    await expect(loadOpenPendingItems()).resolves.toEqual([]);
+  });
+
+  it('exports method records without OAuth tokens', async () => {
+    await saveMethodTrack(methodTrack);
+    await savePendingItem(createPendingItem());
+    await saveDiplomaAttempt(diplomaAttempt);
+    await saveLichessOAuthToken({
+      accessToken: 'lio_method_secret',
+      tokenType: 'Bearer',
+      scopes: ['puzzle:read'],
+      obtainedAt: '2026-06-10T00:00:00.000Z',
+      expiresAt: '2027-06-10T00:00:00.000Z',
+    });
+
+    const exported = await exportAllAsJson();
+    const payload = JSON.parse(exported) as ExportPayload;
+
+    expect(payload.methodTracks).toEqual([methodTrack]);
+    expect(payload.pendingItems).toHaveLength(1);
+    expect(payload.diplomaAttempts).toEqual([diplomaAttempt]);
+    expect(exported).not.toContain('lio_method_secret');
+  });
+
+  it('clears method tracks, pending items and diploma attempts', async () => {
+    await saveMethodTrack(methodTrack);
+    await savePendingItem(createPendingItem());
+    await saveDiplomaAttempt(diplomaAttempt);
+
+    await clearAll();
+
+    await expect(loadMethodTracks()).resolves.toEqual([]);
+    await expect(loadOpenPendingItems()).resolves.toEqual([]);
+    await expect(loadDiplomaAttempts()).resolves.toEqual([]);
+  });
+
   it('deletes an expired Lichess OAuth token when loading it', async () => {
     await saveLichessOAuthToken({
       accessToken: 'lio_expired',
@@ -237,3 +308,44 @@ describe('appData storage', () => {
     expect(await exportAllAsJson()).not.toContain('abc12345');
   });
 });
+
+const methodTrack: MethodTrack = {
+  id: 'pending-review',
+  title: 'Tratamento de Pendências',
+  priority: 1,
+  status: 'active',
+  focusWeaknessTags: ['fork'],
+  startedAt: '2026-06-10T00:00:00.000Z',
+  updatedAt: '2026-06-10T00:00:00.000Z',
+};
+
+const diplomaAttempt: DiplomaAttempt = {
+  id: 'attempt-1',
+  diplomaId: 'peao',
+  sectionId: 'coordenadas',
+  scorePercent: 95,
+  totalItems: 10,
+  passed: true,
+  source: 'local',
+  createdAt: '2026-06-10T00:00:00.000Z',
+  updatedAt: '2026-06-10T00:00:00.000Z',
+};
+
+function createPendingItem(): PendingTrainingItem {
+  return {
+    id: 'pending-1',
+    origin: 'puzzle',
+    title: 'Revisar: Garfo',
+    weaknessTag: 'fork',
+    methodTrackId: 'pending-review',
+    lichessTheme: 'fork',
+    lichessUrl: 'https://lichess.org/training/fork',
+    prompt: 'Qual sinal do tabuleiro você ignorou?',
+    dueAt: '2026-06-11',
+    attempts: 0,
+    lastFeedback: 'hard',
+    status: 'open',
+    createdAt: '2026-06-10T00:00:00.000Z',
+    updatedAt: '2026-06-10T00:00:00.000Z',
+  };
+}

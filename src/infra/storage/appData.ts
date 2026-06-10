@@ -8,6 +8,7 @@ import type {
   TrainingLog,
   Weakness,
 } from '../../domain';
+import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
 import { db, type LichessOAuthTokenRecord, type ProfileRecord, type SignalRecord, type WeaknessRecord } from './db';
 
@@ -150,6 +151,40 @@ export async function saveLichessStudyLink(link: LichessStudyLink): Promise<void
   await db.lichessStudies.put(link);
 }
 
+export async function loadMethodTracks(): Promise<MethodTrack[]> {
+  return db.methodTracks.toArray();
+}
+
+export async function saveMethodTrack(track: MethodTrack): Promise<void> {
+  await db.methodTracks.put(track);
+}
+
+export async function loadOpenPendingItems(): Promise<PendingTrainingItem[]> {
+  return db.pendingItems.where('status').equals('open').toArray();
+}
+
+export async function savePendingItem(item: PendingTrainingItem): Promise<void> {
+  await db.pendingItems.put(item);
+}
+
+export async function updatePendingItemStatus(
+  id: string,
+  status: PendingTrainingItem['status'],
+): Promise<void> {
+  await db.pendingItems.update(id, {
+    status,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export async function loadDiplomaAttempts(): Promise<DiplomaAttempt[]> {
+  return db.diplomaAttempts.toArray();
+}
+
+export async function saveDiplomaAttempt(attempt: DiplomaAttempt): Promise<void> {
+  await db.diplomaAttempts.put(attempt);
+}
+
 export async function exportAllAsJson(): Promise<string> {
   const payload = {
     profile: await db.profile.toArray(),
@@ -157,6 +192,9 @@ export async function exportAllAsJson(): Promise<string> {
     logs: await db.logs.toArray(),
     signals: await db.signals.toArray(),
     weaknesses: await db.weaknesses.toArray(),
+    methodTracks: await db.methodTracks.toArray(),
+    pendingItems: await db.pendingItems.toArray(),
+    diplomaAttempts: await db.diplomaAttempts.toArray(),
   };
 
   return JSON.stringify(payload, null, 2);
@@ -174,6 +212,9 @@ export async function clearAll(): Promise<void> {
       db.chesscomMonthSignals,
       db.lichessOAuthTokens,
       db.lichessStudies,
+      db.methodTracks,
+      db.pendingItems,
+      db.diplomaAttempts,
     ],
     async () => {
       await db.profile.clear();
@@ -184,6 +225,9 @@ export async function clearAll(): Promise<void> {
       await db.chesscomMonthSignals.clear();
       await db.lichessOAuthTokens.clear();
       await db.lichessStudies.clear();
+      await db.methodTracks.clear();
+      await db.pendingItems.clear();
+      await db.diplomaAttempts.clear();
     },
   );
 }
