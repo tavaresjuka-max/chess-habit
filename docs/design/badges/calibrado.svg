@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Medalha Calibrado">
+  <path d="M46 96 L60 104 L74 96 L74 114 L60 107 L46 114 Z" fill="#2c5446"/>
+  <circle cx="60" cy="56" r="44" fill="#d6c48b"/>
+  <circle cx="60" cy="56" r="38" fill="#f5f3ec"/>
+  <circle cx="60" cy="56" r="34" fill="none" stroke="#d6c48b" stroke-width="2"/>
+  <!-- Bússola -->
+  <circle cx="60" cy="56" r="24" fill="none" stroke="#1f3f36" stroke-width="4"/>
+  <g fill="#1f3f36">
+    <rect x="58.6" y="33" width="2.8" height="6"/>
+    <rect x="58.6" y="73" width="2.8" height="6"/>
+    <rect x="37" y="54.6" width="6" height="2.8"/>
+    <rect x="77" y="54.6" width="6" height="2.8"/>
+  </g>
+  <!-- Agulha-cavalo apontando -->
+  <path d="M60 68 L52 50 C56 44 64 44 68 50 L66 54 L62 52 L64 60 Z" fill="#1f3f36"/>
+  <circle cx="60" cy="56" r="2.6" fill="#d6c48b"/>
+</svg>

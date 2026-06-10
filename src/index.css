@@ -214,10 +214,8 @@ h3 {
   padding: 0;
 }
 
-.brand-loading .brand-mark {
-  width: 34px;
-  height: 34px;
-  font-size: 1.3rem;
+.brand-pulse {
+  display: inline-flex;
   animation: brand-pulse 1.6s var(--ease) infinite;
 }
 
@@ -617,6 +615,16 @@ textarea {
   margin: 0;
   color: var(--accent-text);
   font-size: 1.05rem;
+}
+
+.tutor-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tutor-heading svg {
+  flex-shrink: 0;
 }
 
 .tutor-card p + p {
@@ -1049,6 +1057,22 @@ textarea {
 .diploma-progress li {
   display: grid;
   gap: 4px;
+}
+
+li.diploma-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.diploma-row svg {
+  flex-shrink: 0;
+}
+
+.diploma-row-text {
+  display: grid;
+  gap: 4px;
+  flex: 1;
 }
 
 /* ---------- Pendências ---------- */

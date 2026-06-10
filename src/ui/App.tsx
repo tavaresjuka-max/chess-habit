@@ -2,6 +2,7 @@ import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
 import { useAppState } from '../app/state';
+import { LemosAvatar } from './art/LemosAvatar';
 import { Config } from './Config';
 import { Progress } from './Progress';
 import { Today } from './Today';
@@ -26,7 +27,9 @@ export function App() {
       <main className="app-shell">
         <section className="panel loading-panel" aria-live="polite">
           <span className="brand brand-loading" aria-hidden="true">
-            <span className="brand-mark">♞</span>
+            <span className="brand-pulse">
+              <LemosAvatar size={56} />
+            </span>
             <span>Rotina</span>
           </span>
           <p>Carregando seus dados locais.</p>

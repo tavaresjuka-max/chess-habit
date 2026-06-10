@@ -8,6 +8,7 @@ import {
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
+import { LemosAvatar } from './art/LemosAvatar';
 
 type TutorCardProps = {
   plan: DailyPlan;
@@ -41,7 +42,10 @@ export function TutorCard({
     const message = buildSessionMessage({ phase: 'pre', primaryWeakness, consistency });
     return (
       <section className="tutor-card" aria-label="Professor Lemos">
-        <h2>Professor Lemos</h2>
+        <div className="tutor-heading">
+          <LemosAvatar size={46} />
+          <h2>Professor Lemos</h2>
+        </div>
         {message.lines.map((line) => (
           <p key={line}>{line}</p>
         ))}
@@ -61,7 +65,10 @@ export function TutorCard({
 
   return (
     <section className="tutor-card" aria-label="Professor Lemos">
-      <h2>Professor Lemos</h2>
+      <div className="tutor-heading">
+        <LemosAvatar size={46} />
+        <h2>Professor Lemos</h2>
+      </div>
       {message.lines.map((line) => (
         <p key={line}>{line}</p>
       ))}

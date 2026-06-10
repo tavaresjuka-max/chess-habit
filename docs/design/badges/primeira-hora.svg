@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Medalha Primeira Hora">
+  <path d="M46 96 L60 104 L74 96 L74 114 L60 107 L46 114 Z" fill="#2c5446"/>
+  <circle cx="60" cy="56" r="44" fill="#d6c48b"/>
+  <circle cx="60" cy="56" r="38" fill="#f5f3ec"/>
+  <circle cx="60" cy="56" r="34" fill="none" stroke="#d6c48b" stroke-width="2"/>
+  <!-- Ampulheta -->
+  <path d="M44 32 H76 V38 C76 46 68 50 64 54 C68 58 76 62 76 70 V76 H44 V70 C44 62 52 58 56 54 C52 50 44 46 44 38 Z"
+        fill="none" stroke="#1f3f36" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- Areia inferior com peão -->
+  <path d="M50 74 C54 66 66 66 70 74 Z" fill="#d6c48b"/>
+  <circle cx="60" cy="64" r="3.2" fill="#1f3f36"/>
+  <path d="M57 72 L63 72 L61.6 66.5 L58.4 66.5 Z" fill="#1f3f36"/>
+</svg>

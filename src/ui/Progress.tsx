@@ -11,6 +11,7 @@ import {
 } from '../domain';
 import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
 import type { DiplomaAttempt } from '../domain/method/types';
+import { DiplomaSeal } from './art/DiplomaSeal';
 
 type ProgressProps = {
   today: string;
@@ -118,16 +119,19 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, weaknesses, 
             const passedSections = progress?.sections.filter((section) => section.passed).length ?? 0;
 
             return (
-              <li key={diploma.id}>
-                <div className="skill-map-row">
-                  <span className="skill-map-theme">{diploma.title}</span>
-                  <span className="skill-map-score">
-                    {progress?.overallPassed === true
-                      ? 'Conquistado'
-                      : `${String(passedSections)}/${String(diploma.sections.length)} seções`}
-                  </span>
+              <li key={diploma.id} className="diploma-row">
+                <DiplomaSeal diplomaId={diploma.id} achieved={progress?.overallPassed === true} size={46} />
+                <div className="diploma-row-text">
+                  <div className="skill-map-row">
+                    <span className="skill-map-theme">{diploma.title}</span>
+                    <span className="skill-map-score">
+                      {progress?.overallPassed === true
+                        ? 'Conquistado'
+                        : `${String(passedSections)}/${String(diploma.sections.length)} seções`}
+                    </span>
+                  </div>
+                  <p className="config-hint">{diploma.description}</p>
                 </div>
-                <p className="config-hint">{diploma.description}</p>
               </li>
             );
           })}

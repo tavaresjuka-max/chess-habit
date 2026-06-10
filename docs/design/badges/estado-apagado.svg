@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Medalha não conquistada (referência de estado)">
+  <!-- Estado neutro: usado apenas como referência da spec; a UI não mostra
+       badges bloqueados (regra anti-ansiedade). -->
+  <path d="M46 96 L60 104 L74 96 L74 114 L60 107 L46 114 Z" fill="#aab3ac"/>
+  <circle cx="60" cy="56" r="44" fill="#c2c8c2"/>
+  <circle cx="60" cy="56" r="38" fill="#eceee9"/>
+  <circle cx="60" cy="56" r="34" fill="none" stroke="#c2c8c2" stroke-width="2"/>
+  <circle cx="60" cy="56" r="14" fill="none" stroke="#9aa39c" stroke-width="4" stroke-dasharray="5 5"/>
+</svg>

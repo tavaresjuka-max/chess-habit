@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Medalha Tratador de Pendências">
+  <path d="M46 96 L60 104 L74 96 L74 114 L60 107 L46 114 Z" fill="#2c5446"/>
+  <circle cx="60" cy="56" r="44" fill="#d6c48b"/>
+  <circle cx="60" cy="56" r="38" fill="#f5f3ec"/>
+  <circle cx="60" cy="56" r="34" fill="none" stroke="#d6c48b" stroke-width="2"/>
+  <!-- Casa de tabuleiro -->
+  <rect x="44" y="50" width="32" height="26" rx="4" fill="#1f3f36"/>
+  <!-- Cadeado abrindo (arco solto) -->
+  <path d="M48 50 V42 C48 33 60 33 60 42" fill="none" stroke="#1f3f36" stroke-width="5" stroke-linecap="round"/>
+  <!-- Marca de resolvido -->
+  <path d="M51 62 L58 69 L70 56" fill="none" stroke="#f5f3ec" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
