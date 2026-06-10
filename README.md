@@ -3,7 +3,7 @@
 Status: ferramenta pessoal funcional (P0-P3 concluídas + Método Professor Lemos implementado).
 P4 (sync) e P5 (versão-comunidade) congeladas por decisão do dono.
 
-Lichess Tutor é uma PWA gratuita, local-first e open-source (AGPL-3.0 planejada) que ajuda o
+Lichess Tutor é uma PWA gratuita, local-first e open-source (AGPL-3.0) que ajuda o
 aluno a treinar melhor usando o Lichess. O app não substitui o Lichess nem cria outro tabuleiro:
 ele diagnostica fraquezas a partir do histórico real (Chess.com/Lichess), monta o plano do dia,
 abre o treino certo no Lichess, registra progresso e adapta as próximas sessões.
@@ -46,3 +46,12 @@ substituído antes de qualquer comunicação pública (P5), por causa da feature
 - `chessking-tutor` / `chessking-assets`: app pago anterior e seus materiais. **Nada** de lá
   entra aqui (clean-room).
 - `lichess-tutor`: este projeto, aberto, gratuito e Lichess-first.
+
+## Licença
+
+Copyright (C) 2026 Juka Tavarez.
+
+Este programa é software livre sob a [GNU Affero General Public License v3.0](LICENSE)
+(AGPL-3.0). Você pode redistribuí-lo e/ou modificá-lo nos termos da licença; se oferecer o
+app modificado como serviço pela rede, a cláusula 13 exige disponibilizar o código-fonte
+correspondente aos usuários. Sem garantia; veja a LICENSE para os termos completos.
