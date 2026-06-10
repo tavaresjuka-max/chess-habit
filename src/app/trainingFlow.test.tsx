@@ -407,6 +407,8 @@ describe('training flow', () => {
   });
 
   it('uses Conferir puzzles to update dashboard/replay signals and pending training blocks', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-06-08T10:00:00.000-03:00'));
     await clearAll();
     await saveProfile({ ...profile, defaultSessionMinutes: 30 });
     const fetchMock = vi.fn<typeof fetch>((input) => {
