@@ -33,10 +33,13 @@ import { revokeLichessOAuthToken } from '../infra/lichess/oauth';
 import { createDailyStudy } from '../infra/lichess/study';
 import {
   clearAll,
+  clearAutoBackupConfig,
   clearLichessOAuthToken,
   exportAllAsJson,
   importBackupFromJson,
+  loadAutoBackupConfig,
   loadBackupMeta,
+  saveAutoBackupConfig,
   appendSignals,
   type BackupImportResult,
   getLatestPlanBefore,
@@ -62,6 +65,13 @@ import {
   saveTrainingLog,
   updatePendingItemStatus,
 } from '../infra/storage/appData';
+import {
+  isAutoBackupSupported,
+  pickAutoBackupFile,
+  writeAutoBackup,
+  type AutoBackupStatus,
+  type FileSystemFileHandleLike,
+} from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import { requestPersistentStorage, type StoragePersistenceStatus } from '../infra/storage/persistence';
 import { getTodayDate } from './date';
@@ -103,6 +113,10 @@ export type AppState = {
   readonly errorMessage: string | undefined;
   readonly storagePersistence: StoragePersistenceStatus | undefined;
   readonly backupMeta: BackupMetaRecord | undefined;
+  readonly autoBackupStatus: AutoBackupStatus;
+  readonly autoBackupFileName: string | undefined;
+  readonly enableAutoBackup: () => Promise<void>;
+  readonly disableAutoBackup: () => Promise<void>;
   readonly setActiveView: (view: AppView) => void;
   readonly saveProfile: (profile: LearnerProfile) => Promise<void>;
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
@@ -148,6 +162,10 @@ export function useAppState(): AppState {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [storagePersistence, setStoragePersistence] = useState<StoragePersistenceStatus | undefined>(undefined);
   const [backupMeta, setBackupMeta] = useState<BackupMetaRecord | undefined>(undefined);
+  const [autoBackupStatus, setAutoBackupStatus] = useState<AutoBackupStatus>(
+    isAutoBackupSupported() ? 'disabled' : 'unsupported',
+  );
+  const [autoBackupFileName, setAutoBackupFileName] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let isMounted = true;
@@ -160,6 +178,33 @@ export function useAppState(): AppState {
         if (isMounted) {
           setStoragePersistence(persistenceStatus);
           setBackupMeta(storedBackupMeta);
+        }
+
+        // Backup automatico: grava na abertura do app, somente com dados presentes
+        // (nunca sobrescreve o arquivo bom do usuario com um estado vazio).
+        const autoBackupConfig = await loadAutoBackupConfig();
+
+        if (isMounted && autoBackupConfig?.enabled === true) {
+          setAutoBackupFileName(autoBackupConfig.fileName);
+
+          const handle = autoBackupConfig.handle as FileSystemFileHandleLike | undefined;
+          const hasData = (await loadProfile()) !== undefined;
+
+          if (handle === undefined) {
+            setAutoBackupStatus('needs-permission');
+          } else if (!hasData) {
+            setAutoBackupStatus('enabled');
+          } else {
+            const written = await writeAutoBackup(handle, await exportAllAsJson());
+
+            setAutoBackupStatus(
+              written === 'written' ? 'enabled' : written === 'needs-permission' ? 'needs-permission' : 'error',
+            );
+
+            if (written === 'written') {
+              setBackupMeta(await loadBackupMeta());
+            }
+          }
         }
 
         const completion = await completeLichessOAuthIfNeeded();
@@ -870,9 +915,45 @@ export function useAppState(): AppState {
     [updateBlockStatusWithTrainingLog],
   );
 
+  const enableAutoBackup = useCallback(async () => {
+    const handle = await pickAutoBackupFile();
+
+    if (handle === undefined) {
+      // Sem suporte ou usuario cancelou: status honesto, sem fingir sucesso.
+      setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
+      return;
+    }
+
+    const written = await writeAutoBackup(handle, await exportAllAsJson(), {
+      allowPermissionRequest: true,
+    });
+
+    if (written !== 'written') {
+      setAutoBackupStatus('error');
+      return;
+    }
+
+    await saveAutoBackupConfig({
+      enabled: true,
+      ...(handle.name === undefined ? {} : { fileName: handle.name }),
+      handle,
+    });
+    setAutoBackupFileName(handle.name);
+    setAutoBackupStatus('enabled');
+    setBackupMeta(await loadBackupMeta());
+  }, []);
+
+  const disableAutoBackup = useCallback(async () => {
+    await clearAutoBackupConfig();
+    setAutoBackupFileName(undefined);
+    setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
+  }, []);
+
   const clearAllData = useCallback(async () => {
     await clearAll();
     setBackupMeta(undefined);
+    setAutoBackupFileName(undefined);
+    setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
     setProfile(undefined);
     setTodayPlan(undefined);
     setSessionMinutes(15);
@@ -920,6 +1001,10 @@ export function useAppState(): AppState {
     errorMessage,
     storagePersistence,
     backupMeta,
+    autoBackupStatus,
+    autoBackupFileName,
+    enableAutoBackup,
+    disableAutoBackup,
     setActiveView,
     saveProfile,
     regeneratePlan,

@@ -70,6 +70,10 @@ export function App() {
           lichessMessage={appState.lichessMessage}
           storagePersistence={appState.storagePersistence}
           backupMeta={appState.backupMeta}
+          autoBackupStatus={appState.autoBackupStatus}
+          autoBackupFileName={appState.autoBackupFileName}
+          onEnableAutoBackup={appState.enableAutoBackup}
+          onDisableAutoBackup={appState.disableAutoBackup}
           onSave={appState.saveProfile}
           onConnectLichess={appState.connectLichess}
           onDisconnectLichess={appState.disconnectLichess}

@@ -50,6 +50,16 @@ export type BackupMetaRecord = {
   recordCount: number;
 };
 
+export type AutoBackupConfigRecord = {
+  id: 'config';
+  enabled: boolean;
+  fileName?: string;
+  // FileSystemFileHandle e clonavel por structured clone em browsers reais;
+  // fica tipado como unknown para o dominio nao depender da API do browser.
+  handle?: unknown;
+  updatedAt: string;
+};
+
 export class TutorDatabase extends Dexie {
   profile!: Table<ProfileRecord, string>;
   plans!: Table<PlanRecord, string>;
@@ -63,6 +73,7 @@ export class TutorDatabase extends Dexie {
   pendingItems!: Table<PendingItemRecord, string>;
   diplomaAttempts!: Table<DiplomaAttemptRecord, string>;
   backupMeta!: Table<BackupMetaRecord, string>;
+  autoBackup!: Table<AutoBackupConfigRecord, string>;
 
   constructor(name = storageDatabaseName) {
     super(name);
@@ -92,6 +103,10 @@ export class TutorDatabase extends Dexie {
 
     this.version(5).stores({
       backupMeta: 'id',
+    });
+
+    this.version(6).stores({
+      autoBackup: 'id',
     });
   }
 }

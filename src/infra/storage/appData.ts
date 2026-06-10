@@ -13,6 +13,7 @@ import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
 import { countBackupRecords, createBackupFile, parseBackupFile, type BackupData } from './backup';
 import {
   db,
+  type AutoBackupConfigRecord,
   type BackupMetaRecord,
   type DiplomaAttemptRecord,
   type LearningLogRecord,
@@ -226,6 +227,24 @@ export async function loadBackupMeta(): Promise<BackupMetaRecord | undefined> {
   return db.backupMeta.get('last-export');
 }
 
+export async function loadAutoBackupConfig(): Promise<AutoBackupConfigRecord | undefined> {
+  return db.autoBackup.get('config');
+}
+
+export async function saveAutoBackupConfig(
+  config: Omit<AutoBackupConfigRecord, 'id' | 'updatedAt'>,
+): Promise<void> {
+  await db.autoBackup.put({
+    ...config,
+    id: 'config',
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export async function clearAutoBackupConfig(): Promise<void> {
+  await db.autoBackup.delete('config');
+}
+
 export type BackupImportResult =
   | { ok: true; recordCount: number; exportedAt: string }
   | { ok: false; error: string };
@@ -294,6 +313,7 @@ export async function clearAll(): Promise<void> {
       db.pendingItems,
       db.diplomaAttempts,
       db.backupMeta,
+      db.autoBackup,
     ],
     async () => {
       await db.profile.clear();
@@ -308,6 +328,9 @@ export async function clearAll(): Promise<void> {
       await db.pendingItems.clear();
       await db.diplomaAttempts.clear();
       await db.backupMeta.clear();
+      // Apagar tudo desliga o backup automatico: sem isso, a proxima abertura
+      // gravaria um backup vazio por cima do arquivo bom do usuario.
+      await db.autoBackup.clear();
     },
   );
 }

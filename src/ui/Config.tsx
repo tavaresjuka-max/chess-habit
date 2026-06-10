@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
 import type { BackupImportResult } from '../infra/storage/appData';
 import type { LearnerBand, LearnerProfile, LichessOAuthToken, SessionMinutes } from '../domain';
+import { describeAutoBackupStatus, type AutoBackupStatus } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
 
@@ -14,6 +15,10 @@ type ConfigProps = {
   lichessMessage: string | undefined;
   storagePersistence: StoragePersistenceStatus | undefined;
   backupMeta: BackupMetaRecord | undefined;
+  autoBackupStatus: AutoBackupStatus;
+  autoBackupFileName: string | undefined;
+  onEnableAutoBackup: () => Promise<void>;
+  onDisableAutoBackup: () => Promise<void>;
   onSave: (profile: LearnerProfile) => Promise<void>;
   onConnectLichess: () => Promise<void>;
   onDisconnectLichess: () => Promise<void>;
@@ -32,6 +37,10 @@ export function Config({
   lichessMessage,
   storagePersistence,
   backupMeta,
+  autoBackupStatus,
+  autoBackupFileName,
+  onEnableAutoBackup,
+  onDisableAutoBackup,
   onSave,
   onConnectLichess,
   onDisconnectLichess,
@@ -224,6 +233,27 @@ export function Config({
           <p aria-live="polite">{describePersistenceStatus(storagePersistence)}</p>
         ) : null}
         <p>{formatBackupMeta(backupMeta)}</p>
+        <p aria-live="polite">{describeAutoBackupStatus(autoBackupStatus, autoBackupFileName)}</p>
+        {autoBackupStatus !== 'unsupported' ? (
+          <div className="button-row">
+            {autoBackupStatus === 'disabled' ? (
+              <button type="button" className="secondary-button" onClick={() => void onEnableAutoBackup()}>
+                Ativar backup automático
+              </button>
+            ) : (
+              <>
+                {autoBackupStatus !== 'enabled' ? (
+                  <button type="button" className="secondary-button" onClick={() => void onEnableAutoBackup()}>
+                    Reativar backup automático
+                  </button>
+                ) : null}
+                <button type="button" className="secondary-button" onClick={() => void onDisableAutoBackup()}>
+                  Desligar backup automático
+                </button>
+              </>
+            )}
+          </div>
+        ) : null}
 
         <input
           ref={restoreInputRef}
