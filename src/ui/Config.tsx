@@ -1,7 +1,8 @@
 import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
+import type { BackupImportResult } from '../infra/storage/appData';
 import type { LearnerBand, LearnerProfile, LichessOAuthToken, SessionMinutes } from '../domain';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
@@ -18,6 +19,7 @@ type ConfigProps = {
   onDisconnectLichess: () => Promise<void>;
   onImportKnownManualSignals: () => Promise<number>;
   onExport: () => Promise<string>;
+  onImportBackup: (json: string) => Promise<BackupImportResult>;
   onClear: () => Promise<void>;
 };
 
@@ -35,8 +37,10 @@ export function Config({
   onDisconnectLichess,
   onImportKnownManualSignals,
   onExport,
+  onImportBackup,
   onClear,
 }: ConfigProps) {
+  const restoreInputRef = useRef<HTMLInputElement>(null);
   const initialProfile = profile ?? createDefaultProfile();
   const [lichessUsername, setLichessUsername] = useState(initialProfile.lichessUsername ?? 'jukasparov');
   const [chesscomUsername, setChesscomUsername] = useState(initialProfile.chesscomUsername ?? 'jukatavares');
@@ -68,6 +72,28 @@ export function Config({
     link.click();
     URL.revokeObjectURL(url);
     toast.success('Backup exportado.');
+  }
+
+  async function handleRestoreFile(file: File) {
+    const confirmed = window.confirm(
+      'Restaurar este backup SUBSTITUI os dados atuais (perfil, planos, logs, pendências, diplomas). Continuar?',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const result = await onImportBackup(await file.text());
+
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+
+    toast.success(`Backup de ${new Date(result.exportedAt).toLocaleString('pt-BR')} restaurado (${String(result.recordCount)} registros). Recarregando…`);
+    window.setTimeout(() => {
+      window.location.reload();
+    }, 1200);
   }
 
   async function handleImportKnownManualSignals() {
@@ -199,9 +225,34 @@ export function Config({
         ) : null}
         <p>{formatBackupMeta(backupMeta)}</p>
 
+        <input
+          ref={restoreInputRef}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          aria-label="Selecionar arquivo de backup para restaurar"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+
+            event.target.value = '';
+
+            if (file !== undefined) {
+              void handleRestoreFile(file);
+            }
+          }}
+        />
         <div className="button-row">
           <button type="button" className="secondary-button" onClick={() => void handleExport()}>
             Exportar backup JSON
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => {
+              restoreInputRef.current?.click();
+            }}
+          >
+            Restaurar backup
           </button>
           <button type="button" className="secondary-button" onClick={() => void handleImportKnownManualSignals()}>
             Adicionar sinais manuais

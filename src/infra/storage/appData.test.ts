@@ -13,6 +13,7 @@ import {
   getLichessStudyLink,
   getPlan,
   getTrainingLog,
+  importBackupFromJson,
   loadBackupMeta,
   loadLichessOAuthToken,
   loadDiplomaAttempts,
@@ -304,6 +305,53 @@ describe('appData storage', () => {
 
     await expect(loadLichessOAuthToken('2026-06-08T00:00:00.000Z')).resolves.toBeUndefined();
     await expect(loadLichessOAuthToken('2026-06-06T12:00:00.000Z')).resolves.toBeUndefined();
+  });
+
+  it('restores an exported backup after data loss (roundtrip)', async () => {
+    await saveProfile(profile);
+    await savePlan(generatePlan(profile, [], 15, '2026-06-06'));
+    await saveMethodTrack(methodTrack);
+    await savePendingItem(createPendingItem());
+    await saveDiplomaAttempt(diplomaAttempt);
+
+    const exported = await exportAllAsJson('2026-06-10T12:00:00.000Z');
+
+    await clearAll();
+    await expect(loadProfile()).resolves.toBeUndefined();
+
+    const result = await importBackupFromJson(exported);
+
+    expect(result).toMatchObject({ ok: true, exportedAt: '2026-06-10T12:00:00.000Z' });
+    await expect(loadProfile()).resolves.toEqual(profile);
+    await expect(getPlan('2026-06-06')).resolves.toBeDefined();
+    await expect(loadMethodTracks()).resolves.toEqual([methodTrack]);
+    await expect(loadOpenPendingItems()).resolves.toHaveLength(1);
+    await expect(loadDiplomaAttempts()).resolves.toEqual([diplomaAttempt]);
+  });
+
+  it('rejects a backup with tampered data without touching current records', async () => {
+    await saveProfile(profile);
+
+    const exported = await exportAllAsJson();
+    const tampered = exported.replace('"jukasparov"', '"intruso"');
+
+    const result = await importBackupFromJson(tampered);
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('Checksum');
+    }
+
+    await expect(loadProfile()).resolves.toEqual(profile);
+  });
+
+  it('rejects files that are not lichess-tutor backups', async () => {
+    expect((await importBackupFromJson('not json')).ok).toBe(false);
+    expect((await importBackupFromJson('{"format":"other-app","version":1}')).ok).toBe(false);
+    expect(
+      (await importBackupFromJson('{"format":"lichess-tutor-backup","version":99,"exportedAt":"x","checksum":"y","data":{}}')).ok,
+    ).toBe(false);
   });
 
   it('stores Lichess study links outside backup export', async () => {

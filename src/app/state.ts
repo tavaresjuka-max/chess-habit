@@ -35,8 +35,10 @@ import {
   clearAll,
   clearLichessOAuthToken,
   exportAllAsJson,
+  importBackupFromJson,
   loadBackupMeta,
   appendSignals,
+  type BackupImportResult,
   getLatestPlanBefore,
   getLichessStudyLink,
   getPlan,
@@ -122,6 +124,7 @@ export type AppState = {
   readonly completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   readonly skipBlockTraining: (blockId: string) => Promise<void>;
   readonly exportBackup: () => Promise<string>;
+  readonly importBackup: (json: string) => Promise<BackupImportResult>;
   readonly clearAllData: () => Promise<void>;
 };
 
@@ -945,6 +948,7 @@ export function useAppState(): AppState {
 
       return json;
     },
+    importBackup: importBackupFromJson,
     clearAllData,
   };
 }

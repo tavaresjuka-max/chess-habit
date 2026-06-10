@@ -59,10 +59,16 @@ function fnv1a(text: string): string {
   return hash.toString(16).padStart(8, '0');
 }
 
-export async function computeBackupChecksum(serializedData: string): Promise<string> {
-  const subtle = getSubtleCrypto();
+export type BackupChecksumAlgorithm = 'sha256' | 'fnv1a';
 
-  if (subtle === undefined) {
+export async function computeBackupChecksum(
+  serializedData: string,
+  algorithm?: BackupChecksumAlgorithm,
+): Promise<string> {
+  const subtle = getSubtleCrypto();
+  const chosen = algorithm ?? (subtle === undefined ? 'fnv1a' : 'sha256');
+
+  if (chosen === 'fnv1a' || subtle === undefined) {
     return `fnv1a:${fnv1a(serializedData)}`;
   }
 
@@ -84,4 +90,69 @@ export async function createBackupFile(data: BackupData, exportedAt: string): Pr
 
 export function countBackupRecords(data: BackupData): number {
   return backupTableNames.reduce((total, table) => total + data[table].length, 0);
+}
+
+export type ParsedBackup = { ok: true; file: BackupFile } | { ok: false; error: string };
+
+export async function parseBackupFile(json: string): Promise<ParsedBackup> {
+  let raw: unknown;
+
+  try {
+    raw = JSON.parse(json);
+  } catch {
+    return { ok: false, error: 'O arquivo não é um JSON válido.' };
+  }
+
+  if (typeof raw !== 'object' || raw === null) {
+    return { ok: false, error: 'O arquivo não tem a estrutura de um backup.' };
+  }
+
+  const candidate = raw as Record<string, unknown>;
+
+  if (candidate.format !== backupFormatName) {
+    return { ok: false, error: 'O arquivo não é um backup do lichess-tutor.' };
+  }
+
+  if (candidate.version !== backupFormatVersion) {
+    return {
+      ok: false,
+      error: `Versão de backup não suportada: ${String(candidate.version)}. Esta versão do app lê backups v${String(backupFormatVersion)}.`,
+    };
+  }
+
+  if (typeof candidate.exportedAt !== 'string' || typeof candidate.checksum !== 'string') {
+    return { ok: false, error: 'O backup não tem data de exportação ou checksum.' };
+  }
+
+  const data: unknown = candidate.data;
+
+  if (typeof data !== 'object' || data === null) {
+    return { ok: false, error: 'O backup não contém dados.' };
+  }
+
+  const dataRecord = data as Record<string, unknown>;
+
+  for (const table of backupTableNames) {
+    if (!Array.isArray(dataRecord[table])) {
+      return { ok: false, error: `O backup está incompleto: tabela "${table}" ausente ou inválida.` };
+    }
+  }
+
+  const algorithm: BackupChecksumAlgorithm = candidate.checksum.startsWith('fnv1a:') ? 'fnv1a' : 'sha256';
+  const recomputed = await computeBackupChecksum(JSON.stringify(data), algorithm);
+
+  if (recomputed !== candidate.checksum) {
+    return { ok: false, error: 'Checksum não confere: o arquivo pode estar corrompido ou alterado.' };
+  }
+
+  return {
+    ok: true,
+    file: {
+      format: backupFormatName,
+      version: backupFormatVersion,
+      exportedAt: candidate.exportedAt,
+      checksum: candidate.checksum,
+      data: data as BackupData,
+    },
+  };
 }

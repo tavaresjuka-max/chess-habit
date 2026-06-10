@@ -10,11 +10,16 @@ import type {
 } from '../../domain';
 import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
-import { countBackupRecords, createBackupFile, type BackupData } from './backup';
+import { countBackupRecords, createBackupFile, parseBackupFile, type BackupData } from './backup';
 import {
   db,
   type BackupMetaRecord,
+  type DiplomaAttemptRecord,
+  type LearningLogRecord,
   type LichessOAuthTokenRecord,
+  type MethodTrackRecord,
+  type PendingItemRecord,
+  type PlanRecord,
   type ProfileRecord,
   type SignalRecord,
   type WeaknessRecord,
@@ -219,6 +224,58 @@ export async function exportAllAsJson(nowIso = new Date().toISOString()): Promis
 
 export async function loadBackupMeta(): Promise<BackupMetaRecord | undefined> {
   return db.backupMeta.get('last-export');
+}
+
+export type BackupImportResult =
+  | { ok: true; recordCount: number; exportedAt: string }
+  | { ok: false; error: string };
+
+export async function importBackupFromJson(json: string): Promise<BackupImportResult> {
+  const parsed = await parseBackupFile(json);
+
+  if (!parsed.ok) {
+    return parsed;
+  }
+
+  const { data } = parsed.file;
+
+  await db.transaction(
+    'rw',
+    [
+      db.profile,
+      db.plans,
+      db.logs,
+      db.signals,
+      db.weaknesses,
+      db.methodTracks,
+      db.pendingItems,
+      db.diplomaAttempts,
+    ],
+    async () => {
+      await db.profile.clear();
+      await db.profile.bulkPut(data.profile as ProfileRecord[]);
+      await db.plans.clear();
+      await db.plans.bulkPut(data.plans as PlanRecord[]);
+      await db.logs.clear();
+      await db.logs.bulkPut(data.logs as LearningLogRecord[]);
+      await db.signals.clear();
+      await db.signals.bulkPut(data.signals as SignalRecord[]);
+      await db.weaknesses.clear();
+      await db.weaknesses.bulkPut(data.weaknesses as WeaknessRecord[]);
+      await db.methodTracks.clear();
+      await db.methodTracks.bulkPut(data.methodTracks as MethodTrackRecord[]);
+      await db.pendingItems.clear();
+      await db.pendingItems.bulkPut(data.pendingItems as PendingItemRecord[]);
+      await db.diplomaAttempts.clear();
+      await db.diplomaAttempts.bulkPut(data.diplomaAttempts as DiplomaAttemptRecord[]);
+    },
+  );
+
+  return {
+    ok: true,
+    recordCount: countBackupRecords(data),
+    exportedAt: parsed.file.exportedAt,
+  };
 }
 
 export async function clearAll(): Promise<void> {

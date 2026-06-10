@@ -75,6 +75,7 @@ export function App() {
           onDisconnectLichess={appState.disconnectLichess}
           onImportKnownManualSignals={appState.importKnownManualSignals}
           onExport={appState.exportBackup}
+          onImportBackup={appState.importBackup}
           onClear={appState.clearAllData}
         />
       ) : (

@@ -5,6 +5,7 @@ import {
   computeBackupChecksum,
   countBackupRecords,
   createBackupFile,
+  parseBackupFile,
   type BackupData,
 } from './backup';
 
@@ -45,6 +46,32 @@ describe('backup file format', () => {
     const data = JSON.stringify({ ...createEmptyData(), signals: [{ id: 's1' }] });
 
     expect(await computeBackupChecksum(data)).toBe(await computeBackupChecksum(data));
+  });
+
+  it('round-trips through parseBackupFile', async () => {
+    const file = await createBackupFile({ ...createEmptyData(), logs: [{ id: 'l1' }] }, '2026-06-10T12:00:00.000Z');
+    const parsed = await parseBackupFile(JSON.stringify(file));
+
+    expect(parsed.ok).toBe(true);
+
+    if (parsed.ok) {
+      expect(parsed.file.data.logs).toEqual([{ id: 'l1' }]);
+    }
+  });
+
+  it('rejects a backup missing a table', async () => {
+    const file = await createBackupFile(createEmptyData(), '2026-06-10T12:00:00.000Z');
+    const broken = JSON.parse(JSON.stringify(file)) as { data: Record<string, unknown> };
+
+    delete broken.data.pendingItems;
+
+    const parsed = await parseBackupFile(JSON.stringify(broken));
+
+    expect(parsed.ok).toBe(false);
+
+    if (!parsed.ok) {
+      expect(parsed.error).toContain('pendingItems');
+    }
   });
 
   it('counts records across every table', () => {
