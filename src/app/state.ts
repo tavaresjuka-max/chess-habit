@@ -83,6 +83,7 @@ import { toDiagnosisErrorMessage, toErrorMessage, toLichessErrorMessage } from '
 import { openExternalUrl } from './externalOpen';
 import { completeLichessOAuthIfNeeded, startLichessOAuthConnection } from './oauthFlow';
 import {
+  importFreeActivity as importFreeActivityFlow,
   mergeTrainingLogs,
   reconcileLogIfPossible,
   reconcileLichessPuzzleDiagnostics,
@@ -133,6 +134,7 @@ export type AppState = {
   readonly disconnectLichess: () => Promise<void>;
   readonly syncLichessDiagnosis: () => Promise<void>;
   readonly reconcileLichessResults: () => Promise<void>;
+  readonly importFreeActivity: () => Promise<void>;
   readonly createLichessStudy: () => Promise<void>;
   readonly approveLearningPlan: () => Promise<void>;
   readonly requestLearningPlanRevision: (note: string) => Promise<void>;
@@ -659,6 +661,45 @@ export function useAppState(): AppState {
     }
   }, [allTrainingLogs, pendingItems, profile, todayPlan, trainingLogs, weaknesses]);
 
+  const importFreeActivity = useCallback(async () => {
+    const token = await loadLichessOAuthToken();
+
+    if (token === undefined) {
+      setLichessConnectionState('error');
+      setLichessMessage('Conecte o Lichess para importar sua atividade livre.');
+      return;
+    }
+
+    setLichessConnectionState('syncing');
+    setLichessMessage('Buscando sua atividade livre no Lichess.');
+
+    try {
+      const outcome = await importFreeActivityFlow({
+        token: token.accessToken,
+        existingLogs: allTrainingLogs,
+        today: getTodayDate(),
+      });
+
+      if (outcome.log !== undefined) {
+        await saveTrainingLog(outcome.log);
+
+        const importedLog = outcome.log;
+
+        setAllTrainingLogs((current) => upsertTrainingLog(current, importedLog));
+
+        if (importedLog.date === getTodayDate()) {
+          setTrainingLogs((current) => upsertTrainingLog(current, importedLog));
+        }
+      }
+
+      setLichessConnectionState('connected');
+      setLichessMessage(outcome.message);
+    } catch (error) {
+      setLichessConnectionState('error');
+      setLichessMessage(toLichessErrorMessage(error));
+    }
+  }, [allTrainingLogs]);
+
   const createLichessStudy = useCallback(async () => {
     if (todayPlan === undefined) {
       return;
@@ -1035,6 +1076,7 @@ export function useAppState(): AppState {
     disconnectLichess,
     syncLichessDiagnosis,
     reconcileLichessResults,
+    importFreeActivity,
     createLichessStudy,
     approveLearningPlan,
     requestLearningPlanRevision,

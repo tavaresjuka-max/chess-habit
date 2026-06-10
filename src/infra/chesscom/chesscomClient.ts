@@ -47,7 +47,7 @@ export async function importChesscomSignals(username: string, options: ImportChe
   const archives = await fetchJson<ChesscomArchivesResponse>(archivesUrl(normalizedUsername), fetcher);
   const signals: Signal[] = [...extractSignalsFromChesscomStats(stats, observedAt)];
 
-  for (const archiveUrl of archives.archives ?? []) {
+  for (const archiveUrl of filterRecentArchives(archives.archives ?? [], observedAt)) {
     const cachedSignals = await loadCachedSignals(options.cache, normalizedUsername, archiveUrl, observedAt);
 
     if (cachedSignals !== undefined) {
@@ -63,6 +63,32 @@ export async function importChesscomSignals(username: string, options: ImportChe
   }
 
   return signals;
+}
+
+// Bound de recencia exigido por AGENTS.md (achado Codex 2026-06-10): o
+// diagnostico le no maximo os ultimos meses de arquivos, nunca o historico todo.
+const recencyBoundMonths = 3;
+
+export function filterRecentArchives(archiveUrls: string[], nowIso: string, months = recencyBoundMonths): string[] {
+  const now = new Date(nowIso);
+
+  if (Number.isNaN(now.getTime())) {
+    return archiveUrls;
+  }
+
+  const cutoffIndex = now.getUTCFullYear() * 12 + now.getUTCMonth() - (months - 1);
+
+  return archiveUrls.filter((url) => {
+    const match = /\/games\/(\d{4})\/(\d{2})$/.exec(url);
+    const year = match?.[1];
+    const month = match?.[2];
+
+    if (year === undefined || month === undefined) {
+      return false;
+    }
+
+    return Number(year) * 12 + (Number(month) - 1) >= cutoffIndex;
+  });
 }
 
 async function fetchJson<T>(url: string, fetcher: typeof fetch): Promise<T> {

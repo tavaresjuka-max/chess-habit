@@ -35,7 +35,9 @@ export function buildEfficacyBaseline(input: {
   const puzzleAttempts = skillMap.reduce((sum, entry) => sum + entry.attempts, 0);
   const puzzleWins = skillMap.reduce((sum, entry) => sum + entry.wins, 0);
 
-  const finishedLogs = input.allLogs.filter((log) => log.status === 'done' || log.status === 'skipped');
+  const finishedLogs = input.allLogs.filter(
+    (log) => (log.status === 'done' || log.status === 'skipped') && log.plannedSeconds > 0,
+  );
   const doneLogs = finishedLogs.filter((log) => log.status === 'done');
 
   const trainingDays = [...new Set(doneLogs.map((log) => dayIndex(log.date)))].sort(

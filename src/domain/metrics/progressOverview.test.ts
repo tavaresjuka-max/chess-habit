@@ -22,7 +22,7 @@ function createLog(date: string, overrides?: Partial<TrainingLog>): TrainingLog 
 }
 
 describe('buildSkillMap', () => {
-  it('aggregates accuracy per theme from reconciled theme stats', () => {
+  it('uses only the latest dashboard snapshot to avoid double counting', () => {
     const logs = [
       createLog('2026-06-09', {
         result: {
@@ -66,8 +66,43 @@ describe('buildSkillMap', () => {
 
     const skillMap = buildSkillMap(logs);
 
-    expect(skillMap[0]).toEqual({ theme: 'fork', attempts: 16, wins: 13, accuracyPercent: 81 });
-    expect(skillMap[1]).toEqual({ theme: 'pin', attempts: 8, wins: 5, accuracyPercent: 63 });
+    expect(skillMap).toEqual([{ theme: 'fork', attempts: 4, wins: 4, accuracyPercent: 100 }]);
+  });
+
+  it('aggregates real puzzle activity when no dashboard snapshot exists', () => {
+    const logs = [
+      createLog('2026-06-09', {
+        result: {
+          source: 'lichess',
+          kind: 'puzzle-activity',
+          fetchedAt: '2026-06-09T10:10:00.000Z',
+          since: '2026-06-09T10:00:00.000Z',
+          until: '2026-06-09T10:10:00.000Z',
+          puzzles: 12,
+          wins: 9,
+          losses: 3,
+          themes: ['fork'],
+          themeStats: [{ theme: 'fork', attempts: 12, losses: 3 }],
+        },
+      }),
+      createLog('2026-06-10', {
+        blockId: 'b2',
+        result: {
+          source: 'lichess',
+          kind: 'puzzle-activity',
+          fetchedAt: '2026-06-10T10:10:00.000Z',
+          since: '2026-06-10T10:00:00.000Z',
+          until: '2026-06-10T10:10:00.000Z',
+          puzzles: 4,
+          wins: 4,
+          losses: 0,
+          themes: ['fork'],
+          themeStats: [{ theme: 'fork', attempts: 4, losses: 0 }],
+        },
+      }),
+    ];
+
+    expect(buildSkillMap(logs)).toEqual([{ theme: 'fork', attempts: 16, wins: 13, accuracyPercent: 81 }]);
   });
 
   it('returns empty without reconciled data', () => {

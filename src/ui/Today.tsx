@@ -51,6 +51,7 @@ type TodayProps = {
   onSessionMinutesChange: (minutes: SessionMinutes) => Promise<void>;
   onCreateNextSession: (minutes: SessionMinutes) => Promise<void>;
   onAnswerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
+  onImportFreeActivity: () => Promise<void>;
   onSyncChesscomDiagnosis: () => Promise<void>;
   onSyncLichessDiagnosis: () => Promise<void>;
   onReconcileLichessResults: () => Promise<void>;
@@ -84,6 +85,7 @@ export function Today({
   onSessionMinutesChange,
   onCreateNextSession,
   onAnswerTutorQuestion,
+  onImportFreeActivity,
   onSyncChesscomDiagnosis,
   onSyncLichessDiagnosis,
   onReconcileLichessResults,
@@ -316,7 +318,21 @@ export function Today({
           >
             Fazer próxima sessão
           </button>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={lichessConnectionState === 'syncing'}
+            onClick={() => {
+              void onImportFreeActivity();
+            }}
+          >
+            <ExternalLink aria-hidden="true" size={16} />
+            Importar atividade livre
+          </button>
         </div>
+        <p className="config-hint">
+          Treinou puzzles por conta própria no Lichess? Importe e ganhe crédito no seu histórico.
+        </p>
       </section>
 
       <RoadmapList items={roadmap} />

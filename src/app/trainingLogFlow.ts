@@ -1,4 +1,5 @@
 import {
+  createId,
   reconcileTrainingLogResult,
   type TrainingLog,
   type TrainingResult,
@@ -126,6 +127,90 @@ export async function reconcileLichessPuzzleDiagnostics(
   const replayLog = await createReplayLogIfPossible(token, dashboardResult, fetchedAt);
 
   return replayLog === undefined ? [...reconciledLogs, dashboardLog] : [...reconciledLogs, dashboardLog, replayLog];
+}
+
+// Importacao de atividade livre (Corte 6, item 10 da visao do dono): puzzles
+// feitos por conta propria no Lichess viram credito honesto no historico.
+// Regras explicitas (caveats DeepSeek): janela de 48h ou desde a ultima
+// importacao; puzzles dentro de janelas de blocos planejados NAO contam de
+// novo; nenhum tempo de treino e inventado (plannedSeconds/elapsedSeconds 0).
+export const freeActivityBlockId = 'atividade-livre';
+
+const freeActivityWindowMs = 48 * 60 * 60 * 1000;
+
+export type FreeActivityImportOutcome = { log?: TrainingLog; message: string };
+
+export async function importFreeActivity(input: {
+  token: string;
+  existingLogs: TrainingLog[];
+  today: string;
+  nowIso?: string;
+  fetcher?: typeof fetch;
+}): Promise<FreeActivityImportOutcome> {
+  const now = input.nowIso ?? new Date().toISOString();
+  const defaultSince = new Date(Date.parse(now) - freeActivityWindowMs).toISOString();
+  const lastImportUntil = input.existingLogs
+    .filter((log) => log.blockId === freeActivityBlockId)
+    .map((log) => log.result?.until)
+    .filter((until): until is string => until !== undefined)
+    .sort()
+    .at(-1);
+  const since = lastImportUntil !== undefined && lastImportUntil > defaultSince ? lastImportUntil : defaultSince;
+
+  const activities = await fetchPuzzleActivity({
+    token: input.token,
+    since,
+    until: now,
+    max: 200,
+    ...(input.fetcher === undefined ? {} : { fetcher: input.fetcher }),
+  });
+
+  const blockWindows = input.existingLogs
+    .filter((log) => log.blockId !== freeActivityBlockId && log.plannedSeconds > 0)
+    .map((log) => ({
+      start: Date.parse(log.startedAt),
+      end: Date.parse(log.completedAt ?? log.updatedAt),
+    }))
+    .filter((window) => !Number.isNaN(window.start) && !Number.isNaN(window.end));
+
+  const freeActivities = activities.filter(
+    (activity) => !blockWindows.some((window) => activity.date >= window.start && activity.date <= window.end),
+  );
+
+  if (freeActivities.length === 0) {
+    return {
+      message: 'Nenhum puzzle novo fora dos treinos planejados desde a última importação.',
+    };
+  }
+
+  const result = summarizePuzzleActivity({
+    activities: freeActivities,
+    fetchedAt: now,
+    since,
+    until: now,
+  });
+
+  const log: TrainingLog = {
+    id: `${input.today}:${freeActivityBlockId}-${createId()}`,
+    date: input.today,
+    blockId: freeActivityBlockId,
+    blockTitle: 'Atividade livre (puzzles)',
+    source: 'lichess',
+    destinationLabel: 'Puzzles Lichess (atividade livre)',
+    plannedSeconds: 0,
+    startedAt: since,
+    completedAt: now,
+    elapsedSeconds: 0,
+    timeLimitReached: false,
+    status: 'done',
+    result,
+    updatedAt: now,
+  };
+
+  return {
+    log,
+    message: `Atividade livre importada: ${String(result.wins)} certos e ${String(result.losses)} errados em ${String(result.puzzles)} puzzles feitos por conta própria.`,
+  };
 }
 
 export function mergeTrainingLogs(currentLogs: TrainingLog[], nextLogs: TrainingLog[]): TrainingLog[] {

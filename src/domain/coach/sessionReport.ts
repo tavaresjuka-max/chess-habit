@@ -24,7 +24,11 @@ function dayIndex(date: string): number {
 
 export function buildWeeklyDigest(allLogs: TrainingLog[], today: string, days = 7): WeeklyDigest | undefined {
   const cutoff = dayIndex(today) - (days - 1);
-  const recentDone = allLogs.filter((log) => log.status === 'done' && dayIndex(log.date) >= cutoff);
+  const recentDone = allLogs.filter(
+    // plannedSeconds > 0 = sessao real; logs diagnosticos (dashboard/replay)
+    // agregam 30 dias e distorceriam a semana.
+    (log) => log.status === 'done' && log.plannedSeconds > 0 && dayIndex(log.date) >= cutoff,
+  );
 
   if (recentDone.length === 0) {
     return undefined;
@@ -32,7 +36,11 @@ export function buildWeeklyDigest(allLogs: TrainingLog[], today: string, days = 
 
   const sessionDays = new Set(recentDone.map((log) => log.date)).size;
   const elapsedSeconds = recentDone.reduce((sum, log) => sum + (log.elapsedSeconds ?? 0), 0);
-  const puzzleTotals = recentDone.reduce(
+  const recentActivityResults = allLogs.filter(
+    (log) =>
+      log.status === 'done' && dayIndex(log.date) >= cutoff && log.result?.kind === 'puzzle-activity',
+  );
+  const puzzleTotals = recentActivityResults.reduce(
     (acc, log) => {
       if (log.result === undefined) {
         return acc;

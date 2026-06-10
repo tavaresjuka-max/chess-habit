@@ -39,15 +39,34 @@ function dayIndex(date: string): number {
 export function buildSkillMap(allLogs: TrainingLog[]): SkillMapEntry[] {
   const byTheme = new Map<string, { attempts: number; wins: number }>();
 
-  for (const log of allLogs) {
-    const stats = log.result && 'themeStats' in log.result ? log.result.themeStats : undefined;
+  // O dashboard de 30 dias e a fonte mais completa e ja cobre os puzzles dos
+  // blocos no periodo; usar dashboard + atividade somaria o mesmo puzzle duas
+  // vezes. Regra: dashboard mais recente quando existir, senao atividade real.
+  const latestDashboard = allLogs
+    .map((log) => log.result)
+    .filter(
+      (result): result is Extract<NonNullable<TrainingLog['result']>, { kind: 'puzzle-dashboard' }> =>
+        result?.kind === 'puzzle-dashboard',
+    )
+    .sort((left, right) => right.fetchedAt.localeCompare(left.fetchedAt))[0];
 
-    for (const stat of stats ?? []) {
-      const entry = byTheme.get(stat.theme) ?? { attempts: 0, wins: 0 };
+  if (latestDashboard !== undefined) {
+    for (const stat of latestDashboard.themeStats) {
+      byTheme.set(stat.theme, { attempts: stat.attempts, wins: stat.attempts - stat.losses });
+    }
+  } else {
+    for (const log of allLogs) {
+      if (log.result?.kind !== 'puzzle-activity') {
+        continue;
+      }
 
-      entry.attempts += stat.attempts;
-      entry.wins += stat.attempts - stat.losses;
-      byTheme.set(stat.theme, entry);
+      for (const stat of log.result.themeStats ?? []) {
+        const entry = byTheme.get(stat.theme) ?? { attempts: 0, wins: 0 };
+
+        entry.attempts += stat.attempts;
+        entry.wins += stat.attempts - stat.losses;
+        byTheme.set(stat.theme, entry);
+      }
     }
   }
 
@@ -66,7 +85,7 @@ export function buildTrackEffort(allLogs: TrainingLog[]): TrackEffortEntry[] {
   const byTrack = new Map<string, { minutes: number; blocks: number }>();
 
   for (const log of allLogs) {
-    if (log.status !== 'done') {
+    if (log.status !== 'done' || log.plannedSeconds <= 0) {
       continue;
     }
 
@@ -90,7 +109,7 @@ export function buildTrackEffort(allLogs: TrainingLog[]): TrackEffortEntry[] {
 
 export function buildProgressTrend(allLogs: TrainingLog[], today: string): ProgressTrend | undefined {
   const todayIdx = dayIndex(today);
-  const doneLogs = allLogs.filter((log) => log.status === 'done');
+  const doneLogs = allLogs.filter((log) => log.status === 'done' && log.plannedSeconds > 0);
 
   const minutesIn = (fromIdx: number, toIdx: number): number =>
     Math.round(
