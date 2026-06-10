@@ -10,6 +10,21 @@ em 41 arquivos; `npm run build` PWA OK. Working tree limpa no commit `efd8e51`.
 
 ---
 
+### Atualização 2026-06-10 — Decisões confirmadas pelo dono após leitura do relatório
+
+| Questão | Decisão | Status |
+|---------|---------|--------|
+| C-1: teto do curso | **0→2200, faixa 2200+ = autonomia.** "3000" era número informal. | FECHADO |
+| C-2: meta escondida | **Marcos elásticos da literatura** (100h / 500h / 1.000h+) com metas semanais/mensais visíveis. Usar Charness et al. (2005) e Campitelli & Gobet (2011) como base, não "30 mil horas". | FECHADO |
+| C-3: gamificação | **Aprovada como incentivo positivo puro** — badges por esforço e hábito, nunca gerando ansiedade ou tristeza. Sem streak punitivo. Spec antes de implementar. | FECHADO (direção) |
+| R-1: sync multi-dispositivo | Dono quer sync futuramente. **Mitigações locais têm prioridade máxima agora** (storage.persist + export automático). P4 permanece congelada mas com **intenção explícita de descongelar** como próxima grande fase após R-1 mitigado. | R-1: FECHADO (prioridade) / P4: intenção declarada |
+
+As questões C-4..C-6, A-3..A-6 e os gaps G-1..G-11 continuam abertos para a rodada de debate.
+
+---
+
+---
+
 ## 1. Sumário executivo
 
 **A ideia é boa e o projeto está saudável — mas a visão de 2026-06-10 muda a escala do jogo.**
@@ -94,7 +109,7 @@ resiliência de dados**. A pesquisa pedagógica está à frente da implementaç�
 
 ## 5. Contradições e ambiguidades de escopo (C-1 a C-6)
 
-### C-1. Quatro tetos de curso diferentes (a contradição mais importante)
+### C-1. ~~Quatro tetos de curso diferentes~~ — **RESOLVIDO em 2026-06-10**
 - `PLANO.md`: "Foco pessoal: faixa **0-1200**".
 - `memory/project.md`: público "até cerca de **2000**".
 - `docs/pedagogy/curriculum-0-2000.md`: currículo **0-2000**.
@@ -110,7 +125,7 @@ denso 0→2200 + faixa final "2200+: autonomia" (o curso ensina o aluno a não p
 dele). Comunicar como "do zero ao jogador forte de clube" e tratar "0 ao 3000" como aspiração
 interna, não promessa. Atualizar PLANO.md e project.md para a mesma resposta.
 
-### C-2. "30 mil horas" não tem fonte e contradiz a pesquisa do próprio projeto
+### C-2. ~~"30 mil horas"~~ — **RESOLVIDO em 2026-06-10**: usar marcos elásticos da literatura (100h/500h/1.000h+)
 A literatura que o projeto já catalogou (`academic_evidence.md`: prática deliberada explica
 26-34% da variância; Gobet & Campitelli: média ~11.000h até mestre, variância 3.000-23.000h)
 não sustenta "30 mil horas". 30.000h = 8h/dia por 10 anos — irreal como meta de hobby e
@@ -120,7 +135,7 @@ milhares de horas. **Recomendação**: a "meta escondida" deve ser elástica e c
 mecânica que o dono quer (quebrar em metas semanais/mensais, celebrar "30h este mês") fica
 intacta — só o denominador muda.
 
-### C-3. Badges/medalhas vs anti-pattern "gamificação vazia"
+### C-3. ~~Badges/medalhas vs anti-pattern "gamificação vazia"~~ — **RESOLVIDO em 2026-06-10**: aprovado como incentivo positivo puro (esforço/hábito), nunca ansiedade/tristeza; spec antes de implementar
 `metodo-consolidado` lista como anti-pattern "gamificação vazia (badges/pontos sem
 aprendizado)"; `do-not-do.md` proíbe streak punitivo. A visão pede "badges e medalhas de
 conquistas". **Não é contradição real, mas precisa de spec**: a fronteira é badges por
@@ -156,9 +171,9 @@ explicitar essa separação na UI e na comunicação.
 
 ---
 
-## 6. Risco crítico subestimado
+## 6. Risco crítico — **prioridade máxima confirmada em 2026-06-10**
 
-### R-1. Anos de progresso vivem em um único IndexedDB local
+### R-1. Anos de progresso vivem em um único IndexedDB local (mitigações locais aprovadas; P4 sync como próxima grande fase)
 Um curso de milhares de horas gera anos de histórico (logs, sinais, pendências, diplomas,
 feedback). Hoje tudo isso vive **apenas** no IndexedDB de UM browser em UM dispositivo.
 Browsers podem apagar IndexedDB sob pressão de armazenamento ("best-effort storage"); limpar

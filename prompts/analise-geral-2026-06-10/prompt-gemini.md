@@ -33,22 +33,39 @@ Leia antes (nesta ordem):
 4. `docs/pedagogy/metodo-professor-lemos.md` e `docs/pedagogy/metodo-consolidado-acervo-2026-06-09.md`
 5. `PLANO.md`, `memory/state.md`, `memory/decisions.md`
 
+## Decisões já fechadas pelo dono — não reabrir nesta rodada
+
+Estas questões foram resolvidas em 2026-06-10 e estão em `memory/decisions.md`.
+Você pode questionar COMO implementar, mas não SE implementar.
+
+| # | Questão | Decisão do dono |
+|---|---------|-----------------|
+| C-1 | Teto do curso | **0→2200, faixa 2200+ = autonomia.** |
+| C-2 | Meta escondida / horas | **Marcos elásticos da literatura** (100h / 500h / 1.000h+) com metas semanais/mensais. Não usar "30 mil horas". Base: Charness et al. (2005), Campitelli & Gobet (2011). |
+| C-3 | Gamificação | **Aprovada** — mas APENAS incentivo positivo (esforço/hábito). Proibido gerar ansiedade ou tristeza. Spec detalhada antes de implementar. |
+| R-1 | Sync multi-dispositivo | **Mitigações locais primeiro** (storage.persist + export automático). P4 permanece congelada mas com intenção declarada de descongelar. |
+
 ## O que contestar (mínimo obrigatório)
 
-1. Cada achado do relatório (A-1..A-6, C-1..C-6, R-1, G-1..G-11): CONCORDO / DISCORDO /
-   INCOMPLETO, com argumento e fonte.
-2. **UX/produto (sua especialidade nesta rodada)**: a visão pede "UX parecida com Lichess e
-   Chess.com" e "sistema de recompensa incentivador" para um usuário com TDAH. O relatório
-   tratou isso em 2 parágrafos (C-3, G-6, G-9). Aprofunde: que padrões concretos de UX/
-   gamificação saudável (por esforço, sem punição, sem rating) você recomendaria? Cite
-   evidência sobre gamificação + TDAH em contexto educacional, se conhecer.
-3. **Painel de Progresso (G-5)**: proponha o desenho concreto do "mapa de habilidades"
-   (o que o aluno sabe / está aprendendo / não viu), usando apenas dados que o app já
-   persiste (sinais derivados, feedback, puzzles reconciliados, pendências, diplomas).
-4. **Placement (G-2)**: desenhe o fluxo de avaliação de entrada (questionário + histórico
-   Lichess/Chess.com + calibração) sem tabuleiro próprio e sem novos escopos OAuth.
-5. **O que o relatório NÃO viu**: lacunas, riscos, contradições.
-6. Responda às 7 perguntas abertas da seção 10 do relatório.
+1. Achados A-2..A-6, C-4..C-6, G-1..G-11: CONCORDO / DISCORDO / INCOMPLETO, com argumento
+   e fonte. (C-1, C-2, C-3 e R-1 estão fechados — veja acima. Afirmações sem fonte do
+   repositório serão descartadas na arbitragem — lembrete do erro DAMP anterior.)
+2. **UX/produto + gamificação (sua especialidade)**: A decisão C-3 aprovou badges por
+   esforço. Proponha o desenho concreto: quais conquistas, como exibir sem criar ansiedade,
+   como integrar ao ciclo TDAH do app. Cite evidência sobre gamificação saudável em contexto
+   educacional para TDAH. Como "UX parecida com Lichess/Chess.com" se traduz em padrões de
+   navegação concretos sem copiar assets?
+3. **Painel de Progresso (G-5)**: proponha o "mapa de habilidades" usando apenas dados que
+   o app já persiste (sinais, feedback, puzzles reconciliados, pendências, diplomas, horas).
+4. **Placement (G-2)**: desenhe o fluxo completo de avaliação de entrada sem tabuleiro
+   próprio e sem novos escopos OAuth. Como calibrar a banda inicial a partir de questionário +
+   histórico Chess.com/Lichess?
+5. **P4 — arquitetura para sync aditivo**: dado que P4 é intenção declarada, que decisões
+   de arquitetura tomar agora para que a migração para sync seja cirúrgica (não reescrever)?
+   O Dexie v4 atual suporta isso bem? Quais campos do schema fariam sentido como chave de
+   merge por registro?
+6. **O que o relatório NÃO viu**: lacunas, riscos, contradições.
+7. Responda às 7 perguntas abertas da seção 10 do relatório (ajustadas pelas decisões acima).
 
 ## Restrições invioláveis (qualquer proposta que as viole será rejeitada)
 
@@ -57,8 +74,9 @@ Leia antes (nesta ordem):
 - Clean-room: nada do app pago anterior; sem copiar conteúdo protegido.
 - OAuth opt-in mínimo (`puzzle:read`, `study:write`); sem escopos de jogo.
 - Grátis, open-source, sem anúncio/paywall/venda de dados. PROIBIDO prometer rating.
-- P4 (sync) e P5 (comunidade) congeladas; pode recomendar critérios de descongelamento.
-- Tom do Professor Lemos: adulto, prático, PT-BR, sem infantilizar, sem motivacional vazio.
+- P4 congelada agora mas com intenção de descongelar — propostas de COMO e QUANDO bem-vindas.
+- P5 (comunidade) congelada sem data. Tom do Professor Lemos: adulto, prático, PT-BR, sem
+  infantilizar, sem motivacional vazio.
 
 ## Formato de saída
 

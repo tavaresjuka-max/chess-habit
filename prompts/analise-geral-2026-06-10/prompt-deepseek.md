@@ -23,24 +23,35 @@ Leia antes (nesta ordem):
 4. `docs/pedagogy/metodo-professor-lemos.md` e `docs/pedagogy/metodo-consolidado-acervo-2026-06-09.md`.
 5. `PLANO.md`, `memory/state.md`, `memory/decisions.md` (estado e decisões vivas).
 
+## Decisões já fechadas pelo dono — não reabrir nesta rodada
+
+Estas questões foram resolvidas em 2026-06-10 e estão registradas em `memory/decisions.md`.
+Você pode questionar COMO implementar, mas não SE implementar.
+
+| # | Questão | Decisão do dono |
+|---|---------|-----------------|
+| C-1 | Teto do curso | **0→2200, faixa 2200+ = autonomia.** "3000" era número informal; o dono confirmou 2200 como teto teórico. |
+| C-2 | Meta escondida / horas | **Usar marcos elásticos da literatura catalogada** — não "30 mil horas". Marcos: 100h, 500h, 1.000h+ com metas semanais/mensais visíveis. Base: Charness et al. (2005), Campitelli & Gobet (2011) (`docs/research/academic_evidence.md`). |
+| C-3 | Gamificação / badges | **Aprovado** como incentivo positivo — badges por esforço e hábito, NUNCA gerando ansiedade ou tristeza. Sem streak punitivo. Spec detalhada ainda necessária. |
+| R-1 | Sync multi-dispositivo | O dono quer sync futuramente. **Mitigações locais (storage.persist + export automático) têm prioridade máxima agora.** P4 (sync/backend) permanece congelada, mas com intenção explícita de descongelar como próxima grande fase. |
+
 ## O que contestar (mínimo obrigatório)
 
-1. **Achados A-1..A-6, C-1..C-6, R-1, G-1..G-11**: para cada um, declare CONCORDO /
+1. **Achados A-2..A-6, C-4..C-6, G-1..G-11**: para cada um, declare CONCORDO /
    DISCORDO / INCOMPLETO, com argumento. Verifique afirmações factuais contra os arquivos
-   reais do repositório — não aceite nada por autoridade.
-2. **Teto do curso (C-1)**: o Claude recomenda 0→2200 + "autonomia" em vez de "0 ao 3000".
-   Ataque essa recomendação pelos dois lados: ela é covarde demais (mata a ambição do dono)?
-   Ou ainda desonesta (2200 também é inalcançável para a maioria)?
-3. **Meta escondida (C-2)**: o Claude rejeita "30 mil horas". Qual é o número certo, com
-   fontes? Como desenhar a meta escondida para um aluno com TDAH sem mentir nem desmotivar?
-4. **Priorização (seção 8)**: a ordem dos cortes está certa? O Claude colocou resiliência de
-   dados (R-1) antes de qualquer feature — isso é prudência ou paranoia? O placement (G-2)
-   ficou em 6º — o dono o citou em 2º lugar na visão. Defenda ou destrua essa inversão.
-5. **O que o relatório NÃO viu**: liste lacunas, riscos e contradições que o Claude deixou
+   reais do repositório — não aceite nada por autoridade. (C-1, C-2, C-3 e R-1 estão
+   fechados — veja a seção acima.)
+2. **Priorização (seção 8)**: a ordem dos cortes ainda faz sentido com as decisões fechadas?
+   O placement (G-2) ficou em 6º — o dono o citou em 2º na visão. Defenda ou destrua essa
+   inversão. O relatório de sessão (G-4) ficou em 2º — é isso mesmo?
+3. **O que o relatório NÃO viu**: liste lacunas, riscos e contradições que o Claude deixou
    passar. Este é o critério pelo qual seu relatório será julgado.
-6. **Pedagogia**: como especialista, o método (5 trilhas, pendências 1/3/7/14, diplomas
-   Peão/Torre/Rei, escada 0→2200, regras SE-ENTÃO) sustenta um curso COMPLETO? Onde ele
-   quebra acima de 1200?
+4. **Pedagogia**: o método (5 trilhas, pendências 1/3/7/14, diplomas Peão/Torre/Rei, escada
+   0→2200, regras SE-ENTÃO) sustenta um curso COMPLETO? Onde ele quebra acima de 1200?
+   Como spec de badges/recompensas por esforço se integra ao método sem virar ruído?
+5. **P4/sync**: dado que P4 é intenção declarada, como desenhar a arquitetura do app AGORA
+   para que sync seja aditivo depois, sem reescrever tudo? Que decisões técnicas atuais
+   dificultariam a migração?
 
 ## Restrições que nenhuma proposta sua pode violar
 
@@ -49,8 +60,8 @@ Leia antes (nesta ordem):
 - Clean-room: nada do app pago anterior (ChessKing); sem copiar conteúdo protegido.
 - OAuth opt-in mínimo (`puzzle:read`, `study:write`); sem escopos de jogo.
 - Grátis, open-source, sem anúncio/paywall/venda de dados. Sem prometer rating.
-- P4 (sync/backend) e P5 (comunidade) congeladas — propostas podem RECOMENDAR descongelar,
-  com critérios, mas não assumir que estão abertas.
+- P4 (sync/backend): congelada agora, mas intenção declarada de descongelar. Propostas de
+  COMO e QUANDO são bem-vindas. P5 (comunidade) congelada sem data.
 
 ## Formato de saída
 

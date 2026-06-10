@@ -41,10 +41,21 @@ ativo por decisão explícita do dono registrada em `memory/decisions.md`.
 - P4 (sync) e P5 (comunidade) continuam congeladas até decisão explícita do dono; a visão
   sinaliza a direção, não descongela fases.
 
-## Tensões conhecidas (a resolver na rodada de debate de 2026-06-10)
+## Decisões tomadas em 2026-06-10 (após leitura do relatório de análise)
 
-- Teto "3000" vs honestidade epistêmica do projeto (achado C-1 do relatório).
-- "30 mil horas" vs literatura (~10-25 mil horas até nível de mestre, com variância enorme).
-- Badges/medalhas vs anti-pattern documentado "gamificação vazia" (reconciliável: recompensa
-  por esforço/hábito com significado pedagógico, nunca por rating).
-- Plataforma colaborativa vs P5 congelada (sequenciamento, não contradição).
+- **Teto do curso**: 0→2200, faixa 2200+ = autonomia. "3000" era número informal.
+- **Meta escondida**: marcos elásticos (100h / 500h / 1.000h+) com metas semanais/mensais
+  visíveis. Base na literatura do projeto (Charness 2005, Campitelli & Gobet 2011), não
+  "30 mil horas".
+- **Gamificação**: aprovada como incentivo positivo (esforço/hábito) — nunca gerando
+  ansiedade ou tristeza. Sem streak punitivo. Spec detalhada antes de implementar.
+- **Sync multi-dispositivo**: intenção declarada para P4. Mitigações locais de dados
+  (storage.persist + export automático) têm prioridade máxima AGORA, antes de qualquer
+  feature nova. P4 permanece congelada mas é a próxima grande fase.
+
+## Tensões ainda abertas (para rodada de debate)
+
+- C-4: visão de plataforma colaborativa vs P4/P5 congeladas (sequenciamento sem data).
+- C-5: tom "adulto" vs microcopy "adequado a iniciante" — harmonizar como "simples ≠ infantil".
+- C-6: bandas de rating para ORGANIZAR conteúdo vs metas do aluno (devem ser separadas na UI).
+- G-1..G-11: gaps entre visão e estado atual — ver relatório de análise.

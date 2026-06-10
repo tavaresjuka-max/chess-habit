@@ -380,6 +380,21 @@ A análise do lote de downloads (Conjunto A) e da Onda 3 (Conjunto B) introduziu
 2. **Milestones baseados em Diplomas**: Em vez de depender de rating para medir avanço, adota-se a estrutura brasileira de Tirado & Silva (1999) baseada em 3 marcos claros de avaliação teórica: **Diploma do Peão** (0-600), **Diploma da Torre** (600-1000) e **Diploma do Rei** (1000-1200), que servem como travas didáticas no gerador de planos para consolidar as bandas de aprendizagem de forma estruturada.
 3. **Restrição de Motores (Engines)**: Conforme Zorić (2025), engines como Fritz/Stockfish devem ser tratados puramente como ferramentas de apoio e preparação do instrutor (ou do gerador interno do app), sendo desencorajados como parceiros ou juízes diretos de treino do estudante, priorizando o Lichess Study interativo.
 
+## 2026-06-10: Decisoes Pos-Analise Geral (confirmadas pelo dono)
+
+1. **Teto do curso: 0→2200, faixa 2200+ = autonomia.** "3000" era numero informal; o curso
+   ensina ate o aluno nao precisar mais do app. Atualizar PLANO.md e project.md para alinhar.
+2. **Meta escondida: marcos elasticos da literatura, nao numero fixo.** Marcos: 100h, 500h,
+   1.000h+ com metas semanais/mensais visiveis. Base: Charness et al. (2005) e Campitelli &
+   Gobet (2011) — "30 mil horas" descartado.
+3. **Gamificacao aprovada como incentivo positivo puro.** Badges por esforco e habito (horas,
+   puzzles, constancia), nunca por rating, nunca gerando ansiedade ou tristeza, sem streak
+   punitivo. Spec detalhada obrigatoria antes de implementar qualquer badge.
+4. **Sync multi-dispositivo e intencao declarada para P4.** As mitigacoes locais de dados
+   (storage.persist + export automatico) tem prioridade maxima — devem entrar antes de
+   qualquer feature nova da visao. P4 permanece congelada mas e a proxima grande fase apos
+   R-1 mitigado. Schema Dexie deve considerar merge-key por registro desde ja.
+
 ## 2026-06-10: Visao Do Dono Registrada E Rodada De Debate Da Analise Geral
 
 O dono declarou a visao de longo prazo (curso completo 0->topo, placement por questionario +
