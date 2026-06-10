@@ -1,6 +1,7 @@
 # Estado Atual
 
-Data: 2026-06-10 (atualizado apos conclusao do Metodo Professor Lemos e registro da visao do dono).
+Data: 2026-06-10 (atualizado apos arbitragem da rodada de debate, decisoes da rodada 2 do dono
+e conclusao dos Cortes 0 e 1 do plano consolidado).
 
 ## Status
 
@@ -54,7 +55,20 @@ Data: 2026-06-10 (atualizado apos conclusao do Metodo Professor Lemos e registro
   remanescentes explicitas.
 - Análise dos PDFs Baixados + ONDA 3 (Gemini) concluída em 2026-06-10: 67 arquivos analisados e catalogados. O relatório provou cientificamente a importância da autorreflexão de erros locais ($r=0.29$) e da verbalização ($r=0.18$), propôs a inserção de marcos de progresso baseados em "Diplomas" (Peão, Torre, Rei) de Tirado & Silva (1999), e introduziu o drill de "Tratamento de Pendências" (Christofoletti 2007) para re-resolver puzzles falhados. Detalhes em [analise-pdfs-baixados-onda3-GEMINI.md](docs/research/analise-pdfs-baixados-onda3-GEMINI.md).
 - Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
-- Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
+- Specs vigentes: `docs/superpowers/specs/2026-06-08-professor-lemos-tutor-design.md` (tutor) e
+  `docs/superpowers/specs/2026-06-10-metodo-5-trilhas-design.md` (metodo 5 trilhas, as-built).
+- Roadmap vigente: plano de cortes 0-8 aprovado pelo dono em 2026-06-10
+  (`docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md`, secao 4) + trilha
+  paralela de validacao de eficacia (revisao ~2026-07-08).
+- **Corte 0 (Higiene) CONCLUIDO em 2026-06-10**: nota stale corrigida, spec as-built do metodo,
+  adendo ADR-006, LICENSE AGPL-3.0 (Juka Tavarez), PLANO/VISAO alinhados a "0->autonomia".
+- **Corte 1 (Data Safety v1) CONCLUIDO em 2026-06-10**: storage.persist() com status honesto na
+  Config; export versionado v1 com checksum sha256 + backupMeta visivel; restore validado
+  (formato/versao/checksum/shape, transacional, com confirm destrutivo); backup automatico
+  opt-in via File System Access com fallback honesto e protecao contra sobrescrever backup bom
+  com base vazia; schema Dexie v7 sync-ready (updatedAt universal em signals/weaknesses, soft
+  delete com purga de 90 dias, fim dos replaces destrutivos, ids UUID em signals/pendencias).
+  Gate verde: lint OK, 273 testes em 44 arquivos OK, build PWA OK.
 
 ## Decisoes Vigentes
 
@@ -88,10 +102,12 @@ Data: 2026-06-10 (atualizado apos conclusao do Metodo Professor Lemos e registro
 - Visao de longo prazo do dono registrada em 2026-06-10 em `docs/VISAO.md` (curso completo,
   placement por questionario+historico, recompensa por esforco, importacao de atividade livre,
   painel de progresso amplo, treinador que analisa sessao e explica a proxima).
-- Rodada de debate aberta em 2026-06-10: relatorio profundo do Claude em
-  `docs/review/relatorio-claude-analise-geral-2026-06-10.md`; prompts de contestacao para
-  DeepSeek/Gemini/Codex em `prompts/analise-geral-2026-06-10/`. Implementacao do que sair do
-  debate so depois da contra-argumentacao e arbitragem.
+- Rodada de debate CONCLUIDA em 2026-06-10: contestacoes de Codex (9.0), Gemini (7.5) e
+  DeepSeek (7.0) arbitradas em
+  `docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md`. Dono aprovou o plano
+  consolidado de cortes 0-8 e respondeu todas as perguntas da rodada 2 (ver
+  `memory/decisions.md`, "Decisoes da Rodada 2"). Execucao autonoma autorizada; Cortes 0 e 1
+  concluidos no mesmo dia. Proximo: Corte 2 (Spine 0-2200, 7 bandas).
 
 P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08;
 Professor Lemos Etapa 1, Etapa 2A e Etapa 2B foram fechadas em 2026-06-08. A curadoria profunda de
