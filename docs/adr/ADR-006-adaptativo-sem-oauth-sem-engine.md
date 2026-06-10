@@ -4,6 +4,17 @@
 
 Aceito (2026-06-06). Revisado em 2026-06-06 apos decisao do dono: "vamos usar oauth sim".
 
+## Adendo (2026-06-10) — nome do arquivo vs conteudo
+
+O nome do arquivo (`ADR-006-adaptativo-sem-oauth-sem-engine.md`) reflete a decisao ORIGINAL
+(sem OAuth), anterior a revisao do mesmo dia que liberou OAuth opt-in minimo. Por convencao,
+ADRs sao imutaveis: o arquivo NAO sera renomeado (decisao do dono em 2026-06-10, item A-4,
+apos arbitragem — adendo em vez de renomeacao, conforme pratica apontada pelo DeepSeek).
+O titulo interno acima e o conteudo da Decisao sao a fonte de verdade: OAuth PKCE opt-in com
+escopos minimos (`study:write`, `puzzle:read`) e permitido; engine e escopos de jogo seguem
+proibidos. Referencias futuras devem citar "ADR-006" pelo titulo interno, nao pelo nome do
+arquivo.
+
 ## Contexto
 
 O dono quer um plano adaptado as suas fraquezas reais. As opcoes de analise vao de sinais baratos
