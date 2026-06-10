@@ -6,7 +6,7 @@ import { getTimeBudget } from './timeBudget';
 
 const baseProfile: LearnerProfile = {
   lichessUsername: 'jukasparov',
-  band: '800-1200',
+  band: '800-1000',
   defaultSessionMinutes: 15,
   goals: ['estudar com consistencia'],
   updatedAt: '2026-06-06T00:00:00.000Z',
@@ -119,7 +119,7 @@ describe('generatePlan', () => {
   });
 
   it('uses hanging pieces as the fixed P0 theme for the 0-800 band', () => {
-    const profile: LearnerProfile = { ...baseProfile, band: '0-800' };
+    const profile: LearnerProfile = { ...baseProfile, band: '400-800' };
     const plan = generatePlan(profile, [], 5, '2026-06-06');
 
     expect(plan.blocks[0]?.title).toContain('peças penduradas');

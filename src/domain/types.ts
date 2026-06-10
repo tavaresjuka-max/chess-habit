@@ -56,7 +56,14 @@ export type Weakness = {
   evidence: string;
 };
 
-export type LearnerBand = '0-800' | '800-1200';
+export type LearnerBand =
+  | '0-400'
+  | '400-800'
+  | '800-1000'
+  | '1000-1200'
+  | '1200-1600'
+  | '1600-2000'
+  | '2000-2200';
 
 export type SessionMinutes = 5 | 15 | 30 | 60;
 

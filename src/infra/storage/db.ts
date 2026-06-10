@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import { migrateLegacyBand } from '../../domain/bands';
 import type {
   DailyPlan,
   LearnerProfile,
@@ -136,6 +137,19 @@ export class TutorDatabase extends Dexie {
             record.updatedAt ??= now;
           });
       });
+
+    // Spine 0-2200 (Corte 2): perfis com bandas antigas ('0-800'/'800-1200')
+    // migram para a banda equivalente do novo spine; placement (Corte 3) refina.
+    this.version(8).upgrade(async (transaction) => {
+      await transaction
+        .table('profile')
+        .toCollection()
+        .modify((record: { band?: string }) => {
+          if (typeof record.band === 'string') {
+            record.band = migrateLegacyBand(record.band);
+          }
+        });
+    });
   }
 }
 

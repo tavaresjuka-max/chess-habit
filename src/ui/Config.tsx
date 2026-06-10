@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
 import type { BackupImportResult } from '../infra/storage/appData';
-import type { LearnerBand, LearnerProfile, LichessOAuthToken, SessionMinutes } from '../domain';
+import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthToken, type SessionMinutes } from '../domain';
 import { describeAutoBackupStatus, type AutoBackupStatus } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
@@ -165,8 +165,11 @@ export function Config({
                 setBand(event.target.value as LearnerBand);
               }}
             >
-              <option value="0-800">0-800</option>
-              <option value="800-1200">800-1200</option>
+              {learnerBands.map((bandOption) => (
+                <option key={bandOption} value={bandOption}>
+                  {bandOption}
+                </option>
+              ))}
             </select>
           </label>
 

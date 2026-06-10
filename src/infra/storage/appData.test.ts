@@ -59,7 +59,7 @@ type ExportPayload = {
 const profile: LearnerProfile = {
   lichessUsername: 'jukasparov',
   chesscomUsername: 'jukatavares',
-  band: '800-1200',
+  band: '800-1000',
   defaultSessionMinutes: 15,
   goals: ['rotina curta'],
   updatedAt: '2026-06-06T00:00:00.000Z',

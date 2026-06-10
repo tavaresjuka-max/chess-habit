@@ -1,3 +1,8 @@
+import {
+  beginnerBands as spineBeginnerBands,
+  improvingAndUpBands,
+  learnerBands,
+} from '../bands';
 import type { Destination, LearnerBand, LichessOAuthScope, WeaknessTag } from '../types';
 
 export type LichessResourceKind =
@@ -94,9 +99,9 @@ type ResourceInput = {
 };
 
 const defaultVerifiedAt = '2026-06-08';
-const allBands = ['0-800', '800-1200'] as const;
-const beginnerBands = ['0-800'] as const;
-const improvingBands = ['800-1200'] as const;
+const allBands = learnerBands;
+const beginnerBands = spineBeginnerBands;
+const improvingBands = improvingAndUpBands;
 
 export const lichessPracticeStudies = [
   practiceStudy({

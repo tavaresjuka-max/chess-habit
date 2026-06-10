@@ -1042,7 +1042,7 @@ export function createDefaultProfile(): LearnerProfile {
   return {
     lichessUsername: 'jukasparov',
     chesscomUsername: 'jukatavares',
-    band: '800-1200',
+    band: '800-1000',
     defaultSessionMinutes: 15,
     goals: ['Criar uma rotina consistente de treino'],
     updatedAt: new Date().toISOString(),

@@ -9,7 +9,7 @@ beforeEach(async () => {
   await clearAll();
   await saveProfile({
     lichessUsername: 'jukasparov',
-    band: '800-1200',
+    band: '800-1000',
     defaultSessionMinutes: 5,
     goals: [],
     updatedAt: '2026-06-06T00:00:00.000Z',

@@ -7,7 +7,7 @@ describe('selectLichessResource', () => {
       selectLichessResource({
         weaknessTag: 'fork',
         resourceStage: 'guided',
-        learnerBand: '800-1200',
+        learnerBand: '800-1000',
         blockMinutes: 10,
       }),
     ).toMatchObject({
@@ -21,7 +21,7 @@ describe('selectLichessResource', () => {
       selectLichessResource({
         weaknessTag: 'fork',
         resourceStage: 'guided',
-        learnerBand: '800-1200',
+        learnerBand: '800-1000',
         blockMinutes: 5,
       }),
     ).toMatchObject({
@@ -36,7 +36,7 @@ describe('selectLichessResource', () => {
       selectLichessResource({
         weaknessTag: 'pin',
         resourceStage: 'explain',
-        learnerBand: '800-1200',
+        learnerBand: '800-1000',
         blockMinutes: 10,
       }),
     ).toMatchObject({
@@ -50,13 +50,13 @@ describe('selectLichessResource', () => {
     const withoutStats = selectLichessResource({
       weaknessTag: 'fork',
       resourceStage: 'review',
-      learnerBand: '800-1200',
+      learnerBand: '800-1000',
       blockMinutes: 5,
     });
     const withStats = selectLichessResource({
       weaknessTag: 'fork',
       resourceStage: 'review',
-      learnerBand: '800-1200',
+      learnerBand: '800-1000',
       blockMinutes: 5,
       recentThemeStats: {
         since: '2026-06-01T00:00:00.000Z',
@@ -80,7 +80,7 @@ describe('selectLichessResource', () => {
       selectLichessResource({
         weaknessTag: 'fork',
         resourceStage: 'explain',
-        learnerBand: '800-1200',
+        learnerBand: '800-1000',
         blockMinutes: 10,
         completedResourceIds: ['video:fork'],
       }),
@@ -95,7 +95,7 @@ describe('selectLichessResource', () => {
       selectLichessResource({
         weaknessTag: 'fork',
         resourceStage: 'transfer',
-        learnerBand: '800-1200',
+        learnerBand: '800-1000',
         blockMinutes: 20,
       }).kind,
     ).not.toBe('community-study');
@@ -105,7 +105,7 @@ describe('selectLichessResource', () => {
     const conversion = selectLichessResource({
       weaknessTag: 'conversion',
       resourceStage: 'retrieval',
-      learnerBand: '800-1200',
+      learnerBand: '800-1000',
       blockMinutes: 10,
     });
 

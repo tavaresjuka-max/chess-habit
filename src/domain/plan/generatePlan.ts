@@ -43,9 +43,16 @@ type LatestThemeSignal = {
   source: 'feedback' | 'prior-guided';
 };
 
+// Tema padrao por banda quando nao ha sinal real. Bandas acima de 1200 usam
+// padroes provisorios ate o curriculo denso do Corte 8.
 const primaryThemeByBand = {
-  '0-800': 'hanging-piece',
-  '800-1200': 'fork',
+  '0-400': 'hanging-piece',
+  '400-800': 'hanging-piece',
+  '800-1000': 'fork',
+  '1000-1200': 'fork',
+  '1200-1600': 'mate-in-2',
+  '1600-2000': 'conversion',
+  '2000-2200': 'conversion',
 } satisfies Record<LearnerProfile['band'], WeaknessTag>;
 
 export function generatePlan(

@@ -7,7 +7,7 @@ import { buildLearningPlanProposal } from './learningPlanProposal';
 const profile: LearnerProfile = {
   lichessUsername: 'jukasparov',
   chesscomUsername: 'jukatavares',
-  band: '800-1200',
+  band: '800-1000',
   defaultSessionMinutes: 30,
   goals: ['estudar com consistencia'],
   updatedAt: '2026-06-09T00:00:00.000Z',

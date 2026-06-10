@@ -1,3 +1,4 @@
+import { improvingAndUpBands, learnerBands } from '../bands';
 import type { LearnerBand, PlanResourceStage, WeaknessTag } from '../types';
 
 export type CatalogSkillNode = {
@@ -13,7 +14,7 @@ export type CatalogSkillNode = {
   avoidWhen?: readonly string[];
 };
 
-const allBands = ['0-800', '800-1200'] as const;
+const allBands = learnerBands;
 const allStages = ['explain', 'guided', 'retrieval', 'transfer', 'review'] as const;
 const shortAndMedium = [5, 10, 15] as const;
 const mediumAndLong = [10, 15, 20, 30, 60] as const;
@@ -187,7 +188,7 @@ export const catalogSkillNodes = [
     weaknessTag: 'endgame-rook',
     title: 'Finais de torre: atividade',
     themeSlugs: ['rookEndgame', 'queenRookEndgame', 'endgame'],
-    bands: ['800-1200'],
+    bands: improvingAndUpBands,
     stageFit: ['guided', 'retrieval', 'review', 'transfer'],
     timeFits: mediumAndLong,
     resourceIds: [
