@@ -82,6 +82,8 @@ export function App() {
           sessionMinutes={appState.sessionMinutes}
           trainingLogs={appState.trainingLogs}
           allTrainingLogs={appState.allTrainingLogs}
+          pendingItems={appState.pendingItems}
+          diplomaAttempts={appState.diplomaAttempts}
           weaknesses={appState.weaknesses}
           diagnosisState={appState.diagnosisState}
           diagnosisMessage={appState.diagnosisMessage}
@@ -97,6 +99,9 @@ export function App() {
           onCreateLichessStudy={appState.createLichessStudy}
           onApproveLearningPlan={appState.approveLearningPlan}
           onRequestLearningPlanRevision={appState.requestLearningPlanRevision}
+          onOpenPendingItem={appState.openPendingItem}
+          onDeferPendingItem={appState.deferPendingItem}
+          onSavePendingFromHardFeedback={appState.savePendingFromHardFeedback}
           onStartBlockTraining={appState.startBlockTraining}
           onCompleteBlockTraining={appState.completeBlockTraining}
           onSkipBlockTraining={appState.skipBlockTraining}

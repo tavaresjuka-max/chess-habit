@@ -19,12 +19,14 @@ import {
   type LichessStudyLink,
   type PlanBlock,
   type PlanBlockFeedback,
+  type PuzzleThemeStats,
   type SessionMinutes,
   type TrainingLog,
   type TrainingRoadmapItem,
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
+import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
 import { importLichessSignals } from '../infra/lichess/games';
 import { revokeLichessOAuthToken } from '../infra/lichess/oauth';
@@ -38,8 +40,10 @@ import {
   getLichessStudyLink,
   getPlan,
   getTrainingLog,
+  loadDiplomaAttempts,
   loadChesscomMonthCache,
   loadLichessOAuthToken,
+  loadOpenPendingItems,
   loadProfile,
   loadSignals,
   loadTrainingLogs,
@@ -48,10 +52,12 @@ import {
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
+  savePendingItem,
   saveLichessStudyLink,
   savePlan,
   saveProfile as saveStoredProfile,
   saveTrainingLog,
+  updatePendingItemStatus,
 } from '../infra/storage/appData';
 import { getTodayDate } from './date';
 import { toDiagnosisErrorMessage, toErrorMessage, toLichessErrorMessage } from './errorMessages';
@@ -61,6 +67,7 @@ import {
   mergeTrainingLogs,
   reconcileLogIfPossible,
   reconcileLichessPuzzleDiagnostics,
+  suggestPendingFromHardFeedback,
   upsertTrainingLog,
 } from './trainingLogFlow';
 
@@ -83,6 +90,8 @@ export type AppState = {
   readonly sessionMinutes: SessionMinutes;
   readonly trainingLogs: TrainingLog[];
   readonly allTrainingLogs: TrainingLog[];
+  readonly pendingItems: PendingTrainingItem[];
+  readonly diplomaAttempts: DiplomaAttempt[];
   readonly weaknesses: Weakness[];
   readonly diagnosisState: DiagnosisState;
   readonly diagnosisMessage: string | undefined;
@@ -101,6 +110,9 @@ export type AppState = {
   readonly createLichessStudy: () => Promise<void>;
   readonly approveLearningPlan: () => Promise<void>;
   readonly requestLearningPlanRevision: (note: string) => Promise<void>;
+  readonly openPendingItem: (item: PendingTrainingItem) => Promise<void>;
+  readonly deferPendingItem: (item: PendingTrainingItem) => Promise<void>;
+  readonly savePendingFromHardFeedback: (blockId: string) => Promise<void>;
   readonly startBlockTraining: (block: PlanBlock) => Promise<void>;
   readonly completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   readonly skipBlockTraining: (blockId: string) => Promise<void>;
@@ -116,6 +128,8 @@ export function useAppState(): AppState {
   const [sessionMinutes, setSessionMinutes] = useState<SessionMinutes>(15);
   const [trainingLogs, setTrainingLogs] = useState<TrainingLog[]>([]);
   const [allTrainingLogs, setAllTrainingLogs] = useState<TrainingLog[]>([]);
+  const [pendingItems, setPendingItems] = useState<PendingTrainingItem[]>([]);
+  const [diplomaAttempts, setDiplomaAttempts] = useState<DiplomaAttempt[]>([]);
   const [weaknesses, setWeaknesses] = useState<Weakness[]>([]);
   const [diagnosisState, setDiagnosisState] = useState<DiagnosisState>('idle');
   const [diagnosisMessage, setDiagnosisMessage] = useState<string | undefined>(undefined);
@@ -165,6 +179,9 @@ export function useAppState(): AppState {
         const storedAllTrainingLogs = await loadTrainingLogs();
         const storedTrainingLogs = await loadTrainingLogsForDate(date);
         const storedStudyLink = await getLichessStudyLink(date);
+        const storedPendingItems = await loadOpenPendingItems();
+        const storedDiplomaAttempts = await loadDiplomaAttempts();
+        const recentThemeStats = buildPuzzleThemeStats(storedTrainingLogs);
         const normalizedStoredPlan =
           storedPlan === undefined ? undefined : normalizePlanDestinations(storedPlan);
         const normalizedPreviousPlan =
@@ -174,13 +191,17 @@ export function useAppState(): AppState {
           normalizedStoredPlan === undefined
             ? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date, {
                 previousPlan: normalizedPreviousPlan,
-                recentThemeStats: buildPuzzleThemeStats(storedTrainingLogs),
+                recentThemeStats,
                 openedBlockIds,
+                openPendingItems: storedPendingItems,
+                weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
               })
             : generatePlan(storedProfile, storedWeaknesses, toSessionMinutes(normalizedStoredPlan.sessionMinutes, storedProfile.defaultSessionMinutes), date, {
                 previousPlan: combinePlanHistory(normalizedStoredPlan, normalizedPreviousPlan),
-                recentThemeStats: buildPuzzleThemeStats(storedTrainingLogs),
+                recentThemeStats,
                 openedBlockIds,
+                openPendingItems: storedPendingItems,
+                weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
               });
 
         if (storedPlan === undefined || plan !== storedPlan) {
@@ -191,6 +212,8 @@ export function useAppState(): AppState {
         setSessionMinutes(toSessionMinutes(plan.sessionMinutes, storedProfile.defaultSessionMinutes));
         setTrainingLogs(storedTrainingLogs);
         setAllTrainingLogs(storedAllTrainingLogs);
+        setPendingItems(storedPendingItems);
+        setDiplomaAttempts(storedDiplomaAttempts);
         setWeaknesses(storedWeaknesses);
         setLichessStudyLink(storedStudyLink);
         setTodayPlan(plan);
@@ -214,10 +237,13 @@ export function useAppState(): AppState {
 
   const saveProfile = useCallback(async (nextProfile: LearnerProfile) => {
     const date = getTodayDate();
+    const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
     const plan = generatePlan(nextProfile, weaknesses, nextProfile.defaultSessionMinutes, date, {
       previousPlan: todayPlan,
-      recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+      recentThemeStats,
       openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+      openPendingItems: pendingItems,
+      weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
     });
 
     await saveStoredProfile(nextProfile);
@@ -230,7 +256,7 @@ export function useAppState(): AppState {
     setErrorMessage(undefined);
     setTrainingLogs(await loadTrainingLogsForDate(date));
     setAllTrainingLogs(await loadTrainingLogs());
-  }, [todayPlan, trainingLogs, weaknesses]);
+  }, [pendingItems, todayPlan, trainingLogs, weaknesses]);
 
   const regeneratePlan = useCallback(
     async (minutes: SessionMinutes) => {
@@ -239,10 +265,13 @@ export function useAppState(): AppState {
         return;
       }
 
+      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const plan = generatePlan(profile, weaknesses, minutes, getTodayDate(), {
         previousPlan: todayPlan,
-        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        recentThemeStats,
         openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+        openPendingItems: pendingItems,
+        weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
       });
 
       await savePlan(plan);
@@ -250,7 +279,7 @@ export function useAppState(): AppState {
       setTodayPlan(plan);
       setErrorMessage(undefined);
     },
-    [profile, todayPlan, trainingLogs, weaknesses],
+    [pendingItems, profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const createNextSession = useCallback(
@@ -260,11 +289,15 @@ export function useAppState(): AppState {
         return;
       }
 
+      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
+
       if (todayPlan === undefined) {
         const date = getTodayDate();
         const plan = generatePlan(profile, weaknesses, minutes, date, {
-          recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+          recentThemeStats,
           openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+          openPendingItems: pendingItems,
+          weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
         });
 
         await savePlan(plan);
@@ -279,8 +312,10 @@ export function useAppState(): AppState {
       const sessionPlan = generatePlan(profile, weaknesses, minutes, todayPlan.date, {
         previousPlan: todayPlan,
         sessionNumber: getNextPlanSessionNumber(todayPlan),
-        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        recentThemeStats,
         openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+        openPendingItems: pendingItems,
+        weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
       });
       const nextPlan = appendPlanSession(todayPlan, sessionPlan);
 
@@ -291,7 +326,7 @@ export function useAppState(): AppState {
       setAllTrainingLogs(await loadTrainingLogs());
       setErrorMessage(undefined);
     },
-    [profile, todayPlan, trainingLogs, weaknesses],
+    [pendingItems, profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const syncChesscomDiagnosis = useCallback(async () => {
@@ -323,10 +358,13 @@ export function useAppState(): AppState {
       const allSignals = await loadSignals();
       const nextWeaknesses = detectWeaknesses(allSignals);
       const date = getTodayDate();
+      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
         previousPlan: todayPlan,
-        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        recentThemeStats,
         openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+        openPendingItems: pendingItems,
+        weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
       });
 
       await replaceWeaknesses(nextWeaknesses);
@@ -345,7 +383,7 @@ export function useAppState(): AppState {
       setDiagnosisState('error');
       setDiagnosisMessage(toDiagnosisErrorMessage(error));
     }
-  }, [profile, sessionMinutes, todayPlan, trainingLogs]);
+  }, [pendingItems, profile, sessionMinutes, todayPlan, trainingLogs]);
 
   const importKnownManualSignals = useCallback(async () => {
     const manualSignals = createKnownManualSignals(new Date().toISOString());
@@ -360,10 +398,13 @@ export function useAppState(): AppState {
 
     if (profile !== undefined) {
       const date = getTodayDate();
+      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
         previousPlan: todayPlan,
-        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        recentThemeStats,
         openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+        openPendingItems: pendingItems,
+        weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
       });
 
       await savePlan(plan);
@@ -371,7 +412,7 @@ export function useAppState(): AppState {
     }
 
     return manualSignals.length;
-  }, [profile, sessionMinutes, todayPlan, trainingLogs]);
+  }, [pendingItems, profile, sessionMinutes, todayPlan, trainingLogs]);
 
   const answerTutorQuestion = useCallback(
     async (answer: TutorQuestionAnswer) => {
@@ -387,10 +428,13 @@ export function useAppState(): AppState {
 
       if (profile !== undefined) {
         const date = getTodayDate();
+        const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
         const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
           previousPlan: todayPlan,
-          recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+          recentThemeStats,
           openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+          openPendingItems: pendingItems,
+          weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
         });
 
         await savePlan(plan);
@@ -401,7 +445,7 @@ export function useAppState(): AppState {
       setDiagnosisMessage('Resposta registrada. Ajustei as hipoteses do treino.');
       setErrorMessage(undefined);
     },
-    [profile, sessionMinutes, todayPlan, trainingLogs],
+    [pendingItems, profile, sessionMinutes, todayPlan, trainingLogs],
   );
 
   const connectLichess = useCallback(async () => {
@@ -453,10 +497,13 @@ export function useAppState(): AppState {
       const allSignals = await loadSignals();
       const nextWeaknesses = detectWeaknesses(allSignals);
       const date = getTodayDate();
+      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
         previousPlan: todayPlan,
-        recentThemeStats: buildPuzzleThemeStats(trainingLogs),
+        recentThemeStats,
         openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+        openPendingItems: pendingItems,
+        weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
       });
 
       await replaceWeaknesses(nextWeaknesses);
@@ -474,7 +521,7 @@ export function useAppState(): AppState {
       setLichessConnectionState('error');
       setLichessMessage(toLichessErrorMessage(error));
     }
-  }, [profile, sessionMinutes, todayPlan, trainingLogs]);
+  }, [pendingItems, profile, sessionMinutes, todayPlan, trainingLogs]);
 
   const reconcileLichessResults = useCallback(async () => {
     const token = await loadLichessOAuthToken();
@@ -499,6 +546,7 @@ export function useAppState(): AppState {
       const nextAllTrainingLogs = mergeTrainingLogs(allTrainingLogs, reconciledLogs);
 
       if (profile !== undefined && todayPlan !== undefined) {
+        const recentThemeStats = buildPuzzleThemeStats(nextTrainingLogs);
         const nextPlan = generatePlan(
           profile,
           weaknesses,
@@ -506,8 +554,10 @@ export function useAppState(): AppState {
           todayPlan.date,
           {
             previousPlan: todayPlan,
-            recentThemeStats: buildPuzzleThemeStats(nextTrainingLogs),
+            recentThemeStats,
             openedBlockIds: getOpenedTrainingBlockIds(nextTrainingLogs),
+            openPendingItems: pendingItems,
+            weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
           },
         );
 
@@ -527,7 +577,7 @@ export function useAppState(): AppState {
       setLichessConnectionState('error');
       setLichessMessage(toLichessErrorMessage(error));
     }
-  }, [allTrainingLogs, profile, todayPlan, trainingLogs, weaknesses]);
+  }, [allTrainingLogs, pendingItems, profile, todayPlan, trainingLogs, weaknesses]);
 
   const createLichessStudy = useCallback(async () => {
     if (todayPlan === undefined) {
@@ -620,6 +670,84 @@ export function useAppState(): AppState {
       });
     },
     [updateLearningPlanResponse],
+  );
+
+  const openPendingItem = useCallback((item: PendingTrainingItem): Promise<void> => {
+    if (item.lichessUrl === undefined) {
+      setLichessMessage('Pendência registrada, mas ainda sem link Lichess.');
+      return Promise.resolve();
+    }
+
+    setLichessMessage(openExternalUrl(item.lichessUrl) ?? 'Pendência aberta no Lichess.');
+    return Promise.resolve();
+  }, []);
+
+  const deferPendingItem = useCallback(
+    async (item: PendingTrainingItem) => {
+      await updatePendingItemStatus(item.id, 'deferred');
+
+      const nextPendingItems = pendingItems.filter((pendingItem) => pendingItem.id !== item.id);
+
+      setPendingItems(nextPendingItems);
+
+      if (profile !== undefined && todayPlan !== undefined) {
+        const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
+        const nextPlan = generatePlan(
+          profile,
+          weaknesses,
+          toSessionMinutes(todayPlan.sessionMinutes, profile.defaultSessionMinutes),
+          todayPlan.date,
+          {
+            previousPlan: todayPlan,
+            recentThemeStats,
+            openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
+            openPendingItems: nextPendingItems,
+            weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
+          },
+        );
+
+        await savePlan(nextPlan);
+        setTodayPlan(nextPlan);
+      }
+
+      setLichessMessage('Pendência adiada.');
+    },
+    [pendingItems, profile, todayPlan, trainingLogs, weaknesses],
+  );
+
+  const savePendingFromHardFeedback = useCallback(
+    async (blockId: string) => {
+      if (todayPlan === undefined) {
+        return;
+      }
+
+      const block = todayPlan.blocks.find((planBlock) => planBlock.id === blockId);
+
+      if (block?.weaknessTag === undefined || block.methodTrackId === undefined) {
+        setErrorMessage('Não consegui criar pendência para este bloco.');
+        return;
+      }
+
+      const log = await getTrainingLog(`${todayPlan.date}:${blockId}`);
+
+      if (log === undefined) {
+        setErrorMessage('Conclua o bloco antes de guardar como pendência.');
+        return;
+      }
+
+      const item = await suggestPendingFromHardFeedback(
+        log,
+        block.weaknessTag,
+        block.methodTrackId,
+        getLichessThemeFromUrl(block.destination.url),
+      );
+
+      await savePendingItem(item);
+      setPendingItems((current) => upsertPendingItem(current, item));
+      setLichessMessage('Pendência guardada para revisão amanhã.');
+      setErrorMessage(undefined);
+    },
+    [todayPlan],
   );
 
   const startBlockTraining = useCallback(
@@ -731,6 +859,8 @@ export function useAppState(): AppState {
     setSessionMinutes(15);
     setTrainingLogs([]);
     setAllTrainingLogs([]);
+    setPendingItems([]);
+    setDiplomaAttempts([]);
     setWeaknesses([]);
     setLichessToken(undefined);
     setLichessStudyLink(undefined);
@@ -763,6 +893,8 @@ export function useAppState(): AppState {
     sessionMinutes,
     trainingLogs,
     allTrainingLogs,
+    pendingItems,
+    diplomaAttempts,
     weaknesses,
     diagnosisState,
     diagnosisMessage,
@@ -781,6 +913,9 @@ export function useAppState(): AppState {
     createLichessStudy,
     approveLearningPlan,
     requestLearningPlanRevision,
+    openPendingItem,
+    deferPendingItem,
+    savePendingFromHardFeedback,
     startBlockTraining,
     completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) =>
       updateBlockStatusWithTrainingLog(blockId, 'done', feedback),
@@ -826,4 +961,37 @@ function combinePlanHistory(currentPlan: DailyPlan, previousPlan: DailyPlan | un
 
 function getOpenedTrainingBlockIds(logs: readonly TrainingLog[]): string[] {
   return [...new Set(logs.map((log) => log.blockId))].sort();
+}
+
+function getWeakThemesFromThemeStats(stats: PuzzleThemeStats | undefined): string[] {
+  return (stats?.themes ?? [])
+    .filter((theme) => theme.losses > 0)
+    .map((theme) => theme.theme)
+    .sort();
+}
+
+function getLichessThemeFromUrl(url: string | undefined): string | undefined {
+  if (url === undefined) {
+    return undefined;
+  }
+
+  const prefix = 'https://lichess.org/training/';
+
+  if (!url.startsWith(prefix)) {
+    return undefined;
+  }
+
+  const theme = url.slice(prefix.length);
+
+  return theme === '' || theme.includes('/') ? undefined : theme;
+}
+
+function upsertPendingItem(items: PendingTrainingItem[], nextItem: PendingTrainingItem): PendingTrainingItem[] {
+  const existingIndex = items.findIndex((item) => item.id === nextItem.id);
+
+  if (existingIndex === -1) {
+    return [...items, nextItem];
+  }
+
+  return items.map((item, index) => (index === existingIndex ? nextItem : item));
 }

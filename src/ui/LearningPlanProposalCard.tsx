@@ -1,10 +1,13 @@
 import { Check, ClipboardList } from 'lucide-react';
 import { useState } from 'react';
 import type { LearningPlanProposal, LearningPlanResponse } from '../domain';
+import { getMethodTrackTitle } from '../domain/method/methodTracks';
+import type { MethodTrackId } from '../domain/method/types';
 
 type LearningPlanProposalCardProps = {
   proposal: LearningPlanProposal;
   response: LearningPlanResponse | undefined;
+  activeTrackId?: MethodTrackId;
   onApprovePlan: () => Promise<void>;
   onRequestPlanRevision: (note: string) => Promise<void>;
 };
@@ -19,6 +22,7 @@ const reviewSuggestions = [
 export function LearningPlanProposalCard({
   proposal,
   response,
+  activeTrackId,
   onApprovePlan,
   onRequestPlanRevision,
 }: LearningPlanProposalCardProps) {
@@ -70,6 +74,7 @@ export function LearningPlanProposalCard({
 
       <div className="learning-plan-summary">
         <strong>{proposal.phaseTitle}</strong>
+        {activeTrackId !== undefined ? <p>Trilha atual: {getMethodTrackTitle(activeTrackId)}</p> : null}
         <ul>
           {proposal.focusItems.map((item) => (
             <li key={item}>{item}</li>

@@ -2,7 +2,10 @@ import {
   reconcileTrainingLogResult,
   type TrainingLog,
   type TrainingResult,
+  type WeaknessTag,
 } from '../domain';
+import { createPendingItemFromFeedback } from '../domain/method/pendingItems';
+import type { MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import { loadLichessOAuthToken } from '../infra/storage/appData';
 import { fetchPuzzleActivity, summarizePuzzleActivity } from '../infra/lichess/puzzleActivity';
 import {
@@ -13,6 +16,17 @@ import {
 } from '../infra/lichess/puzzleDashboard';
 
 export type ReconcileOutcome = { log: TrainingLog; warning?: string };
+
+export async function suggestPendingFromHardFeedback(
+  log: TrainingLog,
+  weaknessTag: WeaknessTag,
+  methodTrackId: MethodTrackId,
+  lichessTheme?: string,
+): Promise<PendingTrainingItem> {
+  await Promise.resolve();
+
+  return createPendingItemFromFeedback(log, weaknessTag, methodTrackId, lichessTheme);
+}
 
 export async function reconcileLogIfPossible(log: TrainingLog): Promise<ReconcileOutcome> {
   if (!isPuzzleTrainingLog(log)) {

@@ -20,9 +20,13 @@ import {
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
+import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
+import { getMethodTrackTitle } from '../domain/method/methodTracks';
+import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
-import { SessionMilestonesCard } from './SessionMilestonesCard';
+import { PendingReviewCard } from './PendingReviewCard';
+import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
 import { TutorCard } from './TutorCard';
 
 type TodayProps = {
@@ -31,6 +35,8 @@ type TodayProps = {
   sessionMinutes: SessionMinutes;
   trainingLogs: TrainingLog[];
   allTrainingLogs: TrainingLog[];
+  pendingItems: PendingTrainingItem[];
+  diplomaAttempts: DiplomaAttempt[];
   weaknesses: Weakness[];
   diagnosisState: DiagnosisState;
   diagnosisMessage: string | undefined;
@@ -46,6 +52,9 @@ type TodayProps = {
   onCreateLichessStudy: () => Promise<void>;
   onApproveLearningPlan: () => Promise<void>;
   onRequestLearningPlanRevision: (note: string) => Promise<void>;
+  onOpenPendingItem: (item: PendingTrainingItem) => Promise<void>;
+  onDeferPendingItem: (item: PendingTrainingItem) => Promise<void>;
+  onSavePendingFromHardFeedback: (blockId: string) => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
   onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
@@ -59,6 +68,8 @@ export function Today({
   sessionMinutes,
   trainingLogs,
   allTrainingLogs,
+  pendingItems,
+  diplomaAttempts,
   weaknesses,
   diagnosisState,
   diagnosisMessage,
@@ -74,6 +85,9 @@ export function Today({
   onCreateLichessStudy,
   onApproveLearningPlan,
   onRequestLearningPlanRevision,
+  onOpenPendingItem,
+  onDeferPendingItem,
+  onSavePendingFromHardFeedback,
   onStartBlockTraining,
   onCompleteBlockTraining,
   onSkipBlockTraining,
@@ -122,6 +136,8 @@ export function Today({
   const totalPlannedMinutes = getPlanTotalMinutes(plan);
   const dayCompletionSummary = buildDayCompletionSummary({ plan, trainingLogs, roadmap });
   const sessionMilestoneSummary = buildSessionMilestoneSummary({ logs: allTrainingLogs, sessionMinutes });
+  const activeTrackId = getActiveTrackId(plan);
+  const nextDiploma = getNextDiplomaSummary(diplomaAttempts);
   const learningPlanProposal = buildLearningPlanProposal({
     plan,
     roadmap,
@@ -158,11 +174,26 @@ export function Today({
       <LearningPlanProposalCard
         proposal={learningPlanProposal}
         response={plan.learningPlanResponse}
+        activeTrackId={activeTrackId}
         onApprovePlan={onApproveLearningPlan}
         onRequestPlanRevision={onRequestLearningPlanRevision}
       />
 
-      <SessionMilestonesCard summary={sessionMilestoneSummary} />
+      <SessionMilestonesCard
+        summary={sessionMilestoneSummary}
+        openPendingCount={pendingItems.length}
+        nextDiploma={nextDiploma}
+      />
+
+      <PendingReviewCard
+        pendingItems={pendingItems}
+        onOpenItem={(item) => {
+          void onOpenPendingItem(item);
+        }}
+        onDeferItem={(item) => {
+          void onDeferPendingItem(item);
+        }}
+      />
 
       <DayCompletionCard summary={dayCompletionSummary} />
 
@@ -181,6 +212,9 @@ export function Today({
       ) : null}
 
       <div className="block-list">
+        {activeTrackId !== undefined ? (
+          <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
+        ) : null}
         {sessionSummaries.map((session) => (
           <section
             className="session-group"
@@ -191,17 +225,26 @@ export function Today({
               <h2 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h2>
               <span>{session.minutes} min</span>
             </div>
-            {session.blocks.map((block) => (
-              <PlanBlockCard
-                block={block}
-                key={block.id}
-                nowIso={nowIso}
-                trainingLog={trainingLogs.find((log) => log.blockId === block.id)}
-                onStartBlockTraining={onStartBlockTraining}
-                onCompleteBlockTraining={onCompleteBlockTraining}
-                onSkipBlockTraining={onSkipBlockTraining}
-              />
-            ))}
+            {session.blocks.map((block) => {
+              const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
+              const hasSavedPending = pendingItems.some((item) => {
+                return item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id;
+              });
+
+              return (
+                <PlanBlockCard
+                  block={block}
+                  key={block.id}
+                  nowIso={nowIso}
+                  trainingLog={trainingLog}
+                  hasSavedPending={hasSavedPending}
+                  onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
+                  onStartBlockTraining={onStartBlockTraining}
+                  onCompleteBlockTraining={onCompleteBlockTraining}
+                  onSkipBlockTraining={onSkipBlockTraining}
+                />
+              );
+            })}
           </section>
         ))}
       </div>
@@ -355,18 +398,23 @@ function PlanBlockCard({
   nowIso,
   trainingLog,
   onStartBlockTraining,
+  hasSavedPending,
+  onSavePendingFromHardFeedback,
   onCompleteBlockTraining,
   onSkipBlockTraining,
 }: {
   block: PlanBlock;
   nowIso: string;
   trainingLog: TrainingLog | undefined;
+  hasSavedPending: boolean;
+  onSavePendingFromHardFeedback: (blockId: string) => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
   onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
 }) {
   const [isRating, setIsRating] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
+  const [isSavingPending, setIsSavingPending] = useState(false);
   const [openWarning, setOpenWarning] = useState<string | undefined>(undefined);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
@@ -403,6 +451,7 @@ function PlanBlockCard({
       <p className="coach-note">{block.coachNote}</p>
       <p className="stop-rule">{block.stopRule}</p>
       {block.feedback !== undefined ? <p className="feedback-note">Feedback: {formatFeedback(block.feedback)}</p> : null}
+      {block.feedback !== undefined ? <p className="feedback-note">{getFeedbackCelebration(block.feedback)}</p> : null}
       {timerStatus !== undefined ? <p className={`timer-status ${timerStatus.kind}`}>{timerStatus.label}</p> : null}
       {openWarning !== undefined ? (
         <p className="feedback-note" role="status">
@@ -412,6 +461,24 @@ function PlanBlockCard({
 
       {isDone ? (
         <div className="button-row">
+          {block.feedback === 'hard' &&
+          block.weaknessTag !== undefined &&
+          block.methodTrackId !== undefined &&
+          !hasSavedPending ? (
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={isSavingPending}
+              onClick={() => {
+                setIsSavingPending(true);
+                void onSavePendingFromHardFeedback(block.id).finally(() => {
+                  setIsSavingPending(false);
+                });
+              }}
+            >
+              Guardar como pendência para revisão amanhã
+            </button>
+          ) : null}
           {block.destination.url !== undefined ? (
             <a
               className="button-link"
@@ -523,6 +590,32 @@ function PlanBlockCard({
   );
 }
 
+function getActiveTrackId(plan: DailyPlan): MethodTrackId | undefined {
+  return plan.blocks.find((block) => block.methodTrackId !== undefined)?.methodTrackId;
+}
+
+function getNextDiplomaSummary(attempts: DiplomaAttempt[]): NextDiplomaSummary | undefined {
+  for (const diploma of DIPLOMAS) {
+    const progress = getDiplomaProgress(attempts, diploma.id);
+
+    if (progress === null) {
+      continue;
+    }
+
+    const passedSections = progress.sections.filter((section) => section.passed).length;
+    const progressPercent = Math.round((passedSections / progress.sections.length) * 100);
+
+    if (!progress.overallPassed) {
+      return {
+        title: progress.diploma.title,
+        progressPercent,
+      };
+    }
+  }
+
+  return undefined;
+}
+
 function formatTimerStatus(
   log: TrainingLog,
   nowIso: string,
@@ -581,6 +674,17 @@ function formatFeedback(feedback: PlanBlockFeedback): string {
       return 'bom: interessante e desafiador';
     case 'hard':
       return 'difícil';
+  }
+}
+
+function getFeedbackCelebration(feedback: PlanBlockFeedback): string {
+  switch (feedback) {
+    case 'easy':
+      return 'Professor Lemos: está ficando mais fácil, sinal de progresso real.';
+    case 'good':
+      return 'Professor Lemos: bom desafio. Esse é o peso certo para evoluir.';
+    case 'hard':
+      return 'Professor Lemos: esse foi difícil. Dá para guardar para revisão amanhã.';
   }
 }
 

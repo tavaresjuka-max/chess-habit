@@ -3,9 +3,16 @@ import type { SessionMilestone, SessionMilestoneStats, SessionMilestoneSummary }
 
 type SessionMilestonesCardProps = {
   summary: SessionMilestoneSummary;
+  openPendingCount?: number;
+  nextDiploma?: NextDiplomaSummary;
 };
 
-export function SessionMilestonesCard({ summary }: SessionMilestonesCardProps) {
+export type NextDiplomaSummary = {
+  title: string;
+  progressPercent: number;
+};
+
+export function SessionMilestonesCard({ summary, openPendingCount = 0, nextDiploma }: SessionMilestonesCardProps) {
   return (
     <section className="session-milestones-card" aria-labelledby="session-milestones-title">
       <div className="session-milestones-heading">
@@ -17,6 +24,7 @@ export function SessionMilestonesCard({ summary }: SessionMilestonesCardProps) {
       </div>
 
       <CurrentMilestone milestone={summary.currentMilestone} nextCheckpoint={summary.nextCheckpoint} />
+      <MethodProgressBadges openPendingCount={openPendingCount} nextDiploma={nextDiploma} />
       <MilestoneStats stats={summary.stats} />
 
       <ol className="session-milestone-track" aria-label="Marcos da fase">
@@ -36,6 +44,34 @@ export function SessionMilestonesCard({ summary }: SessionMilestonesCardProps) {
         ))}
       </div>
     </section>
+  );
+}
+
+
+function MethodProgressBadges({
+  openPendingCount,
+  nextDiploma,
+}: {
+  openPendingCount: number;
+  nextDiploma: NextDiplomaSummary | undefined;
+}) {
+  if (openPendingCount === 0 && nextDiploma === undefined) {
+    return null;
+  }
+
+  return (
+    <div className="method-progress-badges" aria-label="Pendências e diplomas">
+      {openPendingCount > 0 ? (
+        <span>
+          {openPendingCount} pendência{openPendingCount > 1 ? 's' : ''} abertas
+        </span>
+      ) : null}
+      {nextDiploma !== undefined ? (
+        <span>
+          Próximo checkpoint: {nextDiploma.title} ({String(nextDiploma.progressPercent)}%)
+        </span>
+      ) : null}
+    </div>
   );
 }
 

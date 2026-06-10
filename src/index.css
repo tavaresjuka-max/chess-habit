@@ -514,6 +514,22 @@ textarea {
   font-size: 0.82rem;
 }
 
+.method-progress-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.method-progress-badges span {
+  border: 1px solid #d6c48b;
+  border-radius: 999px;
+  background: #fffdf2;
+  color: #604812;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 5px 9px;
+}
+
 .session-milestone-track {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
@@ -567,6 +583,63 @@ textarea {
   gap: 10px;
   margin-bottom: 14px;
   padding: 14px 16px;
+}
+
+.pending-review-card {
+  border: 1px solid #d6c48b;
+  border-radius: 8px;
+  background: #fffdf2;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
+.pending-review-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pending-review-heading > svg {
+  color: #7a5b16;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pending-review-card h2 {
+  margin: 0 0 4px;
+  color: #463b16;
+  font-size: 1.05rem;
+}
+
+.pending-review-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pending-review-list li {
+  border-top: 1px solid #e3d59d;
+  display: grid;
+  gap: 6px;
+  padding-top: 10px;
+}
+
+.pending-review-list li > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pending-review-list span,
+.active-track-line {
+  color: #604812;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .day-completion-card h2 {
