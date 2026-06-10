@@ -26,6 +26,7 @@ export function SessionMilestonesCard({ summary, openPendingCount = 0, nextDiplo
       <CurrentMilestone milestone={summary.currentMilestone} nextCheckpoint={summary.nextCheckpoint} />
       <MethodProgressBadges openPendingCount={openPendingCount} nextDiploma={nextDiploma} />
       <MilestoneStats stats={summary.stats} />
+      <SkillSignals signals={summary.skillSignals} nextSignalToMeasure={summary.nextSignalToMeasure} />
 
       <ol className="session-milestone-track" aria-label="Marcos da fase">
         {summary.milestones.map((milestone) => (
@@ -46,7 +47,6 @@ export function SessionMilestonesCard({ summary, openPendingCount = 0, nextDiplo
     </section>
   );
 }
-
 
 function MethodProgressBadges({
   openPendingCount,
@@ -71,6 +71,26 @@ function MethodProgressBadges({
           Próximo checkpoint: {nextDiploma.title} ({String(nextDiploma.progressPercent)}%)
         </span>
       ) : null}
+    </div>
+  );
+}
+
+function SkillSignals({
+  signals,
+  nextSignalToMeasure,
+}: {
+  signals: readonly string[];
+  nextSignalToMeasure: string;
+}) {
+  return (
+    <div className="method-note-panel session-skill-signals" aria-label="Sinais de habilidade">
+      <strong>O que esta evoluindo</strong>
+      <ul>
+        {signals.map((signal) => (
+          <li key={signal}>{signal}</li>
+        ))}
+      </ul>
+      <p>{nextSignalToMeasure}</p>
     </div>
   );
 }

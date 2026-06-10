@@ -76,7 +76,11 @@ export type LearningPlanProposal = {
   heading: string;
   intro: string;
   phaseTitle: string;
+  methodSummary: string;
+  evidenceLevel: string;
+  methodSteps: string[];
   focusItems: string[];
+  progressCriteria: string[];
   estimate: string;
   checkpoint: string;
   caveat: string;

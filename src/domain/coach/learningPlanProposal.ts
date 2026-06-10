@@ -48,7 +48,16 @@ export function buildLearningPlanProposal(input: BuildLearningPlanProposalInput)
     heading: 'Entendi o que você precisa.',
     intro: getIntro(input.weaknesses.length),
     phaseTitle: `Primeira fase: ${focusTitle}`,
+    methodSummary:
+      'O metodo e: observar sinais reais, escolher uma habilidade-foco, treinar no Lichess, registrar resultado e ajustar a proxima sessao.',
+    evidenceLevel: getEvidenceLevel(input.weaknesses[0]),
+    methodSteps: [
+      'Diagnostico: sinais de partidas, puzzles e respostas manuais viram hipoteses de fraqueza.',
+      'Treino: conceito guiado quando o tema e novo, depois recuperacao ativa em puzzles variados.',
+      'Transferencia: revisao e practice voltam ao tema ate ele aparecer melhor nos proximos sinais.',
+    ],
     focusItems: getFocusItems(focusTag, roadmapFocusItems),
+    progressCriteria: getProgressCriteria(focusTag),
     estimate: `Estimativa inicial: ${String(firstPhaseHours)} horas, cerca de ${String(sessions)} sessões de ${String(input.sessionMinutes)} min. Treinando todo dia nesse ritmo, dá perto de ${String(weeksAtDailyPace)} semana${weeksAtDailyPace === 1 ? '' : 's'}.`,
     checkpoint: `Depois de ${String(checkpointHours)} horas, ou ${String(checkpointSessions)} sessões nesse tempo, fazemos um teste curto e ajustamos o plano.`,
     caveat:
@@ -56,6 +65,22 @@ export function buildLearningPlanProposal(input: BuildLearningPlanProposalInput)
     reviewPrompt:
       'O que acha? Você pode aprovar o plano ou pedir revisão dizendo se quer mais exercícios, mais partidas, partidas de um tempo específico ou sessões mais longas.',
   };
+}
+
+function getEvidenceLevel(primaryWeakness: Weakness | undefined): string {
+  if (primaryWeakness === undefined) {
+    return 'Confianca: inicial. Ainda faltam sinais reais suficientes; o foco vem da faixa atual e sera recalibrado com treino.';
+  }
+
+  if (primaryWeakness.confidence === 'high' && primaryWeakness.score >= 0.7) {
+    return 'Confianca: forte para rotina. Ha sinais consistentes o bastante para priorizar este tema, sem tratar isso como diagnostico definitivo.';
+  }
+
+  if (primaryWeakness.confidence === 'medium' || primaryWeakness.score >= 0.5) {
+    return 'Confianca: media. O tema aparece como hipotese pratica; vamos confirmar pelo resultado dos proximos treinos.';
+  }
+
+  return 'Confianca: baixa. O tema serve como teste curto, nao como conclusao sobre seu xadrez.';
 }
 
 function getIntro(weaknessCount: number): string {
@@ -73,6 +98,16 @@ function getFocusItems(focusTag: WeaknessTag, roadmapFocusItems: readonly string
   return [...new Set(items)].slice(0, 5);
 }
 
+function getProgressCriteria(focusTag: WeaknessTag): string[] {
+  const base = [
+    'Concluir sessoes suficientes para chegar ao checkpoint de 6h.',
+    'Registrar feedback honesto: facil, bom ou dificil.',
+  ];
+  const themeCriteria = progressCriteriaByWeakness[focusTag];
+
+  return [...base, ...themeCriteria];
+}
+
 const focusItemsByWeakness = {
   'hanging-piece': ['Parar de deixar peça sem defesa.', 'Checar ameaça antes do primeiro lance.'],
   fork: ['Ver garfos com cavalo, bispo, peão e dama.', 'Preparar garfos alguns lances antes.', 'Repetir puzzles variados de garfo.'],
@@ -88,6 +123,23 @@ const focusItemsByWeakness = {
   'endgame-rook': ['Ativar a torre.', 'Treinar final de torre básico sem complicar.'],
   conversion: ['Transformar vantagem em plano simples.', 'Trocar peças quando isso reduz contra-jogo.'],
   'blunder-rate': ['Checar peças soltas.', 'Criar uma rotina anti-blunder antes de mover.'],
+} satisfies Record<WeaknessTag, readonly string[]>;
+
+const progressCriteriaByWeakness = {
+  'hanging-piece': ['Reduzir erros em puzzles de peca pendurada.', 'Ver defensores antes de escolher lance candidato.'],
+  fork: ['Acertar mais puzzles de garfo na primeira tentativa.', 'Explicar os dois alvos antes do lance.'],
+  pin: ['Reconhecer a peca presa e o alvo atras dela.', 'Errar menos puzzles do tema pin/cravada.'],
+  skewer: ['Identificar a linha inteira antes de calcular.', 'Errar menos puzzles de espeto e x-ray.'],
+  discovered: ['Nomear a peca que sai e a linha que abre.', 'Acertar mais ataques descobertos sem pressa.'],
+  'mate-in-1': ['Checar fugas, defesas e capturas do rei.', 'Acertar mates diretos sem clicar no automatico.'],
+  'mate-in-2': ['Ver a continuacao depois da primeira ameaca.', 'Melhorar acerto em mate em 2 e temas de mate.'],
+  'back-rank': ['Conferir casas de fuga do rei.', 'Errar menos temas de ultima fileira.'],
+  'opening-principles': ['Sair da abertura com centro, desenvolvimento e rei seguro.', 'Revisar partidas terminadas sem decorar linhas.'],
+  'time-trouble': ['Decidir uma checagem minima antes de acelerar.', 'Diminuir feedback dificil causado por pressa.'],
+  'endgame-pawn': ['Contar rei ativo, oposicao e casa de promocao.', 'Reconstruir uma linha simples sem olhar.'],
+  'endgame-rook': ['Priorizar atividade da torre.', 'Revisar finais de torre sem trocar plano a cada lance.'],
+  conversion: ['Transformar vantagem em plano simples.', 'Explicar como reduzir contra-jogo antes de atacar.'],
+  'blunder-rate': ['Fazer varredura anti-blunder antes de mover.', 'Reduzir erros em hangingPiece/defensiveMove.'],
 } satisfies Record<WeaknessTag, readonly string[]>;
 
 const weaknessTitleByTag = {

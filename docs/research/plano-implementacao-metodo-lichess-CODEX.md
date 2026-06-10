@@ -2,7 +2,7 @@
 
 Data de referencia: 2026-06-10
 
-Escopo: executar o prompt `prompts/codex-plano-implementacao-metodo-lichess.md` e transformar a
+Escopo: executar o prompt `prompts/archive/2026-06-method/codex-plano-implementacao-metodo-lichess.md` e transformar a
 analise diretora da Onda 3 em um plano tecnico para o repo atual. Este documento nao implementa codigo.
 
 ## 1. Veredito executivo

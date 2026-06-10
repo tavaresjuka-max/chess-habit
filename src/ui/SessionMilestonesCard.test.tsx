@@ -58,7 +58,12 @@ const summary: SessionMilestoneSummary = {
       'Tema mais estavel ate agora: Fork.',
     ],
   },
+  skillSignals: [
+    'Habito: 3 sessoes registradas, com 1.5h de treino.',
+    'Habilidade: 75% de acerto nos puzzles reconciliados.',
+  ],
   nextCheckpoint: 'Proximo checkpoint: Checkpoint 6h. Faltam cerca de 4.5h para revisar o plano.',
+  nextSignalToMeasure: 'Proximo sinal: repetir Pin e verificar se os erros caem no proximo ciclo.',
 };
 
 describe('SessionMilestonesCard', () => {
@@ -70,6 +75,9 @@ describe('SessionMilestonesCard', () => {
     expect(screen.getByText('25%')).toBeInTheDocument();
     expect(screen.getByText('sessoes concluidas')).toBeInTheDocument();
     expect(screen.getByText('75%')).toBeInTheDocument();
+    expect(screen.getByText('O que esta evoluindo')).toBeInTheDocument();
+    expect(screen.getByText('Habilidade: 75% de acerto nos puzzles reconciliados.')).toBeInTheDocument();
+    expect(screen.getByText(/repetir Pin/)).toBeInTheDocument();
     expect(screen.getByText('Puzzles reconciliados: 15/20 acertos (75%).')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Progresso de Checkpoint 6h' })).toHaveAttribute('value', '25');
   });

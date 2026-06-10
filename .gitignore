@@ -1,4 +1,5 @@
 node_modules
+.vite
 dist
 dist-ssr
 *.local
@@ -11,3 +12,13 @@ preview-server*.log
 
 # Brainstorming visual companion (transient mockups)
 .superpowers/
+
+# Local chess literature downloads are research artifacts, not app assets.
+output/chess-literature-library/files/
+output/chess-literature-library/tmp/
+
+# Personal chess book collection (research only, not app assets)
+LIVROS XADREZ PARA CONSULTA/
+
+# Free resources downloaded by research agents (PDFs, PGNs, GitHub clones)
+output/free-resources/

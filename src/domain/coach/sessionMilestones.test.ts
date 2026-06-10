@@ -11,6 +11,8 @@ describe('buildSessionMilestoneSummary', () => {
     expect(summary.currentMilestone.progressPercent).toBe(0);
     expect(summary.stats.completedSessions).toBe(0);
     expect(summary.stats.improvementLines[0]).toContain('Ainda nao ha sessoes concluidas');
+    expect(summary.skillSignals).toContain('Habito: ainda nao ha sessoes concluidas.');
+    expect(summary.nextSignalToMeasure).toContain('concluir uma sessao');
   });
 
   it('counts a plan session once even when it has multiple blocks', () => {
@@ -42,6 +44,8 @@ describe('buildSessionMilestoneSummary', () => {
     expect(summary.stats.completedHours).toBe(1);
     expect(summary.stats.completedBlocks).toBe(3);
     expect(summary.stats.feedback).toEqual({ easy: 1, good: 1, hard: 1 });
+    expect(summary.skillSignals[0]).toContain('2 sessoes');
+    expect(summary.nextSignalToMeasure).toContain('reconciliar puzzles');
   });
 
   it('moves the active milestone after completing the first 24h cycle', () => {
@@ -120,6 +124,8 @@ describe('buildSessionMilestoneSummary', () => {
     expect(summary.stats.puzzleAccuracy).toBe(73);
     expect(summary.stats.bestTheme).toBe('Fork');
     expect(summary.stats.weakTheme).toBe('Pin');
+    expect(summary.skillSignals).toContain('Habilidade: 73% de acerto nos puzzles reconciliados.');
+    expect(summary.nextSignalToMeasure).toContain('Pin');
   });
 
   it('shows puzzle accuracy trend when both halves have enough attempts', () => {

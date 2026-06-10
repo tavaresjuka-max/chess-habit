@@ -9,7 +9,11 @@ const proposal: LearningPlanProposal = {
   heading: 'Entendi o que você precisa.',
   intro: 'Olhei seus sinais de treino.',
   phaseTitle: 'Primeira fase: garfos',
+  methodSummary: 'O metodo e: observar sinais reais, treinar no Lichess e ajustar a proxima sessao.',
+  evidenceLevel: 'Confianca: media. O tema aparece como hipotese pratica.',
+  methodSteps: ['Diagnostico: sinais reais viram hipoteses.', 'Treino: repeticao ativa.'],
   focusItems: ['Ver garfos com cavalo, bispo, peão e dama.', 'Repetir puzzles variados de garfo.'],
+  progressCriteria: ['Acertar mais puzzles de garfo na primeira tentativa.', 'Registrar feedback honesto.'],
   estimate: 'Estimativa inicial: 30 horas, cerca de 60 sessões de 30 min.',
   checkpoint: 'Depois de 6 horas fazemos um teste curto.',
   caveat: 'Isso não é promessa de rating.',
@@ -35,6 +39,10 @@ describe('LearningPlanProposalCard', () => {
 
     expect(screen.getByText('Entendi o que você precisa.')).toBeInTheDocument();
     expect(screen.getByText('Primeira fase: garfos')).toBeInTheDocument();
+    expect(screen.getByText('Como o plano foi montado')).toBeInTheDocument();
+    expect(screen.getByText(/observar sinais reais/)).toBeInTheDocument();
+    expect(screen.getByText('Como vamos medir progresso')).toBeInTheDocument();
+    expect(screen.getByText('Acertar mais puzzles de garfo na primeira tentativa.')).toBeInTheDocument();
     expect(screen.getByText(/60 sessões de 30 min/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Aprovar plano' }));

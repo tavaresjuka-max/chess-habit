@@ -187,6 +187,16 @@ Apos auditoria profunda realizada por Antigravity (`docs/research/relatorio-anti
 2. **Rejeicao Por Baixa Qualidade Pedagógica:** Recursos desorganizados, sem explicacoes claras ou com foco promocional/juvenil (como `/study/izZ71JC2`) sao marcados como valor D e descartados.
 3. **Novas Fontes De Elite Aprovadas:** A serie "Endgames You Must Know!" do autor NoseKnowsAll (do iniciante ao avancado) e o "Table of Contents" do autor jomega sao aprovados e incorporados como recursos pedagogicos comunitarios de altissimo valor para suprir a falta de ferramentas interativas nativas do Lichess em finais avancados.
 4. **Validacao De Vídeos:** Confirmado que o Lichess utiliza o proprio ID do Youtube como rota dos videos em `/video/:id`. Os IDs `-OoPm17P8xA` (Alex Astaneh - calculo) and `uhQhasudq9M` (Kostya Kavutskiy - mate) foram verificados como ativos e integrados a biblioteca oficial, resolvendo a ambiguidade de links quebrados.
+
+## 2026-06-09: Metodologia e Currículo da Onda 2 (DAMP, Woodpecker, de la Villa, Aagaard) [parcialmente supersedida pelos convertidos]
+
+Após a análise pedagógica executada por Gemini em `analise-acervo-ONDA2-GEMINI.md`, foram tomadas as seguintes decisões para a escada e os blocos de treino:
+
+1. **[SUPERSEDIDO em 2026-06-09 pelos convertidos] Ritual DAMP em PT-BR para Nível 600-1200:** a proposta original do relatório Gemini tratava DAMP como ritual de segurança; a decisão vigente posterior corrigiu DAMP para **Defesa, Alinhamento, Mobilidade, Promocao** como deteccao tatica.
+2. **Método Woodpecker de Repetição Cíclica:** Adotar o formato de drill **Ciclo Woodpecker** para tática intermediária (1000-1800): o aluno repetirá um pool fixo de puzzles errados/reconciliados visando reduzir o tempo em 50% a cada ciclo até atingir reações intuitivas e subconscientes.
+3. **Progressão Enxuta de Finais de de la Villa:** O currículo de finais será enquadrado no pool das posições essenciais práticas do livro *100 Endgames You Must Know* (Jesus de la Villa) e do clássico em PT-BR *Técnicas de Finais em Xadrez* (Euwe & Hooper).
+4. **Cálculo Avançado de Kotov e Aagaard (1400+):** A faixa de cálculo profundo adotará a disciplina de listar lances candidatos e calcular ramificações de forma serial sem desvios, com foco na profilaxia ativa (resposta mais forte do oponente).
+5. **Redundâncias Descartadas:** Cerca de 30% da Onda 2 (manuais genéricos "Chess for Beginners" rasos auto-publicados) foi arquivada para poupar espaço.
 5. **Implantacao Etapa 2B:** jomega entra no catalogo ativo apenas como `needs-human-review`. Na checagem de link da implementacao, `Iof6LzcT`, `s3iOCawc`, `6JAUFQ5p` e `wzFrgluQ` responderam `200`; `g6vPzJv7` e `q9bJ8YdY` responderam `404` e nao devem ser usados.
 
 ## 2026-06-08: Catalogo Premium Lichess Com Sinais Agregados De Puzzle
@@ -242,6 +252,22 @@ fixo e primeira exposicao; se o mesmo tema guiado ja apareceu em plano anterior,
 `retrieval` com puzzle theme variado (`/training/fork`) mesmo sem feedback explicito. Feedback explicito
 continua tendo prioridade. Sem API nova, sem scraping, sem armazenar puzzle IDs/PGN/solucoes.
 
+## 2026-06-09: DAMP Corrigido E Integrado Ao Metodo Consolidado
+
+Leitura direta dos livros convertidos prevalece sobre a interpretacao provisoria da analise ONDA 2 do
+Gemini. Fica decidido:
+
+- **DAMP = Defesa, Alinhamento, Mobilidade, Promocao** (Duarte & Lapertosa), em PT-BR.
+- DAMP entra como **checklist de deteccao tatica** dentro de `stage: tatica`, na familia
+  "detectar-antes-de-calcular".
+- DAMP **nao** e ritual de seguranca, **nao** substitui LPDO/Heisman e **nao** substitui CCT/Hertan.
+- A proporcao-base de treino do GM Rafael Leitao pode ser usada pelo gerador como ponto de partida
+  elastico, sempre reponderado por fraqueza local e tempo disponivel, nunca por rating.
+- `Manual de Aberturas` (Lazzarotto) entra como referencia PT-BR de principios e vocabulario, nao como
+  repertorio pronto; `Fundamentos do Xadrez` (Capablanca, PT-BR) entra como influencia de fundamentos e
+  finais; `Movimento Forcado` (Murray) fica restrito a calculo 1200+ como banco de exercicios, nao como
+  metodo completo.
+
 ## 2026-06-09: Professor Lemos Introduz O Conceito Antes Da Aula
 
 Uso real mostrou que abrir um treino de garfos sem uma introducao deixava o exercicio mecanico demais.
@@ -282,3 +308,86 @@ As estatisticas exibidas podem usar feedback local e resultados de puzzles recon
 quando existirem. Logs diagnosticos de Puzzle Dashboard/Replay entram nas estatisticas de puzzles, mas
 nao contam como sessao treinada nem como hora treinada. A tela carrega historico completo de logs para
 o painel acumulado, mantendo a geracao do plano do dia baseada apenas nos logs do dia.
+
+## 2026-06-09: Metodo Do Professor Lemos Deve Ser Explicito
+
+Uso real e revisao estrategica pediram clareza sobre como o app decide o que estudar, como mede
+progresso e qual e a base pedagogica. Decisao: o metodo canonico fica documentado em
+`docs/pedagogy/metodo-professor-lemos.md` e a tela Hoje deve mostrar, dentro da proposta de fase,
+o resumo do metodo, nivel de confianca da evidencia e criterios de progresso.
+
+O metodo e assumido como classico nos fundamentos (pratica deliberada, recuperacao ativa, repeticao
+espacada, exemplos guiados, feedback e transferencia) e inovador na orquestracao local-first de
+recursos Lichess/Chess.com. Proibido prometer rating: o app mede sinais, habito, feedback e resultados
+de puzzles quando existem. Sem nova API, backend, engine, scraping, escopo OAuth, P4/P5 ou dado
+sensivel novo.
+
+## 2026-06-09: Biblioteca De Literatura De Xadrez So Baixa Fonte Legal Clara
+
+Pedido do dono abriu a fase 1 de uma grande biblioteca de livros, teses, artigos e metodos de ensino
+de xadrez. Decisao: downloads locais so podem incluir dominio publico claro, Project Gutenberg/espelho,
+Creative Commons ou open access com PDF/licenca identificavel. Material pago, preview, borrow, CDL,
+assinatura, upload moderno suspeito ou licenca incerta entra em lista de compra/revisao, nao em
+download. Os arquivos baixados ficam em `output/chess-literature-library/files/` fora do Git; manifestos
+com URL, licenca, tamanho e SHA-256 ficam em `docs/research/chess-literature/manifests/`.
+
+## 2026-06-09: Pesquisa Profunda De Literatura — 5 Frentes Concluidas
+
+A pesquisa em 5 frentes foi executada e consolidada. Decisoes resultantes:
+
+1. **Metodo proprio sera sintese original, nao copia.** A sequencia de 9 blocos para 0-1200 e
+   abstracao de padroes comuns observados em 17 metodos mapeados, sem copiar exercicios, textos
+   ou conteudo proprietario de nenhum metodo. `docs/research/method_synthesis.md` registra os
+   10 principios pedagogicos e 8 anti-padroes que guiam a implementacao.
+
+2. **Spaced repetition e interleaving sao candidatos prioritarios de implementacao.** A evidencia
+   na psicologia cognitiva geral e forte; a aplicacao ao xadrez e por extrapolacao razoavel.
+   O Woodpecker Method (compra Prioridade A) e um exemplo de spaced repetition aplicado a tacticas.
+
+3. **Sinais de progresso sem prometer rating.** O app mede taxa de acerto em puzzles por tema,
+   reducao de blunders, tempo de resolucao e capacidade de nomear erros. Rating e consequencia,
+   nao causa. Comunicar confianca (1-5 estrelas) em vez de "rating estimado".
+
+4. **Compra prioritaria definida.** ~€360-400 em itens Prioridade A para aprofundar o metodo:
+   Steps Method completo (€99.95), Yusupov Fundamentals (€69.95), Woodpecker Method (€34.99),
+   How to Study Chess (€24.95), Silman Complete Endgame Course (~€27.95). Material pago e para
+   leitura e pesquisa pessoal; nao pode ser copiado para o app.
+
+5. **O metodo e hipotese, nao verdade comprovada.** A sequencia de 9 blocos e a sintese dos
+   principios sao inferencia a partir de evidencia externa e consenso entre metodos. O metodo
+   precisa ser validado com uso real (dono = n=1). Tratar como parametrico e configuravel.
+
+## 2026-06-09: Acervo Baixado Entra Como Pedagogia, Nao Como Banco Bruto
+
+A primeira leitura aplicada dos livros e artigos baixados foi consolidada em
+`docs/pedagogy/plano-pedagogico-acervo-baixado-2026-06-09.md`.
+
+Decisao: o acervo deve orientar sequenciamento, formatos de treino e criterios de feedback do
+Professor Lemos, mas nao deve ser copiado para dentro do app como texto, diagrama, problema ou lista
+de variantes. A ordem pedagogica recomendada para 0-1200 e: fundamentos claros; seguranca material;
+mates e finais-modelo; calculo tatico por recuperacao ativa; aberturas como principios; planejamento
+simples; transferencia para partidas reais encerradas.
+
+Livros de abertura antigos, tabelas longas, notacao arcaica, colecoes historicas sem curadoria e
+problemas compostos sem pipeline de direitos ficam fora do MVP. Eles podem informar pesquisa e
+catalogacao futura, desde que cada reutilizacao direta passe por ficha de fonte e licenca.
+
+## 2026-06-10: Integração de Metacognição Científica e Milestones baseados em Diplomas (Onda 3)
+
+A análise do lote de downloads (Conjunto A) e da Onda 3 (Conjunto B) introduziu três diretrizes pedagógicas de alto impacto no `lichess-tutor`:
+
+1. **Tratamento de Pendências e Autorreflexão**: O estudo de Gevorgyan (2024) comprovou que a autorreflexão e estudo específico sobre exercícios e tarefas não resolvidos tem a maior correlação estatística ($r=0.29$) com o avanço enxadrístico, seguido pela justificação verbal da lógica ($r=0.18$). Adota-se o formato de treino **Tratamento de Pendências** (Christofoletti 2007) para que o jogador re-resolva ativamente seus próprios erros locais e puzzles falhados.
+2. **Milestones baseados em Diplomas**: Em vez de depender de rating para medir avanço, adota-se a estrutura brasileira de Tirado & Silva (1999) baseada em 3 marcos claros de avaliação teórica: **Diploma do Peão** (0-600), **Diploma da Torre** (600-1000) e **Diploma do Rei** (1000-1200), que servem como travas didáticas no gerador de planos para consolidar as bandas de aprendizagem de forma estruturada.
+3. **Restrição de Motores (Engines)**: Conforme Zorić (2025), engines como Fritz/Stockfish devem ser tratados puramente como ferramentas de apoio e preparação do instrutor (ou do gerador interno do app), sendo desencorajados como parceiros ou juízes diretos de treino do estudante, priorizando o Lichess Study interativo.
+
+## 2026-06-10: Organizacao Pos-Metodo
+
+Para reduzir ruído operacional depois da implementação do Metodo Professor Lemos:
+
+- Prompts executados da rodada de pesquisa/planejamento/implementacao ficam arquivados em
+  `prompts/archive/2026-06-method/`.
+- `prompts/` fica reservado a prompts ainda reutilizaveis de auditoria e handoff.
+- Relatorios e sinteses ficam em `docs/research/`; documentos canonicos de ensino ficam em
+  `docs/pedagogy/`.
+- Scripts de download/conversao/auditoria de acervo ficam em `scripts/research/`, fora do runtime do app.
+- Downloads, caches, PDFs e colecoes pessoais permanecem fora do Git por higiene e direitos autorais.

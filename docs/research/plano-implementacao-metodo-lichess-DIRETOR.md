@@ -4,9 +4,9 @@ Data de referencia: 2026-06-10
 
 Relatorios comparados:
 
-- `plano-implementacao-metodo-lichess-DEEPSEEK.md`
-- `plano-implementacao-metodo-lichess-GEMINI.md`
-- `plano-implementacao-metodo-lichess-CODEX.md`
+- `docs/research/plano-implementacao-metodo-lichess-DEEPSEEK.md`
+- `docs/research/plano-implementacao-metodo-lichess-GEMINI.md`
+- `docs/research/plano-implementacao-metodo-lichess-CODEX.md`
 
 Fontes oficiais rechecadas nesta consolidacao:
 

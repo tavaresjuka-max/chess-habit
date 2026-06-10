@@ -168,12 +168,126 @@
   - [x] Tela Hoje mostra meta atual, proximos marcos e estatisticas de sessoes, horas, blocos e puzzles reconciliados.
   - [x] Historico completo de logs e carregado para metas acumuladas; plano do dia continua usando apenas logs do dia.
   - [x] Logs diagnosticos do Lichess entram nas estatisticas de puzzles, mas nao contam como sessao/hora treinada.
-- [ ] **Implementacao do Metodo Professor Lemos no app (iniciada em 2026-06-10)**.
-  - [ ] Organizar relatorios de pesquisa na pasta `docs/research/` e atualizar memoria.
-  - [ ] Adicionar camada de dominio das 5 trilhas, pendencias, mastery, diplomas e selecao de trilha.
-  - [ ] Persistir trilhas, pendencias e tentativas de diploma em Dexie schema v4.
-  - [ ] Expandir o plano diario com trilha ativa, pergunta-guia, prioridade para pendencias vencidas e ratio de revisao adaptativo.
-  - [ ] Mostrar pendencias, trilha ativa, checkpoint de diploma e sugestao de pendencia apos feedback dificil na tela Hoje.
-  - [ ] Enriquecer o Study do dia com trilha, pergunta-guia, tarefa, stop rule e destino.
+- [x] **Ajuste metodologico: metodo explicito do Professor Lemos (2026-06-09)**.
+  - [x] Documento canonico criado em `docs/pedagogy/metodo-professor-lemos.md`.
+  - [x] Proposta de fase mostra resumo do metodo, confianca da evidencia e criterios de progresso.
+  - [x] Card de metas mostra sinais separados de habito e habilidade, alem do proximo sinal a medir.
+  - [x] Fontes pedagogicas e limites de comprovacao registrados em `docs/research/sources.md`.
+  - [x] Sem nova API, backend, engine, scraping, escopo OAuth, P4/P5 ou dado sensivel novo.
+- [x] **Biblioteca de literatura de xadrez - lote-semente (2026-06-09)**.
+  - [x] Fase 1 aberta em `docs/research/chess-literature/` com plano, fontes abertas e lista inicial de compra.
+  - [x] Lote-semente baixou 10 itens validos: 6 Internet Archive/Gutenberg, 1 Project Gutenberg direto e 3 artigos OpenAlex/OA sobre educacao de xadrez.
+  - [x] Dois itens IA foram removidos porque eram metadados/headers, nao livros.
+  - [x] Manifesto em `docs/research/chess-literature/manifests/phase1-downloads.jsonl`; relatorio em `docs/research/chess-literature/phase1-seed-report.md`.
+- [x] **Pesquisa profunda de literatura — 5 frentes (2026-06-09)**.
+  - [x] Frente 1: Catalogo de downloads legais — 85+ itens catalogados em `docs/research/open_download_candidates.md`.
+  - [x] Frente 2: Evidencia academica — 24 estudos em `docs/research/academic_evidence.md`.
+  - [x] Frente 3: Mapa de metodos — 17 metodos mapeados em `docs/research/curriculum_map.md`.
+  - [x] Frente 4: Lista de compra — 60+ itens precificados em `docs/research/paid_buylist.md`.
+  - [x] Frente 5: Sintese para metodo proprio — 10 principios, 8 anti-padroes, templates. Documentado em `docs/research/method_synthesis.md`.
+- [x] **Download seletivo da biblioteca (2026-06-09)**.
+  - [x] 31 itens legais baixados e verificados com SHA-256 (IA: livros PD/CC + OpenAlex: artigos OA + Gutenberg: classicos).
+  - [x] 8 itens removidos por copyright suspeito ou fora do escopo.
+  - [x] Manifesto reconciliado em `docs/research/chess-literature/manifests/phase1-downloads.jsonl`.
+- [x] **Analise do acervo pessoal ONDA 2 — DeepSeek (2026-06-09)**.
+  - [x] 235 livros triados: 91 descartados, 144 com valor.
+  - [x] 68 AZW/AZW3 em PT-BR descobertos em segunda varredura — dobra o material PT-BR.
+  - [x] Documentos: `analise-acervo-ONDA2-DEEPSEEK.md` + `analise-acervo-ONDA2-DEEPSEEK-AZW.md`.
+- [x] **Conversao de formatos ilegiveis (2026-06-09)**.
+  - [x] Calibre 9.9.0 instalado. 67/68 AZW/AZW3/EPUB convertidos para TXT (1.8 MB). 1 corrompido.
+  - [x] `.gitignore` atualizado para excluir `LIVROS XADREZ PARA CONSULTA/`.
+- [x] **Analise dos convertidos — DeepSeek (2026-06-09)**.
+  - [x] DAMP confirmado: Defesa/Alinhamento/Mobilidade/Promocao (Gemini errou).
+  - [x] "Como montar treinamento" = GM Rafael Leitao (hexacampeao brasileiro).
+  - [x] John C. Murray e autor de ~60 livros das colecoes "Escola"/"Passo a Passo".
+  - [x] Documento `analise-convertidos-DEEPSEEK.md` com:
+    - Correcao do significado de DAMP (checklist de deteccao tatica).
+    - Time budgeting do Leitao (50% tatica, 20% finais, 15% abertura, 15% partidas para <1900).
+    - Manual de Aberturas (Lazzarotto) como referencia PT-BR.
+    - 2 novos drill_formats: DAMP-Scan, Time-Budget-Leitao.
+    - 2 novos blocos: 600-1000-tatica-00 (DAMP-Scan), 0-1200-meta-01 (Time Budget).
+    - Nota: 8.0/10. 3 contribuicoes de ALTO impacto. ~60 livros Murray sao redundantes.
+- [x] **Plano pedagogico a partir do acervo baixado (2026-06-09)**.
+  - [x] Leitura aplicada de Capablanca, Edward Lasker, manuais introdutorios, problemas de mate, finais, Morphy/Generalship e artigos open-access sobre educacao enxadristica.
+  - [x] Documento criado em `docs/pedagogy/plano-pedagogico-acervo-baixado-2026-06-09.md`.
+  - [x] Decidido que o acervo orienta sequenciamento e feedback, mas nao vira banco bruto de textos, diagramas, problemas ou variantes.
+  - [x] Ordem pedagogica recomendada: fundamentos, seguranca material, mates/finais, calculo tatico, aberturas por principios, planejamento simples e transferencia para partidas encerradas.
+  - [x] Registro das fontes complementares em `docs/research/sources.md`.
+- [x] **Análise do Acervo ONDA 2 - GEMINI (2026-06-09)**:
+  - [x] Leitura e indexação dos 235 novos livros (PDFs/Kindle) na pasta ONDA 2.
+  - [x] Fichamento detalhado de livros nucleares (DAMP, Programação de Treinos de Lapertosa, Woodpecker, de la Villa, Aagaard, Ramesh, Hawkins).
+  - [x] Elaboração do relatório de comparação pedagógica e deltas curriculares salvo como `analise-acervo-ONDA2-GEMINI.md`.
+  - [x] Triagem de redundâncias (manuais genéricos) e definição de rituais de segurança (DAMP) em PT-BR para o Professor Lemos.
+- [x] **Análise dos Livros Convertidos - GEMINI (2026-06-09)**:
+  - [x] Leitura e análise dos ~66 livros convertidos em `.txt` na pasta `_convertidos`.
+  - [x] Correção conceitual definitiva do acrônimo **DAMP** (Defesa, Alinhamento, Mobilidade, Promoção) como detecção tática, baseada no texto do livro real.
+  - [x] Integração da rotina de estudos baseada em tempo (Time Budgeting) do GM Rafael Leitão.
+  - [x] Elaboração e salvamento do relatório como `analise-convertidos-GEMINI.md`.
+- [x] **Analise do Acervo ONDA 1 + ONDA 2 - CODEX (2026-06-09)**:
+  - [x] Contagem real confirmada: 124 PDFs na Onda 1, 167 PDFs na Onda 2 e 68 e-books nao-PDF na Onda 2.
+  - [x] Varredura tecnica com `pypdf`/`pdfplumber`: 250 PDFs com texto extraivel e 41 com OCR/texto fraco; nenhum texto bruto incorporado ao relatorio.
+  - [x] Terceira voz independente salva em `analise-acervo-CODEX.md`, com fichas coletivas, curriculo, drill formats, blocos 0-1200, regras do gerador e avaliacao final.
+  - [x] Divergencia registrada: DAMP e programacao de treinamento existem como e-books, mas precisam de leitura/conversao direta antes de virar evidencia forte independente.
+- [x] **Analise dos Livros Convertidos - CODEX (2026-06-09)**:
+  - [x] Manifesto e pasta `_convertidos` auditados: 68 processados, 1 falha, 67 saidas OK, 66 `.txt` unicos por colisao de nome em `Xadrez Vitorioso`.
+  - [x] DAMP confirmado por leitura direta como Defesa/Alinhamento/Mobilidade/Promocao; encaixe corrigido para deteccao tatica, nao ritual de seguranca.
+  - [x] Leitao, Movimento Forcado, Manual de Aberturas, Capablanca PT e colecoes "Jogue como" fichados como deltas clean-room.
+  - [x] Relatorio salvo em `docs/research/analise-convertidos-CODEX.md`, com nota 8.1/10, concordancia/desempate, blocos 0-1200 e proximos passos de integracao.
+- [x] **Integracao dos deltas verificados dos convertidos no metodo consolidado (2026-06-09)**.
+  - [x] `docs/pedagogy/metodo-consolidado-acervo-2026-06-09.md` atualizado sem reescrever o documento-base.
+  - [x] DAMP fixado como Defesa/Alinhamento/Mobilidade/Promocao sob tatica/deteccao, com `damp-scan` e bloco `600-1000-tatica-00`.
+  - [x] Proporcao-base do Leitao absorvida nas regras do gerador sem usar rating como gate.
+  - [x] Lazzarotto, Capablanca PT-BR e Movimento Forcado integrados com escopo limitado e lacunas remanescentes explicitadas.
+- [x] **Pesquisa Codex das lacunas do Metodo Professor Lemos (2026-06-10)**.
+  - [x] Terceiro vertice independente executado a partir de `prompts/archive/2026-06-method/codex-lacunas-pesquisa-recursos.md`.
+  - [x] Relatorio salvo em `docs/research/relatorio-codex-lacunas-pesquisa-recursos.md`, focado em open source, datasets, tooling e evidencia tecnica/academica.
+  - [x] Lichess Puzzle Database e Puzzle Themes classificados como fonte A para calculo/tatica e selecao por temas, rating, popularidade e comprimento.
+  - [x] Lacunas sem resposta A direta registradas: defesa/profilaxia, porcentagem exata de dominio, timing preciso de abertura e proporcao revisao/novo.
+  - [x] Fontes oficiais e academicas registradas em `docs/research/sources.md`.
+- [x] **Análise dos PDFs Baixados + ONDA 3 - GEMINI (2026-06-10)**:
+  - [x] Triagem e classificação de 67 novos arquivos (31 do lote-downloads e 36 da Onda 3) em tabelas de inventário e triagem.
+  - [x] Fichamento pedagógico individual de 8 documentos de alta prioridade (A) e coletivo de 4 grupos (B, C e D).
+  - [x] Descoberta da correlação científica ($r=0.29$) sobre reflexão de tarefas falhadas (Gevorgyan 2024) e do método "Tratamento de Pendências" (Christofoletti 2007) para estudantes intermediários.
+  - [x] Integração da estrutura de milestones locais baseada em "Diplomas" (Peão, Torre, Rei) de Tirado & Silva (1999).
+  - [x] Salvamento do relatório como [analise-pdfs-baixados-onda3-GEMINI.md](docs/research/analise-pdfs-baixados-onda3-GEMINI.md) em `docs/research/`.
+- [x] **Analise dos PDFs Baixados + ONDA 3 - CODEX (2026-06-10)**.
+  - [x] Inventario tecnico de 75 itens: 39 em `output/chess-literature-library/files/` e 36 na pasta `onda 3 livros xadrez`.
+  - [x] PDFs mapeados: 31 do lote DeepSeek-downloads e 30 da Onda 3; 1 PDF corrompido/ilegivel identificado.
+  - [x] Relatorio salvo em `docs/research/analise-pdfs-baixados-onda3-CODEX.md`.
+  - [x] Veredito: Onda 3 melhora defesa/profilaxia, calculo-ponte 800-1200 e abertura por principios, mas tem alto risco legal como fonte direta.
+  - [x] Recomendacao: integrar apenas abstracoes originais e confirmar execucao via Lichess/fontes limpas; nao copiar exercicios, comentarios, FEN/PGN, diagramas ou variantes.
+- [x] **Analise Diretora dos PDFs Baixados + ONDA 3 (2026-06-10)**.
+  - [x] Relatorios `docs/research/analise-pdfs-baixados-onda3-DEEPSEEK.md`, `docs/research/analise-pdfs-baixados-onda3-GEMINI.md` e `docs/research/analise-pdfs-baixados-onda3-CODEX.md` comparados.
+  - [x] Consolidado salvo em `docs/research/analise-pdfs-baixados-onda3-DIRETOR.md`.
+  - [x] Nota diretora: 8.8/10 para estudo pessoal privado, 8.5/10 para metodo pedagogico, 7.2/10 para produto/app publico.
+  - [x] Decidido que a proxima etapa deve ser curadoria de estudos pessoais privados no Lichess: Tratamento de Pendencias, Calculo Ponte 800-1200, Defesa Ativa, Abertura Como Plano e Diplomas de Progresso.
+- [x] **Prompts de planejamento da implementacao do metodo Lichess (2026-06-10)**.
+  - [x] Criados prompts separados para DeepSeek, Gemini e Codex planejarem a implementacao do metodo aplicado no Lichess.
+  - [x] Arquivos: `prompts/archive/2026-06-method/deepseek-plano-implementacao-metodo-lichess.md`, `prompts/archive/2026-06-method/gemini-plano-implementacao-metodo-lichess.md`, `prompts/archive/2026-06-method/codex-plano-implementacao-metodo-lichess.md`.
+  - [x] Prompts exigem plano comparavel com mapa Lichess, modelo de dominio, 5 trilhas, UX, privacidade, testes, fases e notas.
+  - [x] Fontes oficiais do Lichess para Studies, Puzzles, rate limits e API Tips registradas em `docs/research/sources.md`.
+- [x] **Execucao do prompt Codex de plano implementavel (2026-06-10)**.
+  - [x] Prompt `prompts/archive/2026-06-method/codex-plano-implementacao-metodo-lichess.md` executado pelo Codex.
+  - [x] Plano salvo em `docs/research/plano-implementacao-metodo-lichess-CODEX.md`.
+  - [x] Veredito: integrar as 5 trilhas como camada de metodo sobre o loop existente; comecar por Tratamento de Pendencias + Calculo Ponte; melhorar Study do dia antes de criar studies permanentes por trilha.
+  - [x] Rechecagem oficial Lichess registrada em `docs/research/sources.md`.
+- [x] **Relatorio diretor do plano de implementacao do metodo Lichess (2026-06-10)**.
+  - [x] Relatorios DeepSeek, Gemini e Codex comparados.
+  - [x] Consolidado salvo em `docs/research/plano-implementacao-metodo-lichess-DIRETOR.md`.
+  - [x] Decisao: consenso suficiente; nao precisa de nova rodada com outras IAs antes de implementar.
+  - [x] Ordem ideal: camada de metodo local, pendencias, calculo ponte, defesa ativa, abertura como plano, diplomas, Study do dia melhorado.
+  - [x] Pontos rejeitados/deferidos: cinco studies permanentes agora, troca de `PlanBlock`, inflar `WeaknessTag`, hard gate de diplomas, app avaliar lances de abertura em tempo real, `gamebook` no primeiro corte e Puzzle DB local agora.
+- [x] **Implementacao do Metodo Professor Lemos no app (concluida em 2026-06-10)**.
+  - [x] Relatorios de pesquisa organizados em `docs/research/` e memoria atualizada.
+  - [x] Camada de dominio das 5 trilhas, pendencias, mastery, diplomas e selecao de trilha adicionada.
+  - [x] Trilhas, pendencias e tentativas de diploma persistidas em Dexie schema v4.
+  - [x] Plano diario expandido com trilha ativa, pergunta-guia, prioridade para pendencias vencidas e ratio de revisao adaptativo.
+  - [x] Tela Hoje mostra pendencias, trilha ativa, checkpoint de diploma e sugestao de pendencia apos feedback dificil.
+  - [x] Study do dia enriquecido com trilha, pergunta-guia, tarefa, stop rule e destino.
+- [x] **Organizacao de projeto pos-metodo (2026-06-10)**.
+  - [x] Prompts executados da rodada do metodo arquivados em `prompts/archive/2026-06-method/`.
+  - [x] Scripts de pesquisa movidos para `scripts/research/`.
+  - [x] `docs/research/README.md`, `prompts/README.md` e `scripts/README.md` documentam o que e entrada ativa, arquivo historico e ferramenta local.
+  - [x] `.gitignore` protege caches locais, downloads de acervo e colecoes pessoais fora do app.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.

@@ -371,6 +371,56 @@ Pesquisa executada apos uso real mostrar repeticao da aula fixa `The Fork` em di
   confirmado como aula guiada fixa de Practice, apropriada como primeira explicacao mas inadequada para
   repeticao automatica em dias seguidos.
 
+## Pesquisa Pontual Em 2026-06-09: Metodo Professor Lemos
+
+Pesquisa e consolidacao executadas para documentar o metodo pedagogico do app em
+`docs/pedagogy/metodo-professor-lemos.md` e para explicitar na tela Hoje como o plano e montado,
+como a confianca e comunicada e como progresso deve ser medido sem promessa de rating.
+
+- [Spacing and retrieval review](https://www.nature.com/articles/s44159-022-00089-1): usado como base
+  para tratar repeticao espacada e recuperacao ativa como mecanismos fortes de retencao, sem afirmar
+  que so isso garante evolucao em xadrez.
+- [Retrieval practice systematic review](https://link.springer.com/article/10.1007/s10648-021-09595-9):
+  usado para sustentar que recuperar ativamente informacao/habilidade e melhor que apenas reler ou
+  consumir explicacao, especialmente quando ha feedback.
+- [Worked examples / cognitive load](https://www.sciencedirect.com/science/article/pii/S0361476X1000055X):
+  usado para justificar `explain` e `guided` antes de `retrieval` para iniciantes, reduzindo carga
+  cognitiva antes de puzzle variado.
+- [The Role of Deliberate Practice in Chess Expertise](https://doi.org/10.1002/acp.1106) e
+  [Deliberate Practice: Necessary But Not Sufficient](https://doi.org/10.1177/0963721411421922):
+  usados para enquadrar pratica deliberada como importante no xadrez, mas insuficiente para promessa
+  causal forte ou promessa de rating.
+- [Learning Outcomes, Assessment, and Evaluation in Educational Recommender Systems](https://arxiv.org/abs/2407.09500):
+  usado para registrar a lacuna de sistemas recomendadores educacionais: muitos recomendam recursos,
+  menos medem efeito pedagogico real. Decisao: o app comunica confianca e limita suas metricas.
+- Apps estudados em relatorios anteriores: Chess.com/Chessable, Aimchess, Noctie, Dr. Wolf,
+  ChessTempo, Listudy e Chessdriller foram usados apenas como padroes abstratos de produto
+  (repeticao, plano personalizado, coach contextual e revisao de erros), sem copiar conteudo,
+  taxonomia paga, assets ou textos.
+
+## Pesquisa Pontual Em 2026-06-09: Biblioteca De Literatura De Xadrez
+
+Pesquisa executada para abrir a fase 1 de biblioteca local sobre livros, teses, artigos e metodos
+de ensino de xadrez. Decisao legal: baixar apenas dominio publico, Project Gutenberg/espelho,
+Creative Commons ou open access com PDF/licenca identificavel; material pago, preview, borrow,
+assinatura, CDL ou upload moderno suspeito entra em lista de compra/revisao, nao em download.
+
+- [Internet Archive Advanced Search](https://archive.org/advancedsearch.php): usado para consultar
+  metadados de `mediatype:texts` por titulo/assunto/colecao e saida JSON.
+- [Internet Archive Metadata API](https://archive.org/metadata/): usado para obter lista de arquivos
+  por item antes de baixar.
+- [Internet Archive Developers - Bots](https://archive.org/developers/bots.html): usado para orientar
+  User-Agent descritivo, delays e respeito a bloqueios/rate limits.
+- [Project Gutenberg permissions](https://www.gutenberg.org/policy/permission.html) e
+  [Project Gutenberg robot access](https://www.gutenberg.org/policy/robot_access.html): usados para
+  separar descoberta legal de raspagem e manter cuidado com marca/jurisdicao.
+- [Gutendex](https://gutendex.com/): usado como discovery JSON de metadados Gutenberg, com filtro
+  posterior contra falsos positivos como `duchess`.
+- [OpenAlex Works API](https://docs.openalex.org/api-entities/works): usado para descobrir artigos OA
+  com `open_access.is_oa:true` e `has_pdf_url:true`.
+- [OpenAlex rate limits/authentication](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication):
+  usado para tratar API como freemium/rate-limited e manter coleta em lotes.
+
 ## Lichess
 
 - [Lichess API](https://lichess-org.github.io/api/): referencia oficial dos endpoints.
@@ -407,3 +457,266 @@ Do app antigo de estudo, aproveitar apenas principios:
 - Tutor nao envergonha o aluno.
 
 Nao copiar conteudo protegido, assets, puzzles proprietarios ou estrutura paga.
+
+## Pesquisa Frente 4 Em 2026-06-09: Paid Buylist de Livros e Recursos
+
+Pesquisa executada para construir lista priorizada de recursos pagos (livros, cursos, software) de publishers oficiais.
+
+### Plataformas e Lojas Oficiais Pesquisadas
+
+- [New In Chess - Quality Chess page](https://www.newinchess.com/quality-chess): confirmou Yusupov Complete Series (Paperback €189.95 out of stock, Hardcover €299.90 out of stock / €224.93 special price), livros Quality Chess ~€23.99-34.99 cada.
+- [New In Chess - search "Yusupov"](https://www.newinchess.com/catalogsearch/result/?q=Yusupov): confirmou precos individuais dos livros Yusupov (~€23.99-29.99), series Build Up/Boost/Chess Evolution (~€69.95 cada serie de 3 livros), The Fundamentals Series (€69.95).
+- [New In Chess - search "Woodpecker Method"](https://www.newinchess.com/catalogsearch/result/?q=Woodpecker+Method): confirmou The Woodpecker Method (€34.99), The Woodpecker Method 2 (€29.99).
+- [New In Chess - search "Steps Method"](https://www.newinchess.com/catalogsearch/result/?q=Steps+Method): confirmou The Complete Step-by-Step Method (€99.95, 6 manuais + 6 workbooks), completo com extras (€199.95), workbooks individuais (€5.95), manuais (€12.50).
+- [New In Chess - search "Silman Complete Endgame"](https://www.newinchess.com/catalogsearch/result/?q=Silman+Complete+Endgame): confirmou Silman's Complete Endgame Course (€27.95, discontinued), How to Reassess your Chess (€32.95, discontinued).
+- [New In Chess - search "Logical Chess Move by Move"](https://www.newinchess.com/catalogsearch/result/?q=Logical+Chess+Move+by+Move): confirmou Logical Chess Move by Move (€19.95, discontinued).
+- [New In Chess - search "My System Nimzowitsch"](https://www.newinchess.com/catalogsearch/result/?q=My+System+Nimzowitsch): confirmou My System (€21.99), My System FastTrack Edition (€19.95), My System & Chess Praxis (€26.95), Chess Praxis (€21.99).
+- [New In Chess - search "1001 Chess Exercises"](https://www.newinchess.com/catalogsearch/result/?q=1001+Chess+Exercises): confirmou 1001 Chess Exercises for Advanced Club Players (€22.95), 1001 Chess Endgame Exercises for Club Players (€24.95). Precos dos volumes Beginners e Club Players nao exibidos.
+- [New In Chess - search "How to Beat Your Dad"](https://www.newinchess.com/catalogsearch/result/?q=How+to+Beat+Your+Dad): nao encontrado na NIC. Gambit Publications e a editora original.
+- [New In Chess - search "Capablanca Chess Fundamentals"](https://www.newinchess.com/catalogsearch/result/?q=Capablanca+Chess+Fundamentals): nao encontrado. Capablanca's Endgame Technique (€19.95) esta disponivel.
+- [ChessBase Shop](https://shop.chessbase.com/en/): confirmou Fritz 21 (€69.90), Fritz your Chess Coach 2 (€19.99), Fritz & Chesster series (€29.00 cada), Smart by Chess (€19.90), 10 Golden Rules of Endgame Play (€19.90), Openings #1 The Open Games (€29.90), ChessBase 26 Single Program (€199.90), cursos Fritztrainer (€9.90-€59.90).
+- [Forward Chess](https://forwardchess.com/): plataforma de ebooks interativos. Confirmou The Woodpecker Method ($23.99), 100 Endgames You Must Know 6th ed ($17.99), How to Study Chess on Your Own ($17.99), Improve Your Chess Calculation ($22.99), Amateur to IM ($19.99), Chess Structures ($23.99), The Russian Endgame Handbook ($17.99), World's Most Instructive Amateur Game Book ($14.99), Play Winning Chess New Edition ($21.99, em breve). Precos em USD. Editoras: Quality Chess, New in Chess, Mongoose Press, Thinkers Publishing, Russell Enterprises, Everyman Chess, Chess Elevation, Popular Chess, etc.
+- [Thinkers Publishing](https://thinkerspublishing.com/): editora belga de livros de xadrez (abertura, meio-jogo, final, taticas, estrategia, psicologia). Ebooks disponiveis via Forward Chess.
+- [Silman-James Press](https://www.silmanjamespress.com/): Siles Press e a divisao de xadrez. Site principal foca em cinema/livros de atuacao. Livros do Silman devem ser verificados diretamente na Siles Press ou Amazon.
+
+### Plataformas com Problemas de Acesso
+
+- [Gambit Publications](https://www.gambitbooks.com/): erro de transporte (site offline ou bloqueando). Livros Gambit devem ser verificados na Amazon.
+- [Everyman Chess](https://www.everymanchess.com/): erro de transporte. Livros Everyman disponiveis via New In Chess (distribuidor), Forward Chess (ebooks) e Amazon.
+- [Chessable](https://www.chessable.com/courses/most-popular): site requer JavaScript; nao foi possivel extrair precos via webfetch. Necessaria pesquisa manual com navegador.
+
+### Itens com Precos Nao Verificados (necessaria pesquisa manual)
+
+- How to Beat Your Dad at Chess (Gambit Publications)
+- Everyone's First Chess Workbook (New In Chess)
+- Chess Tactics from Scratch (Quality Chess)
+- 100 Tactical Patterns You Must Know (New In Chess)
+- Play Winning Chess / Winning Chess series (Seirawan, Everyman/Chess Elevation)
+- Bobby Fischer Teaches Chess (Bantam)
+- Chess Training Pocket Book (Alburt)
+- The Amateur's Mind (Siles Press)
+- How to Reassess Your Chess (Siles Press)
+- Pump Up Your Rating (Quality Chess)
+- Simple Chess (Dover)
+- Practical Chess Exercises (Wheatmark)
+- Chess Mastery by Question and Answer (Russell Enterprises)
+- Chess Fundamentals physical (Dover/Everyman)
+- Chess for Zebras (Gambit)
+- Modern Chess Strategy (Dover)
+- Cursos Chessable 0-1200 rating
+- Livros Silman na Siles Press (precos exatos)
+
+### Observacoes
+
+- Muitos classicos (Silman, Logical Chess, Back to Basics) aparecem como "discontinued" na New In Chess. Isso nao significa que o livro esta fora de catalogo — apenas que a NIC parou de distribuir. As editoras originais (Siles Press, Batsford, Russell Enterprises) ou Amazon devem ter estoque.
+- Yusupov Complete Series esta "out of stock" em ambas edicoes na NIC. E possivel comprar volumes individuais ou as series de 3 livros (Fundamentals/Beyond Basics/Mastery) separadamente.
+- Forward Chess e a melhor plataforma para ebooks interativos de xadrez. Engine integrado permite jogar lances e variantes no tabuleiro digital.
+- Fritz 21 (€69.90) e Fritz your Chess Coach 2 (€19.99) sao as opcoes de software de treino da ChessBase. O Fritz 21 inclui oponentes com personalidade, treino de aberturas e calculo.
+- Deliverable completo em `docs/research/paid_buylist.md`.
+
+## Pesquisa Profunda Em 2026-06-09: 5 Frentes De Literatura De Xadrez
+
+Pesquisa executada como DeepSeek (Claude como pesquisador) para cobrir as 5 frentes do prompt
+`prompts/archive/2026-06-method/deepseek-chess-literature-library.md`. Todos os entregaveis em PT-BR com links verificaveis.
+
+### Frente 1: Acervo Livre — Fontes de descoberta
+
+- [Gutendex API](https://gutendex.com/): pesquisa por `chess`, `xadrez`, `ajedrez`, `echecs`. API
+  retornou 503/offline em 2026-06-09. Tentar novamente.
+- [Internet Archive Advanced Search (JSON)](https://archive.org/advancedsearch.php): query
+  `subject:chess + mediatype:texts + license:publicdomain/cc` retornou 303 livros; `title:chess`
+  retornou 223 livros. Fonte mais produtiva para livros completos em dominio publico ou CC.
+- [OpenAlex Works API](https://api.openalex.org/works): query `title.search:chess + is_oa:true +
+  has_pdf_url:true` retornou 1762 papers. Usado para descobrir artigos academicos com PDF open access.
+- [DOAJ API](https://doaj.org/api/search/articles/chess): retornou 1074 artigos (muitos falsos
+  positivos — CHESS como acronimo medico/astronomico). ~16 relevantes para educacao de xadrez.
+- OATD, ERIC, PubMed: inacessiveis por bloqueio de rede/transporte ou reCAPTCHA em 2026-06-09.
+
+### Frente 2: Evidencia Academica
+
+- [Google Scholar](https://scholar.google.com/): 8 queries em ingles, portugues e espanhol para
+  localizar estudos sobre xadrez e educacao, cognicao, transferencia.
+- [Sala & Gobet (2016) - meta-analise](https://doi.org/10.1016/j.edurev.2016.02.002): 24 estudos,
+  efeito global g=0.34. Paywall Elsevier.
+- [Sala, Foley & Gobet (2017) - revisao critica](https://doi.org/10.3389/fpsyg.2017.00238): placebo
+  e o maior problema metodologico. CC BY 4.0. Acesso livre.
+- [Sala & Gobet (2017) - grupo de controle ativo](https://doi.org/10.3758/s13420-017-0280-3): xadrez
+  = damas = Go. Nenhuma superioridade. CC BY 4.0.
+- [Rosholm et al. (2017) - Dinamarca](https://doi.org/10.1371/journal.pone.0177257): efeito modesto
+  em padroes (g=0.10-0.18). CC BY 4.0.
+- [Jerrim et al. (2016) - IoE/EEF UK RCT](https://educationendowmentfoundation.org.uk/projects-and-evaluation/projects/chess-in-schools):
+  N=3865, nenhum efeito de longo prazo. Maior RCT ate hoje.
+- [Bart (2014) - revisao](https://doi.org/10.3389/fpsyg.2014.00762): revisao narrativa. CC BY 4.0.
+- [Trinchero & Sala (2016) - heuristicas](https://doi.org/10.12973/eurasia.2016.1255a): metodo de
+  ensino IMPORTA. EJMSTE, provavelmente CC BY.
+- [Charness et al. (2005) - deliberate practice](https://doi.org/10.1002/acp.1106): DP explica ~34%
+  da variancia em rating. Paywall Wiley.
+- [Campitelli & Gobet (2011) - DP necessario mas nao suficiente](https://doi.org/10.1177/0963721411421922):
+  paywall SAGE.
+- [Burgoyne et al. (2016) - cognicao e xadrez](https://doi.org/10.1016/j.intell.2016.08.002):
+  meta-analise. Paywall Elsevier.
+- [Blanch (2022) - vies de publicacao](https://doi.org/10.1007/s10648-021-09649-2): "wishful
+  thinking". Paywall Springer.
+
+### Frente 3: Metodos e Curriculos
+
+- [Stappenmethode (Steps Method)](https://www.stappenmethode.nl/en/): site oficial com descricao
+  dos 6 steps, samples gratuitos, puzzles semanais e solucoes abertas.
+- [New In Chess / Quality Chess](https://www.newinchess.com/quality-chess): Yusupov Series, Steps
+  Method, Woodpecker Method, Silman, Nimzowitsch.
+- [FIDE Chess in Schools](https://cis.fide.com/): framework publico de 7 areas para treinadores.
+- [Lichess Practice](https://lichess.org/practice): 5 secoes oficiais (Checkmates, Fundamental
+  Tactics, Advanced Tactics, Pawn Endgames, Rook Endgames) — gratuito e open source.
+- [Lichess Learn](https://lichess.org/learn): fundamentos interativos gratuitos.
+- [Project Gutenberg - Capablanca Chess Fundamentals](https://www.gutenberg.org/ebooks/33870):
+  dominio publico, gratuito.
+
+### Frente 4: Lista De Compra (ja documentada na secao anterior)
+
+Ver secao "Pesquisa Frente 4 Em 2026-06-09: Paid Buylist de Livros e Recursos" acima.
+
+### Frente 5: Sintese Para Metodo Proprio
+
+- [Metodo Professor Lemos](docs/pedagogy/metodo-professor-lemos.md): documento canonico do metodo
+  pedagogico do app.
+- [Plano pedagogico a partir do acervo baixado](docs/pedagogy/plano-pedagogico-acervo-baixado-2026-06-09.md):
+  leitura aplicada dos livros/artigos baixados, separando o que vira pedagogia, o que fica para depois
+  e o que nao deve ser usado.
+- [Method Synthesis](docs/research/method_synthesis.md): 10 principios, 8 anti-padroes, sequencia
+  de 9 blocos, templates de sessao, sinais de avaliacao, candidatos de implementacao.
+- [Spacing and retrieval review (Nature)](https://www.nature.com/articles/s44159-022-00089-1):
+  base para spaced repetition e retrieval practice.
+- [Retrieval practice systematic review (Springer)](https://link.springer.com/article/10.1007/s10648-021-09595-9):
+  recuperar ativamente > reler.
+- [Worked examples / cognitive load (ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S0361476X1000055X):
+  explain + guided antes de retrieval para iniciantes.
+
+### Arquivos gerados
+
+| Arquivo | Frente | Conteudo |
+|---------|--------|----------|
+| `docs/research/open_download_candidates.md` | 1 | 85+ itens com download legal catalogados |
+| `docs/research/academic_evidence.md` | 2 | 24 estudos com tabela de evidencia e sintese |
+| `docs/research/curriculum_map.md` | 3 | 17 metodos mapeados + sequencia de 9 blocos |
+| `docs/research/paid_buylist.md` | 4 | 60+ itens precificados com prioridades A/B/C/D |
+| `docs/research/method_synthesis.md` | 5 | Principios, anti-padroes, templates, sinais, implementacao |
+| `docs/pedagogy/plano-pedagogico-acervo-baixado-2026-06-09.md` | 5 | Plano de uso pedagogico dos livros/artigos baixados |
+
+## Pesquisa de Recursos para Lacunas do Método (2026-06-09)
+
+Pesquisa executada para suprir as 8 lacunas de pedagogia e engenharia cognitiva do Método Professor Lemos (prompt `prompts/archive/2026-06-method/gemini-lacunas-pesquisa-recursos.md`).
+
+### Fontes de Cálculo e Tática (`calculo-ponte-800-1200` e `calculo-sistematico-1200plus`)
+- **[Chess Tactics from Scratch](https://www.newinchess.com/chess-tactics-from-scratch) (Martin Weteschnik):** Quality Chess, 2012. Ensina tática a partir da mecânica física de cada peça.
+- **[How to Choose a Chess Move](https://www.amazon.com.br/) (Andrew Soltis):** Batsford, edição revista de 2024. Fornece gatilhos e atalhos cognitivos para lances candidatos.
+- **[How to Calculate Chess Tactics](https://www.newinchess.com/how-to-calculate-chess-tactics) (Valeri Beim):** Gambit Publications, 2002. Ensina o processo de pensamento integrado com a intuição e regras lógicas de variantes.
+
+### Fontes de Defesa e Profilaxia (`defesa-profilaxia-1000-1400`)
+- **[Survive & Thrive](https://www.chessable.com/course/survive-thrive-how-to-blunder-less-and-defend-better/) (FM Dalton Perrine):** Curso interativo na Chessable focado em diminuir blunders e melhorar a visão defensiva no ELO 1000-1400.
+- **[Cadernos Práticos 9 - Defesa e Contra-ataque](https://www.estantevirtual.com.br/) (Antonio Gude):** Editora Solis. Exercícios práticos e didáticos de sobrevivência tática e reação para amadores em português.
+- **[How to Defend in Chess](https://archive.org/details/howtodefendinche0000crou) (Colin Crouch):** Gambit, 2007. Disponível para empréstimo digital no Internet Archive.
+
+### Evidência de Engenharia Cognitiva e Metodologia (`threshold-dominio`, `proporcao-revisao-vs-novo`, `intervalos-repeticao-espacada`, `interleaving-sessao`, `abertura-minima-timing`)
+- **[Learning for Mastery](https://scholar.google.com/) (Benjamin Bloom, 1968):** Estabelece o padrão pedagógico de 80% a 90% em testes formativos para validar o progresso antes do próximo nível.
+- **[Spacing effects in learning (temporal ridgeline)](http://www.yorku.ca/ncepeda/publications/CepedaPashlerVulWixtedRohrer2008.pdf) (Nicholas Cepeda et al., 2008):** Demonstra a regra de 10-20% para a escala ótima de revisão espaçada (SRS).
+- **[The shuffling of mathematics problems improves learning](https://scholar.google.com/) (Doug Rohrer & Kelli Taylor, 2007):** Demonstra que a prática alternada (interleaving) de problemas táticos melhora o desempenho em 2x em relação a blocos homogêneos.
+- **[Novice Nook: When to Study Openings](https://www.danheisman.com/novice-nooks.html) (Dan Heisman):** Estudo de diretrizes sobre abertura, recomendando focar em princípios gerais e na revisão pós-jogo, sem memorização de variantes até ELO 1400+.
+
+### Ferramentas de Código Aberto
+- **[Listudy](https://listudy.org/en):** Motor PWA de repetição espaçada aplicado a xadrez sob licença livre.
+- **[OpeningTree](https://www.openingtree.com/):** Analisador de repertório de aberturas com base nas partidas reais do usuário.
+
+## Pesquisa Codex para Lacunas do Metodo (2026-06-10)
+
+Pesquisa executada para o prompt `prompts/archive/2026-06-method/codex-lacunas-pesquisa-recursos.md`, como terceiro vertice
+da triangulacao: open source, datasets, ferramentas, APIs oficiais e evidencia tecnica/academica.
+Relatorio gerado em `docs/research/relatorio-codex-lacunas-pesquisa-recursos.md`.
+
+### Fontes oficiais e datasets abertos
+
+- **[Lichess Puzzle Database](https://database.lichess.org/#puzzles):** dataset oficial de puzzles,
+  atualizado em 2026-06-04, com campos `Rating`, `RatingDeviation`, `Popularity`, `NbPlays`,
+  `Themes`, `GameUrl` e `OpeningTags`. Base A para selecao local de puzzles por tema, dificuldade,
+  popularidade e comprimento, sem copiar PGN completo para o app.
+- **[Lichess Puzzle Themes](https://lichess.org/training/themes):** catalogo oficial vivo de temas e
+  contagens. Usado para validar volume em `fork`, `pin`, `defensiveMove`, `mateIn2`, `short`, `long`
+  e outros temas relevantes.
+- **[Lichess API](https://lichess.org/api) / [API Tips](https://lichess.org/page/api-tips) /
+  [OpenAPI spec](https://github.com/lichess-org/api/blob/master/doc/specs/lichess-api.yaml):**
+  referencia viva para endpoints oficiais, limites de uso, puzzles, studies e restricoes de integracao.
+- **[Lichess Practice](https://lichess.org/practice):** taxonomia oficial de aulas interativas para
+  taticas, mates e finais. Uso recomendado como destino externo guiado, nao como conteudo copiado.
+- **[Hugging Face: Lichess/chess-puzzles](https://huggingface.co/datasets/Lichess/chess-puzzles):**
+  espelho util do dataset de puzzles, mas a fonte canonica continua sendo `database.lichess.org`.
+
+### Ferramentas tecnicas avaliadas
+
+- **[SCID](https://scid.sourceforge.net/):** banco de partidas gratuito/open source para analise local,
+  util como referencia tecnica de tooling, nao como dependencia direta do app pessoal.
+- **[ChessDB cloud book API](https://chessdb.cn/cloudbookc_api_en.html):** API publica de consulta de
+  livro/nuvem; classificada como risco para dependencia central por aproximar engine/cloud advice.
+- **[lichess-tactics-generator](https://github.com/vitogit/lichess-tactics-generator):** referencia de
+  geracao/seletores de taticas a partir de Lichess, util para leitura de abordagem, sem copiar codigo.
+- **[chess-puzzle-maker](https://github.com/linrock/chess-puzzle-maker):** referencia de UX/editoria de
+  puzzles, sem reaproveitamento de conteudo.
+- **[better_tactics](https://github.com/catchouli/better_tactics):** extensao/complemento comunitario
+  para treino no Lichess, avaliado como inspiracao externa.
+- **[chessli](https://github.com/pwenker/chessli) /
+  [chessli2](https://github.com/pwenker/chessli2):** treino open source de linhas/repertorio; util para
+  comparar repeticao e fluxo de estudo.
+- **[chessdriller](https://github.com/gtim/chessdriller):** ferramenta aberta de drilling de posicoes.
+- **[FSRS](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler) /
+  [fsrs4anki](https://github.com/open-spaced-repetition/fsrs4anki):** referencia tecnica aberta para
+  repeticao espacada; recomendada apenas depois de haver telemetria local suficiente.
+- **[ChessTempo Manual](https://chesstempo.com/manual/en/manual.html) /
+  [Memberships](https://chesstempo.com/memberships/):** custom sets e spaced repetition externos. Preco
+  observado em 2026-06-10: Gold US$4/mes ou US$35/ano. Bom como ferramenta pessoal externa, nao como
+  fonte principal do app.
+
+### Evidencia academica e cognitiva
+
+- **[Cepeda et al. 2006](https://pubmed.ncbi.nlm.nih.gov/16719566/):** revisao de spacing effect.
+- **[Cepeda et al. 2008](https://pubmed.ncbi.nlm.nih.gov/19076480/):** intervalo otimo de revisao em
+  funcao do atraso ate o teste; base indireta para agenda 1/3/7/14/30.
+- **[Roediger & Karpicke 2006](https://pubmed.ncbi.nlm.nih.gov/16507066/):** retrieval practice como
+  melhor consolidacao que releitura.
+- **[Rohrer, Dedrick & Stershic 2015](https://doi.org/10.1037/edu0000001):** interleaving em pratica
+  matematica; evidencia indireta para alternancia de temas apos dominio inicial.
+- **[Chen et al. 2021](https://doi.org/10.1007/s10648-020-09564-6):** spacing e interleaving em
+  categorias visuais; evidencia indireta para classificacao de padroes.
+- **[Mastery learning review](https://pmc.ncbi.nlm.nih.gov/articles/PMC10159400/):** base pedagogica
+  geral para thresholds, sem porcentagem especifica de xadrez.
+- **[EDM 2025 mastery threshold](https://educationaldatamining.org/EDM2025/proceedings/2025.EDM.short-papers.4/index.html):**
+  evidencia recente nao-xadrez sobre thresholds altos em mastery learning.
+- **[Chase & Simon / Simon & Chase](https://iiif.library.cmu.edu/file/Simon_box00066_fld05052_bdl0001_doc0001/Simon_box00066_fld05052_bdl0001_doc0001.pdf):**
+  evidencia classica de chunking e memoria especifica de xadrez.
+- **[Bilalic, McLeod & Gobet 2009](https://doi.org/10.1111/j.1551-6709.2009.01030.x):** especializacao
+  e reconhecimento em xadrez; relevante para limites de transferencia.
+- **[de Bruin, Rikers & Schmidt 2005](https://doi.org/10.1002/acp.1109):** auto-regulacao e estudo em
+  finais de xadrez.
+- **[Charness et al. 2005](https://doi.org/10.1002/acp.1106):** deliberate practice e rating de xadrez.
+
+## Planejamento de Implementacao do Metodo Lichess (2026-06-10)
+
+Pesquisa executada para criar os prompts de planejamento `deepseek-plano-implementacao-metodo-lichess`,
+`gemini-plano-implementacao-metodo-lichess` e `codex-plano-implementacao-metodo-lichess`.
+
+- **[Lichess API docs](https://lichess.org/api):** referencia oficial viva dos endpoints Lichess para
+  Studies, Puzzles, OAuth e demais recursos. Usar como fonte canonica antes de qualquer integracao nova.
+- **[Lichess API Tips](https://lichess.org/page/api-tips):** confirma que o Lichess prefere endpoints
+  oficiais a scraping/browser automation; regra operacional: uma requisicao por vez e, em HTTP 429,
+  esperar pelo menos 1 minuto antes de retomar.
+- **[OpenAPI spec do Lichess](https://github.com/lichess-org/api/blob/master/doc/specs/lichess-api.yaml):**
+  confirma `POST /api/study` com `study:write`, `POST /api/study/{studyId}/import-pgn` com
+  `study:write`, `GET /api/puzzle/activity`, `GET /api/puzzle/dashboard/{days}` e
+  `GET /api/puzzle/replay/{days}/{theme}` com `puzzle:read`.
+- **[Lichess Puzzle Database](https://database.lichess.org/#puzzles):** base publica de puzzles citada
+  pela spec oficial; continua sendo fonte limpa de selecao/curadoria, mas a implementacao atual deve
+  priorizar deep links e telemetria Lichess sem criar tabuleiro proprio.
+- **Rechecagem Codex do plano implementavel (2026-06-10):** fontes oficiais acima foram consultadas
+  novamente antes de gerar `docs/research/plano-implementacao-metodo-lichess-CODEX.md`, confirmando a moldura de
+  Studies, Puzzle Activity/Dashboard/Replay, escopos minimos e rate limit.
+- **Rechecagem diretora do consenso de implementacao (2026-06-10):** as mesmas fontes oficiais foram
+  consultadas novamente antes de gerar `docs/research/plano-implementacao-metodo-lichess-DIRETOR.md`. Decisao:
+  consenso suficiente para implementar sem nova rodada de planejamento; manter `puzzle:read`,
+  `study:write`, deep links, Study do dia e rate limit oficial.

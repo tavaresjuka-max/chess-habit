@@ -6,9 +6,9 @@ Diretor: Codex, consolidando DeepSeek, Gemini e Codex.
 
 Relatorios consolidados:
 
-- `analise-pdfs-baixados-onda3-DEEPSEEK.md`
-- `analise-pdfs-baixados-onda3-GEMINI.md`
-- `analise-pdfs-baixados-onda3-CODEX.md`
+- `docs/research/analise-pdfs-baixados-onda3-DEEPSEEK.md`
+- `docs/research/analise-pdfs-baixados-onda3-GEMINI.md`
+- `docs/research/analise-pdfs-baixados-onda3-CODEX.md`
 
 Premissa decidida pelo dono: esta rodada serve primeiro para **estudo pessoal privado** e para montar
 estudos pessoais no Lichess. Portanto, o valor pedagogico dos PDFs sensiveis conta para a rotina do
@@ -271,4 +271,3 @@ Eles existem para responder: "posso avancar ou preciso revisar?"
 A ultima leva nao pede mais "comprar/baixar mais coisa"; ela pede montar um sistema pessoal de estudos
 no Lichess baseado em pendencias reais, calculo curto, defesa ativa e abertura por plano, usando os
 livros fortes da Onda 3 como professor particular e os dados do Lichess como prova de progresso.
-

@@ -35,6 +35,24 @@ Data: 2026-06-09 (atualizado apos estabilizacao final da fase pessoal pos-P3).
 - Metas acumuladas da fase adicionadas em 2026-06-09: tela Hoje soma historico local de sessoes/horas
   concluidas, mostra checkpoints de 6h/12h/24h e ciclos seguintes, e exibe evolucao por feedback e
   puzzles reconciliados quando houver dados.
+- Análise do Acervo ONDA 2 (Gemini) concluida em 2026-06-09: 235 livros da nova leva analisados e catalogados. O relatório propôs DAMP como ritual de segurança em PT-BR e o Ciclo Woodpecker como formato de repetição acelerada; a leitura direta dos convertidos depois **corrigiu** DAMP para Defesa/Alinhamento/Mobilidade/Promocao como deteccao tatica. Detalhes em `analise-acervo-ONDA2-GEMINI.md`.
+- Analise propria do Acervo ONDA 1 + ONDA 2 (Codex) concluida em 2026-06-09: `analise-acervo-CODEX.md`.
+  Contagem real confirmada: 124 PDFs na Onda 1, 167 PDFs na Onda 2 e 68 e-books nao-PDF na Onda 2
+  (235 arquivos na Onda 2 quando `.azw/.azw3/.epub` entram). A analise confirma o metodo local por
+  sinais, reforca PT-BR/Woodpecker/finais/calculo, e marca DAMP como e-book existente mas pendente de
+  leitura direta/conversao antes de virar evidencia forte independente.
+- Análise dos Livros Convertidos (Gemini) concluida em 2026-06-09: ~66 livros convertidos em texto puro analisados, corrigindo de forma definitiva o acrônimo DAMP para Defesa, Alinhamento, Mobilidade e Promoção (detecção tática ofensiva/defensiva baseada no texto do livro real) e integrando as orientações de Time Budgeting de Rafael Leitão, detalhados em `analise-convertidos-GEMINI.md`.
+- Analise dos Livros Convertidos (Codex) concluida em 2026-06-09: `docs/research/analise-convertidos-CODEX.md`.
+  Terceira voz confirmou 66 `.txt` unicos apesar de 67 saidas OK no manifesto, por colisao de nome em
+  `Xadrez Vitorioso`; DAMP fica resolvido como Defesa/Alinhamento/Mobilidade/Promocao e deve entrar
+  como deteccao tatica, nao como ritual de seguranca. Leitao entra como proporcao-base adaptada por
+  sinais locais; abertura PT-BR, calculo intermediario e defesa continuam parciais/abertos.
+- Integracao dos deltas verificados dos convertidos no metodo consolidado concluida em 2026-06-09:
+  DAMP entrou sob `stage: tatica` como deteccao (nao seguranca), `damp-scan` e o bloco
+  `600-1000-tatica-00` foram adicionados ao metodo, Leitao virou proporcao-base elastica do gerador, e
+  Lazzarotto, Capablanca PT-BR e Movimento Forcado ficaram registrados com escopo limitado e lacunas
+  remanescentes explicitas.
+- Análise dos PDFs Baixados + ONDA 3 (Gemini) concluída em 2026-06-10: 67 arquivos analisados e catalogados. O relatório provou cientificamente a importância da autorreflexão de erros locais ($r=0.29$) e da verbalização ($r=0.18$), propôs a inserção de marcos de progresso baseados em "Diplomas" (Peão, Torre, Rei) de Tirado & Silva (1999), e introduziu o drill de "Tratamento de Pendências" (Christofoletti 2007) para re-resolver puzzles falhados. Detalhes em [analise-pdfs-baixados-onda3-GEMINI.md](docs/research/analise-pdfs-baixados-onda3-GEMINI.md).
 - Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
 - Spec de execucao vigente: `docs/superpowers/specs/2026-06-06-rotina-pessoal-adaptativa-design.md`.
 
@@ -65,7 +83,7 @@ Data: 2026-06-09 (atualizado apos estabilizacao final da fase pessoal pos-P3).
 - Implementacao do Metodo Professor Lemos (5 trilhas) iniciada em 2026-06-10:
   camada de dominio, pendencias, Dexie v4, plano com trilha ativa, catalogo expandido,
   UI da tela Hoje, diplomas e Study enriquecido. Commits 1-9 descritos em
-  `prompts/codex-implementar-metodo-professor-lemos.md`.
+  `prompts/archive/2026-06-method/codex-implementar-metodo-professor-lemos.md`.
 
 P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08;
 Professor Lemos Etapa 1, Etapa 2A e Etapa 2B foram fechadas em 2026-06-08. A curadoria profunda de
@@ -149,6 +167,81 @@ Implementado ate P3:
 - Ajuste metodologico em 2026-06-09: a tela Hoje tambem mostra metas acumuladas por horas/sessoes:
   checkpoints de 6h e 12h, primeiro ciclo de 24h e ciclos seguintes de 24h. O painel usa todos os logs
   locais para progresso acumulado, mas nao conta logs diagnosticos como sessao/hora treinada.
+- Ajuste metodologico em 2026-06-09: o metodo do Professor Lemos foi documentado em
+  `docs/pedagogy/metodo-professor-lemos.md`; a proposta de fase agora explicita metodo, confianca da
+  evidencia e criterios de progresso, e o card de metas separa sinais de habito e habilidade.
+- Biblioteca de literatura de xadrez iniciada em 2026-06-09: docs em
+  `docs/research/chess-literature/`, downloads locais ignorados em
+  `output/chess-literature-library/files/`, manifestos versionaveis em
+  `docs/research/chess-literature/manifests/`. Estado atual: 10 downloads validos no lote-semente.
+- Pesquisa profunda de literatura de xadrez (5 frentes) concluida em 2026-06-09:
+  - Frente 1 (Acervo livre): 85+ itens catalogados em `docs/research/open_download_candidates.md`.
+    Estimativa: >3000 itens potenciais; caminho realista para ~1080 com triagem.
+  - Frente 2 (Evidencia academica): 24 estudos mapeados em `docs/research/academic_evidence.md`.
+    Achados fortes: deliberate practice e preditor #1; far transfer e raro; placebo e real; metodo de
+    ensino IMPORTA. Evitar alegar aumento de QI, melhora escolar ou superioridade a outros jogos.
+  - Frente 3 (Mapa de metodos): 17 metodos mapeados em `docs/research/curriculum_map.md`.
+    Sequencia macro original de 9 blocos para 0-1200. Todos os metodos classificados como PUBLICO
+    vs PROPRIETARIO.
+  - Frente 4 (Lista de compra): 60+ itens precificados em `docs/research/paid_buylist.md`.
+    Prioridade A (~€360-400): Steps Method, Yusupov, Woodpecker, Silman, How to Study Chess.
+  - Frente 5 (Sintese): 10 principios pedagogicos, 8 anti-padroes, templates de sessao (5/15/30/60min),
+    sinais de avaliacao sem prometer rating, candidatos de implementacao no app. Documentado em
+    `docs/research/method_synthesis.md`.
+- Plano pedagogico do acervo baixado criado em 2026-06-09:
+  `docs/pedagogy/plano-pedagogico-acervo-baixado-2026-06-09.md`. Decisao vigente: usar livros e
+  artigos baixados como base de sequenciamento, desenho de aula e feedback, nao como banco bruto de
+  textos, problemas, diagramas ou variantes. Ordem recomendada para o Professor Lemos: fundamentos,
+  seguranca material, mates/finais, calculo tatico, aberturas por principios, planejamento simples e
+  transferencia para partidas reais encerradas.
+- Pesquisa Codex das lacunas do Metodo Professor Lemos concluida em 2026-06-10:
+  `docs/research/relatorio-codex-lacunas-pesquisa-recursos.md`. Decisao/recomendacao vigente: antes de comprar
+  novos bancos de exercicios, priorizar pipeline local limpo sobre Lichess Puzzle Database/Puzzle
+  Themes para selecao por tema, dificuldade, popularidade, desvio e comprimento. Thresholds,
+  revisao/novo, spacing e interleaving ficam como hipoteses calibraveis por telemetria local; nao ha
+  evidencia A especifica de xadrez para porcentagens exatas.
+
+- Analise Codex dos PDFs baixados + ONDA 3 concluida em 2026-06-10:
+  `docs/research/analise-pdfs-baixados-onda3-CODEX.md`. Decisao/recomendacao vigente: a Onda 3 e forte como leitura
+  pessoal para defesa, calculo e abertura por principios, mas e sensivel como fonte direta de produto.
+  Integrar apenas abstracoes originais, preferindo Lichess e fontes limpas; manter ONDA 3 fora de
+  banco de conteudo, exemplos, diagramas, FEN/PGN, variantes e comentarios.
+
+- Analise diretora dos PDFs baixados + ONDA 3 concluida em 2026-06-10:
+  `docs/research/analise-pdfs-baixados-onda3-DIRETOR.md`. Decisao vigente: para estudo pessoal privado do dono, a
+  Onda 3 pode orientar diretamente estudos pessoais no Lichess; para app/produto publico, continua a
+  regra clean-room. Proxima etapa recomendada nao e baixar mais livros, mas montar 5 studies privados:
+  Tratamento de Pendencias, Calculo Ponte 800-1200, Defesa Ativa, Abertura Como Plano e Diplomas de
+  Progresso.
+
+- Prompts de planejamento da implementacao do metodo Lichess criados em 2026-06-10:
+  `prompts/archive/2026-06-method/deepseek-plano-implementacao-metodo-lichess.md`,
+  `prompts/archive/2026-06-method/gemini-plano-implementacao-metodo-lichess.md` e
+  `prompts/archive/2026-06-method/codex-plano-implementacao-metodo-lichess.md`. Todos pedem plano comparavel para transformar
+  as 5 trilhas em metodo aplicado no Lichess, mantendo P4/P5 congeladas, official APIs only, sem
+  scraping, sem tabuleiro proprio, sem ajuda em partida viva e clean-room para app/publico. Fontes
+  oficiais verificadas: Lichess API, API Tips, OpenAPI spec, Study API e Puzzle Activity/Dashboard/Replay.
+
+- Plano Codex implementavel salvo em 2026-06-10:
+  `docs/research/plano-implementacao-metodo-lichess-CODEX.md`. Decisao recomendada: nao criar cinco studies
+  permanentes ainda; primeiro adicionar camada de metodo (`MethodTrack`, pendencias, diplomas) sobre o
+  loop Hoje, priorizar Tratamento de Pendencias + Calculo Ponte, usar destinations/replay/dashboard
+  existentes e so depois melhorar o Study do dia com capitulos autorais por trilha. P4/P5 continuam
+  congeladas.
+
+- Relatorio diretor de implementacao salvo em 2026-06-10:
+  `docs/research/plano-implementacao-metodo-lichess-DIRETOR.md`. Decisao vigente: ha consenso suficiente entre
+  DeepSeek, Gemini e Codex; nao fazer nova rodada de planejamento antes de codar. Implementar em cortes:
+  camada de metodo local (`MethodTrackId`, `PendingTrainingItem`, `DiplomaAttempt`), pendencias
+  automaticas com curadoria do dono, calculo ponte, defesa ativa, abertura como plano, diplomas soft
+  gate e Study do dia enriquecido. Rejeitado/deferido: cinco studies permanentes agora, substituir
+  `PlanBlock`, inflar `WeaknessTag`, hard gate, avaliador de lances em tempo real, `gamebook` inicial e
+  Puzzle DB local no primeiro corte.
+
+- Organizacao pos-metodo em 2026-06-10: prompts executados da rodada do metodo ficam em
+  `prompts/archive/2026-06-method/`; prompts ativos permanecem em `prompts/`; scripts de acervo ficam em
+  `scripts/research/`; relatorios e sinteses ficam em `docs/research/`; documentos canonicos de ensino
+  ficam em `docs/pedagogy/`. Downloads, caches e colecoes pessoais continuam fora do Git.
 
 Dados do dono confirmados: Lichess `jukasparov`; Chess.com `jukatavares`; band **800-1200**
 (tema fixo P0 = `fork`). P1: Chess.com como fonte primaria de diagnostico, **historico completo**

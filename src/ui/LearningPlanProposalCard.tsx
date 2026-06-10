@@ -82,6 +82,26 @@ export function LearningPlanProposalCard({
         </ul>
       </div>
 
+      <div className="method-note-panel learning-plan-method" aria-label="Metodo do plano">
+        <strong>Como o plano foi montado</strong>
+        <p>{proposal.methodSummary}</p>
+        <p>{proposal.evidenceLevel}</p>
+        <ol>
+          {proposal.methodSteps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="method-note-panel learning-plan-progress" aria-label="Como vamos medir progresso">
+        <strong>Como vamos medir progresso</strong>
+        <ul>
+          {proposal.progressCriteria.map((criterion) => (
+            <li key={criterion}>{criterion}</li>
+          ))}
+        </ul>
+      </div>
+
       <p>{proposal.estimate}</p>
       <p>{proposal.checkpoint}</p>
       <p className="learning-plan-caveat">{proposal.caveat}</p>

@@ -39,7 +39,9 @@ export type SessionMilestoneSummary = {
   currentMilestone: SessionMilestone;
   milestones: SessionMilestone[];
   stats: SessionMilestoneStats;
+  skillSignals: string[];
   nextCheckpoint: string;
+  nextSignalToMeasure: string;
 };
 
 export function buildSessionMilestoneSummary(input: {
@@ -91,7 +93,9 @@ export function buildSessionMilestoneSummary(input: {
     currentMilestone,
     milestones,
     stats,
+    skillSignals: buildSkillSignals(stats),
     nextCheckpoint: buildNextCheckpoint(currentMilestone, completedHours),
+    nextSignalToMeasure: buildNextSignalToMeasure(stats),
   };
 }
 
@@ -370,6 +374,60 @@ function buildImprovementLines(input: {
   }
 
   return lines;
+}
+
+function buildSkillSignals(stats: SessionMilestoneStats): string[] {
+  if (stats.completedSessions === 0) {
+    return [
+      'Habito: ainda nao ha sessoes concluidas.',
+      'Habilidade: ainda falta treino reconciliado ou feedback para medir uma melhora real.',
+    ];
+  }
+
+  const signals = [
+    `Habito: ${formatSessionCount(stats.completedSessions)} registradas, com ${formatHours(stats.completedHours)} de treino.`,
+  ];
+  const positiveFeedback = stats.feedback.easy + stats.feedback.good;
+
+  if (stats.puzzleAccuracy !== undefined) {
+    signals.push(`Habilidade: ${String(stats.puzzleAccuracy)}% de acerto nos puzzles reconciliados.`);
+  } else {
+    signals.push('Habilidade: ainda sem acerto real de puzzle; por enquanto o app usa feedback e tempo treinado.');
+  }
+
+  if (stats.puzzleAccuracyTrend !== undefined) {
+    const trend = stats.puzzleAccuracyTrend;
+    const direction = trend.delta > 0 ? 'subiu' : trend.delta < 0 ? 'caiu' : 'ficou estavel';
+    signals.push(`Tendencia: o acerto ${direction} de ${String(trend.previous)}% para ${String(trend.recent)}%.`);
+  }
+
+  if (positiveFeedback > stats.feedback.hard) {
+    signals.push('Carga: o feedback permite repetir com variacao ou transferir para tarefa menos guiada.');
+  } else if (stats.feedback.hard > positiveFeedback) {
+    signals.push('Carga: o feedback pede explicacao curta antes de aumentar dificuldade.');
+  }
+
+  return signals;
+}
+
+function buildNextSignalToMeasure(stats: SessionMilestoneStats): string {
+  if (stats.completedSessions === 0) {
+    return 'Proximo sinal: concluir uma sessao e registrar facil, bom ou dificil.';
+  }
+
+  if (stats.puzzleAttempts === 0) {
+    return 'Proximo sinal: reconciliar puzzles do Lichess para medir acerto por tema.';
+  }
+
+  if (stats.weakTheme !== undefined) {
+    return `Proximo sinal: repetir ${stats.weakTheme} e verificar se os erros caem no proximo ciclo.`;
+  }
+
+  if (stats.feedback.hard > stats.feedback.easy + stats.feedback.good) {
+    return 'Proximo sinal: reduzir carga e ver se o feedback dificil diminui.';
+  }
+
+  return 'Proximo sinal: manter o tema ate o checkpoint e comparar acerto, feedback e constancia.';
 }
 
 function buildNextCheckpoint(currentMilestone: SessionMilestone, completedHours: number): string {

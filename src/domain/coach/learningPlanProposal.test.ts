@@ -40,7 +40,13 @@ describe('buildLearningPlanProposal', () => {
 
     expect(proposal.heading).toBe('Entendi o que você precisa.');
     expect(proposal.phaseTitle).toBe('Primeira fase: garfos');
+    expect(proposal.methodSummary).toContain('observar sinais reais');
+    expect(proposal.evidenceLevel).toContain('Confianca: media');
+    expect(proposal.methodSteps).toContain(
+      'Treino: conceito guiado quando o tema e novo, depois recuperacao ativa em puzzles variados.',
+    );
     expect(proposal.focusItems).toContain('Ver garfos com cavalo, bispo, peão e dama.');
+    expect(proposal.progressCriteria).toContain('Acertar mais puzzles de garfo na primeira tentativa.');
     expect(proposal.estimate).toContain('30 horas');
     expect(proposal.estimate).toContain('60 sessões de 30 min');
     expect(proposal.checkpoint).toContain('Depois de 6 horas');
@@ -60,6 +66,8 @@ describe('buildLearningPlanProposal', () => {
     });
 
     expect(proposal.intro).toContain('faltam dados reais suficientes');
+    expect(proposal.evidenceLevel).toContain('Confianca: inicial');
+    expect(proposal.progressCriteria).toContain('Registrar feedback honesto: facil, bom ou dificil.');
     expect(proposal.estimate).toContain('120 sessões de 15 min');
     expect(proposal.caveat).not.toContain('vai subir');
   });

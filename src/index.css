@@ -371,6 +371,30 @@ textarea {
   padding-left: 18px;
 }
 
+.method-note-panel {
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.learning-plan-method,
+.learning-plan-progress {
+  background: #f7faf8;
+}
+
+.method-note-panel p {
+  margin: 0;
+}
+
+.method-note-panel ol,
+.method-note-panel ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
 .learning-plan-caveat,
 .learning-plan-status,
 .learning-plan-review-note {
@@ -512,6 +536,15 @@ textarea {
 .session-milestone-stats span {
   color: #46515e;
   font-size: 0.82rem;
+}
+
+.session-skill-signals {
+  background: #fff;
+}
+
+.session-skill-signals p {
+  color: #334155;
+  font-weight: 650;
 }
 
 .method-progress-badges {
