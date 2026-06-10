@@ -10,6 +10,17 @@ const openingPrinciplesDestination = destinationFromResource(
 );
 type DestinationContext = Omit<SelectLichessResourceInput, 'weaknessTag' | 'resourceStage'>;
 
+export const methodTrainingDestinationAllowlist = [
+  { weaknessTag: 'hanging-piece', lichessTheme: 'hangingPiece', url: 'https://lichess.org/training/hangingPiece' },
+  { weaknessTag: 'blunder-rate', lichessTheme: 'defensiveMove', url: 'https://lichess.org/training/defensiveMove' },
+  { weaknessTag: 'fork', lichessTheme: 'fork', url: 'https://lichess.org/training/fork' },
+  { weaknessTag: 'discovered', lichessTheme: 'discoveredAttack', url: 'https://lichess.org/training/discoveredAttack' },
+  { weaknessTag: 'mate-in-2', lichessTheme: 'mateIn2', url: 'https://lichess.org/training/mateIn2' },
+  { weaknessTag: 'conversion', lichessTheme: 'deflection', url: 'https://lichess.org/training/deflection' },
+  { weaknessTag: 'hanging-piece', lichessTheme: 'trappedPiece', url: 'https://lichess.org/training/trappedPiece' },
+  { weaknessTag: 'conversion', lichessTheme: 'quietMove', url: 'https://lichess.org/training/quietMove' },
+] satisfies ReadonlyArray<{ weaknessTag: WeaknessTag; lichessTheme: string; url: string }>;
+
 export const lichessDestinationsByWeakness = {
   'hanging-piece': destinationFromResource(getPrimaryLichessResourceForWeakness('hanging-piece')),
   fork: destinationFromResource(getPrimaryLichessResourceForWeakness('fork')),

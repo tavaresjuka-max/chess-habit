@@ -408,8 +408,8 @@ export const lichessPuzzleThemes = [
   puzzleTheme({ slug: 'clearance', title: 'Clearance', group: 'advanced', recommendedFor: ['conversion'] }),
   puzzleTheme({ slug: 'collinearMove', title: 'Collinear move', group: 'advanced' }),
   puzzleTheme({ slug: 'discoveredCheck', title: 'Discovered check', group: 'advanced', recommendedFor: ['discovered'] }),
-  puzzleTheme({ slug: 'defensiveMove', title: 'Defensive move', group: 'advanced', recommendedFor: ['blunder-rate', 'conversion'], priority: 72 }),
-  puzzleTheme({ slug: 'deflection', title: 'Deflection', group: 'advanced', recommendedFor: ['conversion'], priority: 70 }),
+  puzzleTheme({ slug: 'defensiveMove', title: 'Defensive move', group: 'advanced', recommendedFor: ['blunder-rate', 'conversion'], priority: 98 }),
+  puzzleTheme({ slug: 'deflection', title: 'Deflection', group: 'advanced', recommendedFor: ['conversion'], priority: 92 }),
   puzzleTheme({ slug: 'interference', title: 'Interference', group: 'advanced', recommendedFor: ['conversion'] }),
   puzzleTheme({ slug: 'intermezzo', title: 'Intermezzo', group: 'advanced', recommendedFor: ['conversion'] }),
   puzzleTheme({ slug: 'quietMove', title: 'Quiet move', group: 'advanced', recommendedFor: ['conversion'] }),
@@ -856,8 +856,8 @@ const primaryResourceIdByWeakness = {
   'time-trouble': 'puzzle-mode:streak',
   'endgame-pawn': 'practice:pawn-endgames:key-squares',
   'endgame-rook': 'practice:rook-endgames:basic-rook-endgames',
-  conversion: 'puzzle:advantage',
-  'blunder-rate': 'puzzle:hangingPiece',
+  conversion: 'puzzle:deflection',
+  'blunder-rate': 'puzzle:defensiveMove',
 } satisfies Record<WeaknessTag, LichessResource['id']>;
 
 export function getLichessResourcesForWeakness(tag: WeaknessTag): LichessResource[] {

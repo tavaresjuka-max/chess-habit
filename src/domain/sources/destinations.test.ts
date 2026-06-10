@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getDestinationForWeakness, lichessDestinationsByWeakness, normalizeDestination } from './destinations';
+import {
+  getDestinationForWeakness,
+  lichessDestinationsByWeakness,
+  methodTrainingDestinationAllowlist,
+  normalizeDestination,
+} from './destinations';
+import { findLichessResourceById } from './resourceCatalog';
 
 const allowedLichessUrl =
   /^https:\/\/lichess\.org\/(analysis|learn|streak|storm|training(?:\/(?:[A-Za-z0-9]+|of-player|themes))?|practice\/[a-z0-9-]+\/[a-z0-9-]+\/[A-Za-z0-9]+|video\/[A-Za-z0-9_-]+)$/;
@@ -56,7 +62,38 @@ describe('lichessDestinationsByWeakness', () => {
   it('uses concrete tools instead of generic Analysis for time trouble and conversion', () => {
     expect(lichessDestinationsByWeakness['time-trouble'].url).toBe('https://lichess.org/streak');
     expect(getDestinationForWeakness('time-trouble', 'retrieval').url).toBe('https://lichess.org/streak');
-    expect(lichessDestinationsByWeakness.conversion.url).toBe('https://lichess.org/training/advantage');
+    expect(lichessDestinationsByWeakness.conversion.url).toBe('https://lichess.org/training/deflection');
+  });
+
+  it('keeps method defense and calculation slugs on the Lichess training allowlist', () => {
+    expect(getDestinationForWeakness('hanging-piece', 'retrieval').url).toBe(
+      'https://lichess.org/training/hangingPiece',
+    );
+    expect(lichessDestinationsByWeakness['blunder-rate'].url).toBe(
+      'https://lichess.org/training/defensiveMove',
+    );
+    expect(getDestinationForWeakness('fork', 'retrieval').url).toBe('https://lichess.org/training/fork');
+    expect(getDestinationForWeakness('discovered', 'retrieval').url).toBe(
+      'https://lichess.org/training/discoveredAttack',
+    );
+    expect(getDestinationForWeakness('mate-in-2', 'retrieval').url).toBe('https://lichess.org/training/mateIn2');
+    expect(lichessDestinationsByWeakness.conversion.url).toBe('https://lichess.org/training/deflection');
+    expect(findLichessResourceById('puzzle:trappedPiece')?.url).toBe(
+      'https://lichess.org/training/trappedPiece',
+    );
+    expect(findLichessResourceById('puzzle:quietMove')?.url).toBe('https://lichess.org/training/quietMove');
+    expect(methodTrainingDestinationAllowlist.map((item) => item.url)).toEqual(
+      expect.arrayContaining([
+        'https://lichess.org/training/hangingPiece',
+        'https://lichess.org/training/defensiveMove',
+        'https://lichess.org/training/fork',
+        'https://lichess.org/training/discoveredAttack',
+        'https://lichess.org/training/mateIn2',
+        'https://lichess.org/training/deflection',
+        'https://lichess.org/training/trappedPiece',
+        'https://lichess.org/training/quietMove',
+      ]),
+    );
   });
 
   it('keeps tactical transfer and review on concrete training resources', () => {
