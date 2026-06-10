@@ -200,6 +200,35 @@ textarea {
   padding: 8px 10px;
 }
 
+fieldset.field {
+  border: 1px solid #cdd7cf;
+  border-radius: 8px;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+fieldset.field > legend {
+  font-weight: 650;
+  padding: 0 4px;
+}
+
+.radio-option {
+  align-items: center;
+  color: #22303c;
+  display: flex;
+  font-weight: 450;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.radio-option input[type='radio'] {
+  accent-color: #1f3f36;
+  height: 16px;
+  margin: 0;
+  min-height: 0;
+  width: 16px;
+}
+
 textarea {
   min-height: 96px;
   resize: vertical;

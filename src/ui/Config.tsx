@@ -5,6 +5,7 @@ import { createDefaultProfile, type LichessConnectionState } from '../app/state'
 import type { BackupImportResult } from '../infra/storage/appData';
 import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthToken, type SessionMinutes } from '../domain';
 import { describeAutoBackupStatus, type AutoBackupStatus } from '../infra/storage/autoBackup';
+import { PlacementCard } from './PlacementCard';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
 
@@ -194,6 +195,21 @@ export function Config({
           </div>
         </section>
       </form>
+
+      <PlacementCard
+        currentBand={band}
+        onApplyBand={async (nextBand) => {
+          setBand(nextBand);
+          await onSave({
+            lichessUsername: lichessUsername.trim() === '' ? undefined : lichessUsername.trim(),
+            chesscomUsername: chesscomUsername.trim() === '' ? undefined : chesscomUsername.trim(),
+            band: nextBand,
+            defaultSessionMinutes,
+            goals: initialProfile.goals,
+            updatedAt: new Date().toISOString(),
+          });
+        }}
+      />
 
       <section
         className="config-section connection-box"

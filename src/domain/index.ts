@@ -1,6 +1,7 @@
 export * from './types';
 export * from './bands';
 export * from './ids';
+export * from './placement/placement';
 export * from './plan/generatePlan';
 export * from './plan/normalizePlan';
 export * from './plan/planSessions';
