@@ -16,6 +16,7 @@ export * from './coach/sessionMessage';
 export * from './coach/sessionReport';
 export * from './metrics/consistency';
 export * from './metrics/progressOverview';
+export * from './metrics/efficacyBaseline';
 export * from './manual/knownManualSignals';
 export * from './sources/destinations';
 export * from './sources/catalogSkills';

@@ -24,6 +24,7 @@ import {
   type PlanBlockFeedback,
   type PuzzleThemeStats,
   type SessionMinutes,
+  type Signal,
   type TrainingLog,
   type TrainingRoadmapItem,
   type TutorQuestionAnswer,
@@ -111,6 +112,7 @@ export type AppState = {
   readonly pendingItems: PendingTrainingItem[];
   readonly diplomaAttempts: DiplomaAttempt[];
   readonly weaknesses: Weakness[];
+  readonly signals: Signal[];
   readonly diagnosisState: DiagnosisState;
   readonly diagnosisMessage: string | undefined;
   readonly errorMessage: string | undefined;
@@ -156,6 +158,7 @@ export function useAppState(): AppState {
   const [pendingItems, setPendingItems] = useState<PendingTrainingItem[]>([]);
   const [diplomaAttempts, setDiplomaAttempts] = useState<DiplomaAttempt[]>([]);
   const [weaknesses, setWeaknesses] = useState<Weakness[]>([]);
+  const [signals, setSignals] = useState<Signal[]>([]);
   const [diagnosisState, setDiagnosisState] = useState<DiagnosisState>('idle');
   const [diagnosisMessage, setDiagnosisMessage] = useState<string | undefined>(undefined);
   const [lichessToken, setLichessToken] = useState<LichessOAuthToken | undefined>(undefined);
@@ -240,6 +243,7 @@ export function useAppState(): AppState {
 
         const date = getTodayDate();
         const storedWeaknesses = await loadWeaknesses();
+        const storedSignals = await loadSignals();
         const storedPlan = await getPlan(date);
         const previousPlan = await getLatestPlanBefore(date);
         const storedAllTrainingLogs = await loadTrainingLogs();
@@ -286,6 +290,7 @@ export function useAppState(): AppState {
         setPendingItems(storedPendingItems);
         setDiplomaAttempts(storedDiplomaAttempts);
         setWeaknesses(storedWeaknesses);
+        setSignals(storedSignals);
         setLichessStudyLink(storedStudyLink);
         setTodayPlan(plan);
         setLoadState('ready');
@@ -427,6 +432,7 @@ export function useAppState(): AppState {
       await replaceSignalsForSource('chesscom', signals);
 
       const allSignals = await loadSignals();
+      setSignals(allSignals);
       const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
       const date = getTodayDate();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
@@ -462,6 +468,7 @@ export function useAppState(): AppState {
     await replaceSignalsForSource('outro', manualSignals);
 
     const allSignals = await loadSignals();
+      setSignals(allSignals);
     const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
 
     await replaceWeaknesses(nextWeaknesses);
@@ -492,6 +499,7 @@ export function useAppState(): AppState {
       await appendSignals([signal]);
 
       const allSignals = await loadSignals();
+      setSignals(allSignals);
       const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
 
       await replaceWeaknesses(nextWeaknesses);
@@ -566,6 +574,7 @@ export function useAppState(): AppState {
       await replaceSignalsForSource('lichess', signals);
 
       const allSignals = await loadSignals();
+      setSignals(allSignals);
       const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
       const date = getTodayDate();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
@@ -970,6 +979,7 @@ export function useAppState(): AppState {
     setPendingItems([]);
     setDiplomaAttempts([]);
     setWeaknesses([]);
+    setSignals([]);
     setLichessToken(undefined);
     setLichessStudyLink(undefined);
     setLichessConnectionState('disconnected');
@@ -1004,6 +1014,7 @@ export function useAppState(): AppState {
     pendingItems,
     diplomaAttempts,
     weaknesses,
+    signals,
     diagnosisState,
     diagnosisMessage,
     errorMessage,

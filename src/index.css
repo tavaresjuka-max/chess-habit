@@ -160,6 +160,11 @@ button[aria-disabled='true'] {
   color: #46515e;
 }
 
+.field-hint {
+  color: #46515e;
+  font-weight: 450;
+}
+
 .optional-tag {
   border: 1px solid #cdd7cf;
   border-radius: 999px;

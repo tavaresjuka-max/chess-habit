@@ -1,9 +1,11 @@
 import { TrendingUp } from 'lucide-react';
 import {
+  buildEfficacyBaseline,
   buildProgressTrend,
   buildSkillMap,
   buildTrackEffort,
   buildWeeklyDigest,
+  type Signal,
   type TrainingLog,
   type Weakness,
 } from '../domain';
@@ -15,15 +17,17 @@ type ProgressProps = {
   allTrainingLogs: TrainingLog[];
   diplomaAttempts: DiplomaAttempt[];
   weaknesses: Weakness[];
+  signals: Signal[];
 };
 
 const maxSkillRows = 12;
 
-export function Progress({ today, allTrainingLogs, diplomaAttempts, weaknesses }: ProgressProps) {
+export function Progress({ today, allTrainingLogs, diplomaAttempts, weaknesses, signals }: ProgressProps) {
   const trend = buildProgressTrend(allTrainingLogs, today);
   const weeklyDigest = buildWeeklyDigest(allTrainingLogs, today);
   const skillMap = buildSkillMap(allTrainingLogs).slice(0, maxSkillRows);
   const trackEffort = buildTrackEffort(allTrainingLogs);
+  const baseline = buildEfficacyBaseline({ allLogs: allTrainingLogs, signals, today });
 
   return (
     <section aria-labelledby="progress-title" className="panel">
@@ -128,6 +132,30 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, weaknesses }
             );
           })}
         </ul>
+      </section>
+
+      <section className="progress-section" aria-labelledby="progress-baseline-title">
+        <h2 id="progress-baseline-title">Linha de base do método</h2>
+        <div className="weekly-report-metrics">
+          {baseline.overallPuzzleAccuracyPercent !== undefined ? (
+            <span className="metric-chip">
+              {baseline.overallPuzzleAccuracyPercent}% de acerto em {baseline.puzzleAttempts} puzzles
+            </span>
+          ) : null}
+          {baseline.sessionCompletionPercent !== undefined ? (
+            <span className="metric-chip">{baseline.sessionCompletionPercent}% dos blocos concluídos</span>
+          ) : null}
+          {baseline.averageDaysBetweenSessions !== undefined ? (
+            <span className="metric-chip">retorno médio a cada {baseline.averageDaysBetweenSessions} dias</span>
+          ) : null}
+          {baseline.blundersPerGame !== undefined ? (
+            <span className="metric-chip">{baseline.blundersPerGame} erros graves por partida</span>
+          ) : null}
+        </div>
+        <p className="config-hint">
+          Estes números medem se o método está funcionando — não são nota sua. Revisão da linha de
+          base em julho de 2026.
+        </p>
       </section>
 
       {weaknesses.length > 0 ? (

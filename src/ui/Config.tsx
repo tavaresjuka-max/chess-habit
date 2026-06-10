@@ -160,6 +160,10 @@ export function Config({
 
           <label className="field">
             <span>Faixa atual</span>
+            <small className="field-hint">
+              A faixa organiza o conteúdo do curso; não é meta nem nota. Em dúvida, use a avaliação
+              de entrada abaixo.
+            </small>
             <select
               value={band}
               onChange={(event) => {

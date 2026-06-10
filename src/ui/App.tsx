@@ -102,6 +102,7 @@ export function App() {
           allTrainingLogs={appState.allTrainingLogs}
           diplomaAttempts={appState.diplomaAttempts}
           weaknesses={appState.weaknesses}
+          signals={appState.signals}
         />
       ) : (
         <Today

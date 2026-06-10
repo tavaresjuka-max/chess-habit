@@ -169,8 +169,8 @@ export function Today({
         <div>
           <h1 id="today-title">Hoje</h1>
           <p>
-            {plan.date} - {sessionSummaries.length} {sessionSummaries.length === 1 ? 'sessão' : 'sessões'} -{' '}
-            {totalPlannedMinutes} min
+            {formatFriendlyDate(plan.date)} - {sessionSummaries.length}{' '}
+            {sessionSummaries.length === 1 ? 'sessão' : 'sessões'} - {totalPlannedMinutes} min
           </p>
           {plan.weeklyFocus !== undefined ? (
             <p className="weekly-focus">
@@ -381,6 +381,22 @@ export function Today({
       </details>
     </section>
   );
+}
+
+function formatFriendlyDate(date: string): string {
+  const parsed = new Date(`${date}T12:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return date;
+  }
+
+  const formatted = parsed.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefined }) {
