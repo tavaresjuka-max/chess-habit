@@ -7,7 +7,9 @@ export const pwaOptions = {
   registerType: 'autoUpdate',
   workbox: {
     navigateFallback: 'index.html',
-    globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+    // Apenas o subset latino entra no precache offline; os demais subsets do
+    // Inter chegam por unicode-range so se o browser pedir.
+    globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}', '**/inter-latin-wght-normal-*.woff2'],
   },
   manifest: {
     name: 'Rotina de Treino Lichess',
@@ -17,7 +19,7 @@ export const pwaOptions = {
     scope: '/',
     lang: 'pt-BR',
     display: 'standalone',
-    background_color: '#f4f6f1',
+    background_color: '#f5f3ec',
     theme_color: '#1f3f36',
     icons: [
       {

@@ -27,6 +27,10 @@ export function App() {
     <main className="app-shell">
       <Toaster richColors position="bottom-right" />
       <nav className="top-nav" aria-label="Navegação principal">
+        <span className="brand" aria-hidden="true">
+          <span className="brand-mark">♞</span>
+          <span>Rotina</span>
+        </span>
         <button
           className={activeView === 'today' ? 'nav-button nav-button-active' : 'nav-button'}
           type="button"
