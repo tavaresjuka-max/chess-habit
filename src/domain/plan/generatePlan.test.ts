@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import type { PendingTrainingItem } from '../method/types';
 import type { LearnerProfile, SessionMinutes } from '../types';
-import { generatePlan } from './generatePlan';
+import { generatePlan, getReviewRatioForPendingCount } from './generatePlan';
 import { getTimeBudget } from './timeBudget';
 
 const baseProfile: LearnerProfile = {
@@ -10,6 +11,8 @@ const baseProfile: LearnerProfile = {
   goals: ['estudar com consistencia'],
   updatedAt: '2026-06-06T00:00:00.000Z',
 };
+
+const today = new Date().toISOString().slice(0, 10);
 
 describe('getTimeBudget', () => {
   it.each([
@@ -65,6 +68,7 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.destination.url).toBe(
       'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
     );
+    expect(plan.blocks[0]?.methodTrackId).toBe('calculation-bridge');
   });
 
   it('introduces the guided fork lesson with simple Professor Lemos context', () => {
@@ -418,6 +422,53 @@ describe('generatePlan', () => {
     });
   });
 
+  it('puts a due pending item as the first block with pending-review track', () => {
+    const plan = generatePlan(baseProfile, [], 15, today, {
+      openPendingItems: [createPendingItem({ dueAt: today })],
+    });
+
+    expect(plan.blocks[0]).toMatchObject({
+      title: 'Revisar tema: fork',
+      methodTrackId: 'pending-review',
+      pendingItemId: 'pending-1',
+      drillFormatId: 'pendency-treatment',
+      resourceStage: 'review',
+      destination: {
+        source: 'lichess',
+        label: 'Pendência Lichess: fork',
+        url: 'https://lichess.org/training/fork',
+      },
+    });
+  });
+
+  it('selects calculation-bridge as active track for fork weakness', () => {
+    const plan = generatePlan(
+      baseProfile,
+      [
+        {
+          tag: 'fork',
+          score: 0.9,
+          confidence: 'high',
+          evidence: 'Erros recentes em garfos.',
+        },
+      ],
+      15,
+      '2026-06-10',
+    );
+
+    expect(plan.blocks.every((block) => block.methodTrackId === 'calculation-bridge')).toBe(true);
+  });
+
+  it('computes adaptive review ratio from pending count', () => {
+    expect(getReviewRatioForPendingCount(3)).toBe(0.55);
+  });
+
+  it('adds a guiding question to generated blocks', () => {
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-10');
+
+    expect(plan.blocks[0]?.guidingQuestion).toBe('Quais são meus 2 candidatos?');
+  });
+
   it('is deterministic for the same inputs', () => {
     const sessionMinutes: SessionMinutes = 30;
     const first = generatePlan(baseProfile, [], sessionMinutes, '2026-06-06');
@@ -426,3 +477,22 @@ describe('generatePlan', () => {
     expect(first).toEqual(second);
   });
 });
+
+function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {
+  return {
+    id: 'pending-1',
+    origin: 'puzzle',
+    title: 'Revisar tema: fork',
+    weaknessTag: 'fork',
+    methodTrackId: 'pending-review',
+    lichessTheme: 'fork',
+    lichessUrl: 'https://lichess.org/training/fork',
+    prompt: 'Qual sinal do tabuleiro você ignorou?',
+    dueAt: today,
+    attempts: 0,
+    status: 'open',
+    createdAt: `${today}T00:00:00.000Z`,
+    updatedAt: `${today}T00:00:00.000Z`,
+    ...overrides,
+  };
+}

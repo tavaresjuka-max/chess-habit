@@ -1,4 +1,8 @@
 import { getCoachNote } from '../coach/coachCatalog';
+import { getMethodTrackTitle } from '../method/methodTracks';
+import { isDueToday } from '../method/pendingItems';
+import { selectMethodTrack } from '../method/selectMethodTrack';
+import type { MethodTrackId, PendingTrainingItem } from '../method/types';
 import { getDestinationForWeakness } from '../sources/destinations';
 import { findLichessResourceByUrl } from '../sources/resourceCatalog';
 import type {
@@ -29,6 +33,8 @@ type GeneratePlanOptions = {
   recentThemeStats?: PuzzleThemeStats;
   completedResourceIds?: readonly string[];
   openedBlockIds?: readonly string[];
+  openPendingItems?: readonly PendingTrainingItem[];
+  weakThemesFromDashboard?: readonly string[];
 };
 
 type LatestThemeSignal = {
@@ -63,21 +69,39 @@ export function generatePlan(
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const learningPlanResponse =
     options.previousPlan?.date === date ? options.previousPlan.learningPlanResponse : undefined;
-  const blocks = getTimeBudget(sessionMinutes).map((budgetBlock, index) =>
+  const duePendingItems = (options.openPendingItems ?? []).filter(isDueToday);
+  const activeTrack = selectMethodTrack({
+    openPendingItems: [...(options.openPendingItems ?? [])],
+    primaryWeakness: primaryWeakness.tag,
+    weakThemes: [...(options.weakThemesFromDashboard ?? [])],
+  });
+  const reviewRatio = getReviewRatioForPendingCount(duePendingItems.length);
+  const budget = applyAdaptiveReviewRatio(getTimeBudget(sessionMinutes), reviewRatio, duePendingItems.length > 0);
+  const blocks = budget.map((budgetBlock, index) =>
     inheritPreviousProgress(
-      createPlanBlock({
-        profile,
-        date,
-        index,
-        sessionNumber,
-        kind: budgetBlock.kind,
-        minutes: budgetBlock.minutes,
-        primaryWeakness,
-        latestThemeSignal,
-        recentThemeStats: options.recentThemeStats,
-        completedResourceIds,
-        updatedAt,
-      }),
+      duePendingItems.length > 0 && index === 0
+        ? createPendingPlanBlock({
+            date,
+            index,
+            sessionNumber,
+            minutes: budgetBlock.minutes,
+            pendingItem: duePendingItems[0],
+            updatedAt,
+          })
+        : createPlanBlock({
+            profile,
+            date,
+            index,
+            sessionNumber,
+            kind: budgetBlock.kind,
+            minutes: budgetBlock.minutes,
+            primaryWeakness,
+            latestThemeSignal,
+            recentThemeStats: options.recentThemeStats,
+            completedResourceIds,
+            updatedAt,
+            activeTrack,
+          }),
       options.previousPlan,
     ),
   );
@@ -104,6 +128,7 @@ function createPlanBlock(input: {
   recentThemeStats?: PuzzleThemeStats;
   completedResourceIds: readonly string[];
   updatedAt: string;
+  activeTrack: MethodTrackId;
 }): PlanBlock {
   const resourceStage = getResourceStage(input.kind, input.latestThemeSignal);
   const copy = getBlockCopy(input.kind, input.primaryWeakness, resourceStage);
@@ -131,6 +156,51 @@ function createPlanBlock(input: {
       resourceStage,
     }),
     status: 'pending',
+    methodTrackId: input.activeTrack,
+    guidingQuestion: getGuidingQuestion(input.activeTrack),
+    updatedAt: input.updatedAt,
+  };
+}
+
+function createPendingPlanBlock(input: {
+  date: string;
+  index: number;
+  sessionNumber: number;
+  minutes: number;
+  pendingItem: PendingTrainingItem | undefined;
+  updatedAt: string;
+}): PlanBlock {
+  if (input.pendingItem === undefined) {
+    throw new Error('Cannot create a pending review block without a pending item.');
+  }
+
+  const destination = {
+    source: 'lichess' as const,
+    label: input.pendingItem.lichessTheme
+      ? `Pendência Lichess: ${input.pendingItem.lichessTheme}`
+      : 'Pendência Lichess',
+    ...(input.pendingItem.lichessUrl === undefined ? {} : { url: input.pendingItem.lichessUrl }),
+  };
+
+  return {
+    id: createPlanBlockId(input.date, input.sessionNumber, input.index, 'revisao'),
+    sessionNumber: input.sessionNumber,
+    title: input.pendingItem.title,
+    source: destination.source,
+    destination,
+    weaknessTag: input.pendingItem.weaknessTag,
+    resourceStage: 'review',
+    estimatedMinutes: input.minutes,
+    task: input.pendingItem.prompt,
+    stopRule: 'Pare depois de reentender o erro e registrar se ficou fácil, bom ou difícil.',
+    reason: `Pendência vencida da trilha ${getMethodTrackTitle(input.pendingItem.methodTrackId)}.`,
+    coachNote: 'Professor Lemos: antes de conteúdo novo, vamos fechar o que ficou em aberto.',
+    status: 'pending',
+    pendingItemId: input.pendingItem.id,
+    methodTrackId: 'pending-review',
+    masteryTarget: 'review',
+    drillFormatId: 'pendency-treatment',
+    guidingQuestion: input.pendingItem.prompt,
     updatedAt: input.updatedAt,
   };
 }
@@ -153,6 +223,51 @@ function createPlanBlockId(date: string, sessionNumber: number, index: number, k
   const sessionSegment = sessionNumber <= 1 ? '' : `-s${String(sessionNumber).padStart(2, '0')}`;
 
   return `${date}${sessionSegment}-${String(index + 1).padStart(2, '0')}-${kind}`;
+}
+
+export function getReviewRatioForPendingCount(pendencyCount: number): number {
+  return pendencyCount > 0 ? Math.min(0.7, 0.4 + pendencyCount * 0.05) : 0.3;
+}
+
+function applyAdaptiveReviewRatio(
+  budget: ReturnType<typeof getTimeBudget>,
+  reviewRatio: number,
+  hasDuePendingItems: boolean,
+): ReturnType<typeof getTimeBudget> {
+  if (!hasDuePendingItems) {
+    return budget;
+  }
+
+  const totalMinutes = budget.reduce((sum, block) => sum + block.minutes, 0);
+  const targetReviewMinutes = totalMinutes * reviewRatio;
+  let reviewMinutes = budget
+    .filter((block, index) => index === 0 || block.kind === 'revisao')
+    .reduce((sum, block) => sum + block.minutes, 0);
+
+  return budget.map((block, index) => {
+    if (index === 0 || reviewMinutes >= targetReviewMinutes || block.kind === 'aquecimento') {
+      return block;
+    }
+
+    if (block.kind === 'transferencia' || block.kind === 'final') {
+      reviewMinutes += block.minutes;
+      return { ...block, kind: 'revisao' };
+    }
+
+    return block;
+  });
+}
+
+function getGuidingQuestion(trackId: MethodTrackId): string {
+  const questions: Record<MethodTrackId, string> = {
+    'pending-review': 'Qual sinal do tabuleiro você ignorou?',
+    'calculation-bridge': 'Quais são meus 2 candidatos?',
+    'active-defense': 'O que o oponente ameaça?',
+    'opening-as-plan': 'Essa jogada desenvolve peças e protege o rei?',
+    'progress-diplomas': 'Você confia nessa decisão?',
+  };
+
+  return questions[trackId];
 }
 
 function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness, resourceStage: PlanResourceStage): BlockCopy {
