@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   appendPlanSession,
   buildPuzzleThemeStats,
+  computeConsistency,
   detectWeaknesses,
+  getReturnSessionMinutes,
   createKnownManualSignals,
   createTutorQuestionSignal,
   completeTrainingLog,
@@ -250,9 +252,14 @@ export function useAppState(): AppState {
         const normalizedPreviousPlan =
           previousPlan === undefined ? undefined : normalizePlanDestinations(previousPlan);
         const openedBlockIds = getOpenedTrainingBlockIds(storedTrainingLogs);
+        // Retorno apos ausencia longa: plano novo do dia nasce mais curto.
+        const returnMinutes = getReturnSessionMinutes(
+          computeConsistency(storedAllTrainingLogs, date),
+          storedProfile.defaultSessionMinutes,
+        );
         const plan =
           normalizedStoredPlan === undefined
-            ? generatePlan(storedProfile, storedWeaknesses, storedProfile.defaultSessionMinutes, date, {
+            ? generatePlan(storedProfile, storedWeaknesses, returnMinutes, date, {
                 previousPlan: normalizedPreviousPlan,
                 recentThemeStats,
                 openedBlockIds,

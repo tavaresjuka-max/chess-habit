@@ -4,7 +4,12 @@ import { openExternalUrl } from '../app/externalOpen';
 import {
   buildLearningPlanProposal,
   buildDayCompletionSummary,
+  buildNextStepExplanations,
+  buildPuzzleThemeStats,
+  buildReturnRecalibrationNote,
   buildSessionMilestoneSummary,
+  buildWeeklyDigest,
+  computeConsistency,
   elapsedSecondsBetween,
   formatElapsedMinutes,
   getPlanSessionSummaries,
@@ -134,7 +139,20 @@ export function Today({
 
   const sessionSummaries = getPlanSessionSummaries(plan);
   const totalPlannedMinutes = getPlanTotalMinutes(plan);
-  const dayCompletionSummary = buildDayCompletionSummary({ plan, trainingLogs, roadmap });
+  const baseDayCompletionSummary = buildDayCompletionSummary({ plan, trainingLogs, roadmap });
+  const dayCompletionSummary =
+    baseDayCompletionSummary === undefined
+      ? undefined
+      : {
+          ...baseDayCompletionSummary,
+          lines: [
+            ...baseDayCompletionSummary.lines,
+            ...buildNextStepExplanations(plan, buildPuzzleThemeStats(trainingLogs)),
+          ],
+        };
+  const consistency = computeConsistency(allTrainingLogs, plan.date);
+  const returnNote = buildReturnRecalibrationNote(consistency.daysSinceLastSession);
+  const weeklyDigest = buildWeeklyDigest(allTrainingLogs, plan.date);
   const sessionMilestoneSummary = buildSessionMilestoneSummary({ logs: allTrainingLogs, sessionMinutes });
   const activeTrackId = getActiveTrackId(plan);
   const nextDiploma = getNextDiplomaSummary(diplomaAttempts);
@@ -171,6 +189,12 @@ export function Today({
         onReconcileLichessResults={onReconcileLichessResults}
       />
 
+      {returnNote !== undefined ? (
+        <p className="return-note" aria-live="polite">
+          {returnNote}
+        </p>
+      ) : null}
+
       <LearningPlanProposalCard
         proposal={learningPlanProposal}
         response={plan.learningPlanResponse}
@@ -196,6 +220,22 @@ export function Today({
       />
 
       <DayCompletionCard summary={dayCompletionSummary} />
+
+      {weeklyDigest !== undefined ? (
+        <section className="weekly-report" aria-labelledby="weekly-report-title">
+          <h2 id="weekly-report-title">{weeklyDigest.heading}</h2>
+          <div className="weekly-report-metrics">
+            {weeklyDigest.metrics.map((metric) => (
+              <span key={metric} className="metric-chip">
+                {metric}
+              </span>
+            ))}
+          </div>
+          {weeklyDigest.lines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </section>
+      ) : null}
 
       {weaknesses.length > 0 ? (
         <div className="weakness-row" aria-label="Hipóteses atuais">

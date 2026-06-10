@@ -647,6 +647,53 @@ textarea {
   padding: 14px 16px;
 }
 
+.return-note {
+  border: 1px solid #b9cfc2;
+  border-left: 4px solid #1f3f36;
+  border-radius: 8px;
+  background: #f0f6f2;
+  color: #22303c;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+}
+
+.weekly-report {
+  border: 1px solid #cdd7cf;
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+}
+
+.weekly-report h2 {
+  margin: 0;
+  color: #22303c;
+  font-size: 1.05rem;
+}
+
+.weekly-report p {
+  margin: 0;
+  color: #28323d;
+}
+
+.weekly-report-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metric-chip {
+  border: 1px solid #cdd7cf;
+  border-radius: 999px;
+  background: #f4f6f1;
+  color: #22303c;
+  font-size: 0.85rem;
+  font-weight: 650;
+  padding: 4px 10px;
+}
+
 .pending-review-card {
   border: 1px solid #d6c48b;
   border-radius: 8px;

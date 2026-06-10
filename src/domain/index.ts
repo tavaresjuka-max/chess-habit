@@ -13,6 +13,7 @@ export * from './coach/learningPlanProposal';
 export * from './coach/puzzleThemeStats';
 export * from './coach/sessionMilestones';
 export * from './coach/sessionMessage';
+export * from './coach/sessionReport';
 export * from './metrics/consistency';
 export * from './manual/knownManualSignals';
 export * from './sources/destinations';
