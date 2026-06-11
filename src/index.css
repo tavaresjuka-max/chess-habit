@@ -106,10 +106,15 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: clip;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 #root {
@@ -139,6 +144,7 @@ h3 {
 
 .panel {
   width: min(100%, 560px);
+  overflow-wrap: anywhere;
 }
 
 .panel h1 {
@@ -233,6 +239,7 @@ h3 {
 
 .nav-button {
   flex: 1;
+  min-width: 0;
   min-height: 36px;
   border: 1px solid transparent;
   background: transparent;
@@ -1457,6 +1464,21 @@ li.diploma-row {
 
   .brand span:not(.brand-mark) {
     display: none;
+  }
+
+  .brand {
+    padding: 0 2px 0 2px;
+  }
+
+  .nav-button {
+    padding: 0 8px;
+    font-size: 0.88rem;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-button > svg {
+    margin-right: 4px;
+    flex-shrink: 0;
   }
 
   button,

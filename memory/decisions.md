@@ -458,3 +458,19 @@ todas as perguntas pendentes e travou as seguintes decisoes:
 A-3 fechado: a correcao e ESCREVER o spec de design do metodo 5 trilhas implementado em
 `docs/superpowers/specs/` (nao mover arquivo) e atualizar o ponteiro de `AGENTS.md`.
 A-4 fechado: ADR-006 recebe adendo/nota, sem renomear arquivo (imutabilidade de ADR).
+
+## 2026-06-11: Primeiro Uso Real No Celular (PWA instalada) E Direcao Visual
+
+App hospedado para uso pessoal em https://rotina-pied.vercel.app (Vercel, noindex,
+sem backend; nao descongela P4/P5). Primeiras impressoes do dono no celular:
+
+1. **Direcao visual decidida**: apos a fase de testes pessoais, o dono quer uma passada
+   visual intensa com IMAGENS GERADAS POR TERCEIROS de qualidade premium — prompts para
+   todas as funcoes, botoes, fundos, badges e Professor Lemos. Os SVGs atuais sao
+   provisorios. Restricoes a manter na spec futura: clean-room (nada derivado de marcas),
+   licenca compativel com AGPL, e atencao ao tema escuro (raster nao adapta sozinho como
+   SVG com tokens).
+2. Bugs de uso real corrigidos no mesmo dia: nav estourava a largura no celular
+   (Config inacessivel sem arrastar) e textos sem acentuacao em PT-BR.
+3. Descoberta: o dono procurou "conectar Chess.com" — nao existe login; e campo de
+   usuario na Config + botao Atualizar na Hoje. Hint adicionado na UI.

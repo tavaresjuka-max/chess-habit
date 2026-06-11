@@ -149,6 +149,10 @@ export function Config({
 
           <label className="field">
             <span>Usuário Chess.com</span>
+            <small className="field-hint">
+              Não precisa conectar nem fazer login: o app lê só os dados públicos desse usuário.
+              Para puxar o diagnóstico, use o botão &quot;Atualizar Chess.com&quot; na tela Hoje.
+            </small>
             <input
               autoComplete="username"
               value={chesscomUsername}
