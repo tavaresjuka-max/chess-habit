@@ -3,12 +3,13 @@ import {
   buildPuzzleThemeStats,
   computeConsistency,
   diagnose,
+  type CoachMessagePhase,
   type DailyPlan,
+  type PlanBlockFeedback,
   type TrainingLog,
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
-import { LemosAvatar } from './art/LemosAvatar';
 
 type TutorCardProps = {
   plan: DailyPlan;
@@ -18,6 +19,34 @@ type TutorCardProps = {
   onAnswerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
   onReconcileLichessResults: () => Promise<void>;
 };
+
+const POSE: Record<CoachMessagePhase, string> & { close_hard: string; close_cause: string } = {
+  welcome: 'boas-vindas',
+  return: 'chamando-de-volta',
+  close: 'aprovando',
+  close_hard: 'pensando',
+  close_cause: 'explicando',
+};
+
+function poseFor(phase: CoachMessagePhase, feedback?: PlanBlockFeedback, diagnosisKind?: string): string {
+  if (phase !== 'close') return POSE[phase];
+  if (diagnosisKind === 'cause') return POSE.close_cause;
+  if (feedback === 'hard') return POSE.close_hard;
+  return POSE.close;
+}
+
+function LemosPortrait({ pose }: { pose: string }) {
+  return (
+    <div className="tutor-portrait-frame">
+      <img
+        src={`/art/lemos-pose-${pose}.webp`}
+        alt=""
+        aria-hidden="true"
+        className="tutor-pose"
+      />
+    </div>
+  );
+}
 
 export function TutorCard({
   plan,
@@ -40,10 +69,11 @@ export function TutorCard({
 
   if (lastDone === undefined) {
     const message = buildSessionMessage({ phase: 'pre', primaryWeakness, consistency });
+    const pose = poseFor(message.phase);
     return (
       <section className="tutor-card" aria-label="Professor Lemos">
         <div className="tutor-heading">
-          <LemosAvatar size={46} />
+          <LemosPortrait pose={pose} />
           <h2>Professor Lemos</h2>
         </div>
         {message.lines.map((line) => (
@@ -62,11 +92,12 @@ export function TutorCard({
     puzzleResult: lastDone.result,
   });
   const diagnosis = diagnose(weaknesses, buildPuzzleThemeStats(trainingLogs));
+  const pose = poseFor(message.phase, lastDone.feedback, diagnosis.kind);
 
   return (
     <section className="tutor-card" aria-label="Professor Lemos">
       <div className="tutor-heading">
-        <LemosAvatar size={46} />
+        <LemosPortrait pose={pose} />
         <h2>Professor Lemos</h2>
       </div>
       {message.lines.map((line) => (

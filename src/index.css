@@ -1373,6 +1373,71 @@ li.diploma-row {
   margin: 0;
 }
 
+/* ---------- Assets ilustrados (passe premium) ---------- */
+
+/* Textura de papel na TutorCard */
+.tutor-card {
+  background-image: url('/art/textura-papel.webp');
+  background-size: 256px auto;
+}
+
+/* Retrato do Lemos no TutorCard */
+.tutor-portrait-frame {
+  background: url('/art/moldura-tutorcard.webp') center / 100% 100% no-repeat;
+  flex-shrink: 0;
+  width: 140px;
+  height: 105px;
+  padding: 14px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tutor-pose {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+/* Botão primário com moldura ilustrada */
+button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button),
+.button-link:not(.secondary-link) {
+  background: url('/art/moldura-botao-primario.webp') center / 100% 100% no-repeat,
+    var(--green-700);
+  border-color: transparent;
+}
+
+button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):hover,
+.button-link:not(.secondary-link):hover {
+  background: url('/art/moldura-botao-primario.webp') center / 100% 100% no-repeat,
+    var(--green-700);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):active,
+.button-link:not(.secondary-link):active {
+  filter: brightness(0.95);
+  transform: translateY(0);
+}
+
+/* Botão secundário com moldura ilustrada */
+.secondary-button,
+.secondary-link {
+  background: url('/art/moldura-botao-secundario.webp') center / 100% 100% no-repeat,
+    var(--surface-raised);
+  border-color: transparent;
+}
+
+.secondary-button:hover,
+.secondary-link:hover {
+  background: url('/art/moldura-botao-secundario.webp') center / 100% 100% no-repeat,
+    var(--surface-raised);
+  filter: brightness(0.97);
+  border-color: transparent;
+}
+
 /* ---------- Tema escuro ---------- */
 
 @media (prefers-color-scheme: dark) {
@@ -1436,6 +1501,11 @@ li.diploma-row {
     --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.45);
 
     color-scheme: dark;
+  }
+
+  .tutor-card {
+    background-image: url('/art/textura-couro.webp');
+    background-size: 256px auto;
   }
 }
 
