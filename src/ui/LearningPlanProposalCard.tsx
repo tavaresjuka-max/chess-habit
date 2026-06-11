@@ -82,7 +82,7 @@ export function LearningPlanProposalCard({
         </ul>
       </div>
 
-      <div className="method-note-panel learning-plan-method" aria-label="Metodo do plano">
+      <div className="method-note-panel learning-plan-method" aria-label="Método do plano">
         <strong>Como o plano foi montado</strong>
         <p>{proposal.methodSummary}</p>
         <p>{proposal.evidenceLevel}</p>

@@ -415,7 +415,7 @@ export function useAppState(): AppState {
 
     if (profile.chesscomUsername === undefined || profile.chesscomUsername.trim() === '') {
       setDiagnosisState('error');
-      setDiagnosisMessage('Informe seu usuario Chess.com na Config.');
+      setDiagnosisMessage('Informe seu usuário Chess.com na Config.');
       setActiveView('config');
       return;
     }
@@ -523,7 +523,7 @@ export function useAppState(): AppState {
       }
 
       setDiagnosisState('success');
-      setDiagnosisMessage('Resposta registrada. Ajustei as hipoteses do treino.');
+      setDiagnosisMessage('Resposta registrada. Ajustei as hipóteses do treino.');
       setErrorMessage(undefined);
     },
     [pendingItems, profile, sessionMinutes, todayPlan, trainingLogs],
@@ -546,7 +546,7 @@ export function useAppState(): AppState {
       await clearLichessOAuthToken();
       setLichessToken(undefined);
       setLichessConnectionState('disconnected');
-      setLichessMessage('Conexao Lichess removida.');
+      setLichessMessage('Conexão Lichess removida.');
     }
   }, []);
 
@@ -558,7 +558,7 @@ export function useAppState(): AppState {
 
     if (profile.lichessUsername === undefined || profile.lichessUsername.trim() === '') {
       setLichessConnectionState('error');
-      setLichessMessage('Informe seu usuario Lichess na Config.');
+      setLichessMessage('Informe seu usuário Lichess na Config.');
       setActiveView('config');
       return;
     }
@@ -709,7 +709,7 @@ export function useAppState(): AppState {
 
     if (existingLink?.imported === true) {
       setLichessStudyLink(existingLink);
-      setLichessMessage(openExternalUrl(existingLink.url) ?? 'Study do dia ja existe.');
+      setLichessMessage(openExternalUrl(existingLink.url) ?? 'Study do dia já existe.');
       return;
     }
 

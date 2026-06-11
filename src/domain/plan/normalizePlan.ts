@@ -41,7 +41,11 @@ function getNormalizedWeaknessTag(
   block: DailyPlan['blocks'][number],
   plan: DailyPlan,
 ): DailyPlan['blocks'][number]['weaknessTag'] {
-  if (block.title === 'Revisão curta' && block.weaknessTag === 'conversion') {
+  // Planos persistidos antes da correção de acentos usam 'Revisao curta'.
+  if (
+    (block.title === 'Revisão curta' || block.title === 'Revisao curta') &&
+    block.weaknessTag === 'conversion'
+  ) {
     return plan.weeklyFocus?.tag ?? block.weaknessTag;
   }
 
@@ -154,7 +158,7 @@ function getNormalizedTaskForDestinationUrl(url: string | undefined): string | u
     case 'https://lichess.org/video/uhQhasudq9M':
       return 'Assista uma aula curta de padroes de mate e anote uma ameaca tipica para procurar nos puzzles.';
     case 'https://lichess.org/video/QUqq7wSLE78':
-      return 'Assista uma aula curta de finais de peoes e anote uma regra pratica antes de treinar.';
+      return 'Assista uma aula curta de finais de peões e anote uma regra prática antes de treinar.';
     case 'https://lichess.org/video/0-ouahZH8X4':
       return 'Assista uma aula curta de conversao de vantagem e anote um plano simples para testar.';
     default:

@@ -10,9 +10,9 @@ describe('buildSessionMilestoneSummary', () => {
     expect(summary.currentMilestone.targetSessions).toBe(12);
     expect(summary.currentMilestone.progressPercent).toBe(0);
     expect(summary.stats.completedSessions).toBe(0);
-    expect(summary.stats.improvementLines[0]).toContain('Ainda nao ha sessoes concluidas');
-    expect(summary.skillSignals).toContain('Habito: ainda nao ha sessoes concluidas.');
-    expect(summary.nextSignalToMeasure).toContain('concluir uma sessao');
+    expect(summary.stats.improvementLines[0]).toContain('Ainda não há sessões concluídas');
+    expect(summary.skillSignals).toContain('Hábito: ainda não há sessões concluídas.');
+    expect(summary.nextSignalToMeasure).toContain('concluir uma sessão');
   });
 
   it('counts a plan session once even when it has multiple blocks', () => {
@@ -44,7 +44,7 @@ describe('buildSessionMilestoneSummary', () => {
     expect(summary.stats.completedHours).toBe(1);
     expect(summary.stats.completedBlocks).toBe(3);
     expect(summary.stats.feedback).toEqual({ easy: 1, good: 1, hard: 1 });
-    expect(summary.skillSignals[0]).toContain('2 sessoes');
+    expect(summary.skillSignals[0]).toContain('2 sessões');
     expect(summary.nextSignalToMeasure).toContain('reconciliar puzzles');
   });
 
@@ -151,7 +151,7 @@ describe('buildSessionMilestoneSummary', () => {
       recent: 83,
       delta: 50,
     });
-    expect(summary.stats.improvementLines).toContain('Comparando as sessoes, o acerto subiu de 33% para 83%.');
+    expect(summary.stats.improvementLines).toContain('Comparando as sessões, o acerto subiu de 33% para 83%.');
   });
 });
 

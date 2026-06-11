@@ -147,7 +147,7 @@ function getEvidenceLine(plan: DailyPlan, weaknesses: Weakness[]): string | unde
     return undefined;
   }
 
-  return 'Plano inicial: ainda faltam sinais suficientes do seu historico. Atualize Chess.com ou Lichess para calibrar melhor.';
+  return 'Plano inicial: ainda faltam sinais suficientes do seu histórico. Atualize Chess.com ou Lichess para calibrar melhor.';
 }
 
 function isPuzzleLog(log: TrainingLog): boolean {

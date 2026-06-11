@@ -122,7 +122,7 @@ describe('lichessResourceCatalog', () => {
   it('turns catalog resources into app destinations without leaking catalog-only fields', () => {
     expect(destinationFromResource(getPrimaryLichessResourceForWeakness('opening-principles'))).toEqual({
       source: 'lichess',
-      label: 'Lichess Video (em ingles): abertura - centro, desenvolvimento e rei seguro',
+      label: 'Lichess Video (em inglês): abertura - centro, desenvolvimento e rei seguro',
       url: 'https://lichess.org/video/gpsZAim-mYc',
     });
   });

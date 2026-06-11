@@ -807,7 +807,7 @@ function formatWeaknessTag(tag: Weakness['tag']): string {
     case 'time-trouble':
       return 'tempo';
     case 'endgame-pawn':
-      return 'final de peoes';
+      return 'final de peões';
     case 'endgame-rook':
       return 'final de torres';
     case 'conversion':

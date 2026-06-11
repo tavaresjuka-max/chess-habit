@@ -551,12 +551,12 @@ function getThemeTask(tag: WeaknessTag, stage: PlanResourceStage): string {
     case 'opening-principles':
       return 'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.';
     case 'time-trouble':
-      return 'Treine uma sequencia curta no Puzzle Streak e pare para checar antes de cada lance impulsivo.';
+      return 'Treine uma sequência curta no Puzzle Streak e pare para checar antes de cada lance impulsivo.';
     case 'endgame-pawn':
     case 'endgame-rook':
       return 'Estude a lição guiada de final simples e conte plano, oposição ou atividade antes de calcular.';
     case 'conversion':
-      return 'Treine posicoes de vantagem e explique como simplificar, ativar pecas ou remover contra-jogo.';
+      return 'Treine posições de vantagem e explique como simplificar, ativar peças ou remover contra-jogo.';
     case 'blunder-rate':
       return 'Treine puzzles de segurança de peças e faça uma checagem curta antes de cada lance.';
     case 'pin':

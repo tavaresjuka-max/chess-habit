@@ -67,7 +67,7 @@ export async function reconcileLogIfPossible(log: TrainingLog): Promise<Reconcil
   } catch {
     // Antes engolia o erro: o treino era salvo como se o resultado tivesse sido
     // conferido. Agora o bloco e salvo, mas o usuario sabe que faltou conferir.
-    return { log, warning: 'Treino salvo. Nao consegui conferir o resultado dos puzzles no Lichess agora.' };
+    return { log, warning: 'Treino salvo. Não consegui conferir o resultado dos puzzles no Lichess agora.' };
   }
 }
 
@@ -120,7 +120,7 @@ export async function reconcileLichessPuzzleDiagnostics(
   const dashboardResult = summarizePuzzleDashboard({ dashboard, fetchedAt });
   const dashboardLog = createDiagnosticLog({
     id: 'lichess-puzzle-dashboard',
-    title: 'Diagnostico de puzzles Lichess',
+    title: 'Diagnóstico de puzzles Lichess',
     label: 'Lichess Puzzle Dashboard',
     result: dashboardResult,
   });

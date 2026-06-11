@@ -33,7 +33,7 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
-      label: 'Lichess Video (em ingles): abertura - centro, desenvolvimento e rei seguro',
+      label: 'Lichess Video (em inglês): abertura - centro, desenvolvimento e rei seguro',
       url: 'https://lichess.org/video/gpsZAim-mYc',
     });
     expect(normalizedBlock?.task).toBe(
@@ -107,7 +107,7 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
-      label: 'Lichess Video (em ingles): garfos',
+      label: 'Lichess Video (em inglês): garfos',
       url: 'https://lichess.org/video/mbiR0tcdqBY',
     });
   });

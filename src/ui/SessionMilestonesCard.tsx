@@ -33,13 +33,13 @@ export function SessionMilestonesCard({ summary, openPendingCount = 0, nextDiplo
           <li className={`session-milestone-step milestone-${milestone.status}`} key={milestone.id}>
             <span>{milestone.label}</span>
             <small>
-              {formatHours(milestone.targetHours)} / {String(milestone.targetSessions)} sessoes
+              {formatHours(milestone.targetHours)} / {String(milestone.targetSessions)} sessões
             </small>
           </li>
         ))}
       </ol>
 
-      <div className="session-milestone-lines" aria-label="Evolucao observada">
+      <div className="session-milestone-lines" aria-label="Evolução observada">
         {summary.stats.improvementLines.map((line) => (
           <p key={line}>{line}</p>
         ))}
@@ -84,7 +84,7 @@ function SkillSignals({
 }) {
   return (
     <div className="method-note-panel session-skill-signals" aria-label="Sinais de habilidade">
-      <strong>O que esta evoluindo</strong>
+      <strong>O que está evoluindo</strong>
       <ul>
         {signals.map((signal) => (
           <li key={signal}>{signal}</li>
@@ -116,7 +116,7 @@ function CurrentMilestone({
       />
       <p>
         {formatHours(milestone.completedHours)} de {formatHours(milestone.targetHours)} -{' '}
-        {String(milestone.completedSessions)} de {String(milestone.targetSessions)} sessoes previstas.
+        {String(milestone.completedSessions)} de {String(milestone.targetSessions)} sessões previstas.
       </p>
       <p className="session-milestone-next">{nextCheckpoint}</p>
     </div>
@@ -128,7 +128,7 @@ function MilestoneStats({ stats }: { stats: SessionMilestoneStats }) {
     {
       id: 'sessions',
       value: String(stats.completedSessions),
-      label: stats.completedSessions === 1 ? 'sessao concluida' : 'sessoes concluidas',
+      label: stats.completedSessions === 1 ? 'sessão concluída' : 'sessões concluídas',
     },
     { id: 'hours', value: formatHours(stats.completedHours), label: 'horas treinadas' },
     { id: 'blocks', value: String(stats.completedBlocks), label: 'blocos feitos' },
@@ -141,7 +141,7 @@ function MilestoneStats({ stats }: { stats: SessionMilestoneStats }) {
   ];
 
   return (
-    <ul className="session-milestone-stats" aria-label="Estatisticas da fase">
+    <ul className="session-milestone-stats" aria-label="Estatísticas da fase">
       {items.map((item) => (
         <li key={item.id}>
           <strong>{item.value}</strong>

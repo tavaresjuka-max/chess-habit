@@ -168,9 +168,9 @@ describe('training flow', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
     await waitFor(() => {
-      expect(screen.getByText('0h de 6h - 1 de 72 sessoes previstas.')).toBeTruthy();
+      expect(screen.getByText('0h de 6h - 1 de 72 sessões previstas.')).toBeTruthy();
     });
-    expect(screen.getByText('sessao concluida')).toBeTruthy();
+    expect(screen.getByText('sessão concluída')).toBeTruthy();
   });
 
   it('records zero elapsed seconds honestly when completing without starting first', async () => {

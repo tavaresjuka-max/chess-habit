@@ -166,7 +166,7 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.title).toContain('princípios de abertura');
     expect(plan.blocks[0]?.destination).toEqual({
       source: 'lichess',
-      label: 'Lichess Video (em ingles): abertura - centro, desenvolvimento e rei seguro',
+      label: 'Lichess Video (em inglês): abertura - centro, desenvolvimento e rei seguro',
       url: 'https://lichess.org/video/gpsZAim-mYc',
     });
   });

@@ -89,7 +89,7 @@ export function buildSessionMilestoneSummary(input: {
 
   return {
     heading: 'Metas da fase',
-    intro: 'Vamos medir a fase por sessoes e horas concluidas, com checkpoints para ajustar o plano.',
+    intro: 'Vamos medir a fase por sessões e horas concluídas, com checkpoints para ajustar o plano.',
     currentMilestone,
     milestones,
     stats,
@@ -327,20 +327,20 @@ function buildImprovementLines(input: {
 }): string[] {
   if (input.completedSessions === 0) {
     return [
-      'Ainda nao ha sessoes concluidas suficientes. Assim que voce concluir blocos, esta area vira o painel de evolucao.',
-      'Quando houver reconciliacao de puzzles, eu comparo acerto, temas fortes e temas que precisam voltar.',
+      'Ainda não há sessões concluídas suficientes. Assim que você concluir blocos, esta área vira o painel de evolução.',
+      'Quando houver reconciliação de puzzles, eu comparo acerto, temas fortes e temas que precisam voltar.',
     ];
   }
 
   const lines = [
-    `Voce ja registrou ${formatHours(input.completedHours)} em ${formatSessionCount(input.completedSessions)} concluida${input.completedSessions === 1 ? '' : 's'}.`,
+    `Você já registrou ${formatHours(input.completedHours)} em ${formatSessionCount(input.completedSessions)} concluída${input.completedSessions === 1 ? '' : 's'}.`,
   ];
   const positiveFeedback = input.feedback.easy + input.feedback.good;
 
   if (positiveFeedback > input.feedback.hard) {
-    lines.push('Seu feedback recente esta mais para facil/bom do que dificil; isso libera repeticao ou transferencia no proximo ajuste.');
+    lines.push('Seu feedback recente está mais para fácil/bom do que difícil; isso libera repetição ou transferência no próximo ajuste.');
   } else if (input.feedback.hard > positiveFeedback) {
-    lines.push('O feedback esta pesado em dificil; o plano deve manter explicacao curta e treino guiado antes de aumentar carga.');
+    lines.push('O feedback está pesado em difícil; o plano deve manter explicação curta e treino guiado antes de aumentar carga.');
   }
 
   if (input.puzzleStats.accuracy !== undefined) {
@@ -353,20 +353,20 @@ function buildImprovementLines(input: {
     const trend = input.puzzleStats.accuracyTrend;
 
     if (trend.delta > 0) {
-      lines.push(`Comparando as sessoes, o acerto subiu de ${String(trend.previous)}% para ${String(trend.recent)}%.`);
+      lines.push(`Comparando as sessões, o acerto subiu de ${String(trend.previous)}% para ${String(trend.recent)}%.`);
     } else if (trend.delta < 0) {
-      lines.push(`Comparando as sessoes, o acerto caiu de ${String(trend.previous)}% para ${String(trend.recent)}%; vamos revisar antes de acelerar.`);
+      lines.push(`Comparando as sessões, o acerto caiu de ${String(trend.previous)}% para ${String(trend.recent)}%; vamos revisar antes de acelerar.`);
     } else {
-      lines.push(`Comparando as sessoes, o acerto ficou estavel em ${String(trend.recent)}%.`);
+      lines.push(`Comparando as sessões, o acerto ficou estável em ${String(trend.recent)}%.`);
     }
   }
 
   if (input.puzzleStats.bestTheme !== undefined) {
-    lines.push(`Tema mais estavel ate agora: ${input.puzzleStats.bestTheme}.`);
+    lines.push(`Tema mais estável até agora: ${input.puzzleStats.bestTheme}.`);
   }
 
   if (input.puzzleStats.weakTheme !== undefined) {
-    lines.push(`Tema para observar no proximo ciclo: ${input.puzzleStats.weakTheme}.`);
+    lines.push(`Tema para observar no próximo ciclo: ${input.puzzleStats.weakTheme}.`);
   }
 
   if (input.puzzleStats.accuracy === undefined) {
@@ -379,13 +379,13 @@ function buildImprovementLines(input: {
 function buildSkillSignals(stats: SessionMilestoneStats): string[] {
   if (stats.completedSessions === 0) {
     return [
-      'Habito: ainda nao ha sessoes concluidas.',
+      'Hábito: ainda não há sessões concluídas.',
       'Habilidade: ainda falta treino reconciliado ou feedback para medir uma melhora real.',
     ];
   }
 
   const signals = [
-    `Habito: ${formatSessionCount(stats.completedSessions)} registradas, com ${formatHours(stats.completedHours)} de treino.`,
+    `Hábito: ${formatSessionCount(stats.completedSessions)} registradas, com ${formatHours(stats.completedHours)} de treino.`,
   ];
   const positiveFeedback = stats.feedback.easy + stats.feedback.good;
 
@@ -397,14 +397,14 @@ function buildSkillSignals(stats: SessionMilestoneStats): string[] {
 
   if (stats.puzzleAccuracyTrend !== undefined) {
     const trend = stats.puzzleAccuracyTrend;
-    const direction = trend.delta > 0 ? 'subiu' : trend.delta < 0 ? 'caiu' : 'ficou estavel';
-    signals.push(`Tendencia: o acerto ${direction} de ${String(trend.previous)}% para ${String(trend.recent)}%.`);
+    const direction = trend.delta > 0 ? 'subiu' : trend.delta < 0 ? 'caiu' : 'ficou estável';
+    signals.push(`Tendência: o acerto ${direction} de ${String(trend.previous)}% para ${String(trend.recent)}%.`);
   }
 
   if (positiveFeedback > stats.feedback.hard) {
-    signals.push('Carga: o feedback permite repetir com variacao ou transferir para tarefa menos guiada.');
+    signals.push('Carga: o feedback permite repetir com variação ou transferir para tarefa menos guiada.');
   } else if (stats.feedback.hard > positiveFeedback) {
-    signals.push('Carga: o feedback pede explicacao curta antes de aumentar dificuldade.');
+    signals.push('Carga: o feedback pede explicação curta antes de aumentar dificuldade.');
   }
 
   return signals;
@@ -412,36 +412,36 @@ function buildSkillSignals(stats: SessionMilestoneStats): string[] {
 
 function buildNextSignalToMeasure(stats: SessionMilestoneStats): string {
   if (stats.completedSessions === 0) {
-    return 'Proximo sinal: concluir uma sessao e registrar facil, bom ou dificil.';
+    return 'Próximo sinal: concluir uma sessão e registrar fácil, bom ou difícil.';
   }
 
   if (stats.puzzleAttempts === 0) {
-    return 'Proximo sinal: reconciliar puzzles do Lichess para medir acerto por tema.';
+    return 'Próximo sinal: reconciliar puzzles do Lichess para medir acerto por tema.';
   }
 
   if (stats.weakTheme !== undefined) {
-    return `Proximo sinal: repetir ${stats.weakTheme} e verificar se os erros caem no proximo ciclo.`;
+    return `Próximo sinal: repetir ${stats.weakTheme} e verificar se os erros caem no próximo ciclo.`;
   }
 
   if (stats.feedback.hard > stats.feedback.easy + stats.feedback.good) {
-    return 'Proximo sinal: reduzir carga e ver se o feedback dificil diminui.';
+    return 'Próximo sinal: reduzir carga e ver se o feedback difícil diminui.';
   }
 
-  return 'Proximo sinal: manter o tema ate o checkpoint e comparar acerto, feedback e constancia.';
+  return 'Próximo sinal: manter o tema até o checkpoint e comparar acerto, feedback e constância.';
 }
 
 function buildNextCheckpoint(currentMilestone: SessionMilestone, completedHours: number): string {
   const remainingHours = roundToTenth(Math.max(0, currentMilestone.targetHours - completedHours));
 
   if (remainingHours === 0) {
-    return `${currentMilestone.label} concluido. O proximo ciclo fica baseado nas mesmas metricas, sem promessa de rating.`;
+    return `${currentMilestone.label} concluído. O próximo ciclo fica baseado nas mesmas métricas, sem promessa de rating.`;
   }
 
-  return `Proximo checkpoint: ${currentMilestone.label}. Faltam cerca de ${formatHours(remainingHours)} para revisar o plano.`;
+  return `Próximo checkpoint: ${currentMilestone.label}. Faltam cerca de ${formatHours(remainingHours)} para revisar o plano.`;
 }
 
 function formatSessionCount(count: number): string {
-  return `${String(count)} ${count === 1 ? 'sessao' : 'sessoes'}`;
+  return `${String(count)} ${count === 1 ? 'sessão' : 'sessões'}`;
 }
 
 function formatHours(hours: number): string {

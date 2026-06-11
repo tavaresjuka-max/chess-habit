@@ -37,7 +37,7 @@ const manualNoteByTag = {
   'hanging-piece': 'Sinal manual: vale testar seguranca de pecas e capturas simples.',
   discovered: 'Sinal manual: vale testar ataques descobertos e cheque duplo.',
   'mate-in-2': 'Sinal manual: vale testar mates em 2 antes de subir volume.',
-  'endgame-pawn': 'Sinal manual: vale testar finais de peoes com revisao curta.',
+  'endgame-pawn': 'Sinal manual: vale testar finais de peões com revisão curta.',
 } satisfies Record<(typeof knownWeaknessTags)[number], string>;
 
 const tutorQuestionAnswerByValue = {
@@ -47,7 +47,7 @@ const tutorQuestionAnswerByValue = {
   },
   calculation: {
     tag: 'fork',
-    note: 'Resposta ao Professor Lemos: calculo pesou mais hoje; usar taticas curtas como proxy de calculo pratico.',
+    note: 'Resposta ao Professor Lemos: cálculo pesou mais hoje; usar táticas curtas como proxy de cálculo prático.',
   },
   'loose-piece': {
     tag: 'hanging-piece',

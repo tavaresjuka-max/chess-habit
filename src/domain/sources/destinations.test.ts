@@ -52,7 +52,7 @@ describe('lichessDestinationsByWeakness', () => {
   it('uses direct videos as explanation resources', () => {
     expect(getDestinationForWeakness('fork', 'explain')).toEqual({
       source: 'lichess',
-      label: 'Lichess Video (em ingles): garfos',
+      label: 'Lichess Video (em inglês): garfos',
       url: 'https://lichess.org/video/mbiR0tcdqBY',
     });
     expect(getDestinationForWeakness('pin', 'explain').url).toBe('https://lichess.org/video/VjwSudAqLn8');

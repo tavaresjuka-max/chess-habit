@@ -55,24 +55,24 @@ Object.assign(
   causeByTag,
   {
     'mate-in-1': {
-      message: 'Mates imediatos ainda estao passando sem a varredura final.',
+      message: 'Mates imediatos ainda estão passando sem a varredura final.',
       procedure: 'Antes de calcular longo, cheque fuga, defesa e captura do rei.',
     },
     'mate-in-2': {
-      message: 'Mates curtos pedem mais calma na primeira ameaca.',
-      procedure: 'Veja a continuacao antes de clicar no primeiro lance promissor.',
+      message: 'Mates curtos pedem mais calma na primeira ameaça.',
+      procedure: 'Veja a continuação antes de clicar no primeiro lance promissor.',
     },
     'endgame-pawn': {
-      message: 'Finais de peoes estao cobrando plano antes de calculo.',
-      procedure: 'Conte rei ativo, oposicao e casa de promocao antes da corrida.',
+      message: 'Finais de peões estão cobrando plano antes de cálculo.',
+      procedure: 'Conte rei ativo, oposição e casa de promoção antes da corrida.',
     },
     'endgame-rook': {
-      message: 'Finais de torre estao pedindo mais atividade e tecnica.',
-      procedure: 'Antes de defender, veja se a torre pode ficar ativa atras do peao.',
+      message: 'Finais de torre estão pedindo mais atividade e técnica.',
+      procedure: 'Antes de defender, veja se a torre pode ficar ativa atrás do peão.',
     },
     conversion: {
-      message: 'A vantagem aparece, mas a conversao ainda perde clareza.',
-      procedure: 'Simplifique quando puder, ative pecas e reduza o contra-jogo.',
+      message: 'A vantagem aparece, mas a conversão ainda perde clareza.',
+      procedure: 'Simplifique quando puder, ative peças e reduza o contra-jogo.',
     },
   } satisfies Partial<Record<WeaknessTag, { message: string; procedure: string }>>,
 );
@@ -183,24 +183,24 @@ const puzzleThemeToWeaknessTag: Partial<Record<string, WeaknessTag>> = {
 };
 
 const puzzleThemeLabelByTheme: Partial<Record<string, string>> = {
-  backRankMate: 'mate na ultima fileira',
+  backRankMate: 'mate na última fileira',
   discoveredAttack: 'ataque descoberto',
   discoveredCheck: 'xeque descoberto',
   fork: 'garfos',
-  hangingPiece: 'pecas penduradas',
+  hangingPiece: 'peças penduradas',
   mate: 'mates',
   mateIn1: 'mate em 1',
   mateIn2: 'mate em 2',
   pin: 'cravadas',
   skewer: 'espetos',
   advantage: 'vantagem',
-  crushing: 'conversao de vantagem',
+  crushing: 'conversão de vantagem',
   defensiveMove: 'defesa precisa',
   capturingDefender: 'capturar defensor',
   deflection: 'desvio',
-  pawnEndgame: 'finais de peoes',
-  advancedPawn: 'peao avancado',
-  promotion: 'promocao',
-  underPromotion: 'subpromocao',
+  pawnEndgame: 'finais de peões',
+  advancedPawn: 'peão avançado',
+  promotion: 'promoção',
+  underPromotion: 'subpromoção',
   rookEndgame: 'finais de torre',
 };

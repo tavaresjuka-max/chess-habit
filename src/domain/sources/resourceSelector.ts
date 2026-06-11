@@ -166,7 +166,7 @@ function createReplayResourceIfUseful(input: SelectLichessResourceInput): Liches
     kind: 'puzzle-replay',
     title,
     label: `Lichess Replay: revisar erros recentes em ${themeResource.title}`,
-    description: 'Revisao guiada por tema com base em erros recentes agregados do Puzzle Dashboard/Activity.',
+    description: 'Revisão guiada por tema com base em erros recentes agregados do Puzzle Dashboard/Activity.',
     url: themeResource.url,
     source: 'lichess-api-puzzles',
     bands: themeResource.bands,
