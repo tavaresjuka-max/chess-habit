@@ -205,7 +205,7 @@ describe('training flow', () => {
         expect((await getFirstBlockLog())?.feedback).toBe(expectedFeedback);
       });
 
-      fireEvent.click(await screen.findByRole('button', { name: /Fazer/ }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Fazer próxima sessão' }));
 
       await waitFor(async () => {
         const plan = await getPlan(getTodayDateForTest());
@@ -353,7 +353,7 @@ describe('training flow', () => {
       expect((await loadWeaknesses())[0]?.tag).toBe('hanging-piece');
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Fazer/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Fazer próxima sessão' }));
 
     await waitFor(async () => {
       const plan = await getPlan(getTodayDateForTest());

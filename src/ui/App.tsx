@@ -2,9 +2,11 @@ import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
-import { useAppState } from '../app/state';
+import { createDefaultProfile, useAppState } from '../app/state';
 import { LemosAvatar } from './art/LemosAvatar';
+import { ReloadPrompt } from './ReloadPrompt';
 import { Today } from './Today';
+import { Welcome } from './Welcome';
 
 // Hoje é a tela padrão e fica no chunk principal; Config e Progresso chegam
 // sob demanda (code-split) para encurtar o carregamento inicial no celular.
@@ -38,8 +40,12 @@ function ViewFallback() {
 
 export function App() {
   const appState = useAppState();
+  // Sem perfil, a porta de entrada é o professor (Welcome) — a Config só
+  // aparece se o aluno pedir para ajustar antes.
+  const [wantsManualSetup, setWantsManualSetup] = useState(false);
   const activeView = appState.profile === undefined ? 'config' : appState.activeView;
-  const shouldShowConfig = activeView === 'config';
+  const shouldShowWelcome = appState.profile === undefined && !wantsManualSetup;
+  const shouldShowConfig = !shouldShowWelcome && activeView === 'config';
   const shouldShowProgress = activeView === 'progress';
 
   if (appState.loadState === 'loading') {
@@ -66,6 +72,7 @@ export function App() {
   return (
     <main className="app-shell">
       <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
+      <ReloadPrompt />
       <nav className="top-nav" aria-label="Navegação principal">
         <span className="brand" aria-hidden="true">
           <LemosAvatar size={26} className="brand-avatar" />
@@ -95,6 +102,7 @@ export function App() {
           className={shouldShowConfig ? 'nav-button nav-button-active' : 'nav-button'}
           type="button"
           onClick={() => {
+            setWantsManualSetup(true);
             appState.setActiveView('config');
           }}
         >
@@ -120,7 +128,17 @@ export function App() {
         </p>
       ) : null}
 
-      {shouldShowConfig ? (
+      {shouldShowWelcome ? (
+        <Welcome
+          {...(appState.lichessMessage === undefined ? {} : { notice: appState.lichessMessage })}
+          onStart={async () => {
+            await appState.saveProfile(createDefaultProfile());
+          }}
+          onConfigure={() => {
+            setWantsManualSetup(true);
+          }}
+        />
+      ) : shouldShowConfig ? (
         <Suspense fallback={<ViewFallback />}>
           <Config
             profile={appState.profile}

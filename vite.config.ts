@@ -4,7 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export const pwaOptions = {
   injectRegister: 'auto',
-  registerType: 'autoUpdate',
+  // 'prompt': o ReloadPrompt avisa que ha versao nova e aplica na hora,
+  // em vez do autoUpdate silencioso que so pegava na segunda reabertura.
+  registerType: 'prompt',
   workbox: {
     navigateFallback: 'index.html',
     // Apenas o subset latino entra no precache offline; os demais subsets do
