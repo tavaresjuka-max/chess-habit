@@ -24,3 +24,9 @@ LIVROS XADREZ PARA CONSULTA/
 output/free-resources/
 
 .vercel
+
+# Fontes PNG pesadas do gerador de imagens (os otimizados ficam em public/art)
+entrega/
+
+# Prints de auditoria visual (gerados por scripts/screenshots.mjs)
+screenshots/
