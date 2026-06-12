@@ -167,6 +167,60 @@ describe('evaluateAchievements', () => {
     });
   });
 
+  describe('calibrado', () => {
+    it('desbloqueia com calibração feita e confiança média', () => {
+      const unlocked = evaluateAchievements({
+        logs: [],
+        donePendingItems: [],
+        unlocked: [],
+        now: NOW,
+        placement: { confidence: 'medium', calibrated: true },
+      });
+
+      expect(ids(unlocked)).toContain('calibrado');
+    });
+
+    it('desbloqueia com confiança alta', () => {
+      const unlocked = evaluateAchievements({
+        logs: [],
+        donePendingItems: [],
+        unlocked: [],
+        now: NOW,
+        placement: { confidence: 'high', calibrated: true },
+      });
+
+      expect(ids(unlocked)).toContain('calibrado');
+    });
+
+    it('não desbloqueia sem calibração por puzzles', () => {
+      const unlocked = evaluateAchievements({
+        logs: [],
+        donePendingItems: [],
+        unlocked: [],
+        now: NOW,
+        placement: { confidence: 'high', calibrated: false },
+      });
+
+      expect(ids(unlocked)).not.toContain('calibrado');
+    });
+
+    it('não desbloqueia com confiança baixa', () => {
+      const unlocked = evaluateAchievements({
+        logs: [],
+        donePendingItems: [],
+        unlocked: [],
+        now: NOW,
+        placement: { confidence: 'low', calibrated: true },
+      });
+
+      expect(ids(unlocked)).not.toContain('calibrado');
+    });
+
+    it('não desbloqueia sem placement registrado', () => {
+      expect(ids(evaluate([]))).not.toContain('calibrado');
+    });
+  });
+
   describe('semana-inteira', () => {
     it('desbloqueia com 5 dias concluídos na mesma semana (segunda a domingo)', () => {
       // 2026-06-08 é segunda-feira.

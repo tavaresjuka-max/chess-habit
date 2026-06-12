@@ -58,6 +58,7 @@ import {
   loadChesscomMonthCache,
   loadLichessOAuthToken,
   loadOpenPendingItems,
+  loadPlacementCompletion,
   loadProfile,
   loadSignals,
   loadTrainingLogs,
@@ -69,7 +70,9 @@ import {
   saveChesscomMonthCache,
   savePendingItem,
   saveLichessStudyLink,
+  savePlacementResult as savePlacementResultRecord,
   savePlan,
+  type StoredPlacementResult,
   saveProfile as saveStoredProfile,
   saveTrainingLog,
   updatePendingItemStatus,
@@ -131,6 +134,7 @@ export type AppState = {
   readonly disableAutoBackup: () => Promise<void>;
   readonly setActiveView: (view: AppView) => void;
   readonly saveProfile: (profile: LearnerProfile) => Promise<void>;
+  readonly savePlacementResult: (result: StoredPlacementResult) => Promise<void>;
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
   readonly createNextSession: (minutes: SessionMinutes) => Promise<void>;
   readonly importKnownManualSignals: () => Promise<number>;
@@ -344,6 +348,15 @@ export function useAppState(): AppState {
     setTrainingLogs(await loadTrainingLogsForDate(date));
     setAllTrainingLogs(await loadTrainingLogs());
   }, [pendingItems, todayPlan, trainingLogs, weaknesses]);
+
+  const savePlacementResult = useCallback(
+    async (result: StoredPlacementResult) => {
+      await savePlacementResultRecord(result);
+      // Placement persistido pode destravar a conquista Calibrado.
+      setAchievements(await syncAchievements(allTrainingLogs));
+    },
+    [allTrainingLogs],
+  );
 
   const regeneratePlan = useCallback(
     async (minutes: SessionMinutes) => {
@@ -1084,6 +1097,7 @@ export function useAppState(): AppState {
     disableAutoBackup,
     setActiveView,
     saveProfile,
+    savePlacementResult,
     regeneratePlan,
     createNextSession,
     importKnownManualSignals,
@@ -1119,12 +1133,17 @@ export function useAppState(): AppState {
 // Avalia conquistas contra o Dexie (fonte de verdade), grava as novas e
 // devolve a lista completa em ordem de desbloqueio.
 async function syncAchievements(logs: TrainingLog[]): Promise<Achievement[]> {
-  const [donePendingItems, unlocked] = await Promise.all([loadDonePendingItems(), loadAchievements()]);
+  const [donePendingItems, unlocked, placement] = await Promise.all([
+    loadDonePendingItems(),
+    loadAchievements(),
+    loadPlacementCompletion(),
+  ]);
   const newlyUnlocked = evaluateAchievements({
     logs,
     donePendingItems,
     unlocked,
     now: new Date().toISOString(),
+    ...(placement === undefined ? {} : { placement }),
   });
 
   if (newlyUnlocked.length > 0) {

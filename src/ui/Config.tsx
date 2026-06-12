@@ -2,7 +2,7 @@ import { Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
-import type { BackupImportResult } from '../infra/storage/appData';
+import type { BackupImportResult, StoredPlacementResult } from '../infra/storage/appData';
 import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthToken, type SessionMinutes } from '../domain';
 import { describeAutoBackupStatus, type AutoBackupStatus } from '../infra/storage/autoBackup';
 import { PlacementCard } from './PlacementCard';
@@ -21,6 +21,7 @@ type ConfigProps = {
   onEnableAutoBackup: () => Promise<void>;
   onDisableAutoBackup: () => Promise<void>;
   onSave: (profile: LearnerProfile) => Promise<void>;
+  onSavePlacementResult: (result: StoredPlacementResult) => Promise<void>;
   onConnectLichess: () => Promise<void>;
   onDisconnectLichess: () => Promise<void>;
   onImportKnownManualSignals: () => Promise<number>;
@@ -43,6 +44,7 @@ export function Config({
   onEnableAutoBackup,
   onDisableAutoBackup,
   onSave,
+  onSavePlacementResult,
   onConnectLichess,
   onDisconnectLichess,
   onImportKnownManualSignals,
@@ -206,12 +208,20 @@ export function Config({
 
       <PlacementCard
         currentBand={band}
-        onApplyBand={async (nextBand) => {
-          setBand(nextBand);
+        onApplyBand={async (placement) => {
+          setBand(placement.band);
+          // Registro do placement primeiro (alimenta a conquista Calibrado);
+          // depois o perfil, que regenera o plano com a faixa nova.
+          await onSavePlacementResult({
+            band: placement.band,
+            confidence: placement.confidence,
+            calibrated: placement.calibrated,
+            completedAt: new Date().toISOString(),
+          });
           await onSave({
             lichessUsername: lichessUsername.trim() === '' ? undefined : lichessUsername.trim(),
             chesscomUsername: chesscomUsername.trim() === '' ? undefined : chesscomUsername.trim(),
-            band: nextBand,
+            band: placement.band,
             defaultSessionMinutes,
             goals: initialProfile.goals,
             updatedAt: new Date().toISOString(),

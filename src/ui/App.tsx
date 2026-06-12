@@ -126,6 +126,7 @@ export function App() {
             onEnableAutoBackup={appState.enableAutoBackup}
             onDisableAutoBackup={appState.disableAutoBackup}
             onSave={appState.saveProfile}
+            onSavePlacementResult={appState.savePlacementResult}
             onConnectLichess={appState.connectLichess}
             onDisconnectLichess={appState.disconnectLichess}
             onImportKnownManualSignals={appState.importKnownManualSignals}

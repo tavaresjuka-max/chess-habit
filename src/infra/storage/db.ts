@@ -73,6 +73,17 @@ export type AchievementRecord = {
   updatedAt: string;
 };
 
+// Resultado da avaliacao de entrada aplicado pelo aluno (sempre o mais
+// recente); alimenta a conquista Calibrado e futuros ajustes de placement.
+export type PlacementResultRecord = {
+  id: 'latest';
+  band: string;
+  confidence: string;
+  calibrated: boolean;
+  completedAt: string;
+  updatedAt: string;
+};
+
 export class TutorDatabase extends Dexie {
   profile!: Table<ProfileRecord, string>;
   plans!: Table<PlanRecord, string>;
@@ -88,6 +99,7 @@ export class TutorDatabase extends Dexie {
   backupMeta!: Table<BackupMetaRecord, string>;
   autoBackup!: Table<AutoBackupConfigRecord, string>;
   achievements!: Table<AchievementRecord, string>;
+  placementResults!: Table<PlacementResultRecord, string>;
 
   constructor(name = storageDatabaseName) {
     super(name);
@@ -161,6 +173,11 @@ export class TutorDatabase extends Dexie {
     // Conquistas de esforco/habito (Corte 7): unica por id, nunca expira.
     this.version(9).stores({
       achievements: 'id, unlockedAt, updatedAt',
+    });
+
+    // Placement persistido (conquista Calibrado + historico de calibracao).
+    this.version(10).stores({
+      placementResults: 'id, updatedAt',
     });
   }
 }

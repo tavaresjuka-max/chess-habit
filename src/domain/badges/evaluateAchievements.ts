@@ -2,16 +2,22 @@
 // Spec: docs/superpowers/specs/2026-06-10-badges-spec-draft.md
 // Princípios travados: premiar esforço/hábito (nunca rating), sem streak
 // punitivo, métrica de qualidade acoplada, tom sóbrio do Professor Lemos.
-// "Calibrado" fica fora da v1: depende de persistir a confiança do placement.
 
-import type { TrainingLog } from '../types';
+import type { Confidence, TrainingLog } from '../types';
 import type { PendingTrainingItem } from '../method/types';
 
 export type AchievementId =
   | 'retorno-de-ouro'
   | 'primeira-hora'
   | 'tratador-de-pendencias'
-  | 'semana-inteira';
+  | 'semana-inteira'
+  | 'calibrado';
+
+// Estado persistido do placement que a conquista Calibrado consulta.
+export type PlacementCompletion = {
+  confidence: Confidence;
+  calibrated: boolean;
+};
 
 export type Achievement = {
   id: AchievementId;
@@ -50,6 +56,12 @@ export const ACHIEVEMENT_DEFINITIONS: readonly AchievementDefinition[] = [
     description: 'Cinco dias de treino na mesma semana, cada um com bloco concluído.',
     reportLine: 'Cinco dias de treino na mesma semana. A rotina venceu a semana.',
   },
+  {
+    id: 'calibrado',
+    title: 'Calibrado',
+    description: 'Avaliação de entrada completa, com calibração por puzzles e confiança média ou alta.',
+    reportLine: 'Você completou a avaliação e calibrou com puzzles reais. O curso agora começa no seu ponto certo.',
+  },
 ];
 
 export function getAchievementDefinition(id: AchievementId): AchievementDefinition {
@@ -67,6 +79,7 @@ export type EvaluateAchievementsInput = {
   donePendingItems: PendingTrainingItem[];
   unlocked: Achievement[];
   now: string;
+  placement?: PlacementCompletion;
 };
 
 // Retorna apenas as conquistas NOVAS (não repetíveis — decisão default do spec).
@@ -77,6 +90,7 @@ export function evaluateAchievements(input: EvaluateAchievementsInput): Achievem
     'primeira-hora': () => isPrimeiraHora(input.logs),
     'tratador-de-pendencias': () => isTratadorDePendencias(input.donePendingItems),
     'semana-inteira': () => isSemanaInteira(input.logs),
+    calibrado: () => isCalibrado(input.placement),
   };
 
   return ACHIEVEMENT_DEFINITIONS.filter(
@@ -145,6 +159,12 @@ function isTratadorDePendencias(donePendingItems: PendingTrainingItem[]): boolea
   );
 
   return qualified.length >= 10;
+}
+
+// Avaliação de entrada completa COM calibração por puzzles e confiança que
+// saiu de 'low' (qualidade: não basta responder o questionário no chute).
+function isCalibrado(placement: PlacementCompletion | undefined): boolean {
+  return placement !== undefined && placement.calibrated && placement.confidence !== 'low';
 }
 
 // 5 dias com bloco concluído dentro da mesma semana (segunda a domingo).

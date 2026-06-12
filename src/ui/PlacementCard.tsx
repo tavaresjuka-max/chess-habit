@@ -2,7 +2,7 @@ import { Compass } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { openExternalUrl } from '../app/externalOpen';
-import type { LearnerBand } from '../domain';
+import type { Confidence, LearnerBand } from '../domain';
 import {
   applyCalibration,
   computePlacement,
@@ -15,9 +15,15 @@ import {
   type PlacementTactics,
 } from '../domain/placement/placement';
 
+export type PlacementApplication = {
+  band: LearnerBand;
+  confidence: Confidence;
+  calibrated: boolean;
+};
+
 type PlacementCardProps = {
   currentBand: LearnerBand;
-  onApplyBand: (band: LearnerBand) => Promise<void>;
+  onApplyBand: (placement: PlacementApplication) => Promise<void>;
 };
 
 type PlacementStep = 'idle' | 'questions' | 'result';
@@ -92,7 +98,7 @@ export function PlacementCard({ currentBand, onApplyBand }: PlacementCardProps) 
       return;
     }
 
-    await onApplyBand(result.band);
+    await onApplyBand({ band: result.band, confidence: result.confidence, calibrated });
     toast.success(`Faixa ${result.band} aplicada ao seu plano.`);
     setStep('idle');
   }
