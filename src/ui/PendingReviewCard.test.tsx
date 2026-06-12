@@ -21,7 +21,7 @@ describe('PendingReviewCard', () => {
   it('shows the Professor Lemos message', () => {
     render(<PendingReviewCard pendingItems={[createItem()]} onOpenItem={() => undefined} onDeferItem={() => undefined} />);
 
-    expect(screen.getByText(/Antes de conteúdo novo/)).toBeInTheDocument();
+    expect(screen.getByText(/Antes de avançar/)).toBeInTheDocument();
   });
 
   it('calls onOpenItem from the Lichess button', () => {

@@ -22,13 +22,13 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
       </div>
       <h1 id="welcome-title">A aula pode começar.</h1>
       <p className="welcome-lede">
-        Sou o Professor Lemos. Aqui o treino é curto, o foco é um só por vez, e
-        cada sessão conta. Melhor pouco bem feito que muito no automático.
+        Sou o Professor Lemos. Aqui o treino é curto e o foco é um só por vez.
+        Melhor pouco bem feito que muito no automático.
       </p>
       <ul className="welcome-points">
-        <li>Sessões de 5 a 60 minutos, treinadas direto no Lichess.</li>
-        <li>Eu escolho o que estudar; você só confirma e executa.</li>
-        <li>Seu progresso fica neste aparelho — exporte backups quando quiser.</li>
+        <li>Sessões de 5 a 60 minutos, direto no Lichess.</li>
+        <li>Eu escolho o que estudar — você só executa.</li>
+        <li>Seu progresso fica neste aparelho. Exporte backups quando quiser.</li>
       </ul>
       {notice !== undefined ? (
         <p className="config-hint" aria-live="polite">
@@ -48,10 +48,6 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
           Ajustar antes
         </button>
       </div>
-      <p className="config-hint">
-        A avaliação de entrada (2 min) encontra seu ponto certo no curso — dá
-        para fazer agora em “Ajustar antes” ou depois, na Config.
-      </p>
     </section>
   );
 }

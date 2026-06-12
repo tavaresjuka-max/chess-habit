@@ -1,6 +1,7 @@
-import { Clock, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { isDueToday } from '../domain/method/pendingItems';
 import type { PendingTrainingItem } from '../domain/method/types';
+import { ConceptSeal } from './art/ConceptSeal';
 
 type PendingReviewCardProps = {
   pendingItems: PendingTrainingItem[];
@@ -18,10 +19,10 @@ export function PendingReviewCard({ pendingItems, onOpenItem, onDeferItem }: Pen
   return (
     <section className="pending-review-card" aria-labelledby="pending-review-title">
       <div className="pending-review-heading">
-        <Clock aria-hidden="true" size={18} />
+        <ConceptSeal concept="pendencias" size={28} />
         <div>
           <h2 id="pending-review-title">Pendências de hoje ({dueItems.length})</h2>
-          <p>Professor Lemos: "Antes de conteúdo novo, vamos fechar o que ficou em aberto."</p>
+          <p>Antes de avançar, feche o que ficou em aberto.</p>
         </div>
       </div>
 

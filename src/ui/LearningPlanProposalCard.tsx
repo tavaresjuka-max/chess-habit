@@ -74,7 +74,7 @@ export function LearningPlanProposalCard({
 
       <div className="learning-plan-summary">
         <strong>{proposal.phaseTitle}</strong>
-        {activeTrackId !== undefined ? <p>Trilha atual: {getMethodTrackTitle(activeTrackId)}</p> : null}
+        {activeTrackId !== undefined ? <p>Trilha: {getMethodTrackTitle(activeTrackId)}</p> : null}
         <ul>
           {proposal.focusItems.map((item) => (
             <li key={item}>{item}</li>
@@ -85,7 +85,6 @@ export function LearningPlanProposalCard({
       <div className="method-note-panel learning-plan-method" aria-label="Método do plano">
         <strong>Como o plano foi montado</strong>
         <p>{proposal.methodSummary}</p>
-        <p>{proposal.evidenceLevel}</p>
         <ol>
           {proposal.methodSteps.map((step) => (
             <li key={step}>{step}</li>
@@ -102,10 +101,10 @@ export function LearningPlanProposalCard({
         </ul>
       </div>
 
+      {/* caveat e reviewPrompt cortados: os botões Aprovar/Revisar já dizem o
+          que fazer, e o princípio "sem promessa de rating" vive no Progresso. */}
       <p>{proposal.estimate}</p>
       <p>{proposal.checkpoint}</p>
-      <p className="learning-plan-caveat">{proposal.caveat}</p>
-      <p>{proposal.reviewPrompt}</p>
 
       {response?.status === 'approved' ? (
         <p className="learning-plan-status">
@@ -117,7 +116,7 @@ export function LearningPlanProposalCard({
       {response?.status === 'revision-requested' ? (
         <div className="learning-plan-review-note">
           <strong>Revisão registrada.</strong>
-          <p>{response.note ?? 'Você pediu para revisar o plano antes de seguir.'}</p>
+          {response.note !== undefined ? <p>{response.note}</p> : null}
         </div>
       ) : null}
 

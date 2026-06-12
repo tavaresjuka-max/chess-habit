@@ -73,7 +73,7 @@ describe('SessionMilestonesCard', () => {
     expect(screen.getByRole('heading', { name: 'Metas da fase' })).toBeInTheDocument();
     expect(screen.getAllByText('Checkpoint 6h')).toHaveLength(2);
     expect(screen.getByText('25%')).toBeInTheDocument();
-    expect(screen.getByText('sessões concluídas')).toBeInTheDocument();
+    expect(screen.getByText('sessões')).toBeInTheDocument();
     expect(screen.getByText('75%')).toBeInTheDocument();
     expect(screen.getByText('O que está evoluindo')).toBeInTheDocument();
     expect(screen.getByText('Habilidade: 75% de acerto nos puzzles reconciliados.')).toBeInTheDocument();

@@ -124,7 +124,7 @@ function buildPuzzleLine(dayLogs: TrainingLog[]): string | undefined {
   }
 
   if (completedPuzzleLogs.some((log) => log.result === undefined)) {
-    return 'Puzzles do dia ainda sem placar real; confira no Lichess quando quiser calibrar o próximo plano.';
+    return 'Puzzles ainda sem placar. Confira no Lichess para calibrar o plano.';
   }
 
   return undefined;

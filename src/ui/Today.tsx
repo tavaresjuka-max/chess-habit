@@ -29,6 +29,7 @@ import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
 import { getMethodTrackTitle } from '../domain/method/methodTracks';
 import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
+import { ConceptSeal } from './art/ConceptSeal';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 import { PendingReviewCard } from './PendingReviewCard';
 import { PlanBlockCard } from './PlanBlockCard';
@@ -145,7 +146,7 @@ export function Today({
           height={160}
         />
         <h1 id="today-title">Hoje</h1>
-        <p>Salve sua configuração para gerar o plano local.</p>
+        <p>Configure o app para gerar seu plano.</p>
       </section>
     );
   }
@@ -212,9 +213,8 @@ export function Today({
             {sessionSummaries.length === 1 ? 'sessão' : 'sessões'} - {totalPlannedMinutes} min
           </p>
           {plan.weeklyFocus !== undefined ? (
-            <p className="weekly-focus">
-              Semana: {plan.weeklyFocus.title} - {plan.weeklyFocus.reason}
-            </p>
+            // O porquê do foco já chega pelo TutorCard e pelo próprio bloco.
+            <p className="weekly-focus">Foco da semana: {plan.weeklyFocus.title}</p>
           ) : null}
         </div>
       </div>
@@ -420,9 +420,6 @@ export function Today({
             Importar atividade livre
           </button>
         </div>
-        <p className="config-hint">
-          Treinou puzzles por conta própria no Lichess? Importe e ganhe crédito no seu histórico.
-        </p>
       </section>
       </div>
 
@@ -451,23 +448,30 @@ export function Today({
       ) : null}
 
       {weaknesses.length > 0 ? (
-        <div className="weakness-row" aria-label="Hipóteses atuais">
-          {weaknesses
-            .slice()
-            .sort((left, right) => right.score - left.score)
-            .slice(0, 3)
-            .map((weakness) => (
-              <span className="weakness-chip" key={weakness.tag}>
-                {formatWeaknessTag(weakness.tag)} ({Math.round(weakness.score * 100)}%)
-              </span>
-            ))}
-        </div>
+        <section className="weakness-section" aria-labelledby="weakness-title">
+          <h2 id="weakness-title" className="weakness-heading">
+            <ConceptSeal concept="diagnostico" size={26} /> O que seus jogos revelam
+          </h2>
+          <div className="weakness-row">
+            {weaknesses
+              .slice()
+              .sort((left, right) => right.score - left.score)
+              .slice(0, 3)
+              .map((weakness) => (
+                <span className="weakness-chip" key={weakness.tag}>
+                  {formatWeaknessTag(weakness.tag)} ({Math.round(weakness.score * 100)}%)
+                </span>
+              ))}
+          </div>
+        </section>
       ) : null}
 
       <RoadmapList items={roadmap} />
 
       <details className="diagnosis-details">
-        <summary>Diagnóstico</summary>
+        <summary>
+          <ConceptSeal concept="registro" size={22} /> Diagnóstico
+        </summary>
         <div className="diagnosis-strip" aria-live="polite">
           <div className="diagnosis-actions">
             <button

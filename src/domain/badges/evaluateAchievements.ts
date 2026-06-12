@@ -60,7 +60,7 @@ export const ACHIEVEMENT_DEFINITIONS: readonly AchievementDefinition[] = [
     id: 'calibrado',
     title: 'Calibrado',
     description: 'Avaliação de entrada completa, com calibração por puzzles e confiança média ou alta.',
-    reportLine: 'Você completou a avaliação e calibrou com puzzles reais. O curso agora começa no seu ponto certo.',
+    reportLine: 'Avaliação calibrada com puzzles reais. O curso começa no seu ponto certo.',
   },
 ];
 

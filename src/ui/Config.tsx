@@ -5,6 +5,7 @@ import { createDefaultProfile, type LichessConnectionState } from '../app/state'
 import type { BackupImportResult, StoredPlacementResult } from '../infra/storage/appData';
 import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthToken, type SessionMinutes } from '../domain';
 import { describeAutoBackupStatus, type AutoBackupStatus } from '../infra/storage/autoBackup';
+import { ConceptSeal } from './art/ConceptSeal';
 import { PlacementCard } from './PlacementCard';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
@@ -89,9 +90,7 @@ export function Config({
   }
 
   async function handleRestoreFile(file: File) {
-    const confirmed = window.confirm(
-      'Restaurar este backup SUBSTITUI os dados atuais (perfil, planos, logs, pendências, diplomas). Continuar?',
-    );
+    const confirmed = window.confirm('Este backup substitui todos os dados atuais. Continuar?');
 
     if (!confirmed) {
       return;
@@ -104,7 +103,7 @@ export function Config({
       return;
     }
 
-    toast.success(`Backup de ${new Date(result.exportedAt).toLocaleString('pt-BR')} restaurado (${String(result.recordCount)} registros). Recarregando…`);
+    toast.success(`Backup de ${new Date(result.exportedAt).toLocaleString('pt-BR')} restaurado. Recarregando…`);
     window.setTimeout(() => {
       window.location.reload();
     }, 1200);
@@ -116,7 +115,7 @@ export function Config({
   }
 
   async function handleClear() {
-    const confirmed = window.confirm('Apagar todos os dados locais da Rotina?');
+    const confirmed = window.confirm('Apagar todos os dados locais?');
 
     if (!confirmed) {
       return;
@@ -143,8 +142,9 @@ export function Config({
         }}
       >
         <section className="config-section" aria-labelledby="config-essential-title">
-          <h2 id="config-essential-title">Essencial</h2>
-          <p className="config-hint">Dados usados para montar a rotina local e ajustar o tamanho das sessões.</p>
+          <h2 id="config-essential-title">
+            <ConceptSeal concept="essencial" size={26} /> Essencial
+          </h2>
 
           <label className="field">
             <span>Usuário Lichess</span>
@@ -160,8 +160,7 @@ export function Config({
           <label className="field">
             <span>Usuário Chess.com</span>
             <small className="field-hint">
-              Não precisa conectar nem fazer login: o app lê só os dados públicos desse usuário.
-              Para puxar o diagnóstico, use o botão &quot;Atualizar Chess.com&quot; na tela Hoje.
+              Só dados públicos, sem login. O diagnóstico atualiza na tela Hoje.
             </small>
             <input
               autoComplete="username"
@@ -175,8 +174,7 @@ export function Config({
           <label className="field">
             <span>Faixa atual</span>
             <small className="field-hint">
-              A faixa organiza o conteúdo do curso; não é meta nem nota. Em dúvida, use a avaliação
-              de entrada abaixo.
+              Organiza o curso — não é nota. Na dúvida, faça a avaliação abaixo.
             </small>
             <select
               value={band}
@@ -244,9 +242,9 @@ export function Config({
         aria-live="polite"
       >
         <h2 id="lichess-connection-title">
-          Lichess <span className="optional-tag">opcional</span>
+          <ConceptSeal concept="lichess" size={26} /> Lichess <span className="optional-tag">opcional</span>
         </h2>
-        <p className="config-hint">Conectar habilita reconciliação de puzzles e criação do Study do dia.</p>
+        <p className="config-hint">Conectar sincroniza puzzles e cria o Study do dia.</p>
         <p>{formatLichessConnection(lichessToken, lichessConnectionState)}</p>
         {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
         <div className="button-row">
@@ -273,8 +271,9 @@ export function Config({
       </section>
 
       <section className="config-section data-zone" aria-labelledby="config-data-title">
-        <h2 id="config-data-title">Dados locais</h2>
-        <p className="config-hint">Backups, sinais manuais e limpeza ficam só neste dispositivo.</p>
+        <h2 id="config-data-title">
+          <ConceptSeal concept="dados" size={26} /> Dados locais
+        </h2>
         {storagePersistence !== undefined ? (
           <p aria-live="polite">{describePersistenceStatus(storagePersistence)}</p>
         ) : null}
@@ -346,7 +345,7 @@ export function Config({
 
 function formatBackupMeta(meta: BackupMetaRecord | undefined): string {
   if (meta === undefined) {
-    return 'Nenhum backup exportado ainda. Exporte um backup para proteger seu progresso.';
+    return 'Nenhum backup exportado ainda.';
   }
 
   const date = new Date(meta.exportedAt);
@@ -369,8 +368,9 @@ function formatLichessConnection(
     return 'Conexão Lichess precisa de atenção.';
   }
 
+  // O benefício de conectar já está no hint da seção — aqui só o estado.
   if (token === undefined) {
-    return 'Desconectado. Conectar habilita reconciliar puzzles e criar o Study do dia.';
+    return 'Desconectado.';
   }
 
   return `Conectado com escopos: ${token.scopes.join(', ')}.`;

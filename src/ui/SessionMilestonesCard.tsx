@@ -1,4 +1,4 @@
-import { Target } from 'lucide-react';
+import { Clock, Target } from 'lucide-react';
 import type { SessionMilestone, SessionMilestoneStats, SessionMilestoneSummary } from '../domain';
 
 type SessionMilestonesCardProps = {
@@ -15,12 +15,11 @@ export type NextDiplomaSummary = {
 export function SessionMilestonesCard({ summary, openPendingCount = 0, nextDiploma }: SessionMilestonesCardProps) {
   return (
     <section className="session-milestones-card" aria-labelledby="session-milestones-title">
+      {/* O intro (como a fase é medida) já está na proposta de plano — aqui
+          os números falam sozinhos. */}
       <div className="session-milestones-heading">
         <Target aria-hidden="true" size={18} />
-        <div>
-          <h2 id="session-milestones-title">{summary.heading}</h2>
-          <p>{summary.intro}</p>
-        </div>
+        <h2 id="session-milestones-title">{summary.heading}</h2>
       </div>
 
       <CurrentMilestone milestone={summary.currentMilestone} nextCheckpoint={summary.nextCheckpoint} />
@@ -63,12 +62,13 @@ function MethodProgressBadges({
     <div className="method-progress-badges" aria-label="Pendências e diplomas">
       {openPendingCount > 0 ? (
         <span>
-          {openPendingCount} pendência{openPendingCount > 1 ? 's' : ''} abertas
+          <Clock aria-hidden="true" size={13} /> {openPendingCount} pendência
+          {openPendingCount > 1 ? 's' : ''}
         </span>
       ) : null}
       {nextDiploma !== undefined ? (
         <span>
-          Próximo checkpoint: {nextDiploma.title} ({String(nextDiploma.progressPercent)}%)
+          Checkpoint: {nextDiploma.title} — {String(nextDiploma.progressPercent)}%
         </span>
       ) : null}
     </div>
@@ -124,20 +124,21 @@ function CurrentMilestone({
 }
 
 function MilestoneStats({ stats }: { stats: SessionMilestoneStats }) {
+  // Rótulos de uma palavra: o número em destaque fala sozinho.
   const items = [
     {
       id: 'sessions',
       value: String(stats.completedSessions),
-      label: stats.completedSessions === 1 ? 'sessão concluída' : 'sessões concluídas',
+      label: stats.completedSessions === 1 ? 'sessão' : 'sessões',
     },
-    { id: 'hours', value: formatHours(stats.completedHours), label: 'horas treinadas' },
-    { id: 'blocks', value: String(stats.completedBlocks), label: 'blocos feitos' },
+    { id: 'hours', value: formatHours(stats.completedHours), label: 'horas' },
+    { id: 'blocks', value: String(stats.completedBlocks), label: 'blocos' },
     ...(stats.puzzleAttempts > 0
-      ? [{ id: 'puzzles', value: String(stats.puzzleAttempts), label: 'puzzles reconciliados' }]
+      ? [{ id: 'puzzles', value: String(stats.puzzleAttempts), label: 'puzzles' }]
       : []),
     ...(stats.puzzleAccuracy === undefined
       ? []
-      : [{ id: 'accuracy', value: `${String(stats.puzzleAccuracy)}%`, label: 'acerto em puzzles' }]),
+      : [{ id: 'accuracy', value: `${String(stats.puzzleAccuracy)}%`, label: 'acerto' }]),
   ];
 
   return (

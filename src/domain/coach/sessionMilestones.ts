@@ -327,8 +327,8 @@ function buildImprovementLines(input: {
 }): string[] {
   if (input.completedSessions === 0) {
     return [
-      'Ainda não há sessões concluídas suficientes. Assim que você concluir blocos, esta área vira o painel de evolução.',
-      'Quando houver reconciliação de puzzles, eu comparo acerto, temas fortes e temas que precisam voltar.',
+      'Sem sessões concluídas ainda. Conclua blocos para ativar este painel.',
+      'Com puzzles reconciliados, comparo acerto e temas fortes e fracos.',
     ];
   }
 
@@ -340,7 +340,7 @@ function buildImprovementLines(input: {
   if (positiveFeedback > input.feedback.hard) {
     lines.push('Seu feedback recente está mais para fácil/bom do que difícil; isso libera repetição ou transferência no próximo ajuste.');
   } else if (input.feedback.hard > positiveFeedback) {
-    lines.push('O feedback está pesado em difícil; o plano deve manter explicação curta e treino guiado antes de aumentar carga.');
+    lines.push('Feedback pesado em difícil: explicação curta e treino guiado antes de subir a carga.');
   }
 
   if (input.puzzleStats.accuracy !== undefined) {
@@ -355,7 +355,7 @@ function buildImprovementLines(input: {
     if (trend.delta > 0) {
       lines.push(`Comparando as sessões, o acerto subiu de ${String(trend.previous)}% para ${String(trend.recent)}%.`);
     } else if (trend.delta < 0) {
-      lines.push(`Comparando as sessões, o acerto caiu de ${String(trend.previous)}% para ${String(trend.recent)}%; vamos revisar antes de acelerar.`);
+      lines.push(`O acerto caiu de ${String(trend.previous)}% para ${String(trend.recent)}%; vamos revisar antes de acelerar.`);
     } else {
       lines.push(`Comparando as sessões, o acerto ficou estável em ${String(trend.recent)}%.`);
     }
@@ -370,7 +370,7 @@ function buildImprovementLines(input: {
   }
 
   if (input.puzzleStats.accuracy === undefined) {
-    lines.push('Ainda faltam resultados reconciliados do Lichess para medir acerto real dos puzzles.');
+    lines.push('Sem resultados reconciliados ainda. Confira no Lichess para medir o acerto.');
   }
 
   return lines;
@@ -392,7 +392,7 @@ function buildSkillSignals(stats: SessionMilestoneStats): string[] {
   if (stats.puzzleAccuracy !== undefined) {
     signals.push(`Habilidade: ${String(stats.puzzleAccuracy)}% de acerto nos puzzles reconciliados.`);
   } else {
-    signals.push('Habilidade: ainda sem acerto real de puzzle; por enquanto o app usa feedback e tempo treinado.');
+    signals.push('Habilidade: sem acerto de puzzle ainda — usando feedback e tempo treinado.');
   }
 
   if (stats.puzzleAccuracyTrend !== undefined) {

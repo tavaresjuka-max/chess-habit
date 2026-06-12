@@ -1,7 +1,7 @@
-import { Compass } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { openExternalUrl } from '../app/externalOpen';
+import { ConceptSeal } from './art/ConceptSeal';
 import type { Confidence, LearnerBand } from '../domain';
 import {
   applyCalibration,
@@ -107,11 +107,10 @@ export function PlacementCard({ currentBand, onApplyBand }: PlacementCardProps) 
     return (
       <section className="config-section" aria-labelledby="placement-title">
         <h2 id="placement-title">
-          <Compass aria-hidden="true" size={16} /> Avaliação de entrada
+          <ConceptSeal concept="avaliacao" size={26} /> Avaliação de entrada
         </h2>
         <p className="config-hint">
-          Três perguntas rápidas (e uma calibração opcional com puzzles) para encontrar o ponto certo
-          do curso para você. Faixa atual: {currentBand}.
+          Três perguntas rápidas para achar sua faixa. Atual: {currentBand}.
         </p>
         <div className="button-row">
           <button
@@ -187,7 +186,7 @@ export function PlacementCard({ currentBand, onApplyBand }: PlacementCardProps) 
         </fieldset>
 
         <label className="field">
-          <span>Se você joga online e sabe seu rating, informe (opcional)</span>
+          <span>Seu rating online (opcional)</span>
           <input
             inputMode="numeric"
             placeholder="ex.: 850"
@@ -238,8 +237,7 @@ export function PlacementCard({ currentBand, onApplyBand }: PlacementCardProps) 
           {!calibrated ? (
             <>
               <p className="config-hint">
-                Para afinar: resolva ~10 puzzles do tema sugerido no Lichess e conte como foi. Sem
-                pressa — é calibração, não prova.
+                Opcional: resolva ~10 puzzles no Lichess e conte como foi.
               </p>
               <div className="button-row">
                 <button

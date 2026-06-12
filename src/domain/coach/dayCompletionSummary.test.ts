@@ -135,9 +135,7 @@ describe('buildDayCompletionSummary', () => {
       roadmap,
     });
 
-    expect(summary?.lines).toContain(
-      'Puzzles do dia ainda sem placar real; confira no Lichess quando quiser calibrar o próximo plano.',
-    );
+    expect(summary?.lines).toContain('Puzzles ainda sem placar. Confira no Lichess para calibrar o plano.');
   });
 
   it('closes the day when every block was skipped without inventing puzzle work', () => {
@@ -156,7 +154,7 @@ describe('buildDayCompletionSummary', () => {
     expect(summary?.lines).toContain(
       'Você encerrou o plano com 0 de 2 blocos feitos e 2 blocos pulados e registrou menos de 1 min de treino.',
     );
-    expect(summary?.lines.some((line) => line.includes('Puzzles do dia ainda sem placar real'))).toBe(false);
+    expect(summary?.lines.some((line) => line.includes('Puzzles ainda sem placar'))).toBe(false);
   });
 });
 

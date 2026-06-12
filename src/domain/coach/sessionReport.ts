@@ -91,12 +91,10 @@ export function buildNextStepExplanations(plan: DailyPlan, themeStats?: PuzzleTh
 
     if (block.feedback === 'hard') {
       explanations.push(
-        `Você marcou "${block.title}" como difícil: na próxima sessão voltamos um passo nesse tema, com explicação antes do treino.`,
+        `"${block.title}" foi difícil: voltamos um passo nesse tema, com explicação antes do treino.`,
       );
     } else if (block.feedback === 'easy' && block.resourceStage === 'explain') {
-      explanations.push(
-        `"${block.title}" foi fácil: o próximo passo é praticar o tema em puzzles variados, sem repetir a explicação.`,
-      );
+      explanations.push(`"${block.title}" foi fácil: agora puzzles variados, sem repetir a explicação.`);
     }
   }
 
@@ -104,7 +102,7 @@ export function buildNextStepExplanations(plan: DailyPlan, themeStats?: PuzzleTh
 
   if (explanations.length === 0 && !hasRealThemeData) {
     explanations.push(
-      'Ainda não tenho sinal claro desta sessão. Como foi o treino para você? Marcar fácil/bom/difícil nos blocos me ajuda a calibrar o próximo plano.',
+      'Sem sinal claro desta sessão. Como foi o treino? Marcar fácil/bom/difícil nos blocos me ajuda.',
     );
   }
 

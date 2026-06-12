@@ -78,8 +78,7 @@ describe('TutorCard', () => {
         onReconcileLichessResults={reconcileLichessResults}
       />,
     );
-    expect(screen.getByText(/Plano inicial/)).toBeInTheDocument();
-    expect(screen.getByText(/faltam sinais suficientes/)).toBeInTheDocument();
+    expect(screen.getByText(/Faltam sinais do seu histórico/)).toBeInTheDocument();
   });
 
   it('shows the close message and the diagnosis after a done log', () => {

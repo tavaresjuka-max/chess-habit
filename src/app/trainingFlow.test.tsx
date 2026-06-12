@@ -170,7 +170,7 @@ describe('training flow', () => {
     await waitFor(() => {
       expect(screen.getByText('0h de 6h - 1 de 72 sessões previstas.')).toBeTruthy();
     });
-    expect(screen.getByText('sessão concluída')).toBeTruthy();
+    expect(screen.getByText('sessão')).toBeTruthy();
   });
 
   it('records zero elapsed seconds honestly when completing without starting first', async () => {

@@ -1,4 +1,4 @@
-import { TrendingUp } from 'lucide-react';
+import { ConceptSeal } from './art/ConceptSeal';
 import {
   buildEfficacyBaseline,
   buildProgressTrend,
@@ -49,13 +49,13 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
       <div className="section-heading">
         <div>
           <h1 id="progress-title">Progresso</h1>
-          <p>O que você já sabe, onde está melhorando e onde ainda trava — só com dados reais.</p>
+          <p>Dados reais: o que você já sabe, onde melhora, onde ainda trava.</p>
         </div>
       </div>
 
       <section className="progress-section" aria-labelledby="progress-trend-title">
         <h2 id="progress-trend-title">
-          <TrendingUp aria-hidden="true" size={16} /> Ritmo
+          <ConceptSeal concept="ritmo" size={26} /> Ritmo
         </h2>
         {trend !== undefined ? (
           <>
@@ -82,13 +82,15 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
               width={140}
               height={140}
             />
-            <p>Sem treinos registrados ainda. A primeira sessão de hoje já começa este painel.</p>
+            <p>Sem treinos ainda. A primeira sessão ativa este painel.</p>
           </div>
         )}
       </section>
 
       <section className="progress-section" aria-labelledby="progress-skills-title">
-        <h2 id="progress-skills-title">Habilidades por tema</h2>
+        <h2 id="progress-skills-title">
+          <ConceptSeal concept="habilidades" size={26} /> Habilidades por tema
+        </h2>
         {skillMap.length > 0 ? (
           <ul className="skill-map" aria-label="Taxa de acerto por tema de puzzle">
             {skillMap.map((entry) => (
@@ -110,15 +112,14 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
             ))}
           </ul>
         ) : (
-          <p>
-            Ainda sem placar real por tema. Conclua blocos de puzzle e use “Conferir puzzles” com o
-            Lichess conectado para preencher este mapa.
-          </p>
+          <p>Sem placar por tema ainda. Conclua blocos de puzzle e use “Conferir puzzles”.</p>
         )}
       </section>
 
       <section className="progress-section" aria-labelledby="progress-effort-title">
-        <h2 id="progress-effort-title">Esforço por trilha</h2>
+        <h2 id="progress-effort-title">
+          <ConceptSeal concept="trilha" size={26} /> Esforço por trilha
+        </h2>
         {trackEffort.length > 0 ? (
           <ul className="track-effort" aria-label="Minutos de treino por trilha do método">
             {trackEffort.map((entry) => (
@@ -136,7 +137,9 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
       </section>
 
       <section className="progress-section" aria-labelledby="progress-diplomas-title">
-        <h2 id="progress-diplomas-title">Diplomas</h2>
+        <h2 id="progress-diplomas-title">
+          <ConceptSeal concept="plano" size={26} /> Diplomas
+        </h2>
         <ul className="diploma-progress" aria-label="Progresso nos diplomas do método">
           {DIPLOMAS.map((diploma) => {
             const progress = getDiplomaProgress(diplomaAttempts, diploma.id);
@@ -175,7 +178,9 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
 
       {achievements.length > 0 ? (
         <section className="progress-section" aria-labelledby="progress-achievements-title">
-          <h2 id="progress-achievements-title">Conquistas</h2>
+          <h2 id="progress-achievements-title">
+            <ConceptSeal concept="conquistas" size={26} /> Conquistas
+          </h2>
           <ul className="achievement-list" aria-label="Conquistas de esforço e hábito">
             {achievements.map((achievement) => {
               const definition = getAchievementDefinition(achievement.id);
@@ -194,12 +199,13 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
               );
             })}
           </ul>
-          <p className="config-hint">Conquistas premiam esforço e hábito — nunca rating.</p>
         </section>
       ) : null}
 
       <section className="progress-section" aria-labelledby="progress-baseline-title">
-        <h2 id="progress-baseline-title">Linha de base do método</h2>
+        <h2 id="progress-baseline-title">
+          <ConceptSeal concept="linha-base" size={26} /> Linha de base do método
+        </h2>
         <div className="weekly-report-metrics">
           {baseline.overallPuzzleAccuracyPercent !== undefined ? (
             <span className="metric-chip">
@@ -216,15 +222,14 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
             <span className="metric-chip">{baseline.blundersPerGame} erros graves por partida</span>
           ) : null}
         </div>
-        <p className="config-hint">
-          Estes números medem se o método está funcionando — não são nota sua. Revisão da linha de
-          base em julho de 2026.
-        </p>
+        <p className="config-hint">Medem o método, não você. Revisão em julho de 2026.</p>
       </section>
 
       {weaknesses.length > 0 ? (
         <section className="progress-section" aria-labelledby="progress-weakness-title">
-          <h2 id="progress-weakness-title">Onde ainda trava</h2>
+          <h2 id="progress-weakness-title">
+            <ConceptSeal concept="trava" size={26} /> Onde ainda trava
+          </h2>
           <ul className="track-effort" aria-label="Hipóteses de fraqueza atuais">
             {weaknesses
               .slice()
@@ -237,10 +242,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
                 </li>
               ))}
           </ul>
-          <p className="config-hint">
-            São hipóteses a partir dos seus sinais, não diagnósticos definitivos. Sinais com mais de
-            90 dias saem da conta.
-          </p>
+          <p className="config-hint">Hipóteses, não diagnósticos — sinais antigos saem da conta.</p>
         </section>
       ) : null}
     </section>

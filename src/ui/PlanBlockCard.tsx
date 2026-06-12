@@ -69,7 +69,6 @@ export function PlanBlockCard({
       <p>{block.task}</p>
       <p className="coach-note">{block.coachNote}</p>
       <p className="stop-rule">{block.stopRule}</p>
-      {block.feedback !== undefined ? <p className="feedback-note">Feedback: {formatFeedback(block.feedback)}</p> : null}
       {block.feedback !== undefined ? <p className="feedback-note">{getFeedbackCelebration(block.feedback)}</p> : null}
       {timerStatus !== undefined ? <p className={`timer-status ${timerStatus.kind}`}>{timerStatus.label}</p> : null}
       {openWarning !== undefined ? (
@@ -95,7 +94,7 @@ export function PlanBlockCard({
                 });
               }}
             >
-              Guardar como pendência para revisão amanhã
+              Guardar para revisar amanhã
             </button>
           ) : null}
           {block.destination.url !== undefined ? (
@@ -232,7 +231,7 @@ function formatTimerStatus(
   if (elapsedSeconds >= log.plannedSeconds) {
     return {
       kind: 'timer-over',
-      label: 'Tempo combinado atingido. Pode continuar; conclua quando terminar.',
+      label: 'Tempo atingido. Conclua quando terminar.',
     };
   }
 
@@ -259,25 +258,16 @@ function formatResourceStage(stage: PlanBlock['resourceStage']): string {
   }
 }
 
-function formatFeedback(feedback: PlanBlockFeedback): string {
-  switch (feedback) {
-    case 'easy':
-      return 'fácil';
-    case 'good':
-      return 'bom: interessante e desafiador';
-    case 'hard':
-      return 'difícil';
-  }
-}
-
+// Sem prefixo "Professor Lemos:" — o card do tutor já carrega retrato e nome;
+// repetir a assinatura em cada fala era ruído.
 function getFeedbackCelebration(feedback: PlanBlockFeedback): string {
   switch (feedback) {
     case 'easy':
-      return 'Professor Lemos: está ficando mais fácil, sinal de progresso real.';
+      return 'Está ficando mais fácil — sinal de progresso real.';
     case 'good':
-      return 'Professor Lemos: bom desafio. Esse é o peso certo para evoluir.';
+      return 'Bom desafio. O peso certo para evoluir.';
     case 'hard':
-      return 'Professor Lemos: esse foi difícil. Dá para guardar para revisão amanhã.';
+      return 'Esse foi difícil. Dá para guardar para revisar amanhã.';
   }
 }
 

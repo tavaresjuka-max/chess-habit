@@ -10,7 +10,7 @@ describe('buildSessionMilestoneSummary', () => {
     expect(summary.currentMilestone.targetSessions).toBe(12);
     expect(summary.currentMilestone.progressPercent).toBe(0);
     expect(summary.stats.completedSessions).toBe(0);
-    expect(summary.stats.improvementLines[0]).toContain('Ainda não há sessões concluídas');
+    expect(summary.stats.improvementLines[0]).toContain('Sem sessões concluídas ainda');
     expect(summary.skillSignals).toContain('Hábito: ainda não há sessões concluídas.');
     expect(summary.nextSignalToMeasure).toContain('concluir uma sessão');
   });

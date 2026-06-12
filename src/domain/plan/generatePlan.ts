@@ -201,7 +201,8 @@ function createPendingPlanBlock(input: {
     task: input.pendingItem.prompt,
     stopRule: 'Pare depois de reentender o erro e registrar se ficou fácil, bom ou difícil.',
     reason: `Pendência vencida da trilha ${getMethodTrackTitle(input.pendingItem.methodTrackId)}.`,
-    coachNote: 'Professor Lemos: antes de conteúdo novo, vamos fechar o que ficou em aberto.',
+    // Sem repetir a lede do card de pendências — aqui a dica é de execução.
+    coachNote: 'Refaça com calma: o objetivo é entender o lance, não acertar rápido.',
     status: 'pending',
     pendingItemId: input.pendingItem.id,
     methodTrackId: 'pending-review',
