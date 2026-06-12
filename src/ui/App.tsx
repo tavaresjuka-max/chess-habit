@@ -1,5 +1,5 @@
 import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
 import { useAppState } from '../app/state';
@@ -21,9 +21,17 @@ function getPreferredToastTheme(): 'light' | 'dark' {
 }
 
 function ViewFallback() {
+  // A região live monta vazia e o texto entra por mutação: leitores de tela
+  // só anunciam mudanças DENTRO de uma região já presente no DOM.
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    setMessage('Carregando…');
+  }, []);
+
   return (
     <section className="panel" aria-live="polite">
-      <p>Carregando…</p>
+      {message === '' ? null : <p>{message}</p>}
     </section>
   );
 }

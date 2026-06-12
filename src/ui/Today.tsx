@@ -588,7 +588,8 @@ function PlanBlockCard({
   return (
     <article className="plan-block">
       <div className="block-header">
-        <h2>{block.title}</h2>
+        {/* h3: o título do bloco fica subordinado ao h2 da seção (hero ou Sessão N). */}
+        <h3>{block.title}</h3>
         <span className={`status-pill status-${block.status}`}>{formatStatus(block.status)}</span>
       </div>
       <p className="block-meta">

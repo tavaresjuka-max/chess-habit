@@ -210,14 +210,9 @@ export function Config({
         currentBand={band}
         onApplyBand={async (placement) => {
           setBand(placement.band);
-          // Registro do placement primeiro (alimenta a conquista Calibrado);
-          // depois o perfil, que regenera o plano com a faixa nova.
-          await onSavePlacementResult({
-            band: placement.band,
-            confidence: placement.confidence,
-            calibrated: placement.calibrated,
-            completedAt: new Date().toISOString(),
-          });
+          // Perfil primeiro: a faixa aplicada é o dado essencial. Se o registro
+          // do placement falhar depois, o perfil já está coerente e a conquista
+          // Calibrado apenas fica para a próxima avaliação.
           await onSave({
             lichessUsername: lichessUsername.trim() === '' ? undefined : lichessUsername.trim(),
             chesscomUsername: chesscomUsername.trim() === '' ? undefined : chesscomUsername.trim(),
@@ -225,6 +220,12 @@ export function Config({
             defaultSessionMinutes,
             goals: initialProfile.goals,
             updatedAt: new Date().toISOString(),
+          });
+          await onSavePlacementResult({
+            band: placement.band,
+            confidence: placement.confidence,
+            calibrated: placement.calibrated,
+            completedAt: new Date().toISOString(),
           });
         }}
       />

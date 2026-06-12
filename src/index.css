@@ -667,7 +667,7 @@ textarea {
   border-color: var(--gold-600);
 }
 
-.hero-now .block-header h2 {
+.hero-now .block-header h3 {
   font-size: 1.18rem;
 }
 
@@ -1344,7 +1344,7 @@ li.diploma-row {
   gap: 12px;
 }
 
-.block-header h2 {
+.block-header h3 {
   margin: 0;
   font-size: 1.05rem;
 }
