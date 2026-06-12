@@ -82,6 +82,9 @@ export function App() {
           className={activeView === 'today' ? 'nav-button nav-button-active' : 'nav-button'}
           type="button"
           onClick={() => {
+            // Sem perfil, "Hoje" devolve à porta de entrada (Welcome) — sem
+            // isso, a primeira abertura ficava presa na Config.
+            setWantsManualSetup(false);
             appState.setActiveView('today');
           }}
         >
@@ -92,6 +95,7 @@ export function App() {
           className={shouldShowProgress ? 'nav-button nav-button-active' : 'nav-button'}
           type="button"
           onClick={() => {
+            setWantsManualSetup(false);
             appState.setActiveView('progress');
           }}
         >
@@ -159,6 +163,13 @@ export function App() {
             onExport={appState.exportBackup}
             onImportBackup={appState.importBackup}
             onClear={appState.clearAllData}
+            {...(appState.profile === undefined
+              ? {
+                  onBack: () => {
+                    setWantsManualSetup(false);
+                  },
+                }
+              : {})}
           />
         </Suspense>
       ) : shouldShowProgress ? (

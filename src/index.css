@@ -168,9 +168,16 @@ h3 {
   font-weight: 680;
 }
 
+/* O caderno sobre a mesa: com a pintura do gabinete ao fundo, cada tela vive
+   numa folha de papel própria — sem ela, o texto cai direto na pintura. */
 .panel {
   width: min(100%, 560px);
   overflow-wrap: anywhere;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 20px 18px 24px;
 }
 
 .panel h1 {
@@ -394,6 +401,18 @@ button[aria-disabled='true'] {
   color: var(--accent-text);
   transform: none;
   box-shadow: none;
+}
+
+.config-back {
+  justify-self: start;
+  margin-bottom: 8px;
+  padding-left: 0;
+  text-decoration: none;
+  font-weight: 650;
+}
+
+.config-back > svg {
+  margin-right: 4px;
 }
 
 /* ---------- Formulários ---------- */
@@ -635,14 +654,6 @@ textarea {
   justify-items: center;
   text-align: center;
   padding-top: 28px;
-}
-
-.welcome-art {
-  width: 220px;
-  height: 220px;
-  object-fit: contain;
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--gold-300);
 }
 
 .welcome-panel h1 {
@@ -1652,6 +1663,11 @@ li.diploma-row {
 .app-error {
   width: min(100%, 560px);
   margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--danger-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 14px;
 }
 
 /* ---------- Assets ilustrados (passe premium) ---------- */
@@ -1681,42 +1697,71 @@ li.diploma-row {
   object-position: bottom center;
 }
 
-/* Botão primário com moldura ilustrada */
+/* Botões com placa pintada em 9-slice: cantos chanfrados ficam nítidos em
+   qualquer largura/altura (o asset recortado tem alpha nos chanfros, então a
+   placa assenta sobre qualquer superfície, clara ou escura). A sombra usa
+   drop-shadow — box-shadow retangular vazaria nos cantos transparentes. */
 button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button),
 .button-link:not(.secondary-link) {
-  background: url('/art/moldura-botao-primario.webp') center / 100% 100% no-repeat,
-    var(--green-700);
-  border-color: transparent;
+  border: 12px solid transparent;
+  border-image: url('/art/moldura-botao-primario-slice.webp') 48 fill / 12px stretch;
+  background: none;
+  color: #fff;
+  padding: 2px 8px;
+  box-shadow: none;
+  filter: drop-shadow(0 2px 3px rgba(18, 42, 34, 0.28));
 }
 
 button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):hover,
 .button-link:not(.secondary-link):hover {
-  background: url('/art/moldura-botao-primario.webp') center / 100% 100% no-repeat,
-    var(--green-700);
-  filter: brightness(1.1);
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 4px 8px rgba(18, 42, 34, 0.32)) brightness(1.05);
   transform: translateY(-1px);
 }
 
 button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):active,
 .button-link:not(.secondary-link):active {
-  filter: brightness(0.95);
+  filter: drop-shadow(0 1px 2px rgba(18, 42, 34, 0.3)) brightness(0.97);
   transform: translateY(0);
+  box-shadow: none;
 }
 
-/* Botão secundário com moldura ilustrada */
+button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):disabled {
+  filter: none;
+}
+
+/* Placa creme do botão secundário: tinta escura fixa — a placa pintada não
+   muda no tema escuro, então a cor do texto também não pode mudar. */
 .secondary-button,
 .secondary-link {
-  background: url('/art/moldura-botao-secundario.webp') center / 100% 100% no-repeat,
-    var(--surface-raised);
-  border-color: transparent;
+  border: 12px solid transparent;
+  border-image: url('/art/moldura-botao-secundario-slice.webp') 48 fill / 12px stretch;
+  background: none;
+  color: #2b3a33;
+  padding: 2px 8px;
+  box-shadow: none;
+  filter: drop-shadow(0 1px 2px rgba(22, 32, 28, 0.22));
 }
 
 .secondary-button:hover,
 .secondary-link:hover {
-  background: url('/art/moldura-botao-secundario.webp') center / 100% 100% no-repeat,
-    var(--surface-raised);
-  filter: brightness(0.97);
-  border-color: transparent;
+  background: none;
+  color: #1f3f36;
+  box-shadow: none;
+  filter: drop-shadow(0 3px 6px rgba(22, 32, 28, 0.26));
+  transform: translateY(-1px);
+}
+
+.secondary-button:active,
+.secondary-link:active {
+  filter: drop-shadow(0 1px 2px rgba(22, 32, 28, 0.24)) brightness(0.97);
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.secondary-button:disabled {
+  filter: none;
 }
 
 /* ---------- Tema escuro ---------- */
@@ -1857,17 +1902,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   height: auto;
   object-fit: cover;
   border-radius: var(--radius-md);
-}
-
-.welcome-art {
-  position: absolute;
-  bottom: 0;
-  right: 12px;
-  width: 130px;
-  height: 130px;
-  object-fit: contain;
-  object-position: bottom center;
-  filter: drop-shadow(0 4px 12px rgba(22, 32, 28, 0.35));
+  box-shadow: var(--shadow-sm);
 }
 
 /* ---------- Estado vazio ilustrado ---------- */

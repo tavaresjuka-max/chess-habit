@@ -19,14 +19,6 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
           width={320}
           height={200}
         />
-        <img
-          src="/art/lemos-pose-boas-vindas.webp"
-          alt=""
-          aria-hidden="true"
-          className="welcome-art"
-          width={180}
-          height={180}
-        />
       </div>
       <h1 id="welcome-title">A aula pode começar.</h1>
       <p className="welcome-lede">

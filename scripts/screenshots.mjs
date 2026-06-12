@@ -27,11 +27,12 @@ for (const setup of SETUPS) {
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
 
-  // Primeiro uso: app abre na Config — salvar o perfil default gera o plano.
-  const salvar = page.getByRole('button', { name: 'Salvar', exact: true });
+  // Primeiro uso: a Welcome do professor recebe o aluno.
+  const comecar = page.getByRole('button', { name: 'Começar agora' });
 
-  if (await salvar.isVisible().catch(() => false)) {
-    await salvar.click();
+  if (await comecar.isVisible().catch(() => false)) {
+    await page.screenshot({ path: `${OUT}/${setup.name}-welcome.png`, fullPage: true });
+    await comecar.click();
     await page.waitForSelector('.hero-now, .day-completion-card', { timeout: 10_000 });
   }
 

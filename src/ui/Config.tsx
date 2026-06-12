@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
@@ -28,6 +28,7 @@ type ConfigProps = {
   onExport: () => Promise<string>;
   onImportBackup: (json: string) => Promise<BackupImportResult>;
   onClear: () => Promise<void>;
+  onBack?: () => void;
 };
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
@@ -51,6 +52,7 @@ export function Config({
   onExport,
   onImportBackup,
   onClear,
+  onBack,
 }: ConfigProps) {
   const restoreInputRef = useRef<HTMLInputElement>(null);
   const initialProfile = profile ?? createDefaultProfile();
@@ -126,6 +128,12 @@ export function Config({
 
   return (
     <section aria-labelledby="config-title" className="panel">
+      {onBack !== undefined ? (
+        <button type="button" className="link-button config-back" onClick={onBack}>
+          <ArrowLeft aria-hidden="true" size={15} />
+          Voltar à recepção
+        </button>
+      ) : null}
       <h1 id="config-title">Configuração</h1>
       <form
         className="form-grid"
