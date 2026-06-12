@@ -11,7 +11,7 @@ function makeBlock(overrides: Partial<PlanBlock> & { id: string }): PlanBlock {
   return {
     title: 'Tema do dia: garfos',
     source: 'lichess',
-    destination: { id: 'lichess-training-fork', label: 'Lichess Puzzles', url: 'https://lichess.org/training/fork' },
+    destination: { source: 'lichess', label: 'Lichess Puzzles', url: 'https://lichess.org/training/fork' },
     estimatedMinutes: 10,
     task: 'Resolva os puzzles do tema com calma.',
     stopRule: 'Pare quando o tempo acabar.',
