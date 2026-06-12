@@ -53,12 +53,12 @@ export function App() {
       <main className="app-shell">
         <section className="panel loading-panel" aria-live="polite">
           <img
-            src="/art/lemos-pose-boas-vindas.webp"
+            src="/art/loading-lemos.webp"
             alt=""
             aria-hidden="true"
             className="loading-art"
-            width={180}
-            height={180}
+            width={220}
+            height={220}
           />
           <span className="brand brand-loading" aria-hidden="true">
             Rotina

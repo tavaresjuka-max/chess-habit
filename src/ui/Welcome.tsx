@@ -10,14 +10,24 @@ type WelcomeProps = {
 export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
   return (
     <section className="panel welcome-panel" aria-labelledby="welcome-title">
-      <img
-        src="/art/lemos-pose-boas-vindas.webp"
-        alt=""
-        aria-hidden="true"
-        className="welcome-art"
-        width={220}
-        height={220}
-      />
+      <div className="welcome-hero">
+        <img
+          src="/art/boas-vindas-placement.webp"
+          alt=""
+          aria-hidden="true"
+          className="welcome-scene"
+          width={320}
+          height={200}
+        />
+        <img
+          src="/art/lemos-pose-boas-vindas.webp"
+          alt=""
+          aria-hidden="true"
+          className="welcome-art"
+          width={180}
+          height={180}
+        />
+      </div>
       <h1 id="welcome-title">A aula pode começar.</h1>
       <p className="welcome-lede">
         Sou o Professor Lemos. Aqui o treino é curto, o foco é um só por vez, e

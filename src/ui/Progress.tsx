@@ -14,6 +14,7 @@ import {
 import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
 import type { DiplomaAttempt } from '../domain/method/types';
 import { DiplomaSeal } from './art/DiplomaSeal';
+import { MedalhaIcon } from './art/MedalhaIcon';
 
 type ProgressProps = {
   today: string;
@@ -72,7 +73,17 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
             <p>{trend.line}</p>
           </>
         ) : (
-          <p>Sem treinos registrados ainda. A primeira sessão de hoje já começa este painel.</p>
+          <div className="progress-empty">
+            <img
+              src="/art/vazio-sem-treinos.webp"
+              alt=""
+              aria-hidden="true"
+              className="empty-state-art"
+              width={140}
+              height={140}
+            />
+            <p>Sem treinos registrados ainda. A primeira sessão de hoje já começa este painel.</p>
+          </div>
         )}
       </section>
 
@@ -129,16 +140,27 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
         <ul className="diploma-progress" aria-label="Progresso nos diplomas do método">
           {DIPLOMAS.map((diploma) => {
             const progress = getDiplomaProgress(diplomaAttempts, diploma.id);
+            const achieved = progress?.overallPassed === true;
             const passedSections = progress?.sections.filter((section) => section.passed).length ?? 0;
 
             return (
-              <li key={diploma.id} className="diploma-row">
-                <DiplomaSeal diplomaId={diploma.id} achieved={progress?.overallPassed === true} size={46} />
+              <li key={diploma.id} className={`diploma-row${achieved ? ' diploma-row-achieved' : ''}`}>
+                {achieved ? (
+                  <img
+                    src={`/art/diploma-${diploma.id}.webp`}
+                    alt={`Diploma ${diploma.title} conquistado`}
+                    className="diploma-art"
+                    width={120}
+                    height={160}
+                  />
+                ) : (
+                  <DiplomaSeal diplomaId={diploma.id} achieved={false} size={46} />
+                )}
                 <div className="diploma-row-text">
                   <div className="skill-map-row">
                     <span className="skill-map-theme">{diploma.title}</span>
                     <span className="skill-map-score">
-                      {progress?.overallPassed === true
+                      {achieved
                         ? 'Conquistado'
                         : `${String(passedSections)}/${String(diploma.sections.length)} seções`}
                     </span>
@@ -160,11 +182,14 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
 
               return (
                 <li key={achievement.id} className="achievement-row">
-                  <div className="skill-map-row">
-                    <span className="achievement-title">{definition.title}</span>
-                    <span className="skill-map-score">{formatAchievementDate(achievement.unlockedAt)}</span>
+                  <MedalhaIcon achievementId={achievement.id} size={64} />
+                  <div className="achievement-text">
+                    <div className="skill-map-row">
+                      <span className="achievement-title">{definition.title}</span>
+                      <span className="skill-map-score">{formatAchievementDate(achievement.unlockedAt)}</span>
+                    </div>
+                    <p className="config-hint">{definition.description}</p>
                   </div>
-                  <p className="config-hint">{definition.description}</p>
                 </li>
               );
             })}

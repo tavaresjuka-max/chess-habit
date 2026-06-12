@@ -135,7 +135,15 @@ export function Today({
 
   if (plan === undefined) {
     return (
-      <section aria-labelledby="today-title" className="panel">
+      <section aria-labelledby="today-title" className="panel empty-state-panel">
+        <img
+          src="/art/vazio-sem-dados.webp"
+          alt=""
+          aria-hidden="true"
+          className="empty-state-art"
+          width={160}
+          height={160}
+        />
         <h1 id="today-title">Hoje</h1>
         <p>Salve sua configuração para gerar o plano local.</p>
       </section>

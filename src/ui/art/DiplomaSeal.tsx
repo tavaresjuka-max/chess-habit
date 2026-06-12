@@ -1,6 +1,3 @@
-// Selos dos diplomas (Peão, Torre, Rei) — lacre flat geométrico original.
-// achieved=false rende a versão "em progresso" (contorno).
-
 import type { DiplomaId } from '../../domain/method/types';
 
 type DiplomaSealProps = {
@@ -44,46 +41,48 @@ function PiecePath({ diplomaId, fill }: { diplomaId: DiplomaId; fill: string }) 
 }
 
 export function DiplomaSeal({ diplomaId, achieved, size = 44 }: DiplomaSealProps) {
-  const sealColor = 'var(--green-700, #1f3f36)';
-  const pieceColor = achieved ? 'var(--surface, #fffdf9)' : 'var(--ink-500, #5a6877)';
+  const label = `${pieceTitles[diplomaId]}${achieved ? ' conquistado' : ' em progresso'}`;
+
+  if (achieved) {
+    return (
+      <img
+        src={`/art/selo-diploma-${diplomaId}.webp`}
+        alt={label}
+        width={size}
+        height={size}
+        className="diploma-seal-img"
+      />
+    );
+  }
 
   return (
-    <svg
-      viewBox="0 0 64 64"
-      width={size}
-      height={size}
-      role="img"
-      aria-label={`${pieceTitles[diplomaId]}${achieved ? ' conquistado' : ' em progresso'}`}
-    >
-      {/* Serrilha do lacre */}
+    <svg viewBox="0 0 64 64" width={size} height={size} role="img" aria-label={label}>
       <circle
         cx="32"
         cy="32"
         r="28.5"
         fill="none"
-        stroke={achieved ? sealColor : 'var(--line, #d9d4c6)'}
+        stroke="var(--line, #d9d4c6)"
         strokeWidth="5"
         strokeDasharray="3.1 3.1"
       />
-      {/* Corpo do lacre */}
       <circle
         cx="32"
         cy="32"
         r="25"
-        fill={achieved ? sealColor : 'var(--surface, #fffdf9)'}
-        stroke={achieved ? 'none' : 'var(--line, #d9d4c6)'}
-        strokeWidth={achieved ? 0 : 2}
+        fill="var(--surface, #fffdf9)"
+        stroke="var(--line, #d9d4c6)"
+        strokeWidth="2"
       />
-      {/* Anel interno âmbar */}
       <circle
         cx="32"
         cy="32"
         r="21"
         fill="none"
-        stroke={achieved ? 'var(--gold-300, #d6c48b)' : 'var(--line-soft, #e6e2d6)'}
+        stroke="var(--line-soft, #e6e2d6)"
         strokeWidth="1.8"
       />
-      <PiecePath diplomaId={diplomaId} fill={pieceColor} />
+      <PiecePath diplomaId={diplomaId} fill="var(--ink-500, #5a6877)" />
     </svg>
   );
 }

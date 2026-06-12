@@ -93,10 +93,10 @@
   --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
 
   color: var(--ink-900);
-  /* Papel da mesa de estudo: textura sutil sob o halo do topo. */
+  /* Gabinete do Professor — pintura quente ao fundo, painel flutua sobre ela. */
   background:
-    radial-gradient(1200px 500px at 50% -200px, var(--halo) 0%, transparent 70%),
-    url('/art/textura-papel.webp') repeat top left / 420px auto,
+    radial-gradient(1200px 500px at 50% -200px, rgba(251, 250, 245, 0.72) 0%, transparent 70%),
+    url('/art/fundo-gabinete-dia.webp') center top / cover,
     var(--paper);
   font-family:
     'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -235,10 +235,10 @@ h3 {
 }
 
 .loading-art {
-  width: 180px;
-  height: 180px;
+  width: 220px;
+  height: 220px;
   object-fit: contain;
-  border-radius: 50%;
+  border-radius: var(--radius-lg);
   animation: brand-pulse 2.2s var(--ease) infinite;
 }
 
@@ -851,12 +851,19 @@ textarea {
 
 .achievement-row {
   border: 1px solid var(--gold-300);
-  border-left: 4px solid var(--gold-600);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--gold-050);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+}
+
+.achievement-text {
+  flex: 1;
+  min-width: 0;
   display: grid;
-  gap: 4px;
-  padding: 10px 12px;
+  gap: 2px;
 }
 
 .achievement-row p {
@@ -866,6 +873,12 @@ textarea {
 .achievement-title {
   color: var(--gold-900);
   font-weight: 750;
+}
+
+.medalha-icon {
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 /* ---------- Cartões ---------- */
@@ -1769,9 +1782,10 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.45);
 
     color-scheme: dark;
-    /* Noite no gabinete: superfície quieta, sem a textura de papel clara. */
+    /* Noite no gabinete: pintura escura ao fundo. */
     background:
       radial-gradient(1200px 500px at 50% -200px, var(--halo) 0%, transparent 70%),
+      url('/art/fundo-gabinete-noite.webp') center top / cover,
       var(--paper);
   }
 
@@ -1795,6 +1809,93 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------- Selos e diplomas ilustrados ---------- */
+
+.diploma-seal-img {
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.diploma-row-achieved {
+  border: 1px solid var(--gold-300);
+  border-radius: var(--radius-md);
+  background: var(--gold-050);
+  overflow: hidden;
+}
+
+.diploma-row-achieved .diploma-row-text {
+  padding: 12px 14px;
+}
+
+.diploma-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+/* ---------- Welcome hero — cena + retrato ---------- */
+
+.welcome-hero {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.welcome-scene {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+.welcome-art {
+  position: absolute;
+  bottom: 0;
+  right: 12px;
+  width: 130px;
+  height: 130px;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 4px 12px rgba(22, 32, 28, 0.35));
+}
+
+/* ---------- Estado vazio ilustrado ---------- */
+
+.empty-state-panel {
+  text-align: center;
+}
+
+.empty-state-art {
+  display: block;
+  margin: 0 auto 12px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  opacity: 0.92;
+}
+
+.progress-empty {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+/* ---------- Ícone de banda ---------- */
+
+.banda-icon {
+  flex-shrink: 0;
+  object-fit: contain;
 }
 
 /* ---------- Mobile ---------- */
