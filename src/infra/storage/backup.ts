@@ -10,6 +10,8 @@ export type BackupData = {
   methodTracks: unknown[];
   pendingItems: unknown[];
   diplomaAttempts: unknown[];
+  // Opcional para ler backups exportados antes do Corte 7 (conquistas).
+  achievements?: unknown[];
 };
 
 export const backupTableNames = [
@@ -89,7 +91,9 @@ export async function createBackupFile(data: BackupData, exportedAt: string): Pr
 }
 
 export function countBackupRecords(data: BackupData): number {
-  return backupTableNames.reduce((total, table) => total + data[table].length, 0);
+  const required = backupTableNames.reduce((total, table) => total + data[table].length, 0);
+
+  return required + (data.achievements?.length ?? 0);
 }
 
 export type ParsedBackup = { ok: true; file: BackupFile } | { ok: false; error: string };

@@ -5,6 +5,8 @@ import {
   buildSkillMap,
   buildTrackEffort,
   buildWeeklyDigest,
+  getAchievementDefinition,
+  type Achievement,
   type Signal,
   type TrainingLog,
   type Weakness,
@@ -17,13 +19,24 @@ type ProgressProps = {
   today: string;
   allTrainingLogs: TrainingLog[];
   diplomaAttempts: DiplomaAttempt[];
+  achievements: Achievement[];
   weaknesses: Weakness[];
   signals: Signal[];
 };
 
+function formatAchievementDate(unlockedAt: string): string {
+  const parsed = new Date(unlockedAt);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return unlockedAt;
+  }
+
+  return parsed.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+}
+
 const maxSkillRows = 12;
 
-export function Progress({ today, allTrainingLogs, diplomaAttempts, weaknesses, signals }: ProgressProps) {
+export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements, weaknesses, signals }: ProgressProps) {
   const trend = buildProgressTrend(allTrainingLogs, today);
   const weeklyDigest = buildWeeklyDigest(allTrainingLogs, today);
   const skillMap = buildSkillMap(allTrainingLogs).slice(0, maxSkillRows);
@@ -137,6 +150,28 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, weaknesses, 
           })}
         </ul>
       </section>
+
+      {achievements.length > 0 ? (
+        <section className="progress-section" aria-labelledby="progress-achievements-title">
+          <h2 id="progress-achievements-title">Conquistas</h2>
+          <ul className="achievement-list" aria-label="Conquistas de esforço e hábito">
+            {achievements.map((achievement) => {
+              const definition = getAchievementDefinition(achievement.id);
+
+              return (
+                <li key={achievement.id} className="achievement-row">
+                  <div className="skill-map-row">
+                    <span className="achievement-title">{definition.title}</span>
+                    <span className="skill-map-score">{formatAchievementDate(achievement.unlockedAt)}</span>
+                  </div>
+                  <p className="config-hint">{definition.description}</p>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="config-hint">Conquistas premiam esforço e hábito — nunca rating.</p>
+        </section>
+      ) : null}
 
       <section className="progress-section" aria-labelledby="progress-baseline-title">
         <h2 id="progress-baseline-title">Linha de base do método</h2>

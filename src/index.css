@@ -90,8 +90,10 @@
   --ease: cubic-bezier(0.2, 0.6, 0.3, 1);
 
   color: var(--ink-900);
+  /* Papel da mesa de estudo: textura sutil sob o halo do topo. */
   background:
     radial-gradient(1200px 500px at 50% -200px, var(--halo) 0%, transparent 70%),
+    url('/art/textura-papel.webp') repeat top left / 420px auto,
     var(--paper);
   font-family:
     'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -194,35 +196,30 @@ h3 {
   white-space: nowrap;
 }
 
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: linear-gradient(150deg, var(--brand-a), var(--brand-b));
-  color: #f3efdf;
-  font-size: 1rem;
-  line-height: 1;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+.brand-avatar {
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1.5px var(--gold-300);
 }
 
 .loading-panel {
   display: grid;
   gap: 10px;
-  justify-items: start;
-  padding-top: 24px;
+  justify-items: center;
+  text-align: center;
+  padding-top: 48px;
+}
+
+.loading-art {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 50%;
+  animation: brand-pulse 2.2s var(--ease) infinite;
 }
 
 .brand-loading {
   font-size: 1.4rem;
   padding: 0;
-}
-
-.brand-pulse {
-  display: inline-flex;
-  animation: brand-pulse 1.6s var(--ease) infinite;
 }
 
 @keyframes brand-pulse {
@@ -232,8 +229,8 @@ h3 {
     opacity: 1;
   }
   50% {
-    transform: scale(0.94);
-    opacity: 0.85;
+    transform: scale(0.96);
+    opacity: 0.88;
   }
 }
 
@@ -603,6 +600,104 @@ textarea {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 14px;
+}
+
+/* ---------- Números do dia (TDAH: evolução visível) ---------- */
+
+.day-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.day-stats li {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  display: grid;
+  gap: 0;
+  justify-items: center;
+  padding: 10px 8px 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.day-stats strong {
+  color: var(--green-900);
+  font-size: 1.35rem;
+  font-weight: 780;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-stats span {
+  color: var(--ink-600);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+/* ---------- Hero "Agora": uma ação clara visível ---------- */
+
+.hero-now {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.hero-now-label {
+  margin: 0;
+  color: var(--gold-700);
+  font-size: 0.86rem;
+  font-weight: 760;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero-now .plan-block {
+  border: 2px solid var(--gold-300);
+  background-image: url('/art/textura-papel.webp');
+  background-size: 256px auto;
+  box-shadow: var(--shadow-md);
+  padding: 18px 20px;
+}
+
+.hero-now .plan-block:hover {
+  border-color: var(--gold-600);
+}
+
+.hero-now .block-header h2 {
+  font-size: 1.18rem;
+}
+
+/* ---------- Conquistas (Corte 7) ---------- */
+
+.achievement-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.achievement-row {
+  border: 1px solid var(--gold-300);
+  border-left: 4px solid var(--gold-600);
+  border-radius: var(--radius-sm);
+  background: var(--gold-050);
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.achievement-row p {
+  margin: 0;
+}
+
+.achievement-title {
+  color: var(--gold-900);
+  font-weight: 750;
 }
 
 /* ---------- Cartões ---------- */
@@ -1501,6 +1596,15 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.45);
 
     color-scheme: dark;
+    /* Noite no gabinete: superfície quieta, sem a textura de papel clara. */
+    background:
+      radial-gradient(1200px 500px at 50% -200px, var(--halo) 0%, transparent 70%),
+      var(--paper);
+  }
+
+  .hero-now .plan-block {
+    background-image: url('/art/textura-couro.webp');
+    background-size: 256px auto;
   }
 
   .tutor-card {
@@ -1532,7 +1636,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     top: 8px;
   }
 
-  .brand span:not(.brand-mark) {
+  .brand > span {
     display: none;
   }
 

@@ -67,6 +67,12 @@ export type AutoBackupConfigRecord = {
   updatedAt: string;
 };
 
+export type AchievementRecord = {
+  id: string;
+  unlockedAt: string;
+  updatedAt: string;
+};
+
 export class TutorDatabase extends Dexie {
   profile!: Table<ProfileRecord, string>;
   plans!: Table<PlanRecord, string>;
@@ -81,6 +87,7 @@ export class TutorDatabase extends Dexie {
   diplomaAttempts!: Table<DiplomaAttemptRecord, string>;
   backupMeta!: Table<BackupMetaRecord, string>;
   autoBackup!: Table<AutoBackupConfigRecord, string>;
+  achievements!: Table<AchievementRecord, string>;
 
   constructor(name = storageDatabaseName) {
     super(name);
@@ -149,6 +156,11 @@ export class TutorDatabase extends Dexie {
             record.band = migrateLegacyBand(record.band);
           }
         });
+    });
+
+    // Conquistas de esforco/habito (Corte 7): unica por id, nunca expira.
+    this.version(9).stores({
+      achievements: 'id, unlockedAt, updatedAt',
     });
   }
 }

@@ -4,6 +4,7 @@ import {
   buildPuzzleThemeStats,
   computeConsistency,
   detectWeaknesses,
+  evaluateAchievements,
   filterFreshSignals,
   getReturnSessionMinutes,
   createKnownManualSignals,
@@ -15,6 +16,7 @@ import {
   getNextPlanSessionNumber,
   normalizePlanDestinations,
   skipTrainingLog,
+  type Achievement,
   type DailyPlan,
   type LearnerProfile,
   type LearningPlanResponse,
@@ -50,7 +52,9 @@ import {
   getLichessStudyLink,
   getPlan,
   getTrainingLog,
+  loadAchievements,
   loadDiplomaAttempts,
+  loadDonePendingItems,
   loadChesscomMonthCache,
   loadLichessOAuthToken,
   loadOpenPendingItems,
@@ -61,6 +65,7 @@ import {
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
+  saveAchievements,
   saveChesscomMonthCache,
   savePendingItem,
   saveLichessStudyLink,
@@ -112,6 +117,7 @@ export type AppState = {
   readonly allTrainingLogs: TrainingLog[];
   readonly pendingItems: PendingTrainingItem[];
   readonly diplomaAttempts: DiplomaAttempt[];
+  readonly achievements: Achievement[];
   readonly weaknesses: Weakness[];
   readonly signals: Signal[];
   readonly diagnosisState: DiagnosisState;
@@ -159,6 +165,7 @@ export function useAppState(): AppState {
   const [allTrainingLogs, setAllTrainingLogs] = useState<TrainingLog[]>([]);
   const [pendingItems, setPendingItems] = useState<PendingTrainingItem[]>([]);
   const [diplomaAttempts, setDiplomaAttempts] = useState<DiplomaAttempt[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [weaknesses, setWeaknesses] = useState<Weakness[]>([]);
   const [signals, setSignals] = useState<Signal[]>([]);
   const [diagnosisState, setDiagnosisState] = useState<DiagnosisState>('idle');
@@ -253,6 +260,7 @@ export function useAppState(): AppState {
         const storedStudyLink = await getLichessStudyLink(date);
         const storedPendingItems = await loadOpenPendingItems();
         const storedDiplomaAttempts = await loadDiplomaAttempts();
+        const storedAchievements = await syncAchievements(storedAllTrainingLogs);
         const recentThemeStats = buildPuzzleThemeStats(storedTrainingLogs);
         const normalizedStoredPlan =
           storedPlan === undefined ? undefined : normalizePlanDestinations(storedPlan);
@@ -291,6 +299,7 @@ export function useAppState(): AppState {
         setAllTrainingLogs(storedAllTrainingLogs);
         setPendingItems(storedPendingItems);
         setDiplomaAttempts(storedDiplomaAttempts);
+        setAchievements(storedAchievements);
         setWeaknesses(storedWeaknesses);
         setSignals(storedSignals);
         setLichessStudyLink(storedStudyLink);
@@ -684,8 +693,10 @@ export function useAppState(): AppState {
         await saveTrainingLog(outcome.log);
 
         const importedLog = outcome.log;
+        const nextAllTrainingLogs = upsertTrainingLog(allTrainingLogs, importedLog);
 
-        setAllTrainingLogs((current) => upsertTrainingLog(current, importedLog));
+        setAllTrainingLogs(nextAllTrainingLogs);
+        setAchievements(await syncAchievements(nextAllTrainingLogs));
 
         if (importedLog.date === getTodayDate()) {
           setTrainingLogs((current) => upsertTrainingLog(current, importedLog));
@@ -923,10 +934,14 @@ export function useAppState(): AppState {
             feedback,
           });
           const reconcileOutcome = await reconcileLogIfPossible(completedLog);
+          const nextAllTrainingLogs = upsertTrainingLog(allTrainingLogs, reconcileOutcome.log);
 
           await saveTrainingLog(reconcileOutcome.log);
           setTrainingLogs(upsertTrainingLog(trainingLogs, reconcileOutcome.log));
-          setAllTrainingLogs(upsertTrainingLog(allTrainingLogs, reconcileOutcome.log));
+          setAllTrainingLogs(nextAllTrainingLogs);
+          // Conquistas (Corte 7): avaliadas no fechamento de bloco, fonte de
+          // verdade no Dexie; sem celebração visual, só registro sóbrio.
+          setAchievements(await syncAchievements(nextAllTrainingLogs));
 
           if (reconcileOutcome.warning !== undefined) {
             setLichessMessage(reconcileOutcome.warning);
@@ -1019,6 +1034,7 @@ export function useAppState(): AppState {
     setAllTrainingLogs([]);
     setPendingItems([]);
     setDiplomaAttempts([]);
+    setAchievements([]);
     setWeaknesses([]);
     setSignals([]);
     setLichessToken(undefined);
@@ -1054,6 +1070,7 @@ export function useAppState(): AppState {
     allTrainingLogs,
     pendingItems,
     diplomaAttempts,
+    achievements,
     weaknesses,
     signals,
     diagnosisState,
@@ -1097,6 +1114,24 @@ export function useAppState(): AppState {
     importBackup: importBackupFromJson,
     clearAllData,
   };
+}
+
+// Avalia conquistas contra o Dexie (fonte de verdade), grava as novas e
+// devolve a lista completa em ordem de desbloqueio.
+async function syncAchievements(logs: TrainingLog[]): Promise<Achievement[]> {
+  const [donePendingItems, unlocked] = await Promise.all([loadDonePendingItems(), loadAchievements()]);
+  const newlyUnlocked = evaluateAchievements({
+    logs,
+    donePendingItems,
+    unlocked,
+    now: new Date().toISOString(),
+  });
+
+  if (newlyUnlocked.length > 0) {
+    await saveAchievements(newlyUnlocked);
+  }
+
+  return [...unlocked, ...newlyUnlocked].sort((left, right) => left.unlockedAt.localeCompare(right.unlockedAt));
 }
 
 export function createDefaultProfile(): LearnerProfile {

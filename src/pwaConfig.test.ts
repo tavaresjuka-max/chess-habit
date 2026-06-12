@@ -10,10 +10,12 @@ describe('PWA config', () => {
     // service worker and can be paired with a browser smoke after `npm run build`.
     expect(pwaPlugin).toBeDefined();
     expect(pwaOptions.workbox.navigateFallback).toBe('index.html');
-    expect(pwaOptions.workbox.globPatterns).toContain('**/*.{js,css,html,ico,png,svg,webmanifest}');
+    // As artes .webp (Lemos, molduras, texturas) fazem parte do app-shell offline.
+    expect(pwaOptions.workbox.globPatterns).toContain('**/*.{js,css,html,ico,png,svg,webp,webmanifest}');
     expect(pwaOptions.manifest.display).toBe('standalone');
     expect(pwaOptions.manifest.start_url).toBe('/');
-    expect(pwaOptions.manifest.icons.map((icon) => icon.sizes)).toEqual(['192x192', '512x512']);
+    expect(pwaOptions.manifest.icons.map((icon) => icon.sizes)).toEqual(['192x192', '512x512', '512x512']);
+    expect(pwaOptions.manifest.icons.at(-1)?.purpose).toBe('maskable');
   });
 });
 

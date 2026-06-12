@@ -1,4 +1,5 @@
 export * from './types';
+export * from './badges/evaluateAchievements';
 export * from './bands';
 export * from './ids';
 export * from './placement/placement';

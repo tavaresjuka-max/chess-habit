@@ -9,10 +9,12 @@ import type {
   Weakness,
 } from '../../domain';
 import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
+import type { Achievement, AchievementId } from '../../domain/badges/evaluateAchievements';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
 import { countBackupRecords, createBackupFile, parseBackupFile, type BackupData } from './backup';
 import {
   db,
+  type AchievementRecord,
   type AutoBackupConfigRecord,
   type BackupMetaRecord,
   type DiplomaAttemptRecord,
@@ -216,6 +218,35 @@ export async function loadOpenPendingItems(): Promise<PendingTrainingItem[]> {
   return db.pendingItems.where('status').equals('open').toArray();
 }
 
+export async function loadDonePendingItems(): Promise<PendingTrainingItem[]> {
+  return db.pendingItems.where('status').equals('done').toArray();
+}
+
+export async function loadAchievements(): Promise<Achievement[]> {
+  const records = await db.achievements.toArray();
+
+  return records.map((record) => ({
+    id: record.id as AchievementId,
+    unlockedAt: record.unlockedAt,
+  }));
+}
+
+export async function saveAchievements(achievements: Achievement[]): Promise<void> {
+  if (achievements.length === 0) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+
+  await db.achievements.bulkPut(
+    achievements.map((achievement) => ({
+      id: achievement.id,
+      unlockedAt: achievement.unlockedAt,
+      updatedAt: now,
+    })),
+  );
+}
+
 export async function savePendingItem(item: PendingTrainingItem): Promise<void> {
   await db.pendingItems.put(item);
 }
@@ -248,6 +279,7 @@ export async function exportAllAsJson(nowIso = new Date().toISOString()): Promis
     methodTracks: await db.methodTracks.toArray(),
     pendingItems: await db.pendingItems.toArray(),
     diplomaAttempts: await db.diplomaAttempts.toArray(),
+    achievements: await db.achievements.toArray(),
   };
 
   const backupFile = await createBackupFile(data, nowIso);
@@ -308,6 +340,7 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
       db.methodTracks,
       db.pendingItems,
       db.diplomaAttempts,
+      db.achievements,
     ],
     async () => {
       await db.profile.clear();
@@ -326,6 +359,9 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
       await db.pendingItems.bulkPut(data.pendingItems as PendingItemRecord[]);
       await db.diplomaAttempts.clear();
       await db.diplomaAttempts.bulkPut(data.diplomaAttempts as DiplomaAttemptRecord[]);
+      await db.achievements.clear();
+      // Backups antigos (pre-Corte 7) nao tem a tabela; importa como vazia.
+      await db.achievements.bulkPut((data.achievements ?? []) as AchievementRecord[]);
     },
   );
 
@@ -353,6 +389,7 @@ export async function clearAll(): Promise<void> {
       db.diplomaAttempts,
       db.backupMeta,
       db.autoBackup,
+      db.achievements,
     ],
     async () => {
       await db.profile.clear();
@@ -366,6 +403,7 @@ export async function clearAll(): Promise<void> {
       await db.methodTracks.clear();
       await db.pendingItems.clear();
       await db.diplomaAttempts.clear();
+      await db.achievements.clear();
       await db.backupMeta.clear();
       // Apagar tudo desliga o backup automatico: sem isso, a proxima abertura
       // gravaria um backup vazio por cima do arquivo bom do usuario.

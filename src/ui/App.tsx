@@ -1,11 +1,15 @@
 import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
+import { Suspense, lazy } from 'react';
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
 import { useAppState } from '../app/state';
 import { LemosAvatar } from './art/LemosAvatar';
-import { Config } from './Config';
-import { Progress } from './Progress';
 import { Today } from './Today';
+
+// Hoje é a tela padrão e fica no chunk principal; Config e Progresso chegam
+// sob demanda (code-split) para encurtar o carregamento inicial no celular.
+const Config = lazy(() => import('./Config').then((module) => ({ default: module.Config })));
+const Progress = lazy(() => import('./Progress').then((module) => ({ default: module.Progress })));
 
 // jsdom nao implementa matchMedia; o tema do toast cai em light nos testes.
 function getPreferredToastTheme(): 'light' | 'dark' {
@@ -14,6 +18,14 @@ function getPreferredToastTheme(): 'light' | 'dark' {
   }
 
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function ViewFallback() {
+  return (
+    <section className="panel" aria-live="polite">
+      <p>Carregando…</p>
+    </section>
+  );
 }
 
 export function App() {
@@ -26,13 +38,18 @@ export function App() {
     return (
       <main className="app-shell">
         <section className="panel loading-panel" aria-live="polite">
+          <img
+            src="/art/lemos-pose-boas-vindas.webp"
+            alt=""
+            aria-hidden="true"
+            className="loading-art"
+            width={180}
+            height={180}
+          />
           <span className="brand brand-loading" aria-hidden="true">
-            <span className="brand-pulse">
-              <LemosAvatar size={56} />
-            </span>
-            <span>Rotina</span>
+            Rotina
           </span>
-          <p>Carregando seus dados locais.</p>
+          <p>O professor está arrumando o tabuleiro.</p>
         </section>
       </main>
     );
@@ -43,7 +60,7 @@ export function App() {
       <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
       <nav className="top-nav" aria-label="Navegação principal">
         <span className="brand" aria-hidden="true">
-          <span className="brand-mark">♞</span>
+          <LemosAvatar size={26} className="brand-avatar" />
           <span>Rotina</span>
         </span>
         <button
@@ -96,33 +113,38 @@ export function App() {
       ) : null}
 
       {shouldShowConfig ? (
-        <Config
-          profile={appState.profile}
-          lichessToken={appState.lichessToken}
-          lichessConnectionState={appState.lichessConnectionState}
-          lichessMessage={appState.lichessMessage}
-          storagePersistence={appState.storagePersistence}
-          backupMeta={appState.backupMeta}
-          autoBackupStatus={appState.autoBackupStatus}
-          autoBackupFileName={appState.autoBackupFileName}
-          onEnableAutoBackup={appState.enableAutoBackup}
-          onDisableAutoBackup={appState.disableAutoBackup}
-          onSave={appState.saveProfile}
-          onConnectLichess={appState.connectLichess}
-          onDisconnectLichess={appState.disconnectLichess}
-          onImportKnownManualSignals={appState.importKnownManualSignals}
-          onExport={appState.exportBackup}
-          onImportBackup={appState.importBackup}
-          onClear={appState.clearAllData}
-        />
+        <Suspense fallback={<ViewFallback />}>
+          <Config
+            profile={appState.profile}
+            lichessToken={appState.lichessToken}
+            lichessConnectionState={appState.lichessConnectionState}
+            lichessMessage={appState.lichessMessage}
+            storagePersistence={appState.storagePersistence}
+            backupMeta={appState.backupMeta}
+            autoBackupStatus={appState.autoBackupStatus}
+            autoBackupFileName={appState.autoBackupFileName}
+            onEnableAutoBackup={appState.enableAutoBackup}
+            onDisableAutoBackup={appState.disableAutoBackup}
+            onSave={appState.saveProfile}
+            onConnectLichess={appState.connectLichess}
+            onDisconnectLichess={appState.disconnectLichess}
+            onImportKnownManualSignals={appState.importKnownManualSignals}
+            onExport={appState.exportBackup}
+            onImportBackup={appState.importBackup}
+            onClear={appState.clearAllData}
+          />
+        </Suspense>
       ) : shouldShowProgress ? (
-        <Progress
-          today={appState.todayPlan?.date ?? getTodayDate()}
-          allTrainingLogs={appState.allTrainingLogs}
-          diplomaAttempts={appState.diplomaAttempts}
-          weaknesses={appState.weaknesses}
-          signals={appState.signals}
-        />
+        <Suspense fallback={<ViewFallback />}>
+          <Progress
+            today={appState.todayPlan?.date ?? getTodayDate()}
+            allTrainingLogs={appState.allTrainingLogs}
+            diplomaAttempts={appState.diplomaAttempts}
+            achievements={appState.achievements}
+            weaknesses={appState.weaknesses}
+            signals={appState.signals}
+          />
+        </Suspense>
       ) : (
         <Today
           plan={appState.todayPlan}
@@ -132,6 +154,7 @@ export function App() {
           allTrainingLogs={appState.allTrainingLogs}
           pendingItems={appState.pendingItems}
           diplomaAttempts={appState.diplomaAttempts}
+          achievements={appState.achievements}
           weaknesses={appState.weaknesses}
           diagnosisState={appState.diagnosisState}
           diagnosisMessage={appState.diagnosisMessage}

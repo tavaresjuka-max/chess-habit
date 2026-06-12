@@ -12,8 +12,10 @@ import {
   computeConsistency,
   elapsedSecondsBetween,
   formatElapsedMinutes,
+  getAchievementDefinition,
   getPlanSessionSummaries,
   getPlanTotalMinutes,
+  type Achievement,
   type DailyPlan,
   type DayCompletionSummary,
   type LichessStudyLink,
@@ -42,6 +44,7 @@ type TodayProps = {
   allTrainingLogs: TrainingLog[];
   pendingItems: PendingTrainingItem[];
   diplomaAttempts: DiplomaAttempt[];
+  achievements: Achievement[];
   weaknesses: Weakness[];
   diagnosisState: DiagnosisState;
   diagnosisMessage: string | undefined;
@@ -76,6 +79,7 @@ export function Today({
   allTrainingLogs,
   pendingItems,
   diplomaAttempts,
+  achievements,
   weaknesses,
   diagnosisState,
   diagnosisMessage,
@@ -141,6 +145,11 @@ export function Today({
 
   const sessionSummaries = getPlanSessionSummaries(plan);
   const totalPlannedMinutes = getPlanTotalMinutes(plan);
+  // Conquistas desbloqueadas hoje entram como linhas sóbrias no relatório do
+  // dia (spec de badges: sem modal, sem confete).
+  const achievementsUnlockedToday = achievements.filter(
+    (achievement) => achievement.unlockedAt.slice(0, 10) === plan.date,
+  );
   const baseDayCompletionSummary = buildDayCompletionSummary({ plan, trainingLogs, roadmap });
   const dayCompletionSummary =
     baseDayCompletionSummary === undefined
@@ -150,9 +159,27 @@ export function Today({
           lines: [
             ...baseDayCompletionSummary.lines,
             ...buildNextStepExplanations(plan, buildPuzzleThemeStats(trainingLogs)),
+            ...achievementsUnlockedToday.map(
+              (achievement) => getAchievementDefinition(achievement.id).reportLine,
+            ),
           ],
         };
   const consistency = computeConsistency(allTrainingLogs, plan.date);
+  // Hero "Agora": o bloco ativo (treinando) ou o primeiro pendente. Uma ação
+  // clara visível no topo — o app decide, o aluno só executa.
+  const allBlocksOrdered = sessionSummaries.flatMap((session) => session.blocks);
+  const activeBlock = allBlocksOrdered.find(
+    (block) =>
+      block.status === 'pending' &&
+      trainingLogs.some((log) => log.blockId === block.id && log.status === 'active'),
+  );
+  const heroBlock = activeBlock ?? allBlocksOrdered.find((block) => block.status === 'pending');
+  const doneBlockCount = allBlocksOrdered.filter((block) => block.status === 'done').length;
+  const minutesTrainedToday = Math.round(
+    trainingLogs
+      .filter((log) => log.status === 'done')
+      .reduce((total, log) => total + (log.elapsedSeconds ?? 0), 0) / 60,
+  );
   const returnNote = buildReturnRecalibrationNote(consistency.daysSinceLastSession);
   const weeklyDigest = buildWeeklyDigest(allTrainingLogs, plan.date);
   const sessionMilestoneSummary = buildSessionMilestoneSummary({ logs: allTrainingLogs, sessionMinutes });
@@ -182,6 +209,25 @@ export function Today({
         </div>
       </div>
 
+      <ul className="day-stats" aria-label="Números de hoje">
+        <li>
+          <strong>
+            {doneBlockCount}/{allBlocksOrdered.length}
+          </strong>
+          <span>{allBlocksOrdered.length === 1 ? 'bloco' : 'blocos'}</span>
+        </li>
+        <li>
+          <strong>{minutesTrainedToday}</strong>
+          <span>min hoje</span>
+        </li>
+        {consistency.currentStreakDays >= 2 ? (
+          <li>
+            <strong>{consistency.currentStreakDays}</strong>
+            <span>dias seguidos</span>
+          </li>
+        ) : null}
+      </ul>
+
       <TutorCard
         plan={plan}
         weaknesses={weaknesses}
@@ -197,19 +243,29 @@ export function Today({
         </p>
       ) : null}
 
-      <LearningPlanProposalCard
-        proposal={learningPlanProposal}
-        response={plan.learningPlanResponse}
-        activeTrackId={activeTrackId}
-        onApprovePlan={onApproveLearningPlan}
-        onRequestPlanRevision={onRequestLearningPlanRevision}
-      />
-
-      <SessionMilestonesCard
-        summary={sessionMilestoneSummary}
-        openPendingCount={pendingItems.length}
-        nextDiploma={nextDiploma}
-      />
+      {heroBlock !== undefined ? (
+        <section className="hero-now" aria-labelledby="hero-now-title">
+          <h2 id="hero-now-title" className="hero-now-label">
+            {activeBlock !== undefined ? 'Treinando agora' : 'Próximo passo'}
+          </h2>
+          <PlanBlockCard
+            block={heroBlock}
+            nowIso={nowIso}
+            trainingLog={trainingLogs.find((log) => log.blockId === heroBlock.id)}
+            hasSavedPending={pendingItems.some(
+              (item) =>
+                item.id === heroBlock.pendingItemId ||
+                item.sourceLogId === trainingLogs.find((log) => log.blockId === heroBlock.id)?.id,
+            )}
+            onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
+            onStartBlockTraining={onStartBlockTraining}
+            onCompleteBlockTraining={onCompleteBlockTraining}
+            onSkipBlockTraining={onSkipBlockTraining}
+          />
+        </section>
+      ) : (
+        <DayCompletionCard summary={dayCompletionSummary} />
+      )}
 
       <PendingReviewCard
         pendingItems={pendingItems}
@@ -221,7 +277,65 @@ export function Today({
         }}
       />
 
-      <DayCompletionCard summary={dayCompletionSummary} />
+      <LearningPlanProposalCard
+        proposal={learningPlanProposal}
+        response={plan.learningPlanResponse}
+        activeTrackId={activeTrackId}
+        onApprovePlan={onApproveLearningPlan}
+        onRequestPlanRevision={onRequestLearningPlanRevision}
+      />
+
+      <div className="block-list">
+        {activeTrackId !== undefined ? (
+          <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
+        ) : null}
+        {sessionSummaries.map((session) => {
+          const remainingBlocks = session.blocks.filter((block) => block.id !== heroBlock?.id);
+
+          if (remainingBlocks.length === 0) {
+            return null;
+          }
+
+          return (
+            <section
+              className="session-group"
+              key={session.sessionNumber}
+              aria-labelledby={`session-${String(session.sessionNumber)}`}
+            >
+              <div className="session-heading">
+                <h2 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h2>
+                <span>{session.minutes} min</span>
+              </div>
+              {remainingBlocks.map((block) => {
+                const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
+                const hasSavedPending = pendingItems.some((item) => {
+                  return item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id;
+                });
+
+                return (
+                  <PlanBlockCard
+                    block={block}
+                    key={block.id}
+                    nowIso={nowIso}
+                    trainingLog={trainingLog}
+                    hasSavedPending={hasSavedPending}
+                    onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
+                    onStartBlockTraining={onStartBlockTraining}
+                    onCompleteBlockTraining={onCompleteBlockTraining}
+                    onSkipBlockTraining={onSkipBlockTraining}
+                  />
+                );
+              })}
+            </section>
+          );
+        })}
+      </div>
+
+      <SessionMilestonesCard
+        summary={sessionMilestoneSummary}
+        openPendingCount={pendingItems.length}
+        nextDiploma={nextDiploma}
+      />
 
       {weeklyDigest !== undefined ? (
         <section className="weekly-report" aria-labelledby="weekly-report-title">
@@ -252,44 +366,6 @@ export function Today({
             ))}
         </div>
       ) : null}
-
-      <div className="block-list">
-        {activeTrackId !== undefined ? (
-          <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
-        ) : null}
-        {sessionSummaries.map((session) => (
-          <section
-            className="session-group"
-            key={session.sessionNumber}
-            aria-labelledby={`session-${String(session.sessionNumber)}`}
-          >
-            <div className="session-heading">
-              <h2 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h2>
-              <span>{session.minutes} min</span>
-            </div>
-            {session.blocks.map((block) => {
-              const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
-              const hasSavedPending = pendingItems.some((item) => {
-                return item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id;
-              });
-
-              return (
-                <PlanBlockCard
-                  block={block}
-                  key={block.id}
-                  nowIso={nowIso}
-                  trainingLog={trainingLog}
-                  hasSavedPending={hasSavedPending}
-                  onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
-                  onStartBlockTraining={onStartBlockTraining}
-                  onCompleteBlockTraining={onCompleteBlockTraining}
-                  onSkipBlockTraining={onSkipBlockTraining}
-                />
-              );
-            })}
-          </section>
-        ))}
-      </div>
 
       <section className="next-session" aria-label="Próxima sessão">
         <div className="session-actions">
