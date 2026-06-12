@@ -12,7 +12,11 @@ export const pwaOptions = {
     // Apenas o subset latino entra no precache offline; os demais subsets do
     // Inter chegam por unicode-range so se o browser pedir. As artes .webp
     // (Lemos, molduras, texturas) entram para o app abrir inteiro offline.
-    globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,webmanifest}', '**/inter-latin-wght-normal-*.woff2'],
+    globPatterns: [
+      '**/*.{js,css,html,ico,png,svg,webp,webmanifest}',
+      '**/inter-latin-wght-normal-*.woff2',
+      '**/fraunces-latin-wght-normal-*.woff2',
+    ],
   },
   manifest: {
     name: 'Rotina de Treino Lichess',

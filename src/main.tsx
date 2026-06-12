@@ -1,4 +1,6 @@
 import '@fontsource-variable/inter/index.css';
+// Serif display do "gabinete": títulos com cara de livro de estudo.
+import '@fontsource-variable/fraunces/wght.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './ui/App';

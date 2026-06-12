@@ -4,7 +4,6 @@ import {
   buildPuzzleThemeStats,
   computeConsistency,
   detectWeaknesses,
-  evaluateAchievements,
   filterFreshSignals,
   getReturnSessionMinutes,
   createKnownManualSignals,
@@ -24,7 +23,6 @@ import {
   type LichessStudyLink,
   type PlanBlock,
   type PlanBlockFeedback,
-  type PuzzleThemeStats,
   type SessionMinutes,
   type Signal,
   type TrainingLog,
@@ -52,13 +50,10 @@ import {
   getLichessStudyLink,
   getPlan,
   getTrainingLog,
-  loadAchievements,
   loadDiplomaAttempts,
-  loadDonePendingItems,
   loadChesscomMonthCache,
   loadLichessOAuthToken,
   loadOpenPendingItems,
-  loadPlacementCompletion,
   loadProfile,
   loadSignals,
   loadTrainingLogs,
@@ -66,7 +61,6 @@ import {
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
-  saveAchievements,
   saveChesscomMonthCache,
   savePendingItem,
   saveLichessStudyLink,
@@ -86,10 +80,19 @@ import {
 } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import { requestPersistentStorage, type StoragePersistenceStatus } from '../infra/storage/persistence';
+import { syncAchievements } from './achievementsSync';
 import { getTodayDate } from './date';
 import { toDiagnosisErrorMessage, toErrorMessage, toLichessErrorMessage } from './errorMessages';
 import { openExternalUrl } from './externalOpen';
 import { completeLichessOAuthIfNeeded, startLichessOAuthConnection } from './oauthFlow';
+import {
+  combinePlanHistory,
+  getLichessThemeFromUrl,
+  getOpenedTrainingBlockIds,
+  getWeakThemesFromThemeStats,
+  toSessionMinutes,
+  upsertPendingItem,
+} from './stateHelpers';
 import {
   importFreeActivity as importFreeActivityFlow,
   mergeTrainingLogs,
@@ -1130,29 +1133,6 @@ export function useAppState(): AppState {
   };
 }
 
-// Avalia conquistas contra o Dexie (fonte de verdade), grava as novas e
-// devolve a lista completa em ordem de desbloqueio.
-async function syncAchievements(logs: TrainingLog[]): Promise<Achievement[]> {
-  const [donePendingItems, unlocked, placement] = await Promise.all([
-    loadDonePendingItems(),
-    loadAchievements(),
-    loadPlacementCompletion(),
-  ]);
-  const newlyUnlocked = evaluateAchievements({
-    logs,
-    donePendingItems,
-    unlocked,
-    now: new Date().toISOString(),
-    ...(placement === undefined ? {} : { placement }),
-  });
-
-  if (newlyUnlocked.length > 0) {
-    await saveAchievements(newlyUnlocked);
-  }
-
-  return [...unlocked, ...newlyUnlocked].sort((left, right) => left.unlockedAt.localeCompare(right.unlockedAt));
-}
-
 export function createDefaultProfile(): LearnerProfile {
   return {
     lichessUsername: 'jukasparov',
@@ -1162,64 +1142,4 @@ export function createDefaultProfile(): LearnerProfile {
     goals: ['Criar uma rotina consistente de treino'],
     updatedAt: new Date().toISOString(),
   };
-}
-
-function toSessionMinutes(minutes: number, fallback: SessionMinutes): SessionMinutes {
-  switch (minutes) {
-    case 5:
-    case 15:
-    case 30:
-    case 60:
-      return minutes;
-    default:
-      return fallback;
-  }
-}
-
-function combinePlanHistory(currentPlan: DailyPlan, previousPlan: DailyPlan | undefined): DailyPlan {
-  if (previousPlan === undefined) {
-    return currentPlan;
-  }
-
-  return {
-    ...currentPlan,
-    blocks: [...previousPlan.blocks, ...currentPlan.blocks],
-  };
-}
-
-function getOpenedTrainingBlockIds(logs: readonly TrainingLog[]): string[] {
-  return [...new Set(logs.map((log) => log.blockId))].sort();
-}
-
-function getWeakThemesFromThemeStats(stats: PuzzleThemeStats | undefined): string[] {
-  return (stats?.themes ?? [])
-    .filter((theme) => theme.losses > 0)
-    .map((theme) => theme.theme)
-    .sort();
-}
-
-function getLichessThemeFromUrl(url: string | undefined): string | undefined {
-  if (url === undefined) {
-    return undefined;
-  }
-
-  const prefix = 'https://lichess.org/training/';
-
-  if (!url.startsWith(prefix)) {
-    return undefined;
-  }
-
-  const theme = url.slice(prefix.length);
-
-  return theme === '' || theme.includes('/') ? undefined : theme;
-}
-
-function upsertPendingItem(items: PendingTrainingItem[], nextItem: PendingTrainingItem): PendingTrainingItem[] {
-  const existingIndex = items.findIndex((item) => item.id === nextItem.id);
-
-  if (existingIndex === -1) {
-    return [...items, nextItem];
-  }
-
-  return items.map((item, index) => (index === existingIndex ? nextItem : item));
 }
