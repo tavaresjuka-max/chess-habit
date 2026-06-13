@@ -237,6 +237,7 @@ export function App() {
           diagnosisState={appState.diagnosisState}
           diagnosisMessage={appState.diagnosisMessage}
           lichessConnectionState={appState.lichessConnectionState}
+          lichessConnected={appState.lichessToken !== undefined}
           lichessMessage={appState.lichessMessage}
           lichessStudyLink={appState.lichessStudyLink}
           onSessionMinutesChange={appState.regeneratePlan}
@@ -247,6 +248,7 @@ export function App() {
           onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
           onReconcileLichessResults={appState.reconcileLichessResults}
           onCreateLichessStudy={appState.createLichessStudy}
+          onConnectLichess={appState.connectLichess}
           onApproveLearningPlan={appState.approveLearningPlan}
           onRequestLearningPlanRevision={appState.requestLearningPlanRevision}
           onOpenPendingItem={appState.openPendingItem}

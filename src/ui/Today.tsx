@@ -52,6 +52,7 @@ type TodayProps = {
   diagnosisState: DiagnosisState;
   diagnosisMessage: string | undefined;
   lichessConnectionState: LichessConnectionState;
+  lichessConnected: boolean;
   lichessMessage: string | undefined;
   lichessStudyLink: LichessStudyLink | undefined;
   onSessionMinutesChange: (minutes: SessionMinutes) => Promise<void>;
@@ -62,6 +63,7 @@ type TodayProps = {
   onSyncLichessDiagnosis: () => Promise<void>;
   onReconcileLichessResults: () => Promise<void>;
   onCreateLichessStudy: () => Promise<void>;
+  onConnectLichess: () => Promise<void>;
   onApproveLearningPlan: () => Promise<void>;
   onRequestLearningPlanRevision: (note: string) => Promise<void>;
   onOpenPendingItem: (item: PendingTrainingItem) => Promise<void>;
@@ -88,6 +90,7 @@ export function Today({
   diagnosisState,
   diagnosisMessage,
   lichessConnectionState,
+  lichessConnected,
   lichessMessage,
   lichessStudyLink,
   onSessionMinutesChange,
@@ -98,6 +101,7 @@ export function Today({
   onSyncLichessDiagnosis,
   onReconcileLichessResults,
   onCreateLichessStudy,
+  onConnectLichess,
   onApproveLearningPlan,
   onRequestLearningPlanRevision,
   onOpenPendingItem,
@@ -525,8 +529,33 @@ export function Today({
         </Fold>
       ) : null}
 
-      <Fold concept="lichess" title="Sincronizar e estudar">
+      <Fold
+        concept="lichess"
+        title="Sincronizar e estudar"
+        {...(lichessConnected ? {} : { meta: 'conectar' })}
+      >
         <div className="diagnosis-strip" aria-live="polite">
+          {!lichessConnected ? (
+            <div className="diagnosis-group diagnosis-connect">
+              <p className="config-hint">
+                Conecte sua conta do Lichess para criar o Study do dia e conferir o resultado dos seus
+                puzzles. O diagnóstico das partidas já funciona sem conectar.
+              </p>
+              <div className="diagnosis-actions">
+                <button
+                  type="button"
+                  disabled={lichessConnectionState === 'syncing'}
+                  onClick={() => {
+                    void onConnectLichess();
+                  }}
+                >
+                  <ExternalLink aria-hidden="true" size={16} />
+                  Conectar Lichess
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="diagnosis-group">
             <p className="config-hint">
               Puxa suas partidas recentes — o professor usa para achar onde você trava.

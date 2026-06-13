@@ -2122,6 +2122,12 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   border-top: 1px solid var(--line-soft);
 }
 
+/* Convite a conectar o Lichess: leve destaque dentro da dobra de sync. */
+.diagnosis-connect {
+  border-left: 3px solid var(--green-300);
+  padding-left: 10px;
+}
+
 /* ---------- Selo de conceito (ilustra a seção, reduz texto) ---------- */
 
 .concept-seal {

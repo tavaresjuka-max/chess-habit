@@ -56,10 +56,12 @@ function renderToday({
   blocks,
   trainingLogs = [],
   achievements = [],
+  lichessConnected = false,
 }: {
   blocks: PlanBlock[];
   trainingLogs?: TrainingLog[];
   achievements?: Achievement[];
+  lichessConnected?: boolean;
 }) {
   return render(
     <Today
@@ -76,6 +78,7 @@ function renderToday({
       diagnosisState="idle"
       diagnosisMessage={undefined}
       lichessConnectionState="disconnected"
+      lichessConnected={lichessConnected}
       lichessMessage={undefined}
       lichessStudyLink={undefined}
       onSessionMinutesChange={noop}
@@ -86,6 +89,7 @@ function renderToday({
       onSyncLichessDiagnosis={noop}
       onReconcileLichessResults={noop}
       onCreateLichessStudy={noop}
+      onConnectLichess={noop}
       onApproveLearningPlan={noop}
       onRequestLearningPlanRevision={noop}
       onOpenPendingItem={noop}
@@ -181,6 +185,20 @@ describe('Today — números do dia', () => {
     });
 
     expect(screen.queryByText('dias seguidos')).not.toBeInTheDocument();
+  });
+});
+
+describe('Today — convite para conectar o Lichess', () => {
+  it('mostra "Conectar Lichess" quando ainda não conectado', () => {
+    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], lichessConnected: false });
+
+    expect(screen.getByRole('button', { name: /Conectar Lichess/ })).toBeInTheDocument();
+  });
+
+  it('esconde o convite quando o Lichess já está conectado', () => {
+    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], lichessConnected: true });
+
+    expect(screen.queryByRole('button', { name: /Conectar Lichess/ })).not.toBeInTheDocument();
   });
 });
 
