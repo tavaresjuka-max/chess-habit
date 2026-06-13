@@ -54,6 +54,23 @@ const SPECS = {
   'selo-diploma-rei':   { w: 120, q: 85 },
   'selo-diploma-torre': { w: 120, q: 85 },
 
+  // Selos de conceito — exibidos ~40px → 128px cobre @3x
+  'selo-diagnostico': { w: 128, q: 85 },
+  'selo-ritmo': { w: 128, q: 85 },
+  'selo-registro': { w: 128, q: 85 },
+  'selo-pendencias': { w: 128, q: 85 },
+  'selo-sessao': { w: 128, q: 85 },
+  'selo-plano': { w: 128, q: 85 },
+  'selo-trilha': { w: 128, q: 85 },
+  'selo-habilidades': { w: 128, q: 85 },
+  'selo-conquistas': { w: 128, q: 85 },
+  'selo-linha-base': { w: 128, q: 85 },
+  'selo-trava': { w: 128, q: 85 },
+  'selo-dados': { w: 128, q: 85 },
+  'selo-lichess': { w: 128, q: 85 },
+  'selo-avaliacao': { w: 128, q: 85 },
+  'selo-essencial': { w: 128, q: 85 },
+
   // Diplomas completos — exibidos ~240px → 480px @2x
   'diploma-peao':  { w: 480, q: 82 },
   'diploma-rei':   { w: 480, q: 82 },

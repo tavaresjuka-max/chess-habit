@@ -1,7 +1,6 @@
 // Selo de conceito: ilustra uma ideia recorrente (diagnóstico, ritmo, plano…)
-// para reduzir texto. Hoje renderiza lucide dentro de um medalhão dourado;
-// quando os selos pintados chegarem (prompts/geracao-selos-conceito-2026-06-12.md),
-// trocar artReady para true por conceito — o <img> assume no lugar do ícone.
+// para reduzir texto. Usa o selo pintado quando disponível e mantém o lucide
+// como fallback explícito por conceito.
 
 import {
   Castle,
@@ -40,21 +39,21 @@ export type ConceptId =
   | 'essencial';
 
 const concepts: Record<ConceptId, { icon: LucideIcon; artReady: boolean }> = {
-  diagnostico: { icon: Search, artReady: false },
-  ritmo: { icon: TrendingUp, artReady: false },
-  registro: { icon: Feather, artReady: false },
-  pendencias: { icon: Mail, artReady: false },
-  sessao: { icon: Watch, artReady: false },
-  plano: { icon: ScrollText, artReady: false },
-  trilha: { icon: Compass, artReady: false },
-  habilidades: { icon: Library, artReady: false },
-  conquistas: { icon: Medal, artReady: false },
-  'linha-base': { icon: Scale, artReady: false },
-  trava: { icon: CircleAlert, artReady: false },
-  dados: { icon: Vault, artReady: false },
-  avaliacao: { icon: Ruler, artReady: false },
-  lichess: { icon: Castle, artReady: false },
-  essencial: { icon: Settings2, artReady: false },
+  diagnostico: { icon: Search, artReady: true },
+  ritmo: { icon: TrendingUp, artReady: true },
+  registro: { icon: Feather, artReady: true },
+  pendencias: { icon: Mail, artReady: true },
+  sessao: { icon: Watch, artReady: true },
+  plano: { icon: ScrollText, artReady: true },
+  trilha: { icon: Compass, artReady: true },
+  habilidades: { icon: Library, artReady: true },
+  conquistas: { icon: Medal, artReady: true },
+  'linha-base': { icon: Scale, artReady: true },
+  trava: { icon: CircleAlert, artReady: true },
+  dados: { icon: Vault, artReady: true },
+  avaliacao: { icon: Ruler, artReady: true },
+  lichess: { icon: Castle, artReady: true },
+  essencial: { icon: Settings2, artReady: true },
 };
 
 type ConceptSealProps = {

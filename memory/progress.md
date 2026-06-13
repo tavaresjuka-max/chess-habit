@@ -289,5 +289,11 @@
   - [x] Scripts de pesquisa movidos para `scripts/research/`.
   - [x] `docs/research/README.md`, `prompts/README.md` e `scripts/README.md` documentam o que e entrada ativa, arquivo historico e ferramenta local.
   - [x] `.gitignore` protege caches locais, downloads de acervo e colecoes pessoais fora do app.
+- [x] **Pacote visual gabinete Professor Lemos gerado (2026-06-12)**.
+  - [x] `prompts/geracao-imagens-gabinete-2026-06-11.md` executado como fonte canonica.
+  - [x] 41 PNGs presentes em `entrega/`, incluindo personagem, fundos, medalhas, selos, diplomas, bandas, molduras, texturas e cenas de apoio.
+  - [x] Validacao tecnica confirmou 41/41 arquivos, zero faltantes e proporcoes conforme o prompt.
+  - [x] Folha de contato criada em `output/imagegen/gabinete-contact-sheet-2026-06-12.png` para revisao visual rapida.
+  - [x] Gate final executado: `npm run lint`, `npm run test` e `npm run build` verdes.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.
