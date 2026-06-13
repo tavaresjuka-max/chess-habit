@@ -5,6 +5,7 @@ import { createDefaultProfile, type LichessConnectionState } from '../app/state'
 import type { BackupImportResult, StoredPlacementResult } from '../infra/storage/appData';
 import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthToken, type SessionMinutes } from '../domain';
 import { describeAutoBackupStatus, type AutoBackupStatus } from '../infra/storage/autoBackup';
+import { BandaIcon } from './art/BandaIcon';
 import { Fold } from './Fold';
 import { PlacementCard } from './PlacementCard';
 import type { BackupMetaRecord } from '../infra/storage/db';
@@ -175,18 +176,21 @@ export function Config({
             <small className="field-hint">
               Organiza o curso — não é nota. Na dúvida, faça a avaliação abaixo.
             </small>
-            <select
-              value={band}
-              onChange={(event) => {
-                setBand(event.target.value as LearnerBand);
-              }}
-            >
-              {learnerBands.map((bandOption) => (
-                <option key={bandOption} value={bandOption}>
-                  {bandOption}
-                </option>
-              ))}
-            </select>
+            <div className="band-field">
+              <BandaIcon band={band} size={44} />
+              <select
+                value={band}
+                onChange={(event) => {
+                  setBand(event.target.value as LearnerBand);
+                }}
+              >
+                {learnerBands.map((bandOption) => (
+                  <option key={bandOption} value={bandOption}>
+                    {bandOption}
+                  </option>
+                ))}
+              </select>
+            </div>
           </label>
 
           <label className="field">

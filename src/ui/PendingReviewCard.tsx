@@ -12,8 +12,28 @@ type PendingReviewCardProps = {
 export function PendingReviewCard({ pendingItems, onOpenItem, onDeferItem }: PendingReviewCardProps) {
   const dueItems = pendingItems.filter(isDueToday);
 
-  if (dueItems.length === 0) {
+  // Aluno novo, sem nenhuma pendência: tela limpa, nada a mostrar.
+  if (pendingItems.length === 0) {
     return null;
+  }
+
+  // Há revisões agendadas, mas nenhuma vence hoje: reforço positivo de que
+  // está tudo em ordem, em vez de sumir e deixar o aluno na dúvida.
+  if (dueItems.length === 0) {
+    return (
+      <section className="pending-review-card pending-review-clear" aria-labelledby="pending-review-title">
+        <img
+          src="/art/vazio-pendencias-em-dia.webp"
+          alt=""
+          aria-hidden="true"
+          className="empty-state-art"
+          width={140}
+          height={140}
+        />
+        <h2 id="pending-review-title">Tudo em dia</h2>
+        <p>Nenhuma revisão vence hoje. Suas pendências estão em ordem.</p>
+      </section>
+    );
   }
 
   return (

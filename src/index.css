@@ -2090,6 +2090,25 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   object-fit: contain;
 }
 
+/* Seletor de faixa com o ícone de volume da banda ao lado (preview ao vivo). */
+.band-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.band-field > select {
+  flex: 1;
+}
+
+/* Pendências em dia: mesmo cartão, layout centrado de reforço positivo. */
+.pending-review-clear {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
 /* ---------- Selo de conceito (ilustra a seção, reduz texto) ---------- */
 
 .concept-seal {

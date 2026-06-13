@@ -36,9 +36,11 @@ const SPECS = {
   'textura-papel':  { w: 512, h: 512, q: 80 },
   'textura-couro':  { w: 512, h: 512, q: 80 },
 
-  // Fundos do gabinete — 9:16 pintado, app max 560px → 1120px @2x
-  'fundo-gabinete-dia':   { w: 1120, q: 80 },
-  'fundo-gabinete-noite': { w: 1120, q: 80 },
+  // Fundos — 9:16 pintado, app max 560px → 1120px @2x.
+  // gabinete-dia/noite: aposentados, substituídos por fundo-mesa (masters
+  // ficam em entrega/ como histórico, mas não são mais shipados).
+  'fundo-gabinete-dia':   null,
+  'fundo-gabinete-noite': null,
   'fundo-mesa-dia':       { w: 1120, q: 80 },
   'fundo-mesa-noite':     { w: 1120, q: 80 },
 

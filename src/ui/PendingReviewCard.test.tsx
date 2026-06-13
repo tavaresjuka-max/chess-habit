@@ -49,6 +49,15 @@ describe('PendingReviewCard', () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it('shows the all-clear state when items exist but none are due today', () => {
+    const scheduled = createItem({ dueAt: '2999-01-01' });
+
+    render(<PendingReviewCard pendingItems={[scheduled]} onOpenItem={() => undefined} onDeferItem={() => undefined} />);
+
+    expect(screen.getByRole('heading', { name: 'Tudo em dia' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Abrir no Lichess/ })).not.toBeInTheDocument();
+  });
 });
 
 function createItem(overrides: Partial<PendingTrainingItem> = {}): PendingTrainingItem {
