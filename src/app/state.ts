@@ -43,6 +43,8 @@ import {
   importBackupFromJson,
   loadAutoBackupConfig,
   loadBackupMeta,
+  loadOnboardingCompletedAt,
+  markOnboardingCompleted,
   saveAutoBackupConfig,
   appendSignals,
   type BackupImportResult,
@@ -133,6 +135,10 @@ export type AppState = {
   readonly backupMeta: BackupMetaRecord | undefined;
   readonly autoBackupStatus: AutoBackupStatus;
   readonly autoBackupFileName: string | undefined;
+  // Funil de onboarding: undefined = ainda na primeira vez (mostra o funil);
+  // definido = já passou (abre direto no Hoje).
+  readonly onboardingCompletedAt: string | undefined;
+  readonly completeOnboarding: () => Promise<void>;
   readonly enableAutoBackup: () => Promise<void>;
   readonly disableAutoBackup: () => Promise<void>;
   readonly setActiveView: (view: AppView) => void;
@@ -188,6 +194,7 @@ export function useAppState(): AppState {
     isAutoBackupSupported() ? 'disabled' : 'unsupported',
   );
   const [autoBackupFileName, setAutoBackupFileName] = useState<string | undefined>(undefined);
+  const [onboardingCompletedAt, setOnboardingCompletedAt] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let isMounted = true;
@@ -196,10 +203,12 @@ export function useAppState(): AppState {
       try {
         const persistenceStatus = await requestPersistentStorage();
         const storedBackupMeta = await loadBackupMeta();
+        const storedOnboardingCompletedAt = await loadOnboardingCompletedAt();
 
         if (isMounted) {
           setStoragePersistence(persistenceStatus);
           setBackupMeta(storedBackupMeta);
+          setOnboardingCompletedAt(storedOnboardingCompletedAt);
         }
 
         // Backup automatico: grava na abertura do app, somente com dados presentes
@@ -1038,6 +1047,15 @@ export function useAppState(): AppState {
     setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
   }, []);
 
+  // Marca o fim do funil (primeira vez). A partir daqui o app abre direto no
+  // Hoje e a aprovação diária volta a ser a dobra dentro do Hoje.
+  const completeOnboarding = useCallback(async () => {
+    const nowIso = new Date().toISOString();
+
+    await markOnboardingCompleted(nowIso);
+    setOnboardingCompletedAt(nowIso);
+  }, []);
+
   const clearAllData = useCallback(async () => {
     await clearAll();
     setBackupMeta(undefined);
@@ -1061,6 +1079,8 @@ export function useAppState(): AppState {
     setDiagnosisMessage(undefined);
     setActiveView('config');
     setErrorMessage(undefined);
+    // Apagar tudo volta o funil de onboarding para o início.
+    setOnboardingCompletedAt(undefined);
   }, []);
 
   return {
@@ -1096,6 +1116,8 @@ export function useAppState(): AppState {
     backupMeta,
     autoBackupStatus,
     autoBackupFileName,
+    onboardingCompletedAt,
+    completeOnboarding,
     enableAutoBackup,
     disableAutoBackup,
     setActiveView,

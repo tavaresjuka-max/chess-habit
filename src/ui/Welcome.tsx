@@ -1,5 +1,6 @@
-// Primeira abertura: o professor recebe o aluno — não um formulário.
-// "Começar agora" usa o perfil padrão; ajustes finos ficam na Config.
+// Passo 1 do funil: o professor recebe o aluno e convida a configurar.
+// "Vamos configurar" segue para o passo 2; "Começar rápido" pula com o
+// perfil padrão direto para a aprovação do plano.
 
 import { ConceptSeal } from './art/ConceptSeal';
 
@@ -47,16 +48,17 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
         </p>
       ) : null}
       <div className="button-row welcome-actions">
+        <button type="button" onClick={onConfigure}>
+          Vamos configurar
+        </button>
         <button
           type="button"
+          className="link-button"
           onClick={() => {
             void onStart();
           }}
         >
-          Começar agora
-        </button>
-        <button type="button" className="secondary-button" onClick={onConfigure}>
-          Ajustar antes
+          Começar rápido
         </button>
       </div>
     </section>

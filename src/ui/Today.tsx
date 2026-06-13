@@ -410,7 +410,7 @@ export function Today({
         />
       ) : null}
 
-      <section className="next-session" aria-label="Próxima sessão">
+      <Fold concept="sessao" title="Próxima sessão">
         <div className="session-actions">
           <label className="compact-field">
             <span>Tempo</span>
@@ -451,7 +451,7 @@ export function Today({
             Importar atividade livre
           </button>
         </div>
-      </section>
+      </Fold>
       </div>
 
       <aside className="today-aside" aria-label="Resumo e contexto">

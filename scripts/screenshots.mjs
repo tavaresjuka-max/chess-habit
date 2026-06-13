@@ -27,12 +27,21 @@ for (const setup of SETUPS) {
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
 
-  // Primeiro uso: a Welcome do professor recebe o aluno.
-  const comecar = page.getByRole('button', { name: 'Começar agora' });
+  // Funil de primeira vez: Passo 1 (boas-vindas) → Começar rápido → Passo 3
+  // (aprovar plano) → Hoje. Captura cada passo para auditoria.
+  const vamosConfigurar = page.getByRole('button', { name: 'Vamos configurar' });
 
-  if (await comecar.isVisible().catch(() => false)) {
-    await page.screenshot({ path: `${OUT}/${setup.name}-welcome.png`, fullPage: true });
-    await comecar.click();
+  if (await vamosConfigurar.isVisible().catch(() => false)) {
+    await page.screenshot({ path: `${OUT}/${setup.name}-funil-1-boasvindas.png`, fullPage: true });
+    await vamosConfigurar.click();
+    await page.waitForSelector('#setup-title', { timeout: 10_000 });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: `${OUT}/${setup.name}-funil-2-config.png`, fullPage: true });
+    await page.getByRole('button', { name: 'Salvar' }).click();
+    await page.waitForSelector('#learning-plan-title', { timeout: 10_000 });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: `${OUT}/${setup.name}-funil-3-plano.png`, fullPage: true });
+    await page.getByRole('button', { name: 'Aprovar plano' }).click();
     await page.waitForSelector('.hero-now, .day-completion-card', { timeout: 10_000 });
   }
 

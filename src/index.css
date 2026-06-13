@@ -658,6 +658,21 @@ textarea {
 
 /* ---------- Boas-vindas (primeira abertura) ---------- */
 
+/* Funil de onboarding: indicador de passo + foco sem contorno feio. */
+.onboarding-shell:focus {
+  outline: none;
+}
+
+.onboarding-step {
+  width: min(100%, 560px);
+  margin: 0;
+  color: var(--gold-700);
+  font-size: 0.82rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .welcome-panel {
   display: grid;
   gap: 14px;

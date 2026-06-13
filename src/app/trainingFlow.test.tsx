@@ -15,6 +15,7 @@ import {
   getPlan,
   getTrainingLog,
   loadWeaknesses,
+  markOnboardingCompleted,
   saveLichessOAuthToken,
   savePlan,
   saveProfile,
@@ -33,6 +34,8 @@ const profile: LearnerProfile = {
 beforeEach(async () => {
   await clearAll();
   await saveProfile(profile);
+  // Estes testes exercitam o app principal (Hoje), não o funil de primeira vez.
+  await markOnboardingCompleted();
   vi.spyOn(window, 'open').mockReturnValue({} as Window);
 });
 
@@ -206,6 +209,7 @@ describe('training flow', () => {
         expect((await getFirstBlockLog())?.feedback).toBe(expectedFeedback);
       });
 
+      fireEvent.click(await screen.findByText('Próxima sessão'));
       fireEvent.click(await screen.findByRole('button', { name: 'Fazer próxima sessão' }));
 
       await waitFor(async () => {
@@ -228,6 +232,7 @@ describe('training flow', () => {
 
     await clearAll();
     await saveProfile(sessionProfile);
+    await markOnboardingCompleted();
     await savePlan({
       ...yesterdayPlan,
       blocks: yesterdayPlan.blocks.map((block) =>
@@ -260,6 +265,7 @@ describe('training flow', () => {
 
     await clearAll();
     await saveProfile(sessionProfile);
+    await markOnboardingCompleted();
     await savePlan(yesterdayPlan);
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-06-09T10:00:00.000-03:00'));
@@ -289,6 +295,7 @@ describe('training flow', () => {
 
     await clearAll();
     await saveProfile(sessionProfile);
+    await markOnboardingCompleted();
     await savePlan(stalePlan);
     await saveTrainingLog(
       createTrainingLog({
@@ -354,6 +361,7 @@ describe('training flow', () => {
       expect((await loadWeaknesses())[0]?.tag).toBe('hanging-piece');
     });
 
+    fireEvent.click(await screen.findByText('Próxima sessão'));
     fireEvent.click(screen.getByRole('button', { name: 'Fazer próxima sessão' }));
 
     await waitFor(async () => {
@@ -412,6 +420,7 @@ describe('training flow', () => {
     vi.setSystemTime(new Date('2026-06-08T10:00:00.000-03:00'));
     await clearAll();
     await saveProfile({ ...profile, defaultSessionMinutes: 30 });
+    await markOnboardingCompleted();
     const fetchMock = vi.fn<typeof fetch>((input) => {
       const url = requestUrl(input);
 

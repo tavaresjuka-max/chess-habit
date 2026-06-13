@@ -84,6 +84,15 @@ export type PlacementResultRecord = {
   updatedAt: string;
 };
 
+// Marcos do app que não pertencem ao perfil nem aos planos. Hoje só guarda a
+// conclusão do funil de onboarding (primeira vez): uma vez definido, o app
+// abre direto no Hoje e a aprovação diária volta a ser a dobra dentro do Hoje.
+export type AppMetaRecord = {
+  id: 'app';
+  onboardingCompletedAt?: string;
+  updatedAt: string;
+};
+
 export class TutorDatabase extends Dexie {
   profile!: Table<ProfileRecord, string>;
   plans!: Table<PlanRecord, string>;
@@ -100,6 +109,7 @@ export class TutorDatabase extends Dexie {
   autoBackup!: Table<AutoBackupConfigRecord, string>;
   achievements!: Table<AchievementRecord, string>;
   placementResults!: Table<PlacementResultRecord, string>;
+  appMeta!: Table<AppMetaRecord, string>;
 
   constructor(name = storageDatabaseName) {
     super(name);
@@ -178,6 +188,11 @@ export class TutorDatabase extends Dexie {
     // Placement persistido (conquista Calibrado + historico de calibracao).
     this.version(10).stores({
       placementResults: 'id, updatedAt',
+    });
+
+    // Marco do funil de onboarding (primeira vez). Registro unico 'app'.
+    this.version(11).stores({
+      appMeta: 'id',
     });
   }
 }

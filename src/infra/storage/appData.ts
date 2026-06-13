@@ -328,6 +328,20 @@ export async function loadBackupMeta(): Promise<BackupMetaRecord | undefined> {
   return db.backupMeta.get('last-export');
 }
 
+// Funil de onboarding (primeira vez). Não entra no backup de propósito: ao
+// restaurar com perfil + plano aprovado, a máquina de estados re-marca a
+// conclusão sozinha; com plano ainda não aprovado, mostra só o passo de
+// aprovar. Assim o funil completo nunca reaparece para quem já passou.
+export async function loadOnboardingCompletedAt(): Promise<string | undefined> {
+  const record = await db.appMeta.get('app');
+
+  return record?.onboardingCompletedAt;
+}
+
+export async function markOnboardingCompleted(nowIso = new Date().toISOString()): Promise<void> {
+  await db.appMeta.put({ id: 'app', onboardingCompletedAt: nowIso, updatedAt: nowIso });
+}
+
 export async function loadAutoBackupConfig(): Promise<AutoBackupConfigRecord | undefined> {
   return db.autoBackup.get('config');
 }
@@ -424,6 +438,7 @@ export async function clearAll(): Promise<void> {
       db.autoBackup,
       db.achievements,
       db.placementResults,
+      db.appMeta,
     ],
     async () => {
       await db.profile.clear();
@@ -439,6 +454,7 @@ export async function clearAll(): Promise<void> {
       await db.diplomaAttempts.clear();
       await db.achievements.clear();
       await db.placementResults.clear();
+      await db.appMeta.clear();
       await db.backupMeta.clear();
       // Apagar tudo desliga o backup automatico: sem isso, a proxima abertura
       // gravaria um backup vazio por cima do arquivo bom do usuario.

@@ -16,8 +16,8 @@ describe('oauth callback recovery', () => {
     render(<App />);
 
     expect(await screen.findByText(/cancelou a conexão com o Lichess/i)).toBeTruthy();
-    // O app continua utilizavel (view de config), nao caiu numa tela de erro.
-    expect(screen.getByRole('button', { name: 'Config' })).toBeTruthy();
+    // O app continua utilizavel (funil de boas-vindas), nao caiu numa tela de erro.
+    expect(screen.getByRole('button', { name: 'Vamos configurar' })).toBeTruthy();
 
     await waitFor(() => {
       expect(window.location.search).toBe('');

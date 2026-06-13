@@ -1,12 +1,12 @@
 import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
 import { createDefaultProfile, useAppState } from '../app/state';
 import { LemosAvatar } from './art/LemosAvatar';
+import { Onboarding, type OnboardingStep } from './Onboarding';
 import { ReloadPrompt } from './ReloadPrompt';
 import { Today } from './Today';
-import { Welcome } from './Welcome';
 
 // Hoje é a tela padrão e fica no chunk principal; Config e Progresso chegam
 // sob demanda (code-split) para encurtar o carregamento inicial no celular.
@@ -40,12 +40,36 @@ function ViewFallback() {
 
 export function App() {
   const appState = useAppState();
-  // Sem perfil, a porta de entrada é o professor (Welcome) — a Config só
-  // aparece se o aluno pedir para ajustar antes.
-  const [wantsManualSetup, setWantsManualSetup] = useState(false);
-  const activeView = appState.profile === undefined ? 'config' : appState.activeView;
-  const shouldShowWelcome = appState.profile === undefined && !wantsManualSetup;
-  const shouldShowConfig = !shouldShowWelcome && activeView === 'config';
+  // Funil de primeira vez: avança Boas-vindas → Configurar → Aprovar plano →
+  // Hoje. startedSetup distingue Boas-vindas de Configurar (não persiste).
+  const [startedSetup, setStartedSetup] = useState(false);
+  const funnelRef = useRef<HTMLElement>(null);
+
+  const onboardingDone = appState.onboardingCompletedAt !== undefined;
+  const planApproved = appState.todayPlan?.learningPlanResponse?.status === 'approved';
+  // App principal só com perfil presente; resolvido por flag persistida OU por
+  // plano aprovado (cobre quem já usava antes do funil existir).
+  const onboardingResolved = appState.profile !== undefined && (onboardingDone || planApproved);
+  const onboardingStep: OnboardingStep =
+    appState.profile === undefined ? (startedSetup ? 'setup' : 'welcome') : 'plan';
+
+  // Marca a conclusão quando perfil existe e o plano foi aprovado (fim do funil
+  // ou migração de usuário antigo). Persiste para reabrir direto no Hoje.
+  useEffect(() => {
+    if (!onboardingDone && appState.profile !== undefined && planApproved) {
+      void appState.completeOnboarding();
+    }
+  }, [onboardingDone, planApproved, appState.profile, appState.completeOnboarding]);
+
+  // Foco vai para a tela do passo a cada transição do funil (acessibilidade).
+  useEffect(() => {
+    if (!onboardingResolved) {
+      funnelRef.current?.focus();
+    }
+  }, [onboardingStep, onboardingResolved]);
+
+  const activeView = appState.activeView;
+  const shouldShowConfig = activeView === 'config';
   const shouldShowProgress = activeView === 'progress';
 
   if (appState.loadState === 'loading') {
@@ -69,6 +93,43 @@ export function App() {
     );
   }
 
+  // Funil de primeira vez: sem abas, uma tela por vez.
+  if (!onboardingResolved) {
+    return (
+      <main className="app-shell onboarding-shell" ref={funnelRef} tabIndex={-1}>
+        <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
+        <ReloadPrompt />
+        {appState.errorMessage !== undefined ? (
+          <p className="app-error" role="alert">
+            {appState.errorMessage}
+          </p>
+        ) : null}
+        <Onboarding
+          step={onboardingStep}
+          {...(appState.lichessMessage === undefined ? {} : { notice: appState.lichessMessage })}
+          defaults={appState.profile ?? createDefaultProfile()}
+          plan={appState.todayPlan}
+          roadmap={appState.roadmap}
+          sessionMinutes={appState.sessionMinutes}
+          weaknesses={appState.weaknesses}
+          learningPlanResponse={appState.todayPlan?.learningPlanResponse}
+          onStartSetup={() => {
+            setStartedSetup(true);
+          }}
+          onQuickStart={async () => {
+            await appState.saveProfile(createDefaultProfile());
+          }}
+          onBackToWelcome={() => {
+            setStartedSetup(false);
+          }}
+          onSaveProfile={appState.saveProfile}
+          onApprovePlan={appState.approveLearningPlan}
+          onRequestPlanRevision={appState.requestLearningPlanRevision}
+        />
+      </main>
+    );
+  }
+
   return (
     <main className="app-shell">
       <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
@@ -82,9 +143,6 @@ export function App() {
           className={activeView === 'today' ? 'nav-button nav-button-active' : 'nav-button'}
           type="button"
           onClick={() => {
-            // Sem perfil, "Hoje" devolve à porta de entrada (Welcome) — sem
-            // isso, a primeira abertura ficava presa na Config.
-            setWantsManualSetup(false);
             appState.setActiveView('today');
           }}
         >
@@ -95,7 +153,6 @@ export function App() {
           className={shouldShowProgress ? 'nav-button nav-button-active' : 'nav-button'}
           type="button"
           onClick={() => {
-            setWantsManualSetup(false);
             appState.setActiveView('progress');
           }}
         >
@@ -106,7 +163,6 @@ export function App() {
           className={shouldShowConfig ? 'nav-button nav-button-active' : 'nav-button'}
           type="button"
           onClick={() => {
-            setWantsManualSetup(true);
             appState.setActiveView('config');
           }}
         >
@@ -132,17 +188,7 @@ export function App() {
         </p>
       ) : null}
 
-      {shouldShowWelcome ? (
-        <Welcome
-          {...(appState.lichessMessage === undefined ? {} : { notice: appState.lichessMessage })}
-          onStart={async () => {
-            await appState.saveProfile(createDefaultProfile());
-          }}
-          onConfigure={() => {
-            setWantsManualSetup(true);
-          }}
-        />
-      ) : shouldShowConfig ? (
+      {shouldShowConfig ? (
         <Suspense fallback={<ViewFallback />}>
           <Config
             profile={appState.profile}
@@ -163,13 +209,6 @@ export function App() {
             onExport={appState.exportBackup}
             onImportBackup={appState.importBackup}
             onClear={appState.clearAllData}
-            {...(appState.profile === undefined
-              ? {
-                  onBack: () => {
-                    setWantsManualSetup(false);
-                  },
-                }
-              : {})}
           />
         </Suspense>
       ) : shouldShowProgress ? (

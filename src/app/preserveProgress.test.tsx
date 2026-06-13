@@ -3,7 +3,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from '../ui/App';
-import { clearAll, saveProfile } from '../infra/storage/appData';
+import { clearAll, markOnboardingCompleted, saveProfile } from '../infra/storage/appData';
 
 beforeEach(async () => {
   await clearAll();
@@ -14,6 +14,8 @@ beforeEach(async () => {
     goals: [],
     updatedAt: '2026-06-06T00:00:00.000Z',
   });
+  // Exercita o app principal (Hoje), não o funil de primeira vez.
+  await markOnboardingCompleted();
 });
 
 afterEach(() => {
