@@ -5,6 +5,8 @@ type SessionMilestonesCardProps = {
   summary: SessionMilestoneSummary;
   openPendingCount?: number;
   nextDiploma?: NextDiplomaSummary;
+  // Dentro de um Fold o título vem do summary da dobra — sem h2 duplicado.
+  hideHeading?: boolean;
 };
 
 export type NextDiplomaSummary = {
@@ -12,15 +14,25 @@ export type NextDiplomaSummary = {
   progressPercent: number;
 };
 
-export function SessionMilestonesCard({ summary, openPendingCount = 0, nextDiploma }: SessionMilestonesCardProps) {
+export function SessionMilestonesCard({
+  summary,
+  openPendingCount = 0,
+  nextDiploma,
+  hideHeading = false,
+}: SessionMilestonesCardProps) {
   return (
-    <section className="session-milestones-card" aria-labelledby="session-milestones-title">
+    <section
+      className="session-milestones-card"
+      {...(hideHeading ? { 'aria-label': summary.heading } : { 'aria-labelledby': 'session-milestones-title' })}
+    >
       {/* O intro (como a fase é medida) já está na proposta de plano — aqui
           os números falam sozinhos. */}
-      <div className="session-milestones-heading">
-        <Target aria-hidden="true" size={18} />
-        <h2 id="session-milestones-title">{summary.heading}</h2>
-      </div>
+      {hideHeading ? null : (
+        <div className="session-milestones-heading">
+          <Target aria-hidden="true" size={18} />
+          <h2 id="session-milestones-title">{summary.heading}</h2>
+        </div>
+      )}
 
       <CurrentMilestone milestone={summary.currentMilestone} nextCheckpoint={summary.nextCheckpoint} />
       <MethodProgressBadges openPendingCount={openPendingCount} nextDiploma={nextDiploma} />

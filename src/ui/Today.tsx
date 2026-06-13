@@ -32,6 +32,7 @@ import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../doma
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { ConceptSeal } from './art/ConceptSeal';
 import { CurriculumCard } from './CurriculumCard';
+import { Fold } from './Fold';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 import { PendingReviewCard } from './PendingReviewCard';
 import { PlanBlockCard } from './PlanBlockCard';
@@ -337,51 +338,61 @@ export function Today({
         onRequestPlanRevision={onRequestLearningPlanRevision}
       />
 
-      <div className="block-list">
-        {activeTrackId !== undefined ? (
-          <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
-        ) : null}
-        {sessionSummaries.map((session) => {
-          const remainingBlocks = session.blocks.filter((block) => block.id !== heroBlock?.id);
+      {/* O resto do plano fica dobrado: o hero já mostra o próximo passo, e a
+          barra de progresso conta o dia. Quem quiser a lista inteira expande. */}
+      {allBlocksOrdered.some((block) => block.id !== heroBlock?.id) ? (
+        <Fold
+          concept="plano"
+          title="Plano do dia"
+          meta={`${String(doneBlockCount)}/${String(allBlocksOrdered.length)} blocos`}
+        >
+          <div className="block-list">
+            {activeTrackId !== undefined ? (
+              <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
+            ) : null}
+            {sessionSummaries.map((session) => {
+              const remainingBlocks = session.blocks.filter((block) => block.id !== heroBlock?.id);
 
-          if (remainingBlocks.length === 0) {
-            return null;
-          }
+              if (remainingBlocks.length === 0) {
+                return null;
+              }
 
-          return (
-            <section
-              className="session-group"
-              key={session.sessionNumber}
-              aria-labelledby={`session-${String(session.sessionNumber)}`}
-            >
-              <div className="session-heading">
-                <h2 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h2>
-                <span>{session.minutes} min</span>
-              </div>
-              {remainingBlocks.map((block) => {
-                const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
-                const hasSavedPending = pendingItems.some((item) => {
-                  return item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id;
-                });
+              return (
+                <section
+                  className="session-group"
+                  key={session.sessionNumber}
+                  aria-labelledby={`session-${String(session.sessionNumber)}`}
+                >
+                  <div className="session-heading">
+                    <h3 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h3>
+                    <span>{session.minutes} min</span>
+                  </div>
+                  {remainingBlocks.map((block) => {
+                    const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
+                    const hasSavedPending = pendingItems.some((item) => {
+                      return item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id;
+                    });
 
-                return (
-                  <PlanBlockCard
-                    block={block}
-                    key={block.id}
-                    nowIso={nowIso}
-                    trainingLog={trainingLog}
-                    hasSavedPending={hasSavedPending}
-                    onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
-                    onStartBlockTraining={onStartBlockTraining}
-                    onCompleteBlockTraining={onCompleteBlockTraining}
-                    onSkipBlockTraining={onSkipBlockTraining}
-                  />
-                );
-              })}
-            </section>
-          );
-        })}
-      </div>
+                    return (
+                      <PlanBlockCard
+                        block={block}
+                        key={block.id}
+                        nowIso={nowIso}
+                        trainingLog={trainingLog}
+                        hasSavedPending={hasSavedPending}
+                        onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
+                        onStartBlockTraining={onStartBlockTraining}
+                        onCompleteBlockTraining={onCompleteBlockTraining}
+                        onSkipBlockTraining={onSkipBlockTraining}
+                      />
+                    );
+                  })}
+                </section>
+              );
+            })}
+          </div>
+        </Fold>
+      ) : null}
 
       <section className="next-session" aria-label="Próxima sessão">
         <div className="session-actions">
@@ -429,35 +440,46 @@ export function Today({
 
       <aside className="today-aside" aria-label="Resumo e contexto">
 
-      <SessionMilestonesCard
-        summary={sessionMilestoneSummary}
-        openPendingCount={pendingItems.length}
-        nextDiploma={nextDiploma}
-      />
+      <Fold
+        concept="sessao"
+        title={sessionMilestoneSummary.heading}
+        meta={`${String(sessionMilestoneSummary.currentMilestone.progressPercent)}%`}
+      >
+        <SessionMilestonesCard
+          summary={sessionMilestoneSummary}
+          openPendingCount={pendingItems.length}
+          nextDiploma={nextDiploma}
+          hideHeading
+        />
+      </Fold>
 
-      <CurriculumCard band={learnerBand} weeklyFocusTag={plan.weeklyFocus?.tag} />
+      <Fold concept="trilha" title="O que você vai aprender">
+        <CurriculumCard band={learnerBand} weeklyFocusTag={plan.weeklyFocus?.tag} hideHeading />
+      </Fold>
 
       {weeklyDigest !== undefined ? (
-        <section className="weekly-report" aria-labelledby="weekly-report-title">
-          <h2 id="weekly-report-title">{weeklyDigest.heading}</h2>
-          <div className="weekly-report-metrics">
-            {weeklyDigest.metrics.map((metric) => (
-              <span key={metric} className="metric-chip">
-                {metric}
-              </span>
+        <Fold concept="ritmo" title={weeklyDigest.heading}>
+          <div className="weekly-report" aria-label={weeklyDigest.heading}>
+            <div className="weekly-report-metrics">
+              {weeklyDigest.metrics.map((metric) => (
+                <span key={metric} className="metric-chip">
+                  {metric}
+                </span>
+              ))}
+            </div>
+            {weeklyDigest.lines.map((line) => (
+              <p key={line}>{line}</p>
             ))}
           </div>
-          {weeklyDigest.lines.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </section>
+        </Fold>
       ) : null}
 
       {weaknesses.length > 0 ? (
-        <section className="weakness-section" aria-labelledby="weakness-title">
-          <h2 id="weakness-title" className="weakness-heading">
-            <ConceptSeal concept="diagnostico" size={26} /> O que seus jogos revelam
-          </h2>
+        <Fold
+          concept="diagnostico"
+          title="O que seus jogos revelam"
+          meta={String(weaknesses.length)}
+        >
           <div className="weakness-row">
             {weaknesses
               .slice()
@@ -469,14 +491,18 @@ export function Today({
                 </span>
               ))}
           </div>
-        </section>
+        </Fold>
       ) : null}
 
-      <RoadmapList items={roadmap} />
+      {roadmap.length > 0 ? (
+        <Fold concept="registro" title="Próximos passos" meta={`${String(roadmap.length)} itens`}>
+          <RoadmapList items={roadmap} />
+        </Fold>
+      ) : null}
 
       <details className="diagnosis-details">
         <summary>
-          <ConceptSeal concept="registro" size={22} /> Diagnóstico
+          <ConceptSeal concept="lichess" size={22} /> Diagnóstico
         </summary>
         <div className="diagnosis-strip" aria-live="polite">
           <div className="diagnosis-actions">
@@ -578,31 +604,27 @@ function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefi
   );
 }
 
+// O título "Próximos passos" vem do Fold que embrulha a lista.
 function RoadmapList({ items }: { items: TrainingRoadmapItem[] }) {
   if (items.length === 0) {
     return null;
   }
 
   return (
-    <section className="roadmap-section" aria-labelledby="roadmap-title">
-      <div className="section-subheading">
-        <h2 id="roadmap-title">Próximos passos</h2>
-      </div>
-      <ol className="roadmap-list">
-        {items.map((item) => (
-          <li className={`roadmap-item roadmap-${item.status}`} key={item.id}>
-            <div>
-              <strong>{item.label}</strong>
-              <span>{item.minutes} min</span>
-            </div>
-            <p>{item.title}</p>
-            <small>
-              {formatRoadmapStatus(item.status)} - {item.destinationLabel}
-            </small>
-          </li>
-        ))}
-      </ol>
-    </section>
+    <ol className="roadmap-list" aria-label="Próximos passos do roteiro">
+      {items.map((item) => (
+        <li className={`roadmap-item roadmap-${item.status}`} key={item.id}>
+          <div>
+            <strong>{item.label}</strong>
+            <span>{item.minutes} min</span>
+          </div>
+          <p>{item.title}</p>
+          <small>
+            {formatRoadmapStatus(item.status)} - {item.destinationLabel}
+          </small>
+        </li>
+      ))}
+    </ol>
   );
 }
 

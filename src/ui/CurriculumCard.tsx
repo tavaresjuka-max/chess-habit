@@ -4,19 +4,26 @@ import { ConceptSeal } from './art/ConceptSeal';
 type CurriculumCardProps = {
   band: LearnerBand | undefined;
   weeklyFocusTag: WeaknessTag | undefined;
+  // Dentro de um Fold o título vem do summary da dobra — sem h2 duplicado.
+  hideHeading?: boolean;
 };
 
 // Mapa da jornada: mostra o que o aluno vai aprender, semana a semana, fase
 // por fase. A fase atual abre expandida com o marcador "agora" na semana cujo
 // tema coincide com o foco do plano; as demais ficam recolhidas.
-export function CurriculumCard({ band, weeklyFocusTag }: CurriculumCardProps) {
+export function CurriculumCard({ band, weeklyFocusTag, hideHeading = false }: CurriculumCardProps) {
   const outlook = buildCurriculumOutlook(band, weeklyFocusTag);
 
   return (
-    <section className="curriculum-card" aria-labelledby="curriculum-title">
-      <h2 id="curriculum-title" className="curriculum-heading">
-        <ConceptSeal concept="trilha" size={26} /> O que você vai aprender
-      </h2>
+    <section
+      className="curriculum-card"
+      {...(hideHeading ? { 'aria-label': 'O que você vai aprender' } : { 'aria-labelledby': 'curriculum-title' })}
+    >
+      {hideHeading ? null : (
+        <h2 id="curriculum-title" className="curriculum-heading">
+          <ConceptSeal concept="trilha" size={26} /> O que você vai aprender
+        </h2>
+      )}
       {outlook.map(({ phase, status, currentWeekNumber }) => (
         <details
           className={`curriculum-phase curriculum-phase-${status}`}

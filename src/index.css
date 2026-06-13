@@ -600,6 +600,7 @@ textarea {
 }
 
 .session-heading h2,
+.session-heading h3,
 .section-subheading h2 {
   margin: 0;
   font-size: 0.86rem;
@@ -2153,6 +2154,83 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   display: inline-flex;
   align-items: center;
   gap: 5px;
+}
+
+/* ---------- Fold: seção dobrada que expande no lugar ---------- */
+
+.fold {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 14px;
+}
+
+.fold-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 12px 14px;
+  user-select: none;
+  list-style: none;
+}
+
+.fold-summary::-webkit-details-marker {
+  display: none;
+}
+
+.fold-summary::after {
+  content: '▾';
+  margin-left: auto;
+  color: var(--ink-500);
+  font-size: 0.85rem;
+  transition: transform var(--speed) var(--ease);
+}
+
+.fold[open] > .fold-summary::after {
+  transform: rotate(180deg);
+}
+
+.fold-summary:hover {
+  background: var(--green-050);
+  border-radius: var(--radius-md);
+}
+
+.fold-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 640;
+  letter-spacing: 0;
+  color: var(--green-900);
+}
+
+.fold-meta {
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fold-body {
+  padding: 0 14px 14px;
+}
+
+/* Cards embutidos numa dobra perdem a própria moldura — a dobra já é o card. */
+.fold-body > .session-milestones-card,
+.fold-body > .curriculum-card,
+.fold-body > .weekly-report {
+  border: none;
+  background: none;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.fold-body > .block-list {
+  margin-top: 4px;
 }
 
 /* ---------- Mobile ---------- */
