@@ -109,8 +109,9 @@ describe('training flow', () => {
 
       expect(plan?.learningPlanResponse?.status).toBe('approved');
     });
-    // Plano aprovado vira uma dobra compacta — o selo "✓ aprovado" confirma.
-    expect(screen.getByText('✓ aprovado')).toBeTruthy();
+    // Plano aprovado: o botão "Aprovar plano" some — vira o resumo compacto
+    // dentro da dobra "Plano".
+    expect(screen.queryByRole('button', { name: 'Aprovar plano' })).toBeNull();
   });
 
   it('stores a revision request for the Professor Lemos learning plan proposal', async () => {
@@ -209,7 +210,7 @@ describe('training flow', () => {
         expect((await getFirstBlockLog())?.feedback).toBe(expectedFeedback);
       });
 
-      fireEvent.click(await screen.findByText('Próxima sessão'));
+      fireEvent.click(await screen.findByText('O que vem agora'));
       fireEvent.click(await screen.findByRole('button', { name: 'Fazer próxima sessão' }));
 
       await waitFor(async () => {
@@ -361,7 +362,7 @@ describe('training flow', () => {
       expect((await loadWeaknesses())[0]?.tag).toBe('hanging-piece');
     });
 
-    fireEvent.click(await screen.findByText('Próxima sessão'));
+    fireEvent.click(await screen.findByText('O que vem agora'));
     fireEvent.click(screen.getByRole('button', { name: 'Fazer próxima sessão' }));
 
     await waitFor(async () => {

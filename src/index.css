@@ -2109,6 +2109,19 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   gap: 4px;
 }
 
+/* Plano aprovado embutido na dobra "Plano" (modo compact, sem dobra própria). */
+.learning-plan-compact {
+  display: grid;
+  gap: 12px;
+}
+
+/* Roadmap dentro de "O que vem agora", separado das ações da sessão. */
+.next-roadmap {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+
 /* ---------- Selo de conceito (ilustra a seção, reduz texto) ---------- */
 
 .concept-seal {

@@ -82,7 +82,7 @@ export async function fetchLichessGames(options: ImportLichessSignalsOptions): P
   }
 
   const fetcher = options.fetcher ?? fetch;
-  const response = await fetcher(lichessGamesUrl(username, options.max ?? 30), {
+  const response = await fetcher(lichessGamesUrl(username, options.max), {
     headers: {
       Accept: 'application/x-ndjson',
       ...(options.token === undefined ? {} : { Authorization: `Bearer ${options.token}` }),
@@ -172,9 +172,10 @@ export function getPlayerSideLichess(game: LichessGameJson, username: string): L
   return null;
 }
 
-function lichessGamesUrl(username: string, max: number): string {
+function lichessGamesUrl(username: string, max?: number): string {
+  // Sem `max`: a API exporta o histórico completo (decisão do dono 2026-06-13,
+  // "tudo possível"). Com `max`, limita — usado por testes/chamadas pontuais.
   const params = new URLSearchParams({
-    max: String(max),
     moves: 'false',
     pgnInJson: 'false',
     opening: 'true',
@@ -182,6 +183,10 @@ function lichessGamesUrl(username: string, max: number): string {
     finished: 'true',
     sort: 'dateDesc',
   });
+
+  if (max !== undefined) {
+    params.set('max', String(max));
+  }
 
   return `${lichessBaseUrl}/api/games/user/${encodeURIComponent(username)}?${params.toString()}`;
 }

@@ -343,74 +343,84 @@ export function Today({
         </section>
       )}
 
-      {/* O resto do plano fica dobrado: o hero já mostra o próximo passo, e a
-          barra de progresso conta o dia. Quem quiser a lista inteira expande. */}
-      {allBlocksOrdered.some((block) => block.id !== heroBlock?.id) ? (
+      {/* Plano num lugar só: o resumo da fase aprovada (chips + números) no topo
+          e, abaixo, a lista de blocos do dia. O hero já mostra o próximo passo;
+          aqui fica o panorama, dobrado. Antes eram duas dobras ("Plano do dia" e
+          "Plano de hoje") que pareciam a mesma coisa. */}
+      {planApproved || allBlocksOrdered.some((block) => block.id !== heroBlock?.id) ? (
         <Fold
           concept="plano"
-          title="Plano do dia"
+          title="Plano"
           meta={`${String(doneBlockCount)}/${String(allBlocksOrdered.length)} blocos`}
         >
-          <div className="block-list">
-            {activeTrackId !== undefined ? (
-              <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
-            ) : null}
-            {sessionSummaries.map((session) => {
-              const remainingBlocks = session.blocks.filter((block) => block.id !== heroBlock?.id);
+          {planApproved ? (
+            <LearningPlanProposalCard
+              proposal={learningPlanProposal}
+              response={plan.learningPlanResponse}
+              activeTrackId={activeTrackId}
+              onApprovePlan={onApproveLearningPlan}
+              onRequestPlanRevision={onRequestLearningPlanRevision}
+              compact
+            />
+          ) : null}
+          {allBlocksOrdered.some((block) => block.id !== heroBlock?.id) ? (
+            <div className="block-list">
+              {activeTrackId !== undefined ? (
+                <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
+              ) : null}
+              {sessionSummaries.map((session) => {
+                const remainingBlocks = session.blocks.filter((block) => block.id !== heroBlock?.id);
 
-              if (remainingBlocks.length === 0) {
-                return null;
-              }
+                if (remainingBlocks.length === 0) {
+                  return null;
+                }
 
-              return (
-                <section
-                  className="session-group"
-                  key={session.sessionNumber}
-                  aria-labelledby={`session-${String(session.sessionNumber)}`}
-                >
-                  <div className="session-heading">
-                    <h3 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h3>
-                    <span>{session.minutes} min</span>
-                  </div>
-                  {remainingBlocks.map((block) => {
-                    const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
-                    const hasSavedPending = pendingItems.some((item) => {
-                      return item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id;
-                    });
+                return (
+                  <section
+                    className="session-group"
+                    key={session.sessionNumber}
+                    aria-labelledby={`session-${String(session.sessionNumber)}`}
+                  >
+                    <div className="session-heading">
+                      <h3 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h3>
+                      <span>{session.minutes} min</span>
+                    </div>
+                    {remainingBlocks.map((block) => {
+                      const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
+                      const hasSavedPending = pendingItems.some((item) => {
+                        return item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id;
+                      });
 
-                    return (
-                      <PlanBlockCard
-                        block={block}
-                        key={block.id}
-                        nowIso={nowIso}
-                        trainingLog={trainingLog}
-                        hasSavedPending={hasSavedPending}
-                        onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
-                        onStartBlockTraining={onStartBlockTraining}
-                        onCompleteBlockTraining={onCompleteBlockTraining}
-                        onSkipBlockTraining={onSkipBlockTraining}
-                      />
-                    );
-                  })}
-                </section>
-              );
-            })}
-          </div>
+                      return (
+                        <PlanBlockCard
+                          block={block}
+                          key={block.id}
+                          nowIso={nowIso}
+                          trainingLog={trainingLog}
+                          hasSavedPending={hasSavedPending}
+                          onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
+                          onStartBlockTraining={onStartBlockTraining}
+                          onCompleteBlockTraining={onCompleteBlockTraining}
+                          onSkipBlockTraining={onSkipBlockTraining}
+                        />
+                      );
+                    })}
+                  </section>
+                );
+              })}
+            </div>
+          ) : null}
         </Fold>
       ) : null}
 
-      {/* Plano já aprovado: dobra compacta de referência, fora do caminho. */}
-      {planApproved ? (
-        <LearningPlanProposalCard
-          proposal={learningPlanProposal}
-          response={plan.learningPlanResponse}
-          activeTrackId={activeTrackId}
-          onApprovePlan={onApproveLearningPlan}
-          onRequestPlanRevision={onRequestLearningPlanRevision}
-        />
-      ) : null}
-
-      <Fold concept="sessao" title="Próxima sessão">
+      {/* "O que vem agora" = a próxima sessão (ação) + o roadmap dos próximos
+          passos, num lugar só. Antes eram duas dobras ("Próxima sessão" e
+          "Próximos passos") com nomes que se confundiam. */}
+      <Fold
+        concept="sessao"
+        title="O que vem agora"
+        {...(roadmap.length > 0 ? { meta: `${String(roadmap.length)} passos` } : {})}
+      >
         <div className="session-actions">
           <label className="compact-field">
             <span>Tempo</span>
@@ -451,6 +461,11 @@ export function Today({
             Importar atividade livre
           </button>
         </div>
+        {roadmap.length > 0 ? (
+          <div className="next-roadmap">
+            <RoadmapList items={roadmap} />
+          </div>
+        ) : null}
       </Fold>
       </div>
 
@@ -507,12 +522,6 @@ export function Today({
                 </span>
               ))}
           </div>
-        </Fold>
-      ) : null}
-
-      {roadmap.length > 0 ? (
-        <Fold concept="registro" title="Próximos passos" meta={`${String(roadmap.length)} itens`}>
-          <RoadmapList items={roadmap} />
         </Fold>
       ) : null}
 

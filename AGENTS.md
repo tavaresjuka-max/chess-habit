@@ -41,9 +41,11 @@ Roadmap vigente: plano consolidado de cortes 0-8 em
   (`puzzle:read`) para reconciliar resultado de treino. Tokens ficam so locais, nunca em logs, bundle
   publico ou arquivos versionados. Proibido `puzzle:write`, escopos de jogo, engine e mensagens.
 - Chess.com entra na Fase P1 como fonte primaria de diagnostico (o dono joga la), via API publica
-  read-only: `/stats` + arquivos mensais recentes de partidas. Sem login. Parse de PGN **transiente**
+  read-only: `/stats` + arquivos mensais de partidas (historico completo). Sem login. Parse de PGN **transiente**
   (extrair sinais e descartar); **nunca persistir PGN completo**. Sem PII de perfil (nome/avatar/local).
-  Serial, com bound de recencia. Destinos de treino seguem no Lichess.
+  Serial, lendo o historico completo de arquivos mensais (decisao do dono 2026-06-13, revertendo o bound
+  de recencia do achado Codex 2026-06-10; cache mensal evita refetch). O filtro de recencia fica como
+  utilitario opt-in. Destinos de treino seguem no Lichess.
 - Nao armazenar PGNs completos, tokens ou dados sensiveis por padrao. Nada de PII em logs.
 - App gratuito e open-source. Sem anuncios, sem paywall, sem venda de dados. Doacao (se houver) e link
   externo, so na versao-comunidade; apoiador nao recebe vantagem funcional.

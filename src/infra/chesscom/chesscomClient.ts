@@ -47,7 +47,7 @@ export async function importChesscomSignals(username: string, options: ImportChe
   const archives = await fetchJson<ChesscomArchivesResponse>(archivesUrl(normalizedUsername), fetcher);
   const signals: Signal[] = [...extractSignalsFromChesscomStats(stats, observedAt)];
 
-  for (const archiveUrl of filterRecentArchives(archives.archives ?? [], observedAt)) {
+  for (const archiveUrl of archives.archives ?? []) {
     const cachedSignals = await loadCachedSignals(options.cache, normalizedUsername, archiveUrl, observedAt);
 
     if (cachedSignals !== undefined) {
@@ -65,8 +65,9 @@ export async function importChesscomSignals(username: string, options: ImportChe
   return signals;
 }
 
-// Bound de recencia exigido por AGENTS.md (achado Codex 2026-06-10): o
-// diagnostico le no maximo os ultimos meses de arquivos, nunca o historico todo.
+// Utilitario de recencia (opt-in). Decisao do dono 2026-06-13: o diagnostico
+// le TODO o historico de arquivos mensais (ver AGENTS.md). O cache mensal evita
+// refetch. Esta funcao fica disponivel caso se queira re-limitar no futuro.
 const recencyBoundMonths = 3;
 
 export function filterRecentArchives(archiveUrls: string[], nowIso: string, months = recencyBoundMonths): string[] {

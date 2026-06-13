@@ -9,6 +9,9 @@ type LearningPlanProposalCardProps = {
   proposal: LearningPlanProposal;
   response: LearningPlanResponse | undefined;
   activeTrackId?: MethodTrackId;
+  // compact: aprovado, renderiza só o resumo (chips + números + revisar), sem a
+  // própria dobra — para embutir dentro da dobra "Plano" do Hoje sem duplicar.
+  compact?: boolean;
   onApprovePlan: () => Promise<void>;
   onRequestPlanRevision: (note: string) => Promise<void>;
 };
@@ -24,6 +27,7 @@ export function LearningPlanProposalCard({
   proposal,
   response,
   activeTrackId,
+  compact = false,
   onApprovePlan,
   onRequestPlanRevision,
 }: LearningPlanProposalCardProps) {
@@ -108,11 +112,11 @@ export function LearningPlanProposalCard({
     </>
   );
 
-  // Plano aprovado: sai do caminho. Vira uma dobra compacta no fim da tela —
-  // confirmação + referência rápida (chips e números) + opção de revisar.
+  // Plano aprovado: sai do caminho. Vira referência rápida (chips e números) +
+  // opção de revisar. Em compact, sem dobra própria — o Hoje embute no "Plano".
   if (response?.status === 'approved' && !isReviewing) {
-    return (
-      <Fold concept="plano" title="Plano de hoje" meta="✓ aprovado">
+    const approvedSummary = (
+      <>
         {planChips}
         <div className="button-row">
           <button
@@ -126,6 +130,16 @@ export function LearningPlanProposalCard({
             Revisar plano
           </button>
         </div>
+      </>
+    );
+
+    if (compact) {
+      return <div className="learning-plan-compact">{approvedSummary}</div>;
+    }
+
+    return (
+      <Fold concept="plano" title="Plano de hoje" meta="✓ aprovado">
+        {approvedSummary}
       </Fold>
     );
   }

@@ -5,8 +5,13 @@
       "name": "rotina-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5173,
-      "autoPort": true
+      "port": 5173
+    },
+    {
+      "name": "rotina-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5180", "--strictPort"],
+      "port": 5180
     }
   ]
 }
