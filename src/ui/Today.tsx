@@ -16,6 +16,7 @@ import {
   type Achievement,
   type DailyPlan,
   type DayCompletionSummary,
+  type LearnerBand,
   type LichessStudyLink,
   type PlanBlock,
   type PlanBlockFeedback,
@@ -30,6 +31,7 @@ import { getMethodTrackTitle } from '../domain/method/methodTracks';
 import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { ConceptSeal } from './art/ConceptSeal';
+import { CurriculumCard } from './CurriculumCard';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 import { PendingReviewCard } from './PendingReviewCard';
 import { PlanBlockCard } from './PlanBlockCard';
@@ -40,6 +42,7 @@ type TodayProps = {
   plan: DailyPlan | undefined;
   roadmap: TrainingRoadmapItem[];
   sessionMinutes: SessionMinutes;
+  learnerBand: LearnerBand | undefined;
   trainingLogs: TrainingLog[];
   allTrainingLogs: TrainingLog[];
   pendingItems: PendingTrainingItem[];
@@ -75,6 +78,7 @@ export function Today({
   plan,
   roadmap,
   sessionMinutes,
+  learnerBand,
   trainingLogs,
   allTrainingLogs,
   pendingItems,
@@ -430,6 +434,8 @@ export function Today({
         openPendingCount={pendingItems.length}
         nextDiploma={nextDiploma}
       />
+
+      <CurriculumCard band={learnerBand} weeklyFocusTag={plan.weeklyFocus?.tag} />
 
       {weeklyDigest !== undefined ? (
         <section className="weekly-report" aria-labelledby="weekly-report-title">

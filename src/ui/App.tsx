@@ -188,6 +188,7 @@ export function App() {
           plan={appState.todayPlan}
           roadmap={appState.roadmap}
           sessionMinutes={appState.sessionMinutes}
+          learnerBand={appState.profile?.band}
           trainingLogs={appState.trainingLogs}
           allTrainingLogs={appState.allTrainingLogs}
           pendingItems={appState.pendingItems}

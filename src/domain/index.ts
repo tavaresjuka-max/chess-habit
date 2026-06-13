@@ -1,6 +1,7 @@
 export * from './types';
 export * from './badges/evaluateAchievements';
 export * from './bands';
+export * from './curriculum/curriculum';
 export * from './ids';
 export * from './placement/placement';
 export * from './plan/generatePlan';

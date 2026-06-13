@@ -66,6 +66,7 @@ function renderToday({
       plan={makePlan(blocks)}
       roadmap={[]}
       sessionMinutes={15}
+      learnerBand="0-400"
       trainingLogs={trainingLogs}
       allTrainingLogs={trainingLogs}
       pendingItems={[]}
