@@ -677,9 +677,11 @@ textarea {
 }
 
 .welcome-points li {
-  border-left: 3px solid var(--gold-300);
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: var(--ink-600);
-  padding-left: 10px;
+  text-align: left;
 }
 
 .welcome-actions {
@@ -2231,6 +2233,40 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 
 .fold-body > .block-list {
   margin-top: 4px;
+}
+
+/* ---------- Linhas imagéticas do bloco: ícone por frase ---------- */
+
+.block-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.block-line > svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.block-reason > svg {
+  color: var(--slate-500);
+}
+
+.block-task > svg {
+  color: var(--green-600);
+}
+
+.block-line.coach-note {
+  border-left: none;
+  padding-left: 0;
+}
+
+.block-line.coach-note > svg {
+  color: var(--green-300);
+}
+
+.block-line.stop-rule > svg {
+  color: var(--gold-600);
 }
 
 /* ---------- Mobile ---------- */

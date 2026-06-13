@@ -1,6 +1,8 @@
 // Primeira abertura: o professor recebe o aluno — não um formulário.
 // "Começar agora" usa o perfil padrão; ajustes finos ficam na Config.
 
+import { ConceptSeal } from './art/ConceptSeal';
+
 type WelcomeProps = {
   notice?: string;
   onStart: () => Promise<void>;
@@ -26,9 +28,18 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
         Melhor pouco bem feito que muito no automático.
       </p>
       <ul className="welcome-points">
-        <li>Sessões de 5 a 60 minutos, direto no Lichess.</li>
-        <li>Eu escolho o que estudar — você só executa.</li>
-        <li>Seu progresso fica neste aparelho. Exporte backups quando quiser.</li>
+        <li>
+          <ConceptSeal concept="sessao" size={30} />
+          Sessões de 5 a 60 minutos, direto no Lichess.
+        </li>
+        <li>
+          <ConceptSeal concept="trilha" size={30} />
+          Eu escolho o que estudar — você só executa.
+        </li>
+        <li>
+          <ConceptSeal concept="dados" size={30} />
+          Seu progresso fica neste aparelho. Exporte backups quando quiser.
+        </li>
       </ul>
       {notice !== undefined ? (
         <p className="config-hint" aria-live="polite">

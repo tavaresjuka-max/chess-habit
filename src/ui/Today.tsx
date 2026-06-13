@@ -279,6 +279,27 @@ export function Today({
         </p>
       ) : null}
 
+      {/* Ordem narrativa: o professor explica o plano ("Entendi o que você
+          precisa") e cobra o que ficou aberto ANTES do próximo passo —
+          a proposta e as pendências só aparecem quando exigem ação. */}
+      <LearningPlanProposalCard
+        proposal={learningPlanProposal}
+        response={plan.learningPlanResponse}
+        activeTrackId={activeTrackId}
+        onApprovePlan={onApproveLearningPlan}
+        onRequestPlanRevision={onRequestLearningPlanRevision}
+      />
+
+      <PendingReviewCard
+        pendingItems={pendingItems}
+        onOpenItem={(item) => {
+          void onOpenPendingItem(item);
+        }}
+        onDeferItem={(item) => {
+          void onDeferPendingItem(item);
+        }}
+      />
+
       {heroBlock !== undefined ? (
         <section className="hero-now" aria-labelledby="hero-now-title">
           <h2 id="hero-now-title" className="hero-now-label">
@@ -319,24 +340,6 @@ export function Today({
           </div>
         </section>
       )}
-
-      <PendingReviewCard
-        pendingItems={pendingItems}
-        onOpenItem={(item) => {
-          void onOpenPendingItem(item);
-        }}
-        onDeferItem={(item) => {
-          void onDeferPendingItem(item);
-        }}
-      />
-
-      <LearningPlanProposalCard
-        proposal={learningPlanProposal}
-        response={plan.learningPlanResponse}
-        activeTrackId={activeTrackId}
-        onApprovePlan={onApproveLearningPlan}
-        onRequestPlanRevision={onRequestLearningPlanRevision}
-      />
 
       {/* O resto do plano fica dobrado: o hero já mostra o próximo passo, e a
           barra de progresso conta o dia. Quem quiser a lista inteira expande. */}

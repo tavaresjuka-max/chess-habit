@@ -1,4 +1,4 @@
-import { Check, ExternalLink } from 'lucide-react';
+import { Check, ExternalLink, Feather, Flag, Lightbulb, Target } from 'lucide-react';
 import { useState, type MouseEvent } from 'react';
 import { openExternalUrl } from '../app/externalOpen';
 import {
@@ -65,10 +65,24 @@ export function PlanBlockCard({
       <p className="block-meta">
         {block.estimatedMinutes} min - {formatResourceStage(block.resourceStage)} - {block.destination.label}
       </p>
-      <p>{block.reason}</p>
-      <p>{block.task}</p>
-      <p className="coach-note">{block.coachNote}</p>
-      <p className="stop-rule">{block.stopRule}</p>
+      {/* Cada linha com seu ícone: porquê, tarefa, dica do professor e regra
+          de parada — escaneável sem ler tudo. */}
+      <p className="block-line block-reason">
+        <Lightbulb aria-hidden="true" size={15} />
+        {block.reason}
+      </p>
+      <p className="block-line block-task">
+        <Target aria-hidden="true" size={15} />
+        {block.task}
+      </p>
+      <p className="block-line coach-note">
+        <Feather aria-hidden="true" size={15} />
+        {block.coachNote}
+      </p>
+      <p className="block-line stop-rule">
+        <Flag aria-hidden="true" size={15} />
+        {block.stopRule}
+      </p>
       {block.feedback !== undefined ? <p className="feedback-note">{getFeedbackCelebration(block.feedback)}</p> : null}
       {timerStatus !== undefined ? <p className={`timer-status ${timerStatus.kind}`}>{timerStatus.label}</p> : null}
       {openWarning !== undefined ? (

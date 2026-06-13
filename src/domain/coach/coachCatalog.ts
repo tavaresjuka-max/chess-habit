@@ -2,8 +2,10 @@ import type { PlanBlockKind } from '../plan/timeBudget';
 import type { PlanResourceStage, WeaknessTag } from '../types';
 
 export const coachNotesByBlockKind = {
+  // A saudação é papel do Professor Lemos no topo da tela — aqui é só a
+  // dica de execução do bloco.
   aquecimento:
-    'Olá. Que bom ver você novamente. Que tal ativarmos o cérebro com um aquecimento rápido? Não é prova de velocidade: olhe o tabuleiro inteiro, procure peças soltas e siga com calma.',
+    'Não é prova de velocidade: olhe o tabuleiro inteiro, procure peças soltas e siga com calma.',
   tema:
     'Hoje o foco é repetição deliberada de um padrão. Procure a ideia antes do lance: alvo, defensor e consequência material. Pare quando a regra de parada bater, mesmo se estiver embalado.',
   revisao:

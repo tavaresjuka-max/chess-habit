@@ -1,3 +1,4 @@
+import { Brain, Clock, ShieldAlert } from 'lucide-react';
 import {
   buildSessionMessage,
   buildPuzzleThemeStats,
@@ -145,6 +146,7 @@ function TutorAnswerButtons({
           void onAnswerTutorQuestion('time');
         }}
       >
+        <Clock aria-hidden="true" size={15} />
         Tempo
       </button>
       <button
@@ -154,6 +156,7 @@ function TutorAnswerButtons({
           void onAnswerTutorQuestion('calculation');
         }}
       >
+        <Brain aria-hidden="true" size={15} />
         Cálculo
       </button>
       <button
@@ -163,6 +166,7 @@ function TutorAnswerButtons({
           void onAnswerTutorQuestion('loose-piece');
         }}
       >
+        <ShieldAlert aria-hidden="true" size={15} />
         Peça solta
       </button>
     </div>
