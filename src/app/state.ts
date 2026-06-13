@@ -168,6 +168,28 @@ export type AppState = {
   readonly clearAllData: () => Promise<void>;
 };
 
+// Auto-sync ao Salvar reaproveita um diagnóstico recente em vez de re-puxar o
+// histórico inteiro a cada salvamento. O botão "Atualizar" manual ignora isto e
+// força o pull completo. (Chess.com já cacheia por mês; isto evita até o refetch
+// de stats/lista/mês atual. Lichess não tem cache, então o ganho é maior.)
+const AUTO_SYNC_FRESHNESS_MS = 6 * 60 * 60 * 1000;
+
+// Quando foi o último diagnóstico bem-sucedido de uma fonte: derivado do
+// observedAt mais recente dos sinais salvos daquela fonte (cada sync grava
+// observedAt = agora). undefined se a fonte nunca sincronizou.
+async function latestSignalObservedAt(source: Signal['source']): Promise<string | undefined> {
+  const all = await loadSignals();
+  let latest: string | undefined;
+
+  for (const signal of all) {
+    if (signal.source === source && (latest === undefined || signal.observedAt > latest)) {
+      latest = signal.observedAt;
+    }
+  }
+
+  return latest;
+}
+
 export function useAppState(): AppState {
   const [activeView, setActiveView] = useState<AppView>('today');
   const [loadState, setLoadState] = useState<LoadState>('loading');
@@ -351,9 +373,18 @@ export function useAppState(): AppState {
   // perfil explícito (não o do estado) para que o auto-sync logo após salvar
   // use os dados recém-gravados, sem esperar o re-render.
   const runChesscomSync = useCallback(
-    async (targetProfile: LearnerProfile) => {
+    async (targetProfile: LearnerProfile, options?: { maxAgeMs?: number }) => {
       if (targetProfile.chesscomUsername === undefined || targetProfile.chesscomUsername.trim() === '') {
         return;
+      }
+
+      // Guarda de validade (só no auto-sync): se sincronizamos há pouco,
+      // reaproveita o diagnóstico salvo em vez de re-buscar.
+      if (options?.maxAgeMs !== undefined) {
+        const lastSyncAt = await latestSignalObservedAt('chesscom');
+        if (lastSyncAt !== undefined && Date.now() - Date.parse(lastSyncAt) < options.maxAgeMs) {
+          return;
+        }
       }
 
       setDiagnosisState('syncing');
@@ -413,9 +444,18 @@ export function useAppState(): AppState {
 
   // Núcleo do diagnóstico Lichess, também parametrizado pelo perfil-alvo.
   const runLichessSync = useCallback(
-    async (targetProfile: LearnerProfile) => {
+    async (targetProfile: LearnerProfile, options?: { maxAgeMs?: number }) => {
       if (targetProfile.lichessUsername === undefined || targetProfile.lichessUsername.trim() === '') {
         return;
+      }
+
+      // Guarda de validade (só no auto-sync): Lichess não tem cache e re-exporta
+      // o histórico todo, então aqui evitamos re-puxar se sincronizou há pouco.
+      if (options?.maxAgeMs !== undefined) {
+        const lastSyncAt = await latestSignalObservedAt('lichess');
+        if (lastSyncAt !== undefined && Date.now() - Date.parse(lastSyncAt) < options.maxAgeMs) {
+          return;
+        }
       }
 
       setLichessConnectionState('syncing');
@@ -502,11 +542,11 @@ export function useAppState(): AppState {
     if (wantsChesscom || wantsLichess) {
       void (async () => {
         if (wantsChesscom) {
-          await runChesscomSync(nextProfile);
+          await runChesscomSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS });
         }
 
         if (wantsLichess) {
-          await runLichessSync(nextProfile);
+          await runLichessSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS });
         }
       })();
     }
