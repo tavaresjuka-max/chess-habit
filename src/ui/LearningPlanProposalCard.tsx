@@ -1,8 +1,9 @@
-import { Check, ClipboardList } from 'lucide-react';
+import { Check, ClipboardList, Flag, Route, Target } from 'lucide-react';
 import { useState } from 'react';
 import type { LearningPlanProposal, LearningPlanResponse } from '../domain';
 import { getMethodTrackTitle } from '../domain/method/methodTracks';
 import type { MethodTrackId } from '../domain/method/types';
+import { Fold } from './Fold';
 
 type LearningPlanProposalCardProps = {
   proposal: LearningPlanProposal;
@@ -72,39 +73,69 @@ export function LearningPlanProposalCard({
         </div>
       </div>
 
+      {/* Zona de decisão: fase, focos em chips e os números — o suficiente
+          para aprovar. Método e medição são contexto e vivem nas dobras. */}
       <div className="learning-plan-summary">
-        <strong>{proposal.phaseTitle}</strong>
-        {activeTrackId !== undefined ? <p>Trilha: {getMethodTrackTitle(activeTrackId)}</p> : null}
-        <ul>
+        <strong className="learning-plan-phase">
+          <Target aria-hidden="true" size={15} />
+          {proposal.phaseTitle}
+        </strong>
+        <div className="learning-plan-chips">
+          {activeTrackId !== undefined ? (
+            <span className="metric-chip learning-plan-chip-icon">
+              <Route aria-hidden="true" size={13} />
+              {getMethodTrackTitle(activeTrackId)}
+            </span>
+          ) : null}
           {proposal.focusItems.map((item) => (
-            <li key={item}>{item}</li>
+            <span key={item} className="metric-chip">
+              {item}
+            </span>
           ))}
-        </ul>
+        </div>
       </div>
 
-      <div className="method-note-panel learning-plan-method" aria-label="Método do plano">
-        <strong>Como o plano foi montado</strong>
+      <div className="learning-plan-numbers">
+        <ul className="day-stats" aria-label="Estimativa da fase">
+          <li>
+            <strong>≈{proposal.estimateHours}</strong>
+            <span>horas</span>
+          </li>
+          <li>
+            <strong>{proposal.estimateSessions}</strong>
+            <span>sessões</span>
+          </li>
+          <li>
+            <strong>{proposal.estimateMinutes}</strong>
+            <span>min cada</span>
+          </li>
+        </ul>
+        <span className="metric-chip learning-plan-chip-icon">
+          <Flag aria-hidden="true" size={13} />
+          Checkpoint: {proposal.checkpointHours}h · {proposal.checkpointSessions} sessões
+        </span>
+      </div>
+
+      <Fold concept="plano" title="Como o plano foi montado" meta={shortEvidence(proposal.evidenceLevel)}>
         <p>{proposal.methodSummary}</p>
-        <ol>
+        <ol className="learning-plan-steps">
           {proposal.methodSteps.map((step) => (
             <li key={step}>{step}</li>
           ))}
         </ol>
-      </div>
+      </Fold>
 
-      <div className="method-note-panel learning-plan-progress" aria-label="Como vamos medir progresso">
-        <strong>Como vamos medir progresso</strong>
-        <ul>
+      <Fold
+        concept="avaliacao"
+        title="Como vamos medir progresso"
+        meta={`${String(proposal.progressCriteria.length)} critérios`}
+      >
+        <ul className="learning-plan-criteria">
           {proposal.progressCriteria.map((criterion) => (
             <li key={criterion}>{criterion}</li>
           ))}
         </ul>
-      </div>
-
-      {/* caveat e reviewPrompt cortados: os botões Aprovar/Revisar já dizem o
-          que fazer, e o princípio "sem promessa de rating" vive no Progresso. */}
-      <p>{proposal.estimate}</p>
-      <p>{proposal.checkpoint}</p>
+      </Fold>
 
       {response?.status === 'approved' ? (
         <p className="learning-plan-status">
@@ -187,4 +218,9 @@ export function LearningPlanProposalCard({
 
 function formatSuggestionLabel(suggestion: string): string {
   return suggestion.replace(/^Quero /, '').replace(/\.$/, '');
+}
+
+// "Confiança: média. O tema aparece..." → "Confiança: média" (meta da dobra).
+function shortEvidence(evidenceLevel: string): string {
+  return evidenceLevel.split('.')[0] ?? evidenceLevel;
 }

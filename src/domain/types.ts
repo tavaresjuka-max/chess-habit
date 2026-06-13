@@ -92,6 +92,13 @@ export type LearningPlanProposal = {
   checkpoint: string;
   caveat: string;
   reviewPrompt: string;
+  // Números expostos para a UI destacar (sem parsear texto).
+  estimateHours: number;
+  estimateSessions: number;
+  estimateMinutes: number;
+  estimateWeeks: number;
+  checkpointHours: number;
+  checkpointSessions: number;
 };
 
 export type LichessOAuthScope = 'puzzle:read' | 'study:write';

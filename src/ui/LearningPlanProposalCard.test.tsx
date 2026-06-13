@@ -7,17 +7,23 @@ import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 
 const proposal: LearningPlanProposal = {
   heading: 'Entendi o que você precisa.',
-  intro: 'Olhei seus sinais de treino.',
+  intro: 'Olhei seus sinais — este é o caminho.',
   phaseTitle: 'Primeira fase: garfos',
-  methodSummary: 'O metodo e: observar sinais reais, treinar no Lichess e ajustar a proxima sessao.',
-  evidenceLevel: 'Confianca: media. O tema aparece como hipotese pratica.',
-  methodSteps: ['Diagnostico: sinais reais viram hipoteses.', 'Treino: repeticao ativa.'],
-  focusItems: ['Ver garfos com cavalo, bispo, peão e dama.', 'Repetir puzzles variados de garfo.'],
-  progressCriteria: ['Acertar mais puzzles de garfo na primeira tentativa.', 'Registrar feedback honesto.'],
-  estimate: 'Estimativa inicial: 30 horas, cerca de 60 sessões de 30 min.',
-  checkpoint: 'Depois de 6 horas fazemos um teste curto.',
+  methodSummary: 'Sinal → foco → treino → registro → ajuste.',
+  evidenceLevel: 'Confiança: média. O tema aparece como hipótese prática.',
+  methodSteps: ['Diagnóstico: sinais viram hipóteses.', 'Treino: conceito novo, depois puzzles variados.'],
+  focusItems: ['Garfos: cavalo, bispo, peão, dama.', 'Puzzles variados de garfo.'],
+  progressCriteria: ['Mais garfos certos na 1ª tentativa.', 'Registrar: fácil / bom / difícil.'],
+  estimate: '≈30h · 60 sessões de 30 min · ~2 semanas',
+  checkpoint: 'Checkpoint: 6h · 12 sessões — teste curto, plano ajustado.',
   caveat: 'Isso não é promessa de rating.',
   reviewPrompt: 'Você pode aprovar o plano ou pedir revisão.',
+  estimateHours: 30,
+  estimateSessions: 60,
+  estimateMinutes: 30,
+  estimateWeeks: 2,
+  checkpointHours: 6,
+  checkpointSessions: 12,
 };
 
 afterEach(() => {
@@ -40,10 +46,13 @@ describe('LearningPlanProposalCard', () => {
     expect(screen.getByText('Entendi o que você precisa.')).toBeInTheDocument();
     expect(screen.getByText('Primeira fase: garfos')).toBeInTheDocument();
     expect(screen.getByText('Como o plano foi montado')).toBeInTheDocument();
-    expect(screen.getByText(/observar sinais reais/)).toBeInTheDocument();
+    expect(screen.getByText('Sinal → foco → treino → registro → ajuste.')).toBeInTheDocument();
     expect(screen.getByText('Como vamos medir progresso')).toBeInTheDocument();
-    expect(screen.getByText('Acertar mais puzzles de garfo na primeira tentativa.')).toBeInTheDocument();
-    expect(screen.getByText(/60 sessões de 30 min/)).toBeInTheDocument();
+    expect(screen.getByText('Mais garfos certos na 1ª tentativa.')).toBeInTheDocument();
+    // Números da estimativa renderizados como destaque, não como frase.
+    expect(screen.getByText('≈30')).toBeInTheDocument();
+    expect(screen.getByText('60')).toBeInTheDocument();
+    expect(screen.getByText(/Checkpoint: 6h · 12 sessões/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Aprovar plano' }));
 

@@ -2200,6 +2200,8 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 }
 
 .fold-title {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-family: var(--font-display);
   font-size: 1rem;
@@ -2267,6 +2269,66 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 
 .block-line.stop-rule > svg {
   color: var(--gold-600);
+}
+
+/* ---------- Proposta de plano: zona de decisão visual ---------- */
+
+.learning-plan-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.learning-plan-phase > svg {
+  color: var(--green-600);
+  flex-shrink: 0;
+}
+
+.learning-plan-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.learning-plan-chip-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.learning-plan-chip-icon > svg {
+  color: var(--gold-700);
+  flex-shrink: 0;
+}
+
+.learning-plan-numbers {
+  display: grid;
+  gap: 8px;
+}
+
+.learning-plan-numbers .day-stats {
+  margin: 0;
+  width: 100%;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.learning-plan-numbers > .metric-chip {
+  justify-self: start;
+}
+
+.learning-plan-card .fold {
+  margin-bottom: 0;
+}
+
+.learning-plan-steps,
+.learning-plan-criteria {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: var(--ink-600);
 }
 
 /* ---------- Mobile ---------- */

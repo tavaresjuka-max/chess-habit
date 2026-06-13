@@ -40,17 +40,20 @@ describe('buildLearningPlanProposal', () => {
 
     expect(proposal.heading).toBe('Entendi o que você precisa.');
     expect(proposal.phaseTitle).toBe('Primeira fase: garfos');
-    expect(proposal.methodSummary).toContain('observar sinais reais');
+    expect(proposal.methodSummary).toBe('Sinal → foco → treino → registro → ajuste.');
     expect(proposal.evidenceLevel).toContain('Confiança: média');
-    expect(proposal.methodSteps).toContain(
-      'Treino: conceito guiado quando o tema é novo, depois recuperação ativa em puzzles variados.',
-    );
-    expect(proposal.focusItems).toContain('Ver garfos com cavalo, bispo, peão e dama.');
-    expect(proposal.progressCriteria).toContain('Acertar mais puzzles de garfo na primeira tentativa.');
-    expect(proposal.estimate).toContain('30 horas');
+    expect(proposal.methodSteps).toContain('Treino: conceito novo, depois puzzles variados.');
+    expect(proposal.focusItems).toContain('Garfos: cavalo, bispo, peão, dama.');
+    expect(proposal.progressCriteria).toContain('Mais garfos certos na 1ª tentativa.');
+    expect(proposal.estimate).toContain('≈30h');
     expect(proposal.estimate).toContain('60 sessões de 30 min');
-    expect(proposal.checkpoint).toContain('Depois de 6 horas');
+    expect(proposal.checkpoint).toContain('Checkpoint: 6h');
     expect(proposal.checkpoint).toContain('12 sessões');
+    expect(proposal.estimateHours).toBe(30);
+    expect(proposal.estimateSessions).toBe(60);
+    expect(proposal.estimateMinutes).toBe(30);
+    expect(proposal.checkpointHours).toBe(6);
+    expect(proposal.checkpointSessions).toBe(12);
     expect(proposal.reviewPrompt).toContain('aprovar o plano');
     expect(proposal.reviewPrompt).toContain('pedir revisão');
     expect(proposal.caveat).toContain('não é promessa de rating');
@@ -65,9 +68,9 @@ describe('buildLearningPlanProposal', () => {
       weaknesses: [],
     });
 
-    expect(proposal.intro).toContain('faltam dados reais suficientes');
+    expect(proposal.intro).toContain('Poucos dados ainda');
     expect(proposal.evidenceLevel).toContain('Confiança: inicial');
-    expect(proposal.progressCriteria).toContain('Registrar feedback honesto: fácil, bom ou difícil.');
+    expect(proposal.progressCriteria).toContain('Registrar: fácil / bom / difícil.');
     expect(proposal.estimate).toContain('120 sessões de 15 min');
     expect(proposal.caveat).not.toContain('vai subir');
   });
