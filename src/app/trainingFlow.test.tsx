@@ -106,7 +106,8 @@ describe('training flow', () => {
 
       expect(plan?.learningPlanResponse?.status).toBe('approved');
     });
-    expect(screen.getByText(/Plano aprovado/)).toBeTruthy();
+    // Plano aprovado vira uma dobra compacta — o selo "✓ aprovado" confirma.
+    expect(screen.getByText('✓ aprovado')).toBeTruthy();
   });
 
   it('stores a revision request for the Professor Lemos learning plan proposal', async () => {
@@ -399,7 +400,7 @@ describe('training flow', () => {
     vi.stubGlobal('fetch', fetchMock);
     render(<App />);
 
-    fireEvent.click(await screen.findByText('Diagnóstico'));
+    fireEvent.click(await screen.findByText('Sincronizar e estudar'));
     fireEvent.click(screen.getByRole('button', { name: 'Atualizar Lichess' }));
 
     expect(await screen.findByText(/Lichess atualizado com/i)).toBeTruthy();
@@ -486,8 +487,8 @@ describe('training flow', () => {
   it('asks for Lichess connection before creating a Study', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText('Diagnóstico'));
-    fireEvent.click(screen.getByRole('button', { name: 'Gerar Study' }));
+    fireEvent.click(await screen.findByText('Sincronizar e estudar'));
+    fireEvent.click(screen.getByRole('button', { name: 'Gerar Study do dia' }));
 
     expect(await screen.findByText('Conecte o Lichess para criar o Study do dia.')).toBeTruthy();
   });

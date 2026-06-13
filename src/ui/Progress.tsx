@@ -1,4 +1,3 @@
-import { ConceptSeal } from './art/ConceptSeal';
 import {
   buildEfficacyBaseline,
   buildProgressTrend,
@@ -15,6 +14,7 @@ import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
 import type { DiplomaAttempt } from '../domain/method/types';
 import { DiplomaSeal } from './art/DiplomaSeal';
 import { MedalhaIcon } from './art/MedalhaIcon';
+import { Fold } from './Fold';
 
 type ProgressProps = {
   today: string;
@@ -43,6 +43,9 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
   const skillMap = buildSkillMap(allTrainingLogs).slice(0, maxSkillRows);
   const trackEffort = buildTrackEffort(allTrainingLogs);
   const baseline = buildEfficacyBaseline({ allLogs: allTrainingLogs, signals, today });
+  const diplomasAchieved = DIPLOMAS.filter(
+    (diploma) => getDiplomaProgress(diplomaAttempts, diploma.id)?.overallPassed === true,
+  ).length;
 
   return (
     <section aria-labelledby="progress-title" className="panel">
@@ -53,10 +56,13 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
         </div>
       </div>
 
-      <section className="progress-section" aria-labelledby="progress-trend-title">
-        <h2 id="progress-trend-title">
-          <ConceptSeal concept="ritmo" size={26} /> Ritmo
-        </h2>
+      {/* Tudo recolhido: o aluno abre só o que quer ver — mesma lógica do Hoje. */}
+      <Fold
+        concept="ritmo"
+        title="Ritmo"
+        defaultOpen
+        {...(trend !== undefined ? { meta: `${String(trend.thisWeekMinutes)} min` } : {})}
+      >
         {trend !== undefined ? (
           <>
             <div className="weekly-report-metrics">
@@ -85,12 +91,13 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
             <p>Sem treinos ainda. A primeira sessão ativa este painel.</p>
           </div>
         )}
-      </section>
+      </Fold>
 
-      <section className="progress-section" aria-labelledby="progress-skills-title">
-        <h2 id="progress-skills-title">
-          <ConceptSeal concept="habilidades" size={26} /> Habilidades por tema
-        </h2>
+      <Fold
+        concept="habilidades"
+        title="Habilidades por tema"
+        {...(skillMap.length > 0 ? { meta: `${String(skillMap.length)} temas` } : {})}
+      >
         {skillMap.length > 0 ? (
           <ul className="skill-map" aria-label="Taxa de acerto por tema de puzzle">
             {skillMap.map((entry) => (
@@ -114,12 +121,13 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
         ) : (
           <p>Sem placar por tema ainda. Conclua blocos de puzzle e use “Conferir puzzles”.</p>
         )}
-      </section>
+      </Fold>
 
-      <section className="progress-section" aria-labelledby="progress-effort-title">
-        <h2 id="progress-effort-title">
-          <ConceptSeal concept="trilha" size={26} /> Esforço por trilha
-        </h2>
+      <Fold
+        concept="trilha"
+        title="Esforço por trilha"
+        {...(trackEffort.length > 0 ? { meta: `${String(trackEffort.length)} trilhas` } : {})}
+      >
         {trackEffort.length > 0 ? (
           <ul className="track-effort" aria-label="Minutos de treino por trilha do método">
             {trackEffort.map((entry) => (
@@ -134,12 +142,9 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
         ) : (
           <p>O esforço por trilha aparece aqui depois dos primeiros blocos concluídos.</p>
         )}
-      </section>
+      </Fold>
 
-      <section className="progress-section" aria-labelledby="progress-diplomas-title">
-        <h2 id="progress-diplomas-title">
-          <ConceptSeal concept="plano" size={26} /> Diplomas
-        </h2>
+      <Fold concept="plano" title="Diplomas" meta={`${String(diplomasAchieved)}/${String(DIPLOMAS.length)}`}>
         <ul className="diploma-progress" aria-label="Progresso nos diplomas do método">
           {DIPLOMAS.map((diploma) => {
             const progress = getDiplomaProgress(diplomaAttempts, diploma.id);
@@ -174,13 +179,10 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
             );
           })}
         </ul>
-      </section>
+      </Fold>
 
       {achievements.length > 0 ? (
-        <section className="progress-section" aria-labelledby="progress-achievements-title">
-          <h2 id="progress-achievements-title">
-            <ConceptSeal concept="conquistas" size={26} /> Conquistas
-          </h2>
+        <Fold concept="conquistas" title="Conquistas" meta={String(achievements.length)}>
           <ul className="achievement-list" aria-label="Conquistas de esforço e hábito">
             {achievements.map((achievement) => {
               const definition = getAchievementDefinition(achievement.id);
@@ -199,13 +201,10 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
               );
             })}
           </ul>
-        </section>
+        </Fold>
       ) : null}
 
-      <section className="progress-section" aria-labelledby="progress-baseline-title">
-        <h2 id="progress-baseline-title">
-          <ConceptSeal concept="linha-base" size={26} /> Linha de base do método
-        </h2>
+      <Fold concept="linha-base" title="Linha de base do método">
         <div className="weekly-report-metrics">
           {baseline.overallPuzzleAccuracyPercent !== undefined ? (
             <span className="metric-chip">
@@ -223,13 +222,10 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
           ) : null}
         </div>
         <p className="config-hint">Medem o método, não você. Revisão em julho de 2026.</p>
-      </section>
+      </Fold>
 
       {weaknesses.length > 0 ? (
-        <section className="progress-section" aria-labelledby="progress-weakness-title">
-          <h2 id="progress-weakness-title">
-            <ConceptSeal concept="trava" size={26} /> Onde ainda trava
-          </h2>
+        <Fold concept="trava" title="Onde ainda trava" meta={String(Math.min(weaknesses.length, 5))}>
           <ul className="track-effort" aria-label="Hipóteses de fraqueza atuais">
             {weaknesses
               .slice()
@@ -243,7 +239,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
               ))}
           </ul>
           <p className="config-hint">Hipóteses, não diagnósticos — sinais antigos saem da conta.</p>
-        </section>
+        </Fold>
       ) : null}
     </section>
   );

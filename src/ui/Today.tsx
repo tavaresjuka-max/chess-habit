@@ -30,7 +30,6 @@ import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
 import { getMethodTrackTitle } from '../domain/method/methodTracks';
 import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
-import { ConceptSeal } from './art/ConceptSeal';
 import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
@@ -205,6 +204,7 @@ export function Today({
     sessionMinutes,
     weaknesses,
   });
+  const planApproved = plan.learningPlanResponse?.status === 'approved';
 
   return (
     <section aria-labelledby="today-title" className="panel today-panel">
@@ -280,15 +280,17 @@ export function Today({
       ) : null}
 
       {/* Ordem narrativa: o professor explica o plano ("Entendi o que você
-          precisa") e cobra o que ficou aberto ANTES do próximo passo —
-          a proposta e as pendências só aparecem quando exigem ação. */}
-      <LearningPlanProposalCard
-        proposal={learningPlanProposal}
-        response={plan.learningPlanResponse}
-        activeTrackId={activeTrackId}
-        onApprovePlan={onApproveLearningPlan}
-        onRequestPlanRevision={onRequestLearningPlanRevision}
-      />
+          precisa") e cobra o que ficou aberto ANTES do próximo passo. Depois
+          de aprovado, o plano sai daqui e vira uma dobra no fim (abaixo). */}
+      {!planApproved ? (
+        <LearningPlanProposalCard
+          proposal={learningPlanProposal}
+          response={plan.learningPlanResponse}
+          activeTrackId={activeTrackId}
+          onApprovePlan={onApproveLearningPlan}
+          onRequestPlanRevision={onRequestLearningPlanRevision}
+        />
+      ) : null}
 
       <PendingReviewCard
         pendingItems={pendingItems}
@@ -397,6 +399,17 @@ export function Today({
         </Fold>
       ) : null}
 
+      {/* Plano já aprovado: dobra compacta de referência, fora do caminho. */}
+      {planApproved ? (
+        <LearningPlanProposalCard
+          proposal={learningPlanProposal}
+          response={plan.learningPlanResponse}
+          activeTrackId={activeTrackId}
+          onApprovePlan={onApproveLearningPlan}
+          onRequestPlanRevision={onRequestLearningPlanRevision}
+        />
+      ) : null}
+
       <section className="next-session" aria-label="Próxima sessão">
         <div className="session-actions">
           <label className="compact-field">
@@ -503,66 +516,73 @@ export function Today({
         </Fold>
       ) : null}
 
-      <details className="diagnosis-details">
-        <summary>
-          <ConceptSeal concept="lichess" size={22} /> Diagnóstico
-        </summary>
+      <Fold concept="lichess" title="Sincronizar e estudar">
         <div className="diagnosis-strip" aria-live="polite">
-          <div className="diagnosis-actions">
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={diagnosisState === 'syncing'}
-              onClick={() => {
-                void onSyncChesscomDiagnosis();
-              }}
-            >
-              <RefreshCw aria-hidden="true" size={16} />
-              {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
-            </button>
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={lichessConnectionState === 'syncing'}
-              onClick={() => {
-                void onSyncLichessDiagnosis();
-              }}
-            >
-              <RefreshCw aria-hidden="true" size={16} />
-              {lichessConnectionState === 'syncing' ? 'Lichess...' : 'Atualizar Lichess'}
-            </button>
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={lichessConnectionState === 'syncing'}
-              onClick={() => {
-                void onReconcileLichessResults();
-              }}
-            >
-              Reconciliar puzzles
-            </button>
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={lichessConnectionState === 'syncing'}
-              onClick={() => {
-                void onCreateLichessStudy();
-              }}
-            >
-              Gerar Study
-            </button>
+          <div className="diagnosis-group">
+            <p className="config-hint">
+              Puxa suas partidas recentes — o professor usa para achar onde você trava.
+            </p>
+            <div className="diagnosis-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={diagnosisState === 'syncing'}
+                onClick={() => {
+                  void onSyncChesscomDiagnosis();
+                }}
+              >
+                <RefreshCw aria-hidden="true" size={16} />
+                {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={lichessConnectionState === 'syncing'}
+                onClick={() => {
+                  void onSyncLichessDiagnosis();
+                }}
+              >
+                <RefreshCw aria-hidden="true" size={16} />
+                {lichessConnectionState === 'syncing' ? 'Lichess...' : 'Atualizar Lichess'}
+              </button>
+            </div>
           </div>
+
+          <div className="diagnosis-group">
+            <p className="config-hint">
+              Reúne os exercícios do dia num tabuleiro só, dentro do Lichess. Útil para treinar sem
+              pular entre links.
+            </p>
+            <div className="diagnosis-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={lichessConnectionState === 'syncing'}
+                onClick={() => {
+                  void onCreateLichessStudy();
+                }}
+              >
+                Gerar Study do dia
+              </button>
+              {lichessStudyLink !== undefined ? (
+                <a
+                  className="button-link secondary-link"
+                  href={lichessStudyLink.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Abrir Study do dia
+                </a>
+              ) : null}
+            </div>
+          </div>
+
           <div className="diagnosis-messages">
             {diagnosisMessage !== undefined ? <p>{diagnosisMessage}</p> : null}
             {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
-            {lichessStudyLink !== undefined ? (
-              <a className="button-link secondary-link" href={lichessStudyLink.url} target="_blank" rel="noreferrer">
-                Abrir Study do dia
-              </a>
-            ) : null}
           </div>
         </div>
-      </details>
+      </Fold>
       </aside>
       </div>
     </section>

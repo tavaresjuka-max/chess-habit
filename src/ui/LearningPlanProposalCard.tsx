@@ -63,18 +63,8 @@ export function LearningPlanProposalCard({
     });
   }
 
-  return (
-    <section className="learning-plan-card" aria-labelledby="learning-plan-title">
-      <div className="learning-plan-heading">
-        <ClipboardList aria-hidden="true" size={18} />
-        <div>
-          <h2 id="learning-plan-title">{proposal.heading}</h2>
-          <p>{proposal.intro}</p>
-        </div>
-      </div>
-
-      {/* Zona de decisão: fase, focos em chips e os números — o suficiente
-          para aprovar. Método e medição são contexto e vivem nas dobras. */}
+  const planChips = (
+    <>
       <div className="learning-plan-summary">
         <strong className="learning-plan-phase">
           <Target aria-hidden="true" size={15} />
@@ -115,6 +105,44 @@ export function LearningPlanProposalCard({
           Checkpoint: {proposal.checkpointHours}h · {proposal.checkpointSessions} sessões
         </span>
       </div>
+    </>
+  );
+
+  // Plano aprovado: sai do caminho. Vira uma dobra compacta no fim da tela —
+  // confirmação + referência rápida (chips e números) + opção de revisar.
+  if (response?.status === 'approved' && !isReviewing) {
+    return (
+      <Fold concept="plano" title="Plano de hoje" meta="✓ aprovado">
+        {planChips}
+        <div className="button-row">
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={isSaving}
+            onClick={() => {
+              setIsReviewing(true);
+            }}
+          >
+            Revisar plano
+          </button>
+        </div>
+      </Fold>
+    );
+  }
+
+  return (
+    <section className="learning-plan-card" aria-labelledby="learning-plan-title">
+      <div className="learning-plan-heading">
+        <ClipboardList aria-hidden="true" size={18} />
+        <div>
+          <h2 id="learning-plan-title">{proposal.heading}</h2>
+          <p>{proposal.intro}</p>
+        </div>
+      </div>
+
+      {/* Zona de decisão: fase, focos em chips e os números — o suficiente
+          para aprovar. Método e medição são contexto e vivem nas dobras. */}
+      {planChips}
 
       <Fold concept="plano" title="Como o plano foi montado" meta={shortEvidence(proposal.evidenceLevel)}>
         <p>{proposal.methodSummary}</p>

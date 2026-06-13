@@ -5,7 +5,7 @@ import { createDefaultProfile, type LichessConnectionState } from '../app/state'
 import type { BackupImportResult, StoredPlacementResult } from '../infra/storage/appData';
 import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthToken, type SessionMinutes } from '../domain';
 import { describeAutoBackupStatus, type AutoBackupStatus } from '../infra/storage/autoBackup';
-import { ConceptSeal } from './art/ConceptSeal';
+import { Fold } from './Fold';
 import { PlacementCard } from './PlacementCard';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
@@ -134,18 +134,17 @@ export function Config({
         </button>
       ) : null}
       <h1 id="config-title">Configuração</h1>
-      <form
-        className="form-grid"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void handleSubmit();
-        }}
-      >
-        <section className="config-section" aria-labelledby="config-essential-title">
-          <h2 id="config-essential-title">
-            <ConceptSeal concept="essencial" size={26} /> Essencial
-          </h2>
 
+      {/* Mesma lógica do Hoje e do Progresso: cada seção é uma dobra. O
+          essencial abre direto; o resto expande quando o aluno quiser. */}
+      <Fold concept="essencial" title="Essencial" defaultOpen>
+        <form
+          className="form-grid"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSubmit();
+          }}
+        >
           <label className="field">
             <span>Usuário Lichess</span>
             <input
@@ -209,12 +208,14 @@ export function Config({
           <div className="button-row">
             <button type="submit">Salvar</button>
           </div>
-        </section>
-      </form>
+        </form>
+      </Fold>
 
-      <PlacementCard
-        currentBand={band}
-        onApplyBand={async (placement) => {
+      <Fold concept="avaliacao" title="Avaliação de entrada">
+        <PlacementCard
+          hideHeading
+          currentBand={band}
+          onApplyBand={async (placement) => {
           setBand(placement.band);
           // Perfil primeiro: a faixa aplicada é o dado essencial. Se o registro
           // do placement falhar depois, o perfil já está coerente e a conquista
@@ -233,47 +234,41 @@ export function Config({
             calibrated: placement.calibrated,
             completedAt: new Date().toISOString(),
           });
-        }}
-      />
+          }}
+        />
+      </Fold>
 
-      <section
-        className="config-section connection-box"
-        aria-labelledby="lichess-connection-title"
-        aria-live="polite"
-      >
-        <h2 id="lichess-connection-title">
-          <ConceptSeal concept="lichess" size={26} /> Lichess <span className="optional-tag">opcional</span>
-        </h2>
-        <p className="config-hint">Conectar sincroniza puzzles e cria o Study do dia.</p>
-        <p>{formatLichessConnection(lichessToken, lichessConnectionState)}</p>
-        {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
-        <div className="button-row">
-          <button
-            type="button"
-            disabled={lichessConnectionState === 'syncing'}
-            onClick={() => {
-              void onConnectLichess();
-            }}
-          >
-            {lichessToken === undefined ? 'Conectar Lichess' : 'Reconectar Lichess'}
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={lichessToken === undefined || lichessConnectionState === 'syncing'}
-            onClick={() => {
-              void onDisconnectLichess();
-            }}
-          >
-            Remover conexão
-          </button>
+      <Fold concept="lichess" title="Lichess" meta="opcional">
+        <div className="connection-box" aria-live="polite">
+          <p className="config-hint">Conectar sincroniza puzzles e cria o Study do dia.</p>
+          <p>{formatLichessConnection(lichessToken, lichessConnectionState)}</p>
+          {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
+          <div className="button-row">
+            <button
+              type="button"
+              disabled={lichessConnectionState === 'syncing'}
+              onClick={() => {
+                void onConnectLichess();
+              }}
+            >
+              {lichessToken === undefined ? 'Conectar Lichess' : 'Reconectar Lichess'}
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={lichessToken === undefined || lichessConnectionState === 'syncing'}
+              onClick={() => {
+                void onDisconnectLichess();
+              }}
+            >
+              Remover conexão
+            </button>
+          </div>
         </div>
-      </section>
+      </Fold>
 
-      <section className="config-section data-zone" aria-labelledby="config-data-title">
-        <h2 id="config-data-title">
-          <ConceptSeal concept="dados" size={26} /> Dados locais
-        </h2>
+      <Fold concept="dados" title="Dados locais">
+        <div className="data-zone">
         {storagePersistence !== undefined ? (
           <p aria-live="polite">{describePersistenceStatus(storagePersistence)}</p>
         ) : null}
@@ -337,8 +332,8 @@ export function Config({
             Apagar tudo
           </button>
         </div>
-      </section>
-
+        </div>
+      </Fold>
     </section>
   );
 }

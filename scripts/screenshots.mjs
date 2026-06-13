@@ -40,12 +40,12 @@ for (const setup of SETUPS) {
   await page.screenshot({ path: `${OUT}/${setup.name}-hoje.png`, fullPage: true });
 
   await page.getByRole('button', { name: 'Progresso' }).click();
-  await page.waitForSelector('.progress-section', { timeout: 10_000 });
+  await page.waitForSelector('.fold', { timeout: 10_000 });
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT}/${setup.name}-progresso.png`, fullPage: true });
 
   await page.getByRole('button', { name: 'Config' }).click();
-  await page.waitForSelector('.config-section', { timeout: 10_000 });
+  await page.waitForSelector('.fold', { timeout: 10_000 });
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT}/${setup.name}-config.png`, fullPage: true });
 

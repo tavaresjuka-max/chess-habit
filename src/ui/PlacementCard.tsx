@@ -24,6 +24,8 @@ export type PlacementApplication = {
 type PlacementCardProps = {
   currentBand: LearnerBand;
   onApplyBand: (placement: PlacementApplication) => Promise<void>;
+  // Dentro de um Fold o título vem do summary da dobra — sem h2 duplicado.
+  hideHeading?: boolean;
 };
 
 type PlacementStep = 'idle' | 'questions' | 'result';
@@ -57,7 +59,10 @@ const calibrationOptions: { value: PlacementCalibrationReport; label: string }[]
   { value: 'quase-nenhum', label: 'Acertei quase nenhum' },
 ];
 
-export function PlacementCard({ currentBand, onApplyBand }: PlacementCardProps) {
+export function PlacementCard({ currentBand, onApplyBand, hideHeading = false }: PlacementCardProps) {
+  const sectionAria = hideHeading
+    ? { 'aria-label': 'Avaliação de entrada' }
+    : { 'aria-labelledby': 'placement-title' };
   const [step, setStep] = useState<PlacementStep>('idle');
   const [experience, setExperience] = useState<PlacementExperience | undefined>(undefined);
   const [tactics, setTactics] = useState<PlacementTactics | undefined>(undefined);
@@ -105,10 +110,12 @@ export function PlacementCard({ currentBand, onApplyBand }: PlacementCardProps) 
 
   if (step === 'idle') {
     return (
-      <section className="config-section" aria-labelledby="placement-title">
-        <h2 id="placement-title">
-          <ConceptSeal concept="avaliacao" size={26} /> Avaliação de entrada
-        </h2>
+      <section className="config-section" {...sectionAria}>
+        {hideHeading ? null : (
+          <h2 id="placement-title">
+            <ConceptSeal concept="avaliacao" size={26} /> Avaliação de entrada
+          </h2>
+        )}
         <p className="config-hint">
           Três perguntas rápidas para achar sua faixa. Atual: {currentBand}.
         </p>
@@ -128,8 +135,8 @@ export function PlacementCard({ currentBand, onApplyBand }: PlacementCardProps) 
 
   if (step === 'questions') {
     return (
-      <section className="config-section" aria-labelledby="placement-title">
-        <h2 id="placement-title">Avaliação de entrada</h2>
+      <section className="config-section" {...sectionAria}>
+        {hideHeading ? null : <h2 id="placement-title">Avaliação de entrada</h2>}
 
         <fieldset className="field">
           <legend>Qual é a sua experiência com xadrez?</legend>
@@ -220,8 +227,8 @@ export function PlacementCard({ currentBand, onApplyBand }: PlacementCardProps) 
   }
 
   return (
-    <section className="config-section" aria-labelledby="placement-title" aria-live="polite">
-      <h2 id="placement-title">Avaliação de entrada</h2>
+    <section className="config-section" aria-live="polite" {...sectionAria}>
+      {hideHeading ? null : <h2 id="placement-title">Avaliação de entrada</h2>}
       {result !== undefined ? (
         <>
           <p>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ConceptSeal, type ConceptId } from './art/ConceptSeal';
 
 type FoldProps = {
@@ -11,20 +11,19 @@ type FoldProps = {
 
 // Dobra do caderno: a seção abre fechada — só o selo, o título e um número.
 // Expande no lugar (details nativo), sem carregar nada novo.
-// O estado aberto/fechado é do usuário: aplicamos defaultOpen uma única vez
-// via ref para o re-render (ex.: tick do timer) não desfazer o toque.
+// O estado aberto/fechado é do usuário: defaultOpen vale só na montagem,
+// e re-renders (ex.: tick do timer) não desfazem o toque.
 export function Fold({ concept, title, meta, defaultOpen = false, children }: FoldProps) {
-  const ref = useRef<HTMLDetailsElement>(null);
-
-  useEffect(() => {
-    if (defaultOpen && ref.current !== null) {
-      ref.current.open = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na montagem
-  }, []);
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <details ref={ref} className="fold">
+    <details
+      className="fold"
+      open={open}
+      onToggle={(event) => {
+        setOpen(event.currentTarget.open);
+      }}
+    >
       <summary className="fold-summary">
         <ConceptSeal concept={concept} size={26} />
         <h2 className="fold-title">{title}</h2>
