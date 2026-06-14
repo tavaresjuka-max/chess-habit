@@ -31,7 +31,7 @@
   /* Âmbar (pendências, fechamento do dia) */
   --gold-700: #604812;
   --gold-600: #7a5b16;
-  --gold-300: #d6c48b;
+  --gold-300: #9f8540;
   --gold-100: #f5ecd2;
   --gold-050: #fffdf2;
 
@@ -39,7 +39,7 @@
   --slate-800: #243b53;
   --slate-700: #2e4b67;
   --slate-500: #2e6f95;
-  --slate-200: #c7d5df;
+  --slate-200: #708da1;
   --slate-100: #dce7ef;
   --slate-050: #fbfdff;
 
@@ -54,8 +54,8 @@
   --danger-600: #9d3d37;
 
   /* Bordas e linhas */
-  --line: #d9d4c6;
-  --line-soft: #e6e2d6;
+  --line: #8c836f;
+  --line-soft: #938a75;
 
   /* Derivados semanticos */
   --gold-900: #463b16;
@@ -1941,14 +1941,14 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     --gold-900: #ead9a8;
     --gold-700: #d9bf7e;
     --gold-600: #c8ad69;
-    --gold-300: #6b5a2a;
+    --gold-300: #82703b;
     --gold-100: #4a3f1e;
     --gold-050: #221d10;
 
     --slate-800: #c4d6e6;
     --slate-700: #a8c2d8;
     --slate-500: #5c97bd;
-    --slate-200: #32465a;
+    --slate-200: #617c93;
     --slate-100: #263646;
     --slate-050: #161f28;
 
@@ -1961,8 +1961,8 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     --danger-600: #b25049;
     --danger-700: #8f3b35;
 
-    --line: #36403a;
-    --line-soft: #2a332d;
+    --line: #69756c;
+    --line-soft: #68736a;
 
     --milestone-done: #4fae74;
     --milestone-line: #4a6377;
@@ -2363,6 +2363,8 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   }
 
   .top-nav {
+    gap: 8px;
+    padding: 8px;
     top: 8px;
   }
 
@@ -2375,9 +2377,10 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   }
 
   .nav-button {
+    min-height: 44px;
     padding: 0 8px;
-    font-size: 0.88rem;
-    letter-spacing: -0.01em;
+    font-size: 0.875rem;
+    letter-spacing: 0;
   }
 
   .nav-button > svg {
@@ -2391,6 +2394,56 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   input,
   select {
     min-height: 44px;
+  }
+
+  .button-row,
+  .diagnosis-actions,
+  .diagnosis-messages,
+  .learning-plan-chips {
+    gap: 12px;
+  }
+
+  .fold {
+    margin-bottom: 16px;
+  }
+
+  .fold-summary {
+    min-height: 44px;
+  }
+
+  .fold-summary::after,
+  .fold-meta,
+  .status-pill,
+  .day-stats span,
+  .hero-now-label,
+  .field-hint {
+    font-size: 0.875rem;
+  }
+
+  .fold-title,
+  .fold-meta,
+  .field-hint {
+    line-height: 1.35;
+  }
+
+  .status-pill {
+    padding: 5px 10px;
+  }
+
+  .hero-now {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .plan-block,
+  .hero-now .plan-block,
+  .tutor-card,
+  .learning-plan-card,
+  .pending-review-card,
+  .session-milestones-card,
+  .curriculum-card,
+  .weekly-report {
+    padding: 18px;
   }
 
   .top-nav,

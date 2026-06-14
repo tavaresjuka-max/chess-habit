@@ -1,0 +1,23 @@
+[
+  {
+    "screen": "hoje",
+    "viewportWidth": 390,
+    "overflow": [],
+    "smallText": [],
+    "interactive": []
+  },
+  {
+    "screen": "progresso",
+    "viewportWidth": 390,
+    "overflow": [],
+    "smallText": [],
+    "interactive": []
+  },
+  {
+    "screen": "config",
+    "viewportWidth": 390,
+    "overflow": [],
+    "smallText": [],
+    "interactive": []
+  }
+]

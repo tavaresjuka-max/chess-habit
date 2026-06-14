@@ -1,0 +1,143 @@
+[
+  {
+    "screen": "hoje",
+    "viewportWidth": 390,
+    "overflow": [],
+    "smallText": [
+      {
+        "selector": "span",
+        "text": "blocos",
+        "fontSize": "12.48px"
+      },
+      {
+        "selector": "span",
+        "text": "min hoje",
+        "fontSize": "12.48px"
+      },
+      {
+        "selector": "h2.hero-now-label",
+        "text": "PRÓXIMO PASSO",
+        "fontSize": "13.76px"
+      },
+      {
+        "selector": "span.status-pill.status-pending",
+        "text": "Pendente",
+        "fontSize": "12.48px"
+      },
+      {
+        "selector": "span.fold-meta",
+        "text": "0/2 blocos",
+        "fontSize": "13.12px"
+      },
+      {
+        "selector": "span.fold-meta",
+        "text": "4 passos",
+        "fontSize": "13.12px"
+      },
+      {
+        "selector": "span.fold-meta",
+        "text": "0%",
+        "fontSize": "13.12px"
+      },
+      {
+        "selector": "span.fold-meta",
+        "text": "conectar",
+        "fontSize": "13.12px"
+      }
+    ],
+    "interactive": [
+      {
+        "selector": "button.nav-button.nav-button-active",
+        "text": "Hoje",
+        "width": 101,
+        "height": 36
+      },
+      {
+        "selector": "button.nav-button",
+        "text": "Progresso",
+        "width": 101,
+        "height": 36
+      },
+      {
+        "selector": "button.nav-button",
+        "text": "Config",
+        "width": 101,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "screen": "progresso",
+    "viewportWidth": 390,
+    "overflow": [],
+    "smallText": [
+      {
+        "selector": "span.fold-meta",
+        "text": "0/3",
+        "fontSize": "13.12px"
+      }
+    ],
+    "interactive": [
+      {
+        "selector": "button.nav-button",
+        "text": "Hoje",
+        "width": 101,
+        "height": 36
+      },
+      {
+        "selector": "button.nav-button.nav-button-active",
+        "text": "Progresso",
+        "width": 101,
+        "height": 36
+      },
+      {
+        "selector": "button.nav-button",
+        "text": "Config",
+        "width": 101,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "screen": "config",
+    "viewportWidth": 390,
+    "overflow": [],
+    "smallText": [
+      {
+        "selector": "small.field-hint",
+        "text": "Só dados públicos, sem login. O diagnóstico atualiza na tela Hoje.",
+        "fontSize": "13.3333px"
+      },
+      {
+        "selector": "small.field-hint",
+        "text": "Organiza o curso — não é nota. Na dúvida, faça a avaliação abaixo.",
+        "fontSize": "13.3333px"
+      },
+      {
+        "selector": "span.fold-meta",
+        "text": "opcional",
+        "fontSize": "13.12px"
+      }
+    ],
+    "interactive": [
+      {
+        "selector": "button.nav-button",
+        "text": "Hoje",
+        "width": 101,
+        "height": 36
+      },
+      {
+        "selector": "button.nav-button",
+        "text": "Progresso",
+        "width": 101,
+        "height": 36
+      },
+      {
+        "selector": "button.nav-button.nav-button-active",
+        "text": "Config",
+        "width": 101,
+        "height": 36
+      }
+    ]
+  }
+]
