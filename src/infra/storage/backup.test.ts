@@ -6,6 +6,7 @@ import {
   countBackupRecords,
   createBackupFile,
   parseBackupFile,
+  validateBackupData,
   type BackupData,
 } from './backup';
 
@@ -83,5 +84,82 @@ describe('backup file format', () => {
     };
 
     expect(countBackupRecords(data)).toBe(6);
+  });
+
+});
+
+describe('validateBackupData', () => {
+  it('returns null for a valid backup with populated tables', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      profile: [{ id: 'default', band: '800-1000', updatedAt: '2026-06-01T00:00:00.000Z' }],
+      plans: [{ id: 'p1', date: '2026-06-01', blocks: [] }],
+      logs: [{ id: 'l1', startedAt: '2026-06-01T10:00:00.000Z', elapsedSeconds: 30 }],
+      signals: [{ id: 's1', kind: 'weakness' }],
+      weaknesses: [{ id: 'w1', tag: 'fork' }],
+      achievements: [{ id: 'primeira-hora', unlockedAt: '2026-06-01T00:00:00.000Z', updatedAt: '2026-06-01T00:00:00.000Z' }],
+      placementResults: [{ id: 'latest', band: '800-1000' }],
+    };
+
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  it('rejects plans item missing date', () => {
+    const data: BackupData = { ...createEmptyData(), plans: [{ blocks: [] }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('plans');
+    expect(error).toContain('date');
+  });
+
+  it('rejects plans item with date in wrong format', () => {
+    const data: BackupData = { ...createEmptyData(), plans: [{ date: '01/06/2026', blocks: [] }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('plans');
+    expect(error).toContain('date');
+  });
+
+  it('rejects signals item where kind is not a string', () => {
+    const data: BackupData = { ...createEmptyData(), signals: [{ id: 's1', kind: 42 }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('signals');
+    expect(error).toContain('kind');
+  });
+
+  it('rejects logs item missing startedAt', () => {
+    const data: BackupData = { ...createEmptyData(), logs: [{ id: 'l1' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('logs');
+    expect(error).toContain('startedAt');
+  });
+
+  it('rejects achievements item missing unlockedAt', () => {
+    const data: BackupData = { ...createEmptyData(), achievements: [{ id: 'a1' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('achievements');
+    expect(error).toContain('unlockedAt');
+  });
+
+  it('passes for a legacy backup without achievements field', () => {
+    const data: BackupData = createEmptyData();
+
+    expect(data.achievements).toBeUndefined();
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  it('passes for a legacy backup without placementResults field', () => {
+    const data: BackupData = createEmptyData();
+
+    expect(data.placementResults).toBeUndefined();
+    expect(validateBackupData(data)).toBeNull();
   });
 });

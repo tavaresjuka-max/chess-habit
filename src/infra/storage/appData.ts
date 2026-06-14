@@ -11,7 +11,7 @@ import type {
 import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
 import type { Achievement, AchievementId, PlacementCompletion } from '../../domain/badges/evaluateAchievements';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
-import { countBackupRecords, createBackupFile, parseBackupFile, type BackupData } from './backup';
+import { countBackupRecords, createBackupFile, parseBackupFile, validateBackupData, type BackupData } from './backup';
 import {
   db,
   type AchievementRecord,
@@ -373,44 +373,57 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
 
   const { data } = parsed.file;
 
-  await db.transaction(
-    'rw',
-    [
-      db.profile,
-      db.plans,
-      db.logs,
-      db.signals,
-      db.weaknesses,
-      db.methodTracks,
-      db.pendingItems,
-      db.diplomaAttempts,
-      db.achievements,
-      db.placementResults,
-    ],
-    async () => {
-      await db.profile.clear();
-      await db.profile.bulkPut(data.profile as ProfileRecord[]);
-      await db.plans.clear();
-      await db.plans.bulkPut(data.plans as PlanRecord[]);
-      await db.logs.clear();
-      await db.logs.bulkPut(data.logs as LearningLogRecord[]);
-      await db.signals.clear();
-      await db.signals.bulkPut(data.signals as SignalRecord[]);
-      await db.weaknesses.clear();
-      await db.weaknesses.bulkPut(data.weaknesses as WeaknessRecord[]);
-      await db.methodTracks.clear();
-      await db.methodTracks.bulkPut(data.methodTracks as MethodTrackRecord[]);
-      await db.pendingItems.clear();
-      await db.pendingItems.bulkPut(data.pendingItems as PendingItemRecord[]);
-      await db.diplomaAttempts.clear();
-      await db.diplomaAttempts.bulkPut(data.diplomaAttempts as DiplomaAttemptRecord[]);
-      await db.achievements.clear();
-      // Backups antigos (pre-Corte 7) nao tem a tabela; importa como vazia.
-      await db.achievements.bulkPut((data.achievements ?? []) as AchievementRecord[]);
-      await db.placementResults.clear();
-      await db.placementResults.bulkPut((data.placementResults ?? []) as PlacementResultRecord[]);
-    },
-  );
+  const shapeError = validateBackupData(data);
+
+  if (shapeError !== null) {
+    return { ok: false, error: `O backup contém dados inválidos: ${shapeError}` };
+  }
+
+  try {
+    await db.transaction(
+      'rw',
+      [
+        db.profile,
+        db.plans,
+        db.logs,
+        db.signals,
+        db.weaknesses,
+        db.methodTracks,
+        db.pendingItems,
+        db.diplomaAttempts,
+        db.achievements,
+        db.placementResults,
+      ],
+      async () => {
+        await db.profile.clear();
+        await db.profile.bulkPut(data.profile as ProfileRecord[]);
+        await db.plans.clear();
+        await db.plans.bulkPut(data.plans as PlanRecord[]);
+        await db.logs.clear();
+        await db.logs.bulkPut(data.logs as LearningLogRecord[]);
+        await db.signals.clear();
+        await db.signals.bulkPut(data.signals as SignalRecord[]);
+        await db.weaknesses.clear();
+        await db.weaknesses.bulkPut(data.weaknesses as WeaknessRecord[]);
+        await db.methodTracks.clear();
+        await db.methodTracks.bulkPut(data.methodTracks as MethodTrackRecord[]);
+        await db.pendingItems.clear();
+        await db.pendingItems.bulkPut(data.pendingItems as PendingItemRecord[]);
+        await db.diplomaAttempts.clear();
+        await db.diplomaAttempts.bulkPut(data.diplomaAttempts as DiplomaAttemptRecord[]);
+        await db.achievements.clear();
+        // Backups antigos (pre-Corte 7) nao tem a tabela; importa como vazia.
+        await db.achievements.bulkPut((data.achievements ?? []) as AchievementRecord[]);
+        await db.placementResults.clear();
+        await db.placementResults.bulkPut((data.placementResults ?? []) as PlacementResultRecord[]);
+      },
+    );
+  } catch (err) {
+    return {
+      ok: false,
+      error: `Erro ao restaurar dados: ${err instanceof Error ? err.message : 'falha desconhecida'}.`,
+    };
+  }
 
   return {
     ok: true,

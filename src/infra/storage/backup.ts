@@ -98,6 +98,101 @@ export function countBackupRecords(data: BackupData): number {
   return required + (data.achievements?.length ?? 0) + (data.placementResults?.length ?? 0);
 }
 
+function isObj(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function entityError(table: string, index: number, field: string): string {
+  return `${table}[${String(index)}]: campo "${field}" ausente ou inválido.`;
+}
+
+export function validateBackupData(data: BackupData): string | null {
+  for (const [i, item] of data.profile.entries()) {
+    if (!isObj(item) || typeof item.band !== 'string' || typeof item.updatedAt !== 'string') {
+      return entityError('profile', i, 'band" ou "updatedAt');
+    }
+  }
+
+  // DailyPlan usa date como chave primaria no Dexie — nao ha campo id separado.
+  const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+
+  for (const [i, item] of data.plans.entries()) {
+    if (!isObj(item) || typeof item.date !== 'string' || !dateRe.test(item.date)) {
+      return entityError('plans', i, 'date');
+    }
+    if (!Array.isArray(item.blocks)) {
+      return entityError('plans', i, 'blocks');
+    }
+  }
+
+  // elapsedSeconds e completedAt sao opcionais em TrainingLog (sessao ativa nao tem ainda).
+  for (const [i, item] of data.logs.entries()) {
+    if (!isObj(item) || typeof item.id !== 'string') {
+      return entityError('logs', i, 'id');
+    }
+    if (typeof item.startedAt !== 'string') {
+      return entityError('logs', i, 'startedAt');
+    }
+  }
+
+  for (const [i, item] of data.signals.entries()) {
+    if (!isObj(item) || typeof item.id !== 'string') {
+      return entityError('signals', i, 'id');
+    }
+    if (typeof item.kind !== 'string' || item.kind.length === 0) {
+      return entityError('signals', i, 'kind');
+    }
+  }
+
+  for (const [i, item] of data.weaknesses.entries()) {
+    if (!isObj(item) || typeof item.id !== 'string') {
+      return entityError('weaknesses', i, 'id');
+    }
+    if (typeof item.tag !== 'string' || item.tag.length === 0) {
+      return entityError('weaknesses', i, 'tag');
+    }
+  }
+
+  for (const [i, item] of data.methodTracks.entries()) {
+    if (!isObj(item) || typeof item.id !== 'string') {
+      return entityError('methodTracks', i, 'id');
+    }
+  }
+
+  for (const [i, item] of data.pendingItems.entries()) {
+    if (!isObj(item) || typeof item.id !== 'string') {
+      return entityError('pendingItems', i, 'id');
+    }
+  }
+
+  for (const [i, item] of data.diplomaAttempts.entries()) {
+    if (!isObj(item) || typeof item.id !== 'string') {
+      return entityError('diplomaAttempts', i, 'id');
+    }
+  }
+
+  if (data.achievements !== undefined) {
+    for (const [i, item] of data.achievements.entries()) {
+      if (!isObj(item) || typeof item.id !== 'string') {
+        return entityError('achievements', i, 'id');
+      }
+      if (typeof item.unlockedAt !== 'string') {
+        return entityError('achievements', i, 'unlockedAt');
+      }
+    }
+  }
+
+  if (data.placementResults !== undefined) {
+    for (const [i, item] of data.placementResults.entries()) {
+      if (!isObj(item) || typeof item.id !== 'string') {
+        return entityError('placementResults', i, 'id');
+      }
+    }
+  }
+
+  return null;
+}
+
 export type ParsedBackup = { ok: true; file: BackupFile } | { ok: false; error: string };
 
 export async function parseBackupFile(json: string): Promise<ParsedBackup> {
