@@ -1,4 +1,5 @@
 import type { Signal } from '../../domain';
+import { chesscomFetch } from '../http/providerQueue';
 import { extractSignalsFromChesscomGames, extractSignalsFromChesscomStats } from './extractSignals';
 import type { ChesscomArchivesResponse, ChesscomMonthlyArchiveResponse, ChesscomStatsResponse } from './types';
 
@@ -42,7 +43,7 @@ export async function importChesscomSignals(username: string, options: ImportChe
   }
 
   const observedAt = options.observedAt ?? new Date().toISOString();
-  const fetcher = options.fetcher ?? fetch;
+  const fetcher = options.fetcher ?? chesscomFetch;
   const stats = await fetchJson<ChesscomStatsResponse>(statsUrl(normalizedUsername), fetcher);
   const archives = await fetchJson<ChesscomArchivesResponse>(archivesUrl(normalizedUsername), fetcher);
   const signals: Signal[] = [...extractSignalsFromChesscomStats(stats, observedAt)];

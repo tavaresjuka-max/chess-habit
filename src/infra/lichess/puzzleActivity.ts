@@ -1,4 +1,5 @@
 import type { TrainingResult } from '../../domain';
+import { lichessFetch } from '../http/providerQueue';
 
 export type LichessPuzzleActivity = {
   date: number;
@@ -36,7 +37,7 @@ export async function fetchPuzzleActivity(options: FetchPuzzleActivityOptions): 
     throw new Error('Token Lichess ausente para ler atividade de puzzles.');
   }
 
-  const fetcher = options.fetcher ?? fetch;
+  const fetcher = options.fetcher ?? lichessFetch;
   const url = puzzleActivityUrl(options);
   const response = await fetcher(url, {
     headers: {

@@ -1,4 +1,5 @@
 import type { PuzzleDashboardTrainingResult, PuzzleReplaySummaryTrainingResult, PuzzleThemeStat } from '../../domain/types';
+import { lichessFetch } from '../http/providerQueue';
 import { LichessRateLimitError } from './puzzleActivity';
 
 export type LichessPuzzlePerformance = {
@@ -44,7 +45,7 @@ export async function fetchPuzzleDashboard(options: FetchPuzzleDashboardOptions)
     throw new Error('Token Lichess ausente para ler o dashboard de puzzles.');
   }
 
-  const response = await (options.fetcher ?? fetch)(`${lichessBaseUrl}/api/puzzle/dashboard/${String(options.days)}`, {
+  const response = await (options.fetcher ?? lichessFetch)(`${lichessBaseUrl}/api/puzzle/dashboard/${String(options.days)}`, {
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${token}`,
@@ -76,7 +77,7 @@ export async function fetchPuzzleReplay(options: FetchPuzzleReplayOptions): Prom
   }
 
   const encodedTheme = encodeURIComponent(options.theme);
-  const response = await (options.fetcher ?? fetch)(
+  const response = await (options.fetcher ?? lichessFetch)(
     `${lichessBaseUrl}/api/puzzle/replay/${String(options.days)}/${encodedTheme}`,
     {
       headers: {

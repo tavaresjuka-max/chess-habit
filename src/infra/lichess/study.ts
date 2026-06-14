@@ -1,5 +1,6 @@
 import type { DailyPlan, LichessStudyLink, PlanBlock } from '../../domain';
 import { getMethodTrackTitle } from '../../domain/method/methodTracks';
+import { lichessFetch } from '../http/providerQueue';
 import { LichessRateLimitError } from './puzzleActivity';
 
 export type CreateStudyResponse = {
@@ -31,7 +32,7 @@ export async function createDailyStudy(options: CreateDailyStudyOptions): Promis
     throw new Error('Token Lichess ausente para criar Study.');
   }
 
-  const fetcher = options.fetcher ?? fetch;
+  const fetcher = options.fetcher ?? lichessFetch;
   const nowIso = options.nowIso ?? new Date().toISOString();
   const visibility = options.visibility ?? 'private';
   // Reaproveita um Study ja criado (retry apos import falhar) para nao deixar
@@ -77,7 +78,7 @@ export async function createStudy(input: {
   visibility: LichessStudyLink['visibility'];
   fetcher?: typeof fetch;
 }): Promise<string> {
-  const fetcher = input.fetcher ?? fetch;
+  const fetcher = input.fetcher ?? lichessFetch;
   const body = new URLSearchParams({
     name: input.name,
     visibility: input.visibility,
@@ -122,7 +123,7 @@ export async function importPgnToStudy(input: {
   name?: string;
   fetcher?: typeof fetch;
 }): Promise<ImportStudyPgnResponse> {
-  const fetcher = input.fetcher ?? fetch;
+  const fetcher = input.fetcher ?? lichessFetch;
   const body = new URLSearchParams({
     pgn: input.pgn,
     orientation: 'white',

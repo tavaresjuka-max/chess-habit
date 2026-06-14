@@ -1,4 +1,5 @@
 import type { Signal } from '../../domain';
+import { lichessFetch } from '../http/providerQueue';
 import { LichessRateLimitError } from './puzzleActivity';
 
 export type LichessGameColor = 'white' | 'black';
@@ -81,7 +82,7 @@ export async function fetchLichessGames(options: ImportLichessSignalsOptions): P
     throw new Error('Usuário Lichess ausente para diagnóstico.');
   }
 
-  const fetcher = options.fetcher ?? fetch;
+  const fetcher = options.fetcher ?? lichessFetch;
   const response = await fetcher(lichessGamesUrl(username, options.max), {
     headers: {
       Accept: 'application/x-ndjson',
