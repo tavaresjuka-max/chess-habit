@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { DailyPlan, PuzzleThemeStats, TrainingLog } from '../domain';
 import type { PendingTrainingItem } from '../domain/method/types';
 import {
+  buildPlanContext,
   combinePlanHistory,
   getLichessThemeFromUrl,
   getOpenedTrainingBlockIds,
@@ -9,6 +10,39 @@ import {
   toSessionMinutes,
   upsertPendingItem,
 } from './stateHelpers';
+
+describe('buildPlanContext', () => {
+  it('monta as opções e omite previousPlan quando ausente', () => {
+    const context = buildPlanContext({
+      recentThemeStats: undefined,
+      trainingLogs: [],
+      pendingItems: [],
+      diplomaAttempts: [],
+    });
+
+    expect(context).toMatchObject({
+      openedBlockIds: [],
+      openPendingItems: [],
+      weakThemesFromDashboard: [],
+      diplomaAttempts: [],
+    });
+    expect('previousPlan' in context).toBe(false);
+  });
+
+  it('inclui previousPlan e diplomaAttempts quando fornecidos', () => {
+    const plan = { date: '2026-06-06' } as DailyPlan;
+    const context = buildPlanContext({
+      previousPlan: plan,
+      recentThemeStats: undefined,
+      trainingLogs: [],
+      pendingItems: [],
+      diplomaAttempts: [{ id: 'a' } as never],
+    });
+
+    expect(context.previousPlan).toBe(plan);
+    expect(context.diplomaAttempts).toHaveLength(1);
+  });
+});
 
 describe('toSessionMinutes', () => {
   it('aceita os valores válidos', () => {

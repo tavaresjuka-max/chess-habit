@@ -88,6 +88,7 @@ import { toDiagnosisErrorMessage, toErrorMessage, toLichessErrorMessage } from '
 import { openExternalUrl } from './externalOpen';
 import { completeLichessOAuthIfNeeded, startLichessOAuthConnection } from './oauthFlow';
 import {
+  buildPlanContext,
   combinePlanHistory,
   getLichessThemeFromUrl,
   getOpenedTrainingBlockIds,
@@ -521,13 +522,13 @@ export function useAppState(): AppState {
   const saveProfile = useCallback(async (nextProfile: LearnerProfile) => {
     const date = getTodayDate();
     const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-    const plan = generatePlan(nextProfile, weaknesses, nextProfile.defaultSessionMinutes, date, {
-      previousPlan: todayPlan,
-      recentThemeStats,
-      openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-      openPendingItems: pendingItems,
-      weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-    });
+    const plan = generatePlan(
+      nextProfile,
+      weaknesses,
+      nextProfile.defaultSessionMinutes,
+      date,
+      buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
+    );
 
     await saveStoredProfile(nextProfile);
     await savePlan(plan);
@@ -558,7 +559,7 @@ export function useAppState(): AppState {
         }
       })();
     }
-  }, [pendingItems, todayPlan, trainingLogs, weaknesses, runChesscomSync, runLichessSync]);
+  }, [diplomaAttempts, pendingItems, todayPlan, trainingLogs, weaknesses, runChesscomSync, runLichessSync]);
 
   const savePlacementResult = useCallback(
     async (result: StoredPlacementResult) => {
@@ -577,20 +578,20 @@ export function useAppState(): AppState {
       }
 
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-      const plan = generatePlan(profile, weaknesses, minutes, getTodayDate(), {
-        previousPlan: todayPlan,
-        recentThemeStats,
-        openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-        openPendingItems: pendingItems,
-        weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-      });
+      const plan = generatePlan(
+        profile,
+        weaknesses,
+        minutes,
+        getTodayDate(),
+        buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
+      );
 
       await savePlan(plan);
       setSessionMinutes(minutes);
       setTodayPlan(plan);
       setErrorMessage(undefined);
     },
-    [pendingItems, profile, todayPlan, trainingLogs, weaknesses],
+    [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const createNextSession = useCallback(
@@ -604,12 +605,13 @@ export function useAppState(): AppState {
 
       if (todayPlan === undefined) {
         const date = getTodayDate();
-        const plan = generatePlan(profile, weaknesses, minutes, date, {
-          recentThemeStats,
-          openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-          openPendingItems: pendingItems,
-          weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-        });
+        const plan = generatePlan(
+          profile,
+          weaknesses,
+          minutes,
+          date,
+          buildPlanContext({ recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
+        );
 
         await savePlan(plan);
         setSessionMinutes(minutes);
@@ -621,12 +623,8 @@ export function useAppState(): AppState {
       }
 
       const sessionPlan = generatePlan(profile, weaknesses, minutes, todayPlan.date, {
-        previousPlan: todayPlan,
+        ...buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
         sessionNumber: getNextPlanSessionNumber(todayPlan),
-        recentThemeStats,
-        openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-        openPendingItems: pendingItems,
-        weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
       });
       const nextPlan = appendPlanSession(todayPlan, sessionPlan);
 
@@ -637,7 +635,7 @@ export function useAppState(): AppState {
       setAllTrainingLogs(await loadTrainingLogs());
       setErrorMessage(undefined);
     },
-    [pendingItems, profile, todayPlan, trainingLogs, weaknesses],
+    [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const syncChesscomDiagnosis = useCallback(async () => {
@@ -988,7 +986,7 @@ export function useAppState(): AppState {
 
       setLichessMessage('Pendência adiada.');
     },
-    [pendingItems, profile, todayPlan, trainingLogs, weaknesses],
+    [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const savePendingFromHardFeedback = useCallback(

@@ -2,7 +2,8 @@
 // direto e para manter o hook focado em orquestração.
 
 import type { DailyPlan, PuzzleThemeStats, SessionMinutes, TrainingLog } from '../domain';
-import type { PendingTrainingItem } from '../domain/method/types';
+import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
+import type { GeneratePlanOptions } from '../domain/plan/generatePlan';
 
 export function toSessionMinutes(minutes: number, fallback: SessionMinutes): SessionMinutes {
   switch (minutes) {
@@ -29,6 +30,26 @@ export function combinePlanHistory(currentPlan: DailyPlan, previousPlan: DailyPl
 
 export function getOpenedTrainingBlockIds(logs: readonly TrainingLog[]): string[] {
   return [...new Set(logs.map((log) => log.blockId))].sort();
+}
+
+// Monta as opções repetidas de generatePlan num lugar só (antes duplicadas em 12
+// callsites do state.ts). Inclui o flag de diploma (decisão 3): o recentThemeStats
+// é passado pronto para preservar a variável já calculada em cada handler.
+export function buildPlanContext(args: {
+  previousPlan?: DailyPlan;
+  recentThemeStats: PuzzleThemeStats | undefined;
+  trainingLogs: readonly TrainingLog[];
+  pendingItems: readonly PendingTrainingItem[];
+  diplomaAttempts: readonly DiplomaAttempt[];
+}): GeneratePlanOptions {
+  return {
+    ...(args.previousPlan === undefined ? {} : { previousPlan: args.previousPlan }),
+    recentThemeStats: args.recentThemeStats,
+    openedBlockIds: getOpenedTrainingBlockIds(args.trainingLogs),
+    openPendingItems: [...args.pendingItems],
+    weakThemesFromDashboard: getWeakThemesFromThemeStats(args.recentThemeStats),
+    diplomaAttempts: args.diplomaAttempts,
+  };
 }
 
 export function getWeakThemesFromThemeStats(stats: PuzzleThemeStats | undefined): string[] {

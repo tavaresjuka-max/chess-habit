@@ -28,7 +28,7 @@ type BlockCopy = {
   weaknessTag: WeaknessTag;
 };
 
-type GeneratePlanOptions = {
+export type GeneratePlanOptions = {
   previousPlan?: DailyPlan;
   sessionNumber?: number;
   recentThemeStats?: PuzzleThemeStats;
