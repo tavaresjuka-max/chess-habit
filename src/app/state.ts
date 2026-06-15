@@ -1,17 +1,14 @@
 import { useCallback, useEffect } from 'react';
 import {
-  appendPlanSession,
   buildPuzzleThemeStats,
   completeTrainingLog,
   createTrainingRoadmap,
   createTrainingLog,
   generatePlan,
-  getNextPlanSessionNumber,
   skipTrainingLog,
   type Achievement,
   type DailyPlan,
   type LearnerProfile,
-  type LearningPlanResponse,
   type LichessOAuthToken,
   type LichessStudyLink,
   type PlanBlock,
@@ -29,13 +26,11 @@ import {
   exportAllAsJson,
   importBackupFromJson,
   loadBackupMeta,
-  markOnboardingCompleted,
   type BackupImportResult,
   getTrainingLog,
   loadTrainingLogs,
   loadTrainingLogsForDate,
   savePendingItem,
-  savePlacementResult as savePlacementResultRecord,
   savePlan,
   saveTrainingLogAndPlan,
   type StoredPlacementResult,
@@ -61,6 +56,7 @@ import { useAppData } from './useAppData';
 import { useBackupActions } from './useBackupActions';
 import { useOAuthActions } from './useOAuthActions';
 import { usePendingActions } from './usePendingActions';
+import { usePlanLifecycleActions } from './usePlanLifecycleActions';
 import { useStudyActions } from './useStudyActions';
 
 export type AppView = 'today' | 'progress' | 'config';
@@ -269,82 +265,30 @@ export function useAppState(): AppState {
     }
   }, [diplomaAttempts, pendingItems, todayPlan, trainingLogs, weaknesses, runChesscomSync, runLichessSync]);
 
-  const savePlacementResult = useCallback(
-    async (result: StoredPlacementResult) => {
-      await savePlacementResultRecord(result);
-      // Placement persistido pode destravar a conquista Calibrado.
-      setAchievements(await syncAchievements(allTrainingLogs));
-    },
-    [allTrainingLogs],
-  );
-
-  const regeneratePlan = useCallback(
-    async (minutes: SessionMinutes) => {
-      if (profile === undefined) {
-        setActiveView('config');
-        return;
-      }
-
-      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-      const plan = generatePlan(
-        profile,
-        weaknesses,
-        minutes,
-        getTodayDate(),
-        buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
-      );
-
-      await savePlan(plan);
-      setSessionMinutes(minutes);
-      setTodayPlan(plan);
-      setErrorMessage(undefined);
-    },
-    [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
-  );
-
-  const createNextSession = useCallback(
-    async (minutes: SessionMinutes) => {
-      if (profile === undefined) {
-        setActiveView('config');
-        return;
-      }
-
-      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-
-      if (todayPlan === undefined) {
-        const date = getTodayDate();
-        const plan = generatePlan(
-          profile,
-          weaknesses,
-          minutes,
-          date,
-          buildPlanContext({ recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
-        );
-
-        await savePlan(plan);
-        setSessionMinutes(minutes);
-        setTodayPlan(plan);
-        setTrainingLogs(await loadTrainingLogsForDate(date));
-        setAllTrainingLogs(await loadTrainingLogs());
-        setErrorMessage(undefined);
-        return;
-      }
-
-      const sessionPlan = generatePlan(profile, weaknesses, minutes, todayPlan.date, {
-        ...buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
-        sessionNumber: getNextPlanSessionNumber(todayPlan),
-      });
-      const nextPlan = appendPlanSession(todayPlan, sessionPlan);
-
-      await savePlan(nextPlan);
-      setSessionMinutes(minutes);
-      setTodayPlan(nextPlan);
-      setTrainingLogs(await loadTrainingLogsForDate(todayPlan.date));
-      setAllTrainingLogs(await loadTrainingLogs());
-      setErrorMessage(undefined);
-    },
-    [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
-  );
+  const {
+    savePlacementResult,
+    regeneratePlan,
+    createNextSession,
+    approveLearningPlan,
+    requestLearningPlanRevision,
+    completeOnboarding,
+  } = usePlanLifecycleActions({
+    allTrainingLogs,
+    diplomaAttempts,
+    pendingItems,
+    profile,
+    todayPlan,
+    trainingLogs,
+    weaknesses,
+    setAchievements,
+    setActiveView,
+    setAllTrainingLogs,
+    setErrorMessage,
+    setOnboardingCompletedAt,
+    setSessionMinutes,
+    setTodayPlan,
+    setTrainingLogs,
+  });
 
   const { connectLichess, disconnectLichess } = useOAuthActions({
     profile,
@@ -369,42 +313,6 @@ export function useAppState(): AppState {
     setTodayPlan,
     setTrainingLogs,
   });
-
-  const updateLearningPlanResponse = useCallback(
-    async (response: LearningPlanResponse) => {
-      if (todayPlan === undefined) {
-        return;
-      }
-
-      const nextPlan: DailyPlan = {
-        ...todayPlan,
-        learningPlanResponse: response,
-      };
-
-      await savePlan(nextPlan);
-      setTodayPlan(nextPlan);
-      setErrorMessage(undefined);
-    },
-    [todayPlan],
-  );
-
-  const approveLearningPlan = useCallback(async () => {
-    await updateLearningPlanResponse({
-      status: 'approved',
-      updatedAt: new Date().toISOString(),
-    });
-  }, [updateLearningPlanResponse]);
-
-  const requestLearningPlanRevision = useCallback(
-    async (note: string) => {
-      await updateLearningPlanResponse({
-        status: 'revision-requested',
-        note,
-        updatedAt: new Date().toISOString(),
-      });
-    },
-    [updateLearningPlanResponse],
-  );
 
   const { openPendingItem, deferPendingItem, savePendingFromHardFeedback } = usePendingActions({
     pendingItems,
@@ -580,15 +488,6 @@ export function useAppState(): AppState {
     },
     [updateBlockStatusWithTrainingLog],
   );
-
-  // Marca o fim do funil (primeira vez). A partir daqui o app abre direto no
-  // Hoje e a aprovação diária volta a ser a dobra dentro do Hoje.
-  const completeOnboarding = useCallback(async () => {
-    const nowIso = new Date().toISOString();
-
-    await markOnboardingCompleted(nowIso);
-    setOnboardingCompletedAt(nowIso);
-  }, []);
 
   const { enableAutoBackup, disableAutoBackup, clearAllData } = useBackupActions({
     setActiveView,
