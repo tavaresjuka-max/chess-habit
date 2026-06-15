@@ -28,14 +28,11 @@ import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types
 import { revokeLichessOAuthToken } from '../infra/lichess/oauth';
 import { createDailyStudy } from '../infra/lichess/study';
 import {
-  clearAll,
-  clearAutoBackupConfig,
   clearLichessOAuthToken,
   exportAllAsJson,
   importBackupFromJson,
   loadBackupMeta,
   markOnboardingCompleted,
-  saveAutoBackupConfig,
   type BackupImportResult,
   getLichessStudyLink,
   getTrainingLog,
@@ -51,12 +48,7 @@ import {
   saveProfile as saveStoredProfile,
   saveTrainingLog,
 } from '../infra/storage/appData';
-import {
-  isAutoBackupSupported,
-  pickAutoBackupFile,
-  writeAutoBackup,
-  type AutoBackupStatus,
-} from '../infra/storage/autoBackup';
+import { type AutoBackupStatus } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import type { StoragePersistenceStatus } from '../infra/storage/persistence';
 import { syncAchievements } from './achievementsSync';
@@ -77,6 +69,7 @@ import {
 } from './trainingLogFlow';
 import { useDiagnosisActions } from './useDiagnosisActions';
 import { useAppData } from './useAppData';
+import { useBackupActions } from './useBackupActions';
 import { usePendingActions } from './usePendingActions';
 
 export type AppView = 'today' | 'progress' | 'config';
@@ -748,40 +741,6 @@ export function useAppState(): AppState {
     [updateBlockStatusWithTrainingLog],
   );
 
-  const enableAutoBackup = useCallback(async () => {
-    const handle = await pickAutoBackupFile();
-
-    if (handle === undefined) {
-      // Sem suporte ou usuario cancelou: status honesto, sem fingir sucesso.
-      setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
-      return;
-    }
-
-    const written = await writeAutoBackup(handle, await exportAllAsJson(), {
-      allowPermissionRequest: true,
-    });
-
-    if (written !== 'written') {
-      setAutoBackupStatus('error');
-      return;
-    }
-
-    await saveAutoBackupConfig({
-      enabled: true,
-      ...(handle.name === undefined ? {} : { fileName: handle.name }),
-      handle,
-    });
-    setAutoBackupFileName(handle.name);
-    setAutoBackupStatus('enabled');
-    setBackupMeta(await loadBackupMeta());
-  }, []);
-
-  const disableAutoBackup = useCallback(async () => {
-    await clearAutoBackupConfig();
-    setAutoBackupFileName(undefined);
-    setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
-  }, []);
-
   // Marca o fim do funil (primeira vez). A partir daqui o app abre direto no
   // Hoje e a aprovação diária volta a ser a dobra dentro do Hoje.
   const completeOnboarding = useCallback(async () => {
@@ -791,32 +750,30 @@ export function useAppState(): AppState {
     setOnboardingCompletedAt(nowIso);
   }, []);
 
-  const clearAllData = useCallback(async () => {
-    await clearAll();
-    setBackupMeta(undefined);
-    setAutoBackupFileName(undefined);
-    setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
-    setProfile(undefined);
-    setTodayPlan(undefined);
-    setSessionMinutes(15);
-    setTrainingLogs([]);
-    setAllTrainingLogs([]);
-    setPendingItems([]);
-    setDiplomaAttempts([]);
-    setAchievements([]);
-    setWeaknesses([]);
-    setSignals([]);
-    setLichessToken(undefined);
-    setLichessStudyLink(undefined);
-    setLichessConnectionState('disconnected');
-    setLichessMessage(undefined);
-    setDiagnosisState('idle');
-    setDiagnosisMessage(undefined);
-    setActiveView('config');
-    setErrorMessage(undefined);
-    // Apagar tudo volta o funil de onboarding para o início.
-    setOnboardingCompletedAt(undefined);
-  }, []);
+  const { enableAutoBackup, disableAutoBackup, clearAllData } = useBackupActions({
+    setActiveView,
+    setAchievements,
+    setAllTrainingLogs,
+    setAutoBackupFileName,
+    setAutoBackupStatus,
+    setBackupMeta,
+    setDiagnosisMessage,
+    setDiagnosisState,
+    setDiplomaAttempts,
+    setErrorMessage,
+    setLichessConnectionState,
+    setLichessMessage,
+    setLichessStudyLink,
+    setLichessToken,
+    setOnboardingCompletedAt,
+    setPendingItems,
+    setProfile,
+    setSessionMinutes,
+    setSignals,
+    setTodayPlan,
+    setTrainingLogs,
+    setWeaknesses,
+  });
 
   return {
     activeView,
