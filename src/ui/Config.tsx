@@ -57,6 +57,7 @@ export function Config({
   onBack,
 }: ConfigProps) {
   const restoreInputRef = useRef<HTMLInputElement>(null);
+  const [confirmingClear, setConfirmingClear] = useState(false);
   const initialProfile = profile ?? createDefaultProfile();
   const [lichessUsername, setLichessUsername] = useState(initialProfile.lichessUsername ?? '');
   const [chesscomUsername, setChesscomUsername] = useState(initialProfile.chesscomUsername ?? '');
@@ -115,13 +116,8 @@ export function Config({
     toast.success(`${String(count)} sinais manuais salvos.`);
   }
 
-  async function handleClear() {
-    const confirmed = window.confirm('Apagar todos os dados locais?');
-
-    if (!confirmed) {
-      return;
-    }
-
+  async function confirmClear() {
+    setConfirmingClear(false);
     await onClear();
     toast.success('Dados locais apagados.');
   }
@@ -331,10 +327,35 @@ export function Config({
           <button type="button" className="secondary-button" onClick={() => void handleImportKnownManualSignals()}>
             Adicionar sinais manuais
           </button>
-          <button type="button" className="danger-button" onClick={() => void handleClear()}>
-            <Trash2 aria-hidden="true" size={16} />
-            Apagar tudo
-          </button>
+          {confirmingClear ? (
+            <div className="button-row" role="group" aria-label="Confirmar apagar tudo">
+              <span className="rating-prompt">Apagar todos os dados locais?</span>
+              <button type="button" className="danger-button" onClick={() => void confirmClear()}>
+                <Trash2 aria-hidden="true" size={16} />
+                Apagar definitivamente
+              </button>
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => {
+                  setConfirmingClear(false);
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="danger-button"
+              onClick={() => {
+                setConfirmingClear(true);
+              }}
+            >
+              <Trash2 aria-hidden="true" size={16} />
+              Apagar tudo
+            </button>
+          )}
         </div>
         </div>
       </Fold>
