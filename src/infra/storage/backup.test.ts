@@ -162,4 +162,34 @@ describe('validateBackupData', () => {
     expect(data.placementResults).toBeUndefined();
     expect(validateBackupData(data)).toBeNull();
   });
+
+  it('aceita lichessStudies e appMeta válidos', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      lichessStudies: [{ id: '2026-06-06', date: '2026-06-06', studyId: 'abc123' }],
+      appMeta: [{ id: 'app', updatedAt: '2026-06-06T00:00:00.000Z' }],
+    };
+
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  it('rejeita lichessStudies sem studyId', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      lichessStudies: [{ id: '2026-06-06', date: '2026-06-06' }],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('lichessStudies');
+    expect(error).toContain('studyId');
+  });
+
+  it('passa para backup antigo sem lichessStudies/appMeta', () => {
+    const data: BackupData = createEmptyData();
+
+    expect(data.lichessStudies).toBeUndefined();
+    expect(data.appMeta).toBeUndefined();
+    expect(validateBackupData(data)).toBeNull();
+  });
 });

@@ -14,6 +14,10 @@ export type BackupData = {
   // placement persistido).
   achievements?: unknown[];
   placementResults?: unknown[];
+  // Dados duráveis criados pelo usuário, adicionados no Corte F. Opcionais e
+  // retrocompatíveis: backups antigos sem estes campos importam sem erro.
+  lichessStudies?: unknown[];
+  appMeta?: unknown[];
 };
 
 export const backupTableNames = [
@@ -95,7 +99,13 @@ export async function createBackupFile(data: BackupData, exportedAt: string): Pr
 export function countBackupRecords(data: BackupData): number {
   const required = backupTableNames.reduce((total, table) => total + data[table].length, 0);
 
-  return required + (data.achievements?.length ?? 0) + (data.placementResults?.length ?? 0);
+  return (
+    required +
+    (data.achievements?.length ?? 0) +
+    (data.placementResults?.length ?? 0) +
+    (data.lichessStudies?.length ?? 0) +
+    (data.appMeta?.length ?? 0)
+  );
 }
 
 function isObj(value: unknown): value is Record<string, unknown> {
@@ -186,6 +196,25 @@ export function validateBackupData(data: BackupData): string | null {
     for (const [i, item] of data.placementResults.entries()) {
       if (!isObj(item) || typeof item.id !== 'string') {
         return entityError('placementResults', i, 'id');
+      }
+    }
+  }
+
+  if (data.lichessStudies !== undefined) {
+    for (const [i, item] of data.lichessStudies.entries()) {
+      if (!isObj(item) || typeof item.id !== 'string') {
+        return entityError('lichessStudies', i, 'id');
+      }
+      if (typeof item.studyId !== 'string') {
+        return entityError('lichessStudies', i, 'studyId');
+      }
+    }
+  }
+
+  if (data.appMeta !== undefined) {
+    for (const [i, item] of data.appMeta.entries()) {
+      if (!isObj(item) || typeof item.id !== 'string') {
+        return entityError('appMeta', i, 'id');
       }
     }
   }

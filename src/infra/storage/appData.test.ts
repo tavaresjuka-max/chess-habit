@@ -18,8 +18,10 @@ import {
   loadLichessOAuthToken,
   loadDiplomaAttempts,
   loadMethodTracks,
+  loadOnboardingCompletedAt,
   loadOpenPendingItems,
   loadProfile,
+  markOnboardingCompleted,
   loadSignals,
   loadTrainingLogs,
   loadTrainingLogsForDate,
@@ -385,6 +387,32 @@ describe('appData storage', () => {
     await expect(loadDiplomaAttempts()).resolves.toEqual([diplomaAttempt]);
   });
 
+  it('restaura lichessStudies e estado de onboarding no roundtrip (Corte F)', async () => {
+    await saveProfile(profile);
+    await markOnboardingCompleted('2026-06-09T08:00:00.000Z');
+    await saveLichessStudyLink({
+      id: '2026-06-06',
+      date: '2026-06-06',
+      studyId: 'abc123',
+      url: 'https://lichess.org/study/abc123',
+      visibility: 'private',
+      imported: true,
+      createdAt: '2026-06-06T10:00:00.000Z',
+      updatedAt: '2026-06-06T10:00:00.000Z',
+    });
+
+    const exported = await exportAllAsJson('2026-06-10T12:00:00.000Z');
+
+    await clearAll();
+    await expect(loadOnboardingCompletedAt()).resolves.toBeUndefined();
+
+    const result = await importBackupFromJson(exported);
+
+    expect(result).toMatchObject({ ok: true });
+    await expect(loadOnboardingCompletedAt()).resolves.toBe('2026-06-09T08:00:00.000Z');
+    await expect(getLichessStudyLink('2026-06-06')).resolves.toMatchObject({ studyId: 'abc123' });
+  });
+
   it('rejects a backup with tampered data without touching current records', async () => {
     await saveProfile(profile);
 
@@ -410,7 +438,7 @@ describe('appData storage', () => {
     ).toBe(false);
   });
 
-  it('stores Lichess study links outside backup export', async () => {
+  it('inclui Lichess study links no backup (Corte F: dado durável do usuário)', async () => {
     await saveLichessStudyLink({
       id: '2026-06-06',
       date: '2026-06-06',
@@ -426,7 +454,9 @@ describe('appData storage', () => {
       studyId: 'abc12345',
     });
 
-    expect(await exportAllAsJson()).not.toContain('abc12345');
+    // Antes do Corte F os studies ficavam de fora; eram dado criado pelo usuário
+    // sem como recuperar. Agora entram no backup (token/cache continuam fora).
+    expect(await exportAllAsJson()).toContain('abc12345');
   });
 });
 

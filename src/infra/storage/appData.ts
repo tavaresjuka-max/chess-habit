@@ -19,8 +19,10 @@ import {
   type AutoBackupConfigRecord,
   type BackupMetaRecord,
   type DiplomaAttemptRecord,
+  type AppMetaRecord,
   type LearningLogRecord,
   type LichessOAuthTokenRecord,
+  type LichessStudyLinkRecord,
   type MethodTrackRecord,
   type PendingItemRecord,
   type PlanRecord,
@@ -314,6 +316,8 @@ export async function exportAllAsJson(nowIso = new Date().toISOString()): Promis
       db.diplomaAttempts,
       db.achievements,
       db.placementResults,
+      db.lichessStudies,
+      db.appMeta,
     ],
     async () => ({
       profile: await db.profile.toArray(),
@@ -326,6 +330,8 @@ export async function exportAllAsJson(nowIso = new Date().toISOString()): Promis
       diplomaAttempts: await db.diplomaAttempts.toArray(),
       achievements: await db.achievements.toArray(),
       placementResults: await db.placementResults.toArray(),
+      lichessStudies: await db.lichessStudies.toArray(),
+      appMeta: await db.appMeta.toArray(),
     }),
   );
 
@@ -410,6 +416,8 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
         db.diplomaAttempts,
         db.achievements,
         db.placementResults,
+        db.lichessStudies,
+        db.appMeta,
       ],
       async () => {
         await db.profile.clear();
@@ -433,6 +441,10 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
         await db.achievements.bulkPut((data.achievements ?? []) as AchievementRecord[]);
         await db.placementResults.clear();
         await db.placementResults.bulkPut((data.placementResults ?? []) as PlacementResultRecord[]);
+        await db.lichessStudies.clear();
+        await db.lichessStudies.bulkPut((data.lichessStudies ?? []) as LichessStudyLinkRecord[]);
+        await db.appMeta.clear();
+        await db.appMeta.bulkPut((data.appMeta ?? []) as AppMetaRecord[]);
       },
     );
   } catch (err) {
