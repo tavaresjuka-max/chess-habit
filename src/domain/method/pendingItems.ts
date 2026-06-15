@@ -73,15 +73,27 @@ export function createPendingItemFromTheme(
   };
 }
 
+const GRADUATION_ATTEMPTS = SPACING_DAYS.length;
+
+// SM-2 simplificado: o feedback do aluno move o item no espaçamento, em vez de
+// avançar sempre um nível fixo. 'easy' pula um nível extra (domina mais rápido);
+// 'hard' recua um nível; 'good'/sem feedback avança um nível.
+function nextSpacingAttempts(attempts: number, feedback?: PlanBlockFeedback): number {
+  const delta = feedback === 'easy' ? 2 : feedback === 'hard' ? -1 : 1;
+
+  return Math.max(0, Math.min(attempts + delta, GRADUATION_ATTEMPTS));
+}
+
 export function advancePendingItem(item: PendingTrainingItem, feedback?: PlanBlockFeedback): PendingTrainingItem {
-  const attempts = item.attempts + 1;
+  const attempts = nextSpacingAttempts(item.attempts, feedback);
 
   return {
     ...item,
     attempts,
-    dueAt: getNextDueDate(attempts),
+    // 'hard' reaparece amanhã para re-exposição rápida; os demais seguem o intervalo do nível.
+    dueAt: feedback === 'hard' ? getNextDueDate(0) : getNextDueDate(attempts),
     ...(feedback === undefined ? {} : { lastFeedback: feedback }),
-    status: attempts >= SPACING_DAYS.length ? 'done' : 'open',
+    status: attempts >= GRADUATION_ATTEMPTS ? 'done' : 'open',
     updatedAt: new Date().toISOString(),
   };
 }

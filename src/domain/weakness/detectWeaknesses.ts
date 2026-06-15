@@ -1,4 +1,11 @@
-import type { Confidence, Signal, Weakness, WeaknessTag } from '../types';
+import { isBeginnerBand } from '../bands';
+import type { Confidence, LearnerBand, Signal, Weakness, WeaknessTag } from '../types';
+
+// Iniciantes (0-800) recebem um limiar de blunder mais baixo: anti-blunder é a
+// alavanca nº1 nessa fase, então o sinal dispara mais cedo. Acima de 800, só
+// vale destacar quando os erros graves são claramente frequentes.
+const BLUNDER_RATE_BEGINNER = 0.3;
+const BLUNDER_RATE_DEFAULT = 0.5;
 
 type WeaknessCandidate = {
   tag: WeaknessTag;
@@ -42,8 +49,9 @@ export function filterFreshSignals(
   });
 }
 
-export function detectWeaknesses(signals: Signal[]): Weakness[] {
-  const weaknesses = detectNonColorWeaknesses(signals);
+export function detectWeaknesses(signals: Signal[], band?: LearnerBand): Weakness[] {
+  const blunderThreshold = isBeginnerBand(band) ? BLUNDER_RATE_BEGINNER : BLUNDER_RATE_DEFAULT;
+  const weaknesses = detectNonColorWeaknesses(signals, blunderThreshold);
   const colorWeakness = detectColorWeakness(signals);
 
   if (colorWeakness === undefined) {
@@ -67,8 +75,8 @@ export function detectWeaknesses(signals: Signal[]): Weakness[] {
   );
 }
 
-function detectNonColorWeaknesses(signals: Signal[]): Weakness[] {
-  const candidates = signals.flatMap(signalToCandidates);
+function detectNonColorWeaknesses(signals: Signal[], blunderThreshold: number): Weakness[] {
+  const candidates = signals.flatMap((signal) => signalToCandidates(signal, blunderThreshold));
   const byTag = new Map<WeaknessTag, Weakness>();
 
   for (const candidate of candidates) {
@@ -96,10 +104,10 @@ function detectNonColorWeaknesses(signals: Signal[]): Weakness[] {
   return [...byTag.values()].sort(sortWeaknesses);
 }
 
-function signalToCandidates(signal: Signal): WeaknessCandidate[] {
+function signalToCandidates(signal: Signal, blunderThreshold: number): WeaknessCandidate[] {
   switch (signal.value.kind) {
     case 'judgment':
-      if (signal.value.games >= 5 && signal.value.blunders / signal.value.games > 0.5) {
+      if (signal.value.games >= 5 && signal.value.blunders / signal.value.games > blunderThreshold) {
         return [
           {
             tag: 'blunder-rate',

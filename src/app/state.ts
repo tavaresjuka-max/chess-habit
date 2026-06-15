@@ -402,7 +402,7 @@ export function useAppState(): AppState {
 
         const allSignals = await loadSignals();
         setSignals(allSignals);
-        const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
+        const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), targetProfile.band);
         const date = getTodayDate();
         const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
         const plan = generatePlan(targetProfile, nextWeaknesses, sessionMinutes, date, {
@@ -472,7 +472,7 @@ export function useAppState(): AppState {
 
         const allSignals = await loadSignals();
         setSignals(allSignals);
-        const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
+        const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), targetProfile.band);
         const date = getTodayDate();
         const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
         const plan = generatePlan(targetProfile, nextWeaknesses, sessionMinutes, date, {
@@ -654,8 +654,8 @@ export function useAppState(): AppState {
     await replaceSignalsForSource('outro', manualSignals);
 
     const allSignals = await loadSignals();
-      setSignals(allSignals);
-    const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
+    setSignals(allSignals);
+    const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), profile?.band);
 
     await replaceWeaknesses(nextWeaknesses);
     setWeaknesses(nextWeaknesses);
@@ -686,7 +686,7 @@ export function useAppState(): AppState {
 
       const allSignals = await loadSignals();
       setSignals(allSignals);
-      const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()));
+      const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), profile?.band);
 
       await replaceWeaknesses(nextWeaknesses);
       setWeaknesses(nextWeaknesses);

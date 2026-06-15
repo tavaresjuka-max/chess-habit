@@ -29,6 +29,10 @@ export function isLearnerBand(value: string): value is LearnerBand {
   return (learnerBands as readonly string[]).includes(value);
 }
 
+export function isBeginnerBand(band: LearnerBand | undefined): boolean {
+  return band !== undefined && (beginnerBands as readonly string[]).includes(band);
+}
+
 // Migracao dos perfis criados antes do spine: as bandas antigas eram '0-800' e
 // '800-1200'. Sem placement ainda, mapeia para a metade inferior do intervalo
 // antigo equivalente; o Placement v1 (Corte 3) refina depois.

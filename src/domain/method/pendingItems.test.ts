@@ -65,6 +65,31 @@ describe('pending training items', () => {
     });
   });
 
+  it('pula dois níveis de espaçamento no feedback easy', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 1 }), 'easy');
+
+    expect(advanced).toMatchObject({ attempts: 3, status: 'open', lastFeedback: 'easy' });
+  });
+
+  it('recua um nível e reexpõe amanhã no feedback hard', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 2, dueAt: today }), 'hard');
+
+    expect(advanced).toMatchObject({ attempts: 1, status: 'open', dueAt: tomorrow, lastFeedback: 'hard' });
+  });
+
+  it('não deixa attempts negativo com hard no nível zero', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 0 }), 'hard');
+
+    expect(advanced).toMatchObject({ attempts: 0, dueAt: tomorrow });
+  });
+
+  it('gradua mais rápido com easy repetido', () => {
+    const once = advancePendingItem(createItem({ attempts: 0 }), 'easy');
+    const twice = advancePendingItem(once, 'easy');
+
+    expect(twice).toMatchObject({ attempts: 4, status: 'done' });
+  });
+
   it('returns a guiding prompt for every track', () => {
     const tracks: MethodTrackId[] = [
       'pending-review',

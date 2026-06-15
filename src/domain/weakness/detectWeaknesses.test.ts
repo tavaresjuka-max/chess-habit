@@ -24,6 +24,22 @@ describe('detectWeaknesses', () => {
     });
   });
 
+  it('usa limiar de blunder mais baixo nas bandas iniciantes', () => {
+    const signals: Signal[] = [
+      {
+        source: 'chesscom',
+        confidence: 'medium',
+        observedAt,
+        value: { kind: 'judgment', blunders: 2, mistakes: 0, inaccuracies: 0, games: 6 },
+      },
+    ];
+
+    // ratio 0,33: não dispara no default (0,5), mas dispara em banda iniciante (0,3).
+    expect(detectWeaknesses(signals)).toEqual([]);
+    expect(detectWeaknesses(signals, '400-800')[0]).toMatchObject({ tag: 'blunder-rate' });
+    expect(detectWeaknesses(signals, '1000-1200')).toEqual([]);
+  });
+
   it('keeps the plan conservative when thresholds do not fire', () => {
     const signals: Signal[] = [
       {
