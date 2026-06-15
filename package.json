@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "smoke:pwa": "playwright test",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -25,6 +27,7 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
+    "@vitest/coverage-v8": "^4.1.8",
     "eslint": "10.4.1",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",

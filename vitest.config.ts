@@ -10,6 +10,19 @@ export default mergeConfig(
         // O módulo virtual do vite-plugin-pwa não existe no vitest/jsdom.
         'virtual:pwa-register/react': fileURLToPath(new URL('./src/test/pwaRegisterMock.ts', import.meta.url)),
       },
+      // Cobertura é baseline (sem threshold bloqueante) e roda só via
+      // `npm run coverage` — o `npm test` default segue rápido.
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'html'],
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: [
+          'src/**/*.test.{ts,tsx}',
+          'src/**/*.d.ts',
+          'src/test/**',
+          'src/main.tsx',
+        ],
+      },
     },
   }),
 );
