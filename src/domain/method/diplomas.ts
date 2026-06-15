@@ -155,6 +155,47 @@ export function getDiplomaProgress(attempts: DiplomaAttempt[], diplomaId: Diplom
   };
 }
 
+// Diploma conquistado há pouco (default: 10 dias): usado para promover o aluno à
+// trilha progress-diplomas por uma ou duas semanas (decisão 3 do dono). O momento
+// da conquista é a última seção a cruzar o threshold.
+export function getRecentlyEarnedDiploma(
+  attempts: DiplomaAttempt[],
+  nowIso: string,
+  windowDays = 10,
+): DiplomaId | undefined {
+  const now = Date.parse(nowIso);
+
+  if (Number.isNaN(now)) {
+    return undefined;
+  }
+
+  const cutoff = now - windowDays * 86_400_000;
+  let best: { id: DiplomaId; at: number } | undefined;
+
+  for (const definition of DIPLOMAS) {
+    if (!isDiplomaPassed(attempts, definition.id)) {
+      continue;
+    }
+
+    let passedAt = 0;
+
+    for (const section of definition.sections) {
+      const latest = getLatestSectionAttempt(attempts, definition.id, section.id);
+      const at = latest === undefined ? 0 : Date.parse(latest.createdAt);
+
+      if (!Number.isNaN(at) && at > passedAt) {
+        passedAt = at;
+      }
+    }
+
+    if (passedAt >= cutoff && (best === undefined || passedAt > best.at)) {
+      best = { id: definition.id, at: passedAt };
+    }
+  }
+
+  return best?.id;
+}
+
 function getLatestSectionAttempt(
   attempts: DiplomaAttempt[],
   diplomaId: DiplomaId,

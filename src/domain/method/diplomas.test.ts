@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DiplomaAttempt } from './types';
-import { DIPLOMAS, getDiploma, getDiplomaProgress, isDiplomaPassed } from './diplomas';
+import { DIPLOMAS, getDiploma, getDiplomaProgress, getRecentlyEarnedDiploma, isDiplomaPassed } from './diplomas';
 
 describe('diplomas', () => {
   it('defines the three local checkpoints', () => {
@@ -44,6 +44,35 @@ describe('diplomas', () => {
       expect.objectContaining({ id: 'mates-basicos', scorePercent: 0, passed: false, attempted: false }),
     ]);
     expect(progress?.overallPassed).toBe(false);
+  });
+
+  it('detecta diploma conquistado dentro da janela recente', () => {
+    const attempts = [
+      createAttempt({ sectionId: 'coordenadas', scorePercent: 95, createdAt: '2026-06-14T10:00:00.000Z' }),
+      createAttempt({ sectionId: 'valor-pecas', scorePercent: 92, createdAt: '2026-06-14T10:00:00.000Z' }),
+      createAttempt({ sectionId: 'mates-basicos', scorePercent: 100, createdAt: '2026-06-14T10:00:00.000Z' }),
+    ];
+
+    expect(getRecentlyEarnedDiploma(attempts, '2026-06-15T10:00:00.000Z')).toBe('peao');
+  });
+
+  it('ignora diploma conquistado fora da janela de dias', () => {
+    const attempts = [
+      createAttempt({ sectionId: 'coordenadas', scorePercent: 95, createdAt: '2026-05-01T10:00:00.000Z' }),
+      createAttempt({ sectionId: 'valor-pecas', scorePercent: 92, createdAt: '2026-05-01T10:00:00.000Z' }),
+      createAttempt({ sectionId: 'mates-basicos', scorePercent: 100, createdAt: '2026-05-01T10:00:00.000Z' }),
+    ];
+
+    expect(getRecentlyEarnedDiploma(attempts, '2026-06-15T10:00:00.000Z')).toBeUndefined();
+  });
+
+  it('não retorna diploma ainda não concluído', () => {
+    const attempts = [
+      createAttempt({ sectionId: 'coordenadas', scorePercent: 95, createdAt: '2026-06-14T10:00:00.000Z' }),
+      createAttempt({ sectionId: 'valor-pecas', scorePercent: 50, createdAt: '2026-06-14T10:00:00.000Z' }),
+    ];
+
+    expect(getRecentlyEarnedDiploma(attempts, '2026-06-15T10:00:00.000Z')).toBeUndefined();
   });
 });
 

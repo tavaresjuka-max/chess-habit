@@ -1,8 +1,9 @@
 import { getCoachNote } from '../coach/coachCatalog';
+import { getRecentlyEarnedDiploma } from '../method/diplomas';
 import { getMethodTrackTitle } from '../method/methodTracks';
 import { isDueToday } from '../method/pendingItems';
 import { selectMethodTrack } from '../method/selectMethodTrack';
-import type { MethodTrackId, PendingTrainingItem } from '../method/types';
+import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../method/types';
 import { getDestinationForWeakness } from '../sources/destinations';
 import { findLichessResourceByUrl } from '../sources/resourceCatalog';
 import type {
@@ -35,6 +36,9 @@ type GeneratePlanOptions = {
   openedBlockIds?: readonly string[];
   openPendingItems?: readonly PendingTrainingItem[];
   weakThemesFromDashboard?: readonly string[];
+  // Decisão 3: conquistar um diploma há pouco promove à trilha progress-diplomas.
+  // generatePlan calcula a recência a partir das tentativas + a data do plano.
+  diplomaAttempts?: readonly DiplomaAttempt[];
 };
 
 type LatestThemeSignal = {
@@ -82,6 +86,9 @@ export function generatePlan(
     openPendingItems: [...(options.openPendingItems ?? [])],
     primaryWeakness: primaryWeakness.tag,
     weakThemes: [...(options.weakThemesFromDashboard ?? [])],
+    recentlyEarnedDiploma:
+      options.diplomaAttempts !== undefined &&
+      getRecentlyEarnedDiploma([...options.diplomaAttempts], date) !== undefined,
   });
   const reviewRatio = getReviewRatioForPendingCount(duePendingItems.length);
   const budget = applyAdaptiveReviewRatio(getTimeBudget(sessionMinutes), reviewRatio, duePendingItems.length > 0);

@@ -7,6 +7,7 @@ export type TrackSelectionInput = {
   primaryWeakness?: WeaknessTag;
   weakThemes: string[];
   puzzleThemeStats?: PuzzleThemeStat[];
+  recentlyEarnedDiploma?: boolean;
 };
 
 const calculationThemes: readonly string[] = ['fork', 'discoveredAttack', 'mateIn2', 'deflection', 'quietMove'];
@@ -17,6 +18,12 @@ const calculationWeaknessTags: readonly WeaknessTag[] = ['fork', 'discovered', '
 export function selectMethodTrack(input: TrackSelectionInput): MethodTrackId {
   if (input.openPendingItems.some(isDueToday)) {
     return 'pending-review';
+  }
+
+  // Conquistou um diploma há pouco: promove à trilha de diplomas por uma ou duas
+  // semanas (decisão 3). A revisão de pendências vencidas continua tendo prioridade.
+  if (input.recentlyEarnedDiploma === true) {
+    return 'progress-diplomas';
   }
 
   if (

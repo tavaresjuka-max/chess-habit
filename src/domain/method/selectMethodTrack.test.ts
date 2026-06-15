@@ -53,6 +53,28 @@ describe('selectMethodTrack', () => {
       }),
     ).toBe('calculation-bridge');
   });
+
+  it('promove para progress-diplomas após diploma recente (decisão 3)', () => {
+    expect(
+      selectMethodTrack({
+        openPendingItems: [],
+        primaryWeakness: 'fork',
+        weakThemes: [],
+        recentlyEarnedDiploma: true,
+      }),
+    ).toBe('progress-diplomas');
+  });
+
+  it('mantém pending-review acima da trilha de diploma recente', () => {
+    expect(
+      selectMethodTrack({
+        openPendingItems: [createPendingItem({ dueAt: today })],
+        primaryWeakness: 'fork',
+        weakThemes: [],
+        recentlyEarnedDiploma: true,
+      }),
+    ).toBe('pending-review');
+  });
 });
 
 function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {

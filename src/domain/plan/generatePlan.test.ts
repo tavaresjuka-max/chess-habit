@@ -93,6 +93,24 @@ describe('generatePlan', () => {
     expect(transferencia?.weaknessTag).toBe('fork');
   });
 
+  it('promove à trilha de diplomas após diploma recente (decisão 3)', () => {
+    const recentDiploma = ['coordenadas', 'valor-pecas', 'mates-basicos'].map((sectionId) => ({
+      id: `a-${sectionId}`,
+      diplomaId: 'peao' as const,
+      sectionId,
+      scorePercent: 95,
+      totalItems: 10,
+      passed: true,
+      source: 'local' as const,
+      createdAt: '2026-06-06T08:00:00.000Z',
+      updatedAt: '2026-06-06T08:00:00.000Z',
+    }));
+
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', { diplomaAttempts: recentDiploma });
+
+    expect(plan.blocks.every((block) => block.methodTrackId === 'progress-diplomas')).toBe(true);
+  });
+
   it('introduces the guided fork lesson with simple Professor Lemos context', () => {
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const note = plan.blocks[0]?.coachNote ?? '';
