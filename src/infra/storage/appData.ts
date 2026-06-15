@@ -74,6 +74,16 @@ export async function saveTrainingLog(log: TrainingLog): Promise<void> {
   await db.logs.put(log);
 }
 
+// Persiste log e plano numa única transação: o status do bloco (no plano) e o
+// log que o comprova commitam juntos ou nenhum. Evita o estado corrompido de
+// "bloco done com plano não salvo" se o app fechar entre as duas escritas.
+export async function saveTrainingLogAndPlan(log: TrainingLog, plan: DailyPlan): Promise<void> {
+  await db.transaction('rw', [db.logs, db.plans], async () => {
+    await db.logs.put(log);
+    await db.plans.put(plan);
+  });
+}
+
 export async function getTrainingLog(id: string): Promise<TrainingLog | undefined> {
   return db.logs.get(id);
 }

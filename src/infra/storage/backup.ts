@@ -116,6 +116,12 @@ function entityError(table: string, index: number, field: string): string {
   return `${table}[${String(index)}]: campo "${field}" ausente ou inválido.`;
 }
 
+// Chave primária do Dexie: precisa ser string não-vazia. Um id em branco
+// (string vazia) é tipo válido mas corrompe o registro ao gravar.
+function isValidId(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
 export function validateBackupData(data: BackupData): string | null {
   for (const [i, item] of data.profile.entries()) {
     if (!isObj(item) || typeof item.band !== 'string' || typeof item.updatedAt !== 'string') {
@@ -137,7 +143,7 @@ export function validateBackupData(data: BackupData): string | null {
 
   // elapsedSeconds e completedAt sao opcionais em TrainingLog (sessao ativa nao tem ainda).
   for (const [i, item] of data.logs.entries()) {
-    if (!isObj(item) || typeof item.id !== 'string') {
+    if (!isObj(item) || !isValidId(item.id)) {
       return entityError('logs', i, 'id');
     }
     if (typeof item.startedAt !== 'string') {
@@ -146,7 +152,7 @@ export function validateBackupData(data: BackupData): string | null {
   }
 
   for (const [i, item] of data.signals.entries()) {
-    if (!isObj(item) || typeof item.id !== 'string') {
+    if (!isObj(item) || !isValidId(item.id)) {
       return entityError('signals', i, 'id');
     }
     if (typeof item.kind !== 'string' || item.kind.length === 0) {
@@ -155,7 +161,7 @@ export function validateBackupData(data: BackupData): string | null {
   }
 
   for (const [i, item] of data.weaknesses.entries()) {
-    if (!isObj(item) || typeof item.id !== 'string') {
+    if (!isObj(item) || !isValidId(item.id)) {
       return entityError('weaknesses', i, 'id');
     }
     if (typeof item.tag !== 'string' || item.tag.length === 0) {
@@ -164,26 +170,26 @@ export function validateBackupData(data: BackupData): string | null {
   }
 
   for (const [i, item] of data.methodTracks.entries()) {
-    if (!isObj(item) || typeof item.id !== 'string') {
+    if (!isObj(item) || !isValidId(item.id)) {
       return entityError('methodTracks', i, 'id');
     }
   }
 
   for (const [i, item] of data.pendingItems.entries()) {
-    if (!isObj(item) || typeof item.id !== 'string') {
+    if (!isObj(item) || !isValidId(item.id)) {
       return entityError('pendingItems', i, 'id');
     }
   }
 
   for (const [i, item] of data.diplomaAttempts.entries()) {
-    if (!isObj(item) || typeof item.id !== 'string') {
+    if (!isObj(item) || !isValidId(item.id)) {
       return entityError('diplomaAttempts', i, 'id');
     }
   }
 
   if (data.achievements !== undefined) {
     for (const [i, item] of data.achievements.entries()) {
-      if (!isObj(item) || typeof item.id !== 'string') {
+      if (!isObj(item) || !isValidId(item.id)) {
         return entityError('achievements', i, 'id');
       }
       if (typeof item.unlockedAt !== 'string') {
@@ -194,7 +200,7 @@ export function validateBackupData(data: BackupData): string | null {
 
   if (data.placementResults !== undefined) {
     for (const [i, item] of data.placementResults.entries()) {
-      if (!isObj(item) || typeof item.id !== 'string') {
+      if (!isObj(item) || !isValidId(item.id)) {
         return entityError('placementResults', i, 'id');
       }
     }
@@ -202,7 +208,7 @@ export function validateBackupData(data: BackupData): string | null {
 
   if (data.lichessStudies !== undefined) {
     for (const [i, item] of data.lichessStudies.entries()) {
-      if (!isObj(item) || typeof item.id !== 'string') {
+      if (!isObj(item) || !isValidId(item.id)) {
         return entityError('lichessStudies', i, 'id');
       }
       if (typeof item.studyId !== 'string') {
@@ -213,7 +219,7 @@ export function validateBackupData(data: BackupData): string | null {
 
   if (data.appMeta !== undefined) {
     for (const [i, item] of data.appMeta.entries()) {
-      if (!isObj(item) || typeof item.id !== 'string') {
+      if (!isObj(item) || !isValidId(item.id)) {
         return entityError('appMeta', i, 'id');
       }
     }

@@ -68,6 +68,7 @@ import {
   saveLichessStudyLink,
   savePlacementResult as savePlacementResultRecord,
   savePlan,
+  saveTrainingLogAndPlan,
   type StoredPlacementResult,
   saveProfile as saveStoredProfile,
   saveTrainingLog,
@@ -561,13 +562,24 @@ export function useAppState(): AppState {
     const wantsLichess = (nextProfile.lichessUsername ?? '').trim() !== '';
 
     if (wantsChesscom || wantsLichess) {
+      // Sequencial e em segundo plano. Cada fonte tem try/catch próprio: um erro
+      // inesperado de uma não cancela a outra nem some no void silencioso —
+      // vai para a mensagem de erro visível (J3 — falha auditável).
       void (async () => {
         if (wantsChesscom) {
-          await runChesscomSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS });
+          try {
+            await runChesscomSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS });
+          } catch (error) {
+            setErrorMessage(toErrorMessage(error));
+          }
         }
 
         if (wantsLichess) {
-          await runLichessSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS });
+          try {
+            await runLichessSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS });
+          } catch (error) {
+            setErrorMessage(toErrorMessage(error));
+          }
         }
       })();
     }
@@ -1071,6 +1083,20 @@ export function useAppState(): AppState {
       const updatedAt = new Date().toISOString();
       const existingLog = await getTrainingLog(`${todayPlan.date}:${blockId}`);
 
+      const nextPlan: DailyPlan = {
+        ...todayPlan,
+        blocks: todayPlan.blocks.map((block) =>
+          block.id === blockId
+            ? {
+                ...block,
+                status,
+                ...(feedback === undefined ? {} : { feedback }),
+                updatedAt,
+              }
+            : block,
+        ),
+      };
+
       if (status === 'done') {
         const block = todayPlan.blocks.find((planBlock) => planBlock.id === blockId);
 
@@ -1090,16 +1116,22 @@ export function useAppState(): AppState {
           const reconcileOutcome = await reconcileLogIfPossible(completedLog);
           const nextAllTrainingLogs = upsertTrainingLog(allTrainingLogs, reconcileOutcome.log);
 
-          await saveTrainingLog(reconcileOutcome.log);
+          // Log e plano numa transação só: o bloco "done" e o log que o comprova
+          // nunca divergem se o app fechar no meio (J3 — durabilidade).
+          await saveTrainingLogAndPlan(reconcileOutcome.log, nextPlan);
           setTrainingLogs(upsertTrainingLog(trainingLogs, reconcileOutcome.log));
           setAllTrainingLogs(nextAllTrainingLogs);
           // Conquistas (Corte 7): avaliadas no fechamento de bloco, fonte de
           // verdade no Dexie; sem celebração visual, só registro sóbrio.
           setAchievements(await syncAchievements(nextAllTrainingLogs));
+          setTodayPlan(nextPlan);
+          setErrorMessage(undefined);
 
           if (reconcileOutcome.warning !== undefined) {
             setLichessMessage(reconcileOutcome.warning);
           }
+
+          return;
         }
       }
 
@@ -1109,24 +1141,14 @@ export function useAppState(): AppState {
           skippedAt: updatedAt,
         });
 
-        await saveTrainingLog(skippedLog);
+        await saveTrainingLogAndPlan(skippedLog, nextPlan);
         setTrainingLogs(upsertTrainingLog(trainingLogs, skippedLog));
         setAllTrainingLogs(upsertTrainingLog(allTrainingLogs, skippedLog));
-      }
+        setTodayPlan(nextPlan);
+        setErrorMessage(undefined);
 
-      const nextPlan: DailyPlan = {
-        ...todayPlan,
-        blocks: todayPlan.blocks.map((block) =>
-          block.id === blockId
-            ? {
-                ...block,
-                status,
-                ...(feedback === undefined ? {} : { feedback }),
-                updatedAt,
-              }
-            : block,
-        ),
-      };
+        return;
+      }
 
       await savePlan(nextPlan);
       setTodayPlan(nextPlan);

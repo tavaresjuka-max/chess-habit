@@ -131,6 +131,15 @@ describe('validateBackupData', () => {
     expect(error).toContain('kind');
   });
 
+  it('rejects an item whose id is an empty string (corrupting PK)', () => {
+    const data: BackupData = { ...createEmptyData(), weaknesses: [{ id: '', tag: 'fork' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('weaknesses');
+    expect(error).toContain('id');
+  });
+
   it('rejects logs item missing startedAt', () => {
     const data: BackupData = { ...createEmptyData(), logs: [{ id: 'l1' }] };
     const error = validateBackupData(data);
