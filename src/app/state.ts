@@ -25,16 +25,13 @@ import {
 } from '../domain';
 import { advancePendingItem, masteryTargetFromCompletedLog } from '../domain/method';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
-import { revokeLichessOAuthToken } from '../infra/lichess/oauth';
 import {
-  clearLichessOAuthToken,
   exportAllAsJson,
   importBackupFromJson,
   loadBackupMeta,
   markOnboardingCompleted,
   type BackupImportResult,
   getTrainingLog,
-  loadLichessOAuthToken,
   loadTrainingLogs,
   loadTrainingLogsForDate,
   savePendingItem,
@@ -51,7 +48,6 @@ import type { StoragePersistenceStatus } from '../infra/storage/persistence';
 import { syncAchievements } from './achievementsSync';
 import { getTodayDate } from './date';
 import { toErrorMessage } from './errorMessages';
-import { startLichessOAuthConnection } from './oauthFlow';
 import {
   buildPlanContext,
   toSessionMinutes,
@@ -63,6 +59,7 @@ import {
 import { useDiagnosisActions } from './useDiagnosisActions';
 import { useAppData } from './useAppData';
 import { useBackupActions } from './useBackupActions';
+import { useOAuthActions } from './useOAuthActions';
 import { usePendingActions } from './usePendingActions';
 import { useStudyActions } from './useStudyActions';
 
@@ -349,26 +346,12 @@ export function useAppState(): AppState {
     [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
   );
 
-  const connectLichess = useCallback(async () => {
-    await startLichessOAuthConnection(profile?.lichessUsername);
-  }, [profile]);
-
-  const disconnectLichess = useCallback(async () => {
-    const token = await loadLichessOAuthToken();
-
-    try {
-      if (token !== undefined) {
-        await revokeLichessOAuthToken({ token: token.accessToken });
-      }
-    } catch {
-      // Revogar depende da rede; mesmo se falhar, o token local precisa sumir.
-    } finally {
-      await clearLichessOAuthToken();
-      setLichessToken(undefined);
-      setLichessConnectionState('disconnected');
-      setLichessMessage('Conexão Lichess removida.');
-    }
-  }, []);
+  const { connectLichess, disconnectLichess } = useOAuthActions({
+    profile,
+    setLichessConnectionState,
+    setLichessMessage,
+    setLichessToken,
+  });
 
   const { reconcileLichessResults, importFreeActivity, createLichessStudy } = useStudyActions({
     allTrainingLogs,
