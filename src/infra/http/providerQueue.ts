@@ -1,7 +1,12 @@
 type Fetcher = typeof fetch;
 
-export function createSerialQueue(options?: { cooldownMs?: number; fetcher?: Fetcher }): Fetcher {
+export function createSerialQueue(options?: {
+  cooldownMs?: number;
+  timeoutMs?: number;
+  fetcher?: Fetcher;
+}): Fetcher {
   const cooldownMs = options?.cooldownMs ?? 60_000;
+  const timeoutMs = options?.timeoutMs ?? 30_000;
   // Resolve at call time (not at creation time) so vi.stubGlobal('fetch', …) works in tests.
   const customFetcher = options?.fetcher;
 
@@ -14,11 +19,21 @@ export function createSerialQueue(options?: { cooldownMs?: number; fetcher?: Fet
       if (remaining > 0) {
         await new Promise<void>((resolve) => setTimeout(resolve, remaining));
       }
-      const response = await (customFetcher ?? fetch)(input, init);
-      if (response.status === 429) {
-        cooldownUntil = Date.now() + cooldownMs;
+      // Timeout por requisição: se uma chamada travar (3G ruim, servidor mudo),
+      // o AbortController a cancela e libera a fila em vez de bloquear tudo.
+      const controller = new AbortController();
+      const timer = setTimeout(() => {
+        controller.abort();
+      }, timeoutMs);
+      try {
+        const response = await (customFetcher ?? fetch)(input, { ...init, signal: controller.signal });
+        if (response.status === 429) {
+          cooldownUntil = Date.now() + cooldownMs;
+        }
+        return response;
+      } finally {
+        clearTimeout(timer);
       }
-      return response;
     });
     tail = call.then(
       () => {},

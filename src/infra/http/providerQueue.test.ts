@@ -66,4 +66,32 @@ describe('createSerialQueue', () => {
   it('lichessFetch and chesscomFetch are separate queue instances', () => {
     expect(lichessFetch).not.toBe(chesscomFetch);
   });
+
+  it('aborta uma chamada que excede o timeout', async () => {
+    let calls = 0;
+    const stalled: typeof fetch = (_input, init) => {
+      calls += 1;
+      return new Promise<Response>((_resolve, reject) => {
+        const signal = init?.signal;
+        if (signal?.aborted) {
+          reject(new Error('aborted'));
+          return;
+        }
+        signal?.addEventListener('abort', () => {
+          reject(new Error('aborted'));
+        });
+      });
+    };
+
+    const queue = createSerialQueue({ timeoutMs: 20, fetcher: stalled });
+
+    await expect(queue('https://slow')).rejects.toThrow();
+    expect(calls).toBe(1);
+  });
+
+  it('não aborta quando a chamada responde dentro do timeout', async () => {
+    const queue = createSerialQueue({ timeoutMs: 1000, fetcher: () => Promise.resolve(ok()) });
+
+    await expect(queue('https://fast')).resolves.toHaveProperty('status', 200);
+  });
 });
