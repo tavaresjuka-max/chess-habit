@@ -1,4 +1,5 @@
 import { isBeginnerBand } from '../bands';
+import { assertNever } from '../assertNever';
 import type { Confidence, LearnerBand, Signal, Weakness, WeaknessTag } from '../types';
 
 // Iniciantes (0-800) recebem um limiar de blunder mais baixo: anti-blunder é a
@@ -197,6 +198,8 @@ function signalToCandidates(
     case 'rating':
     case 'time-control':
       return [];
+    default:
+      return assertNever(signal.value);
   }
 }
 

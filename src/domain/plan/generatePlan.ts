@@ -1,4 +1,5 @@
 import { getCoachNote } from '../coach/coachCatalog';
+import { assertNever } from '../assertNever';
 import { weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
 import { getRecentlyEarnedDiploma } from '../method/diplomas';
 import { getMethodTrackTitle } from '../method/methodTracks';
@@ -343,6 +344,8 @@ function getBlockCopy(
         reason: 'Finais curtos consolidam precisão sem depender de engine no app.',
         weaknessTag: 'endgame-pawn',
       };
+    default:
+      return assertNever(kind);
   }
 }
 
@@ -358,6 +361,8 @@ function getResourceStage(kind: PlanBlockKind, latestThemeSignal: LatestThemeSig
       return 'transfer';
     case 'final':
       return 'guided';
+    default:
+      return assertNever(kind);
   }
 }
 
