@@ -681,13 +681,13 @@ export function useAppState(): AppState {
     if (profile !== undefined) {
       const date = getTodayDate();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-      const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
-        previousPlan: todayPlan,
-        recentThemeStats,
-        openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-        openPendingItems: pendingItems,
-        weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-      });
+      const plan = generatePlan(
+        profile,
+        nextWeaknesses,
+        sessionMinutes,
+        date,
+        buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
+      );
 
       await savePlan(plan);
       setTodayPlan(plan);
@@ -712,13 +712,13 @@ export function useAppState(): AppState {
       if (profile !== undefined) {
         const date = getTodayDate();
         const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-        const plan = generatePlan(profile, nextWeaknesses, sessionMinutes, date, {
-          previousPlan: todayPlan,
-          recentThemeStats,
-          openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-          openPendingItems: pendingItems,
-          weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-        });
+        const plan = generatePlan(
+          profile,
+          nextWeaknesses,
+          sessionMinutes,
+          date,
+          buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
+        );
 
         await savePlan(plan);
         setTodayPlan(plan);
@@ -728,7 +728,7 @@ export function useAppState(): AppState {
       setDiagnosisMessage('Resposta registrada. Ajustei as hipóteses do treino.');
       setErrorMessage(undefined);
     },
-    [pendingItems, profile, sessionMinutes, todayPlan, trainingLogs],
+    [diplomaAttempts, pendingItems, profile, sessionMinutes, todayPlan, trainingLogs],
   );
 
   const connectLichess = useCallback(async () => {
@@ -797,13 +797,13 @@ export function useAppState(): AppState {
           weaknesses,
           toSessionMinutes(todayPlan.sessionMinutes, profile.defaultSessionMinutes),
           todayPlan.date,
-          {
+          buildPlanContext({
             previousPlan: todayPlan,
             recentThemeStats,
-            openedBlockIds: getOpenedTrainingBlockIds(nextTrainingLogs),
-            openPendingItems: pendingItems,
-            weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-          },
+            trainingLogs: nextTrainingLogs,
+            pendingItems,
+            diplomaAttempts,
+          }),
         );
 
         await savePlan(nextPlan);
@@ -822,7 +822,7 @@ export function useAppState(): AppState {
       setLichessConnectionState('error');
       setLichessMessage(toLichessErrorMessage(error));
     }
-  }, [allTrainingLogs, pendingItems, profile, todayPlan, trainingLogs, weaknesses]);
+  }, [allTrainingLogs, diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses]);
 
   const importFreeActivity = useCallback(async () => {
     const token = await loadLichessOAuthToken();
@@ -983,13 +983,13 @@ export function useAppState(): AppState {
           weaknesses,
           toSessionMinutes(todayPlan.sessionMinutes, profile.defaultSessionMinutes),
           todayPlan.date,
-          {
+          buildPlanContext({
             previousPlan: todayPlan,
             recentThemeStats,
-            openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-            openPendingItems: nextPendingItems,
-            weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-          },
+            trainingLogs,
+            pendingItems: nextPendingItems,
+            diplomaAttempts,
+          }),
         );
 
         await savePlan(nextPlan);
