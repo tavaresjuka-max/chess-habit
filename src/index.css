@@ -273,7 +273,7 @@ h3 {
 .nav-button {
   flex: 1;
   min-width: 0;
-  min-height: 36px;
+  min-height: 44px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--ink-600);
@@ -2234,7 +2234,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 }
 
 .fold-meta {
-  color: var(--ink-500);
+  color: var(--ink-600);
   font-size: 0.82rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;

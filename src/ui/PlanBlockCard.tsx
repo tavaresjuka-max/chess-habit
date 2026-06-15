@@ -56,10 +56,12 @@ export function PlanBlockCard({
   }
 
   return (
-    <article className="plan-block">
+    <article className="plan-block" aria-labelledby={`block-title-${block.id}`}>
       <div className="block-header">
-        {/* h3: o título do bloco fica subordinado ao h2 da seção (hero ou Sessão N). */}
-        <h3>{block.title}</h3>
+        {/* h3: o título do bloco fica subordinado ao h2 da seção (hero ou Sessão N).
+            O id rotula o <article> inteiro (aria-labelledby): o leitor de tela
+            anuncia o bloco ao entrar, dando contexto aos botões "Concluir"/"Pular". */}
+        <h3 id={`block-title-${block.id}`}>{block.title}</h3>
         <span className={`status-pill status-${block.status}`}>{formatStatus(block.status)}</span>
       </div>
       <p className="block-meta">

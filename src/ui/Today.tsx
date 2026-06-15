@@ -268,44 +268,9 @@ export function Today({
         ) : null}
       </ul>
 
-      <TutorCard
-        plan={plan}
-        weaknesses={weaknesses}
-        trainingLogs={trainingLogs}
-        today={plan.date}
-        onAnswerTutorQuestion={onAnswerTutorQuestion}
-        onReconcileLichessResults={onReconcileLichessResults}
-      />
-
-      {returnNote !== undefined ? (
-        <p className="return-note" aria-live="polite">
-          {returnNote}
-        </p>
-      ) : null}
-
-      {/* Ordem narrativa: o professor explica o plano ("Entendi o que você
-          precisa") e cobra o que ficou aberto ANTES do próximo passo. Depois
-          de aprovado, o plano sai daqui e vira uma dobra no fim (abaixo). */}
-      {!planApproved ? (
-        <LearningPlanProposalCard
-          proposal={learningPlanProposal}
-          response={plan.learningPlanResponse}
-          activeTrackId={activeTrackId}
-          onApprovePlan={onApproveLearningPlan}
-          onRequestPlanRevision={onRequestLearningPlanRevision}
-        />
-      ) : null}
-
-      <PendingReviewCard
-        pendingItems={pendingItems}
-        onOpenItem={(item) => {
-          void onOpenPendingItem(item);
-        }}
-        onDeferItem={(item) => {
-          void onDeferPendingItem(item);
-        }}
-      />
-
+      {/* Ação primeiro: o próximo passo (ou "treinando agora") fica logo abaixo
+          das métricas do dia, acima do contexto do professor. Decisão de UX
+          (Corte D1): reduzir fricção no mobile — o dono abre o app e age. */}
       {heroBlock !== undefined ? (
         <section className="hero-now" aria-labelledby="hero-now-title">
           <h2 id="hero-now-title" className="hero-now-label">
@@ -346,6 +311,44 @@ export function Today({
           </div>
         </section>
       )}
+
+      <TutorCard
+        plan={plan}
+        weaknesses={weaknesses}
+        trainingLogs={trainingLogs}
+        today={plan.date}
+        onAnswerTutorQuestion={onAnswerTutorQuestion}
+        onReconcileLichessResults={onReconcileLichessResults}
+      />
+
+      {returnNote !== undefined ? (
+        <p className="return-note" aria-live="polite">
+          {returnNote}
+        </p>
+      ) : null}
+
+      {/* Depois da ação (hero no topo), o professor explica o plano ("Entendi o
+          que você precisa") e cobra o que ficou aberto. Aprovado, o plano sai
+          daqui e vira uma dobra no fim (abaixo). */}
+      {!planApproved ? (
+        <LearningPlanProposalCard
+          proposal={learningPlanProposal}
+          response={plan.learningPlanResponse}
+          activeTrackId={activeTrackId}
+          onApprovePlan={onApproveLearningPlan}
+          onRequestPlanRevision={onRequestLearningPlanRevision}
+        />
+      ) : null}
+
+      <PendingReviewCard
+        pendingItems={pendingItems}
+        onOpenItem={(item) => {
+          void onOpenPendingItem(item);
+        }}
+        onDeferItem={(item) => {
+          void onDeferPendingItem(item);
+        }}
+      />
 
       {/* Plano num lugar só: o resumo da fase aprovada (chips + números) no topo
           e, abaixo, a lista de blocos do dia. O hero já mostra o próximo passo;
