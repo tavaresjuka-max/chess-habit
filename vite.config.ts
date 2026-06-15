@@ -55,6 +55,9 @@ export default defineConfig({
     VitePWA(pwaOptions),
   ],
   build: {
+    // Source maps de produção: erros no Vercel e no service worker chegam com
+    // stack rastreável (antes só apareciam minificados, sem origem).
+    sourcemap: true,
     rollupOptions: {
       output: {
         // Isola dependências estáveis em chunks próprios: melhora o cache de

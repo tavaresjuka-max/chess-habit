@@ -58,6 +58,7 @@ export function Config({
 }: ConfigProps) {
   const restoreInputRef = useRef<HTMLInputElement>(null);
   const [confirmingClear, setConfirmingClear] = useState(false);
+  const [pendingRestoreFile, setPendingRestoreFile] = useState<File | null>(null);
   const initialProfile = profile ?? createDefaultProfile();
   const [lichessUsername, setLichessUsername] = useState(initialProfile.lichessUsername ?? '');
   const [chesscomUsername, setChesscomUsername] = useState(initialProfile.chesscomUsername ?? '');
@@ -91,14 +92,19 @@ export function Config({
     toast.success('Backup exportado.');
   }
 
-  async function handleRestoreFile(file: File) {
-    const confirmed = window.confirm('Este backup substitui todos os dados atuais. Continuar?');
+  function handleRestoreFile(file: File) {
+    // Confirmação inline (não window.confirm): acessível para leitor de tela e
+    // consistente com "Apagar tudo". O arquivo fica pendente até o usuário confirmar.
+    setPendingRestoreFile(file);
+  }
 
-    if (!confirmed) {
+  async function confirmRestore() {
+    if (pendingRestoreFile === null) {
       return;
     }
 
-    const result = await onImportBackup(await file.text());
+    const result = await onImportBackup(await pendingRestoreFile.text());
+    setPendingRestoreFile(null);
 
     if (!result.ok) {
       toast.error(result.error);
@@ -307,7 +313,7 @@ export function Config({
             event.target.value = '';
 
             if (file !== undefined) {
-              void handleRestoreFile(file);
+              handleRestoreFile(file);
             }
           }}
         />
@@ -315,15 +321,33 @@ export function Config({
           <button type="button" className="secondary-button" onClick={() => void handleExport()}>
             Exportar backup JSON
           </button>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => {
-              restoreInputRef.current?.click();
-            }}
-          >
-            Restaurar backup
-          </button>
+          {pendingRestoreFile !== null ? (
+            <div className="button-row" role="group" aria-label="Confirmar restaurar backup">
+              <span className="rating-prompt">Restaurar substitui todos os dados atuais. Continuar?</span>
+              <button type="button" className="danger-button" onClick={() => void confirmRestore()}>
+                Restaurar e recarregar
+              </button>
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => {
+                  setPendingRestoreFile(null);
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                restoreInputRef.current?.click();
+              }}
+            >
+              Restaurar backup
+            </button>
+          )}
           <button type="button" className="secondary-button" onClick={() => void handleImportKnownManualSignals()}>
             Adicionar sinais manuais
           </button>

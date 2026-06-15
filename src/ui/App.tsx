@@ -141,6 +141,7 @@ export function App() {
         </span>
         <button
           className={activeView === 'today' ? 'nav-button nav-button-active' : 'nav-button'}
+          aria-current={activeView === 'today' ? 'page' : undefined}
           type="button"
           onClick={() => {
             appState.setActiveView('today');
@@ -151,6 +152,7 @@ export function App() {
         </button>
         <button
           className={shouldShowProgress ? 'nav-button nav-button-active' : 'nav-button'}
+          aria-current={shouldShowProgress ? 'page' : undefined}
           type="button"
           onClick={() => {
             appState.setActiveView('progress');
@@ -161,6 +163,7 @@ export function App() {
         </button>
         <button
           className={shouldShowConfig ? 'nav-button nav-button-active' : 'nav-button'}
+          aria-current={shouldShowConfig ? 'page' : undefined}
           type="button"
           onClick={() => {
             appState.setActiveView('config');

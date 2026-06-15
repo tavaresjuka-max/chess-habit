@@ -119,6 +119,9 @@ function EssentialSetup({
       >
         <label className="field">
           <span>Usuário Lichess</span>
+          <small className="field-hint">
+            Para criar o Study do dia e conferir puzzles, conecte o Lichess na aba Config depois de salvar.
+          </small>
           <input
             autoComplete="username"
             value={lichessUsername}

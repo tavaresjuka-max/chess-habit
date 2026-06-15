@@ -1286,8 +1286,11 @@ export function useAppState(): AppState {
 
 export function createDefaultProfile(): LearnerProfile {
   return {
-    lichessUsername: 'jukasparov',
-    chesscomUsername: 'jukatavares',
+    // Perfil em branco: um novo usuário começa sem credenciais. Os usernames
+    // reais do dono vivem apenas nos fixtures de teste (*.test.*), nunca no
+    // bundle de produção (evita vazar PII e sincronizar dados de terceiros).
+    lichessUsername: undefined,
+    chesscomUsername: undefined,
     band: '800-1000',
     defaultSessionMinutes: 15,
     goals: ['Criar uma rotina consistente de treino'],

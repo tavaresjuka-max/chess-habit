@@ -13,6 +13,7 @@ import {
 import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
 import type { DiplomaAttempt } from '../domain/method/types';
 import { DiplomaSeal } from './art/DiplomaSeal';
+import { formatWeaknessTag } from './formatWeakness';
 import { MedalhaIcon } from './art/MedalhaIcon';
 import { Fold } from './Fold';
 
@@ -233,7 +234,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
               .slice(0, 5)
               .map((weakness) => (
                 <li key={weakness.tag}>
-                  <span className="skill-map-theme">{weakness.tag}</span>
+                  <span className="skill-map-theme">{formatWeaknessTag(weakness.tag)}</span>
                   <span className="skill-map-score">{weakness.evidence}</span>
                 </li>
               ))}

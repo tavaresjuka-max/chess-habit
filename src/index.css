@@ -2396,6 +2396,11 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     min-height: 44px;
   }
 
+  .radio-option {
+    /* O alvo de toque é a label inteira; o input em si tem só 16px. */
+    min-height: 44px;
+  }
+
   .button-row,
   .diagnosis-actions,
   .diagnosis-messages,

@@ -1,0 +1,22 @@
+name: CI
+
+# Gate objetivo: lint + testes + build em todo push/PR. Substitui o checkpoint
+# manual local (PLANO.md: "lint && test && build verdes").
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
