@@ -411,13 +411,19 @@ export function useAppState(): AppState {
         const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), targetProfile.band);
         const date = getTodayDate();
         const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-        const plan = generatePlan(targetProfile, nextWeaknesses, sessionMinutes, date, {
-          previousPlan: latestPlanRef.current,
-          recentThemeStats,
-          openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-          openPendingItems: pendingItems,
-          weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-        });
+        const plan = generatePlan(
+          targetProfile,
+          nextWeaknesses,
+          sessionMinutes,
+          date,
+          buildPlanContext({
+            previousPlan: latestPlanRef.current,
+            recentThemeStats,
+            trainingLogs,
+            pendingItems,
+            diplomaAttempts,
+          }),
+        );
 
         // Preserva a aprovação do plano: se o aluno aprovou enquanto a rede
         // respondia, o plano mais recente (ref) carrega a resposta — mantemos.
@@ -445,7 +451,7 @@ export function useAppState(): AppState {
         setDiagnosisMessage(toDiagnosisErrorMessage(error));
       }
     },
-    [pendingItems, sessionMinutes, trainingLogs],
+    [diplomaAttempts, pendingItems, sessionMinutes, trainingLogs],
   );
 
   // Núcleo do diagnóstico Lichess, também parametrizado pelo perfil-alvo.
@@ -484,13 +490,19 @@ export function useAppState(): AppState {
         const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), targetProfile.band);
         const date = getTodayDate();
         const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-        const plan = generatePlan(targetProfile, nextWeaknesses, sessionMinutes, date, {
-          previousPlan: latestPlanRef.current,
-          recentThemeStats,
-          openedBlockIds: getOpenedTrainingBlockIds(trainingLogs),
-          openPendingItems: pendingItems,
-          weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-        });
+        const plan = generatePlan(
+          targetProfile,
+          nextWeaknesses,
+          sessionMinutes,
+          date,
+          buildPlanContext({
+            previousPlan: latestPlanRef.current,
+            recentThemeStats,
+            trainingLogs,
+            pendingItems,
+            diplomaAttempts,
+          }),
+        );
 
         // Preserva a aprovação do plano (mesmo motivo do sync Chess.com).
         const latestPlan = latestPlanRef.current;
@@ -516,7 +528,7 @@ export function useAppState(): AppState {
         setLichessMessage(toLichessErrorMessage(error));
       }
     },
-    [pendingItems, sessionMinutes, trainingLogs],
+    [diplomaAttempts, pendingItems, sessionMinutes, trainingLogs],
   );
 
   const saveProfile = useCallback(async (nextProfile: LearnerProfile) => {
