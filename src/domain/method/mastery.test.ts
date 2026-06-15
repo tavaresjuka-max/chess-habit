@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeMastery } from './mastery';
+import { computeMastery, masteryTargetFromCompletedLog } from './mastery';
 
 describe('computeMastery', () => {
   it('advances when accuracy is at least 80, volume is enough and recent feedback is not hard', () => {
@@ -48,6 +48,52 @@ describe('computeMastery', () => {
         accuracyPercent: 95,
         recentFeedbacks: ['easy', 'easy'],
         minVolumeReached: false,
+      }),
+    ).toBe('review');
+  });
+
+  it('derives advance from high reconciled theme accuracy without recent hard feedback', () => {
+    expect(
+      masteryTargetFromCompletedLog({
+        lichessTheme: 'fork',
+        themeStats: [{ theme: 'fork', attempts: 5, losses: 0 }],
+        lastFeedback: 'good',
+        currentFeedback: 'easy',
+        attempts: 1,
+      }),
+    ).toBe('advance');
+  });
+
+  it('derives review from medium reconciled theme accuracy', () => {
+    expect(
+      masteryTargetFromCompletedLog({
+        lichessTheme: 'fork',
+        themeStats: [{ theme: 'fork', attempts: 4, losses: 2 }],
+        currentFeedback: 'good',
+        attempts: 1,
+      }),
+    ).toBe('review');
+  });
+
+  it('derives regress from low reconciled theme accuracy', () => {
+    expect(
+      masteryTargetFromCompletedLog({
+        lichessTheme: 'fork',
+        themeStats: [{ theme: 'fork', attempts: 5, losses: 3 }],
+        currentFeedback: 'good',
+        attempts: 1,
+      }),
+    ).toBe('regress');
+  });
+
+  it('keeps review when the completed log has no stats for the pending theme', () => {
+    expect(
+      masteryTargetFromCompletedLog({
+        lichessTheme: 'fork',
+        themeStats: [{ theme: 'pin', attempts: 5, losses: 0 }],
+        lastFeedback: 'easy',
+        currentFeedback: 'easy',
+        attempts: 1,
       }),
     ).toBe('review');
   });

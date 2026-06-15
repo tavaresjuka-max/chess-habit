@@ -90,6 +90,42 @@ describe('pending training items', () => {
     expect(twice).toMatchObject({ attempts: 4, status: 'done' });
   });
 
+  it('usa mastery advance para graduar em menos repetições que o feedback sozinho', () => {
+    const item = createItem({ attempts: 2 });
+
+    expect(advancePendingItem(item, 'good')).toMatchObject({ attempts: 3, status: 'open' });
+    expect(advancePendingItem(item, 'good', 'advance')).toMatchObject({ attempts: 4, status: 'done' });
+  });
+
+  it('usa mastery regress para zerar attempts e revisar amanhã mesmo com feedback good', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3, dueAt: today }), 'good', 'regress');
+
+    expect(advanced).toMatchObject({
+      attempts: 0,
+      dueAt: tomorrow,
+      status: 'open',
+      lastFeedback: 'good',
+    });
+  });
+
+  it('mantém review e undefined retrocompatíveis com a chamada de dois argumentos', () => {
+    const item = createItem({ attempts: 2, dueAt: today });
+    const baseline = advancePendingItem(item, 'hard');
+
+    expect(advancePendingItem(item, 'hard', 'review')).toMatchObject({
+      attempts: baseline.attempts,
+      dueAt: baseline.dueAt,
+      status: baseline.status,
+      lastFeedback: baseline.lastFeedback,
+    });
+    expect(advancePendingItem(item, 'hard', undefined)).toMatchObject({
+      attempts: baseline.attempts,
+      dueAt: baseline.dueAt,
+      status: baseline.status,
+      lastFeedback: baseline.lastFeedback,
+    });
+  });
+
   it('returns a guiding prompt for every track', () => {
     const tracks: MethodTrackId[] = [
       'pending-review',

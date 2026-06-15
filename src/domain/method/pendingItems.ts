@@ -1,5 +1,6 @@
 import { createId } from '../ids';
 import type { PlanBlockFeedback, TrainingLog, WeaknessTag } from '../types';
+import type { MasteryResult } from './mastery';
 import type { MethodTrackId, PendingTrainingItem } from './types';
 
 const SPACING_DAYS = [1, 3, 7, 14] as const;
@@ -15,6 +16,10 @@ export function getNextDueDate(attempts: number): string {
   const days = SPACING_DAYS[Math.min(attempts, SPACING_DAYS.length - 1)] ?? 14;
 
   return addDays(new Date().toISOString(), days);
+}
+
+function clampSpacingAttempts(attempts: number): number {
+  return Math.max(0, Math.min(attempts, GRADUATION_ATTEMPTS));
 }
 
 export function createPendingItemFromFeedback(
@@ -75,25 +80,38 @@ export function createPendingItemFromTheme(
 
 const GRADUATION_ATTEMPTS = SPACING_DAYS.length;
 
-// SM-2 simplificado: o feedback do aluno move o item no espaçamento, em vez de
-// avançar sempre um nível fixo. 'easy' pula um nível extra (domina mais rápido);
-// 'hard' recua um nível; 'good'/sem feedback avança um nível.
+// Espaçamento fixo: o feedback do aluno move o item em vez de avançar sempre
+// um nível. 'easy' pula um nível extra, 'hard' recua; 'good'/sem feedback avança.
 function nextSpacingAttempts(attempts: number, feedback?: PlanBlockFeedback): number {
   const delta = feedback === 'easy' ? 2 : feedback === 'hard' ? -1 : 1;
 
-  return Math.max(0, Math.min(attempts + delta, GRADUATION_ATTEMPTS));
+  return clampSpacingAttempts(attempts + delta);
 }
 
-export function advancePendingItem(item: PendingTrainingItem, feedback?: PlanBlockFeedback): PendingTrainingItem {
-  const attempts = nextSpacingAttempts(item.attempts, feedback);
+export function advancePendingItem(
+  item: PendingTrainingItem,
+  feedback?: PlanBlockFeedback,
+  masteryTarget?: MasteryResult,
+): PendingTrainingItem {
+  const feedbackAttempts = nextSpacingAttempts(item.attempts, feedback);
+  const attempts = masteryTarget === 'advance' ? clampSpacingAttempts(feedbackAttempts + 1) : feedbackAttempts;
+  // Mastery real vinda do log reconciliado vence o ajuste local de dueAt do
+  // feedback: 'regress' reexpõe amanhã; 'advance' segue o nível acelerado.
+  const dueAt =
+    masteryTarget === 'regress'
+      ? getNextDueDate(0)
+      : masteryTarget === 'advance'
+        ? getNextDueDate(attempts)
+        : feedback === 'hard'
+          ? getNextDueDate(0)
+          : getNextDueDate(attempts);
 
   return {
     ...item,
-    attempts,
-    // 'hard' reaparece amanhã para re-exposição rápida; os demais seguem o intervalo do nível.
-    dueAt: feedback === 'hard' ? getNextDueDate(0) : getNextDueDate(attempts),
+    attempts: masteryTarget === 'regress' ? 0 : attempts,
+    dueAt,
     ...(feedback === undefined ? {} : { lastFeedback: feedback }),
-    status: attempts >= GRADUATION_ATTEMPTS ? 'done' : 'open',
+    status: masteryTarget !== 'regress' && attempts >= GRADUATION_ATTEMPTS ? 'done' : 'open',
     updatedAt: new Date().toISOString(),
   };
 }

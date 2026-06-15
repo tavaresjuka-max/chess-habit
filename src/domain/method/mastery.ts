@@ -1,3 +1,5 @@
+import type { PlanBlockFeedback, PuzzleThemeStat } from '../types';
+
 export type MasteryInput = {
   accuracyPercent: number;
   recentFeedbacks: ('easy' | 'good' | 'hard')[];
@@ -5,6 +7,14 @@ export type MasteryInput = {
 };
 
 export type MasteryResult = 'advance' | 'review' | 'regress';
+
+export type CompletedLogMasteryInput = {
+  lichessTheme?: string;
+  themeStats?: PuzzleThemeStat[];
+  lastFeedback?: PlanBlockFeedback;
+  currentFeedback?: PlanBlockFeedback;
+  attempts: number;
+};
 
 export function computeMastery(input: MasteryInput): MasteryResult {
   const hasRecentHard = input.recentFeedbacks.slice(-2).includes('hard');
@@ -22,6 +32,30 @@ export function computeMastery(input: MasteryInput): MasteryResult {
   }
 
   return 'regress';
+}
+
+export function masteryTargetFromCompletedLog(input: CompletedLogMasteryInput): MasteryResult {
+  const recentFeedbacks = [input.lastFeedback, input.currentFeedback].filter(
+    (feedback): feedback is PlanBlockFeedback => feedback !== undefined,
+  );
+  const themeStat =
+    input.lichessTheme === undefined
+      ? undefined
+      : input.themeStats?.find((stat) => stat.theme === input.lichessTheme);
+
+  if (themeStat === undefined || themeStat.attempts < 3) {
+    return computeMastery({
+      accuracyPercent: 0,
+      recentFeedbacks,
+      minVolumeReached: false,
+    });
+  }
+
+  return computeMastery({
+    accuracyPercent: ((themeStat.attempts - themeStat.losses) / themeStat.attempts) * 100,
+    recentFeedbacks,
+    minVolumeReached: true,
+  });
 }
 
 export const DIPLOMA_THRESHOLDS: Record<string, number> = {

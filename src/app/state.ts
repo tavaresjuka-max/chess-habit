@@ -30,6 +30,7 @@ import {
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
+import { advancePendingItem, masteryTargetFromCompletedLog } from '../domain/method';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
 import { importLichessSignals } from '../infra/lichess/games';
@@ -1114,17 +1115,63 @@ export function useAppState(): AppState {
             feedback,
           });
           const reconcileOutcome = await reconcileLogIfPossible(completedLog);
+          const nextTrainingLogs = upsertTrainingLog(trainingLogs, reconcileOutcome.log);
           const nextAllTrainingLogs = upsertTrainingLog(allTrainingLogs, reconcileOutcome.log);
 
           // Log e plano numa transação só: o bloco "done" e o log que o comprova
           // nunca divergem se o app fechar no meio (J3 — durabilidade).
           await saveTrainingLogAndPlan(reconcileOutcome.log, nextPlan);
-          setTrainingLogs(upsertTrainingLog(trainingLogs, reconcileOutcome.log));
+          let finalPlan = nextPlan;
+
+          if (block.pendingItemId !== undefined) {
+            const pendingItem = pendingItems.find((item) => item.id === block.pendingItemId);
+
+            if (pendingItem !== undefined) {
+              const masteryTarget = masteryTargetFromCompletedLog({
+                lichessTheme: pendingItem.lichessTheme,
+                themeStats: reconcileOutcome.log.result?.themeStats,
+                lastFeedback: pendingItem.lastFeedback,
+                currentFeedback: feedback,
+                attempts: pendingItem.attempts,
+              });
+              const advancedPendingItem = advancePendingItem(pendingItem, feedback, masteryTarget);
+
+              await savePendingItem(advancedPendingItem);
+
+              const nextPendingItems =
+                advancedPendingItem.status === 'open'
+                  ? pendingItems.map((item) => (item.id === advancedPendingItem.id ? advancedPendingItem : item))
+                  : pendingItems.filter((item) => item.id !== advancedPendingItem.id);
+
+              setPendingItems(nextPendingItems);
+
+              if (profile !== undefined) {
+                const recentThemeStats = buildPuzzleThemeStats(nextTrainingLogs);
+
+                finalPlan = generatePlan(
+                  profile,
+                  weaknesses,
+                  toSessionMinutes(nextPlan.sessionMinutes, profile.defaultSessionMinutes),
+                  nextPlan.date,
+                  buildPlanContext({
+                    previousPlan: nextPlan,
+                    recentThemeStats,
+                    trainingLogs: nextTrainingLogs,
+                    pendingItems: nextPendingItems,
+                    diplomaAttempts,
+                  }),
+                );
+                await savePlan(finalPlan);
+              }
+            }
+          }
+
+          setTrainingLogs(nextTrainingLogs);
           setAllTrainingLogs(nextAllTrainingLogs);
           // Conquistas (Corte 7): avaliadas no fechamento de bloco, fonte de
           // verdade no Dexie; sem celebração visual, só registro sóbrio.
           setAchievements(await syncAchievements(nextAllTrainingLogs));
-          setTodayPlan(nextPlan);
+          setTodayPlan(finalPlan);
           setErrorMessage(undefined);
 
           if (reconcileOutcome.warning !== undefined) {
@@ -1154,7 +1201,7 @@ export function useAppState(): AppState {
       setTodayPlan(nextPlan);
       setErrorMessage(undefined);
     },
-    [allTrainingLogs, todayPlan, trainingLogs],
+    [allTrainingLogs, diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const skipBlockTraining = useCallback(

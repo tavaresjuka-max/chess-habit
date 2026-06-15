@@ -228,7 +228,11 @@ export function upsertTrainingLog(logs: TrainingLog[], nextLog: TrainingLog): Tr
 }
 
 function isPuzzleTrainingLog(log: TrainingLog): boolean {
-  return log.destinationLabel.includes('Puzzles') || log.destinationLabel.includes('Puzzle');
+  return (
+    log.destinationLabel.includes('Puzzles') ||
+    log.destinationLabel.includes('Puzzle') ||
+    log.destinationLabel.startsWith('Pendência Lichess:')
+  );
 }
 
 export async function createReplayLogIfPossible(

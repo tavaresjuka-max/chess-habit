@@ -14,13 +14,16 @@ import {
   clearAll,
   getPlan,
   getTrainingLog,
+  loadDonePendingItems,
   loadWeaknesses,
   markOnboardingCompleted,
   saveLichessOAuthToken,
+  savePendingItem,
   savePlan,
   saveProfile,
   saveTrainingLog,
 } from '../infra/storage/appData';
+import type { PendingTrainingItem } from '../domain/method/types';
 
 const profile: LearnerProfile = {
   lichessUsername: 'jukasparov',
@@ -494,6 +497,48 @@ describe('training flow', () => {
     expect(JSON.stringify(replayLog?.result)).not.toContain('abc12');
   });
 
+  it('advances and persists a pending review item when its block is completed', async () => {
+    const today = getTodayDateForTest();
+    await savePendingItem(createPendingItem({ dueAt: today, attempts: 2 }));
+    await saveLichessOAuthToken({
+      accessToken: 'secret-token',
+      tokenType: 'Bearer',
+      scopes: ['puzzle:read'],
+      obtainedAt: `${today}T10:00:00.000Z`,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+    });
+    const fetchMock = vi.fn<typeof fetch>((input) => {
+      const url = requestUrl(input);
+      const since = Number(new URL(url).searchParams.get('since') ?? Date.now());
+      const activities = [0, 1, 2].map((index) => ({
+        date: since,
+        win: true,
+        puzzle: { id: `discarded-${String(index)}`, rating: 1000, themes: ['fork'] },
+      }));
+
+      return Promise.resolve(new Response(activities.map((activity) => JSON.stringify(activity)).join('\n')));
+    });
+
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    expect((await screen.findAllByText('Revisar tema: fork')).length).toBeGreaterThan(0);
+    await clickFirstButton('Concluir');
+    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+
+    await waitFor(async () => {
+      const donePendingItems = await loadDonePendingItems();
+
+      expect(donePendingItems[0]).toMatchObject({
+        id: 'pending-1',
+        attempts: 4,
+        status: 'done',
+        lastFeedback: 'good',
+      });
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('asks for Lichess connection before creating a Study', async () => {
     render(<App />);
 
@@ -544,4 +589,25 @@ async function clickFirstButton(name: string): Promise<void> {
   }
 
   fireEvent.click(button);
+}
+
+function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {
+  const today = getTodayDateForTest();
+
+  return {
+    id: 'pending-1',
+    origin: 'puzzle',
+    title: 'Revisar tema: fork',
+    weaknessTag: 'fork',
+    methodTrackId: 'pending-review',
+    lichessTheme: 'fork',
+    lichessUrl: 'https://lichess.org/training/fork',
+    prompt: 'Qual sinal do tabuleiro você ignorou?',
+    dueAt: today,
+    attempts: 0,
+    status: 'open',
+    createdAt: `${today}T00:00:00.000Z`,
+    updatedAt: `${today}T00:00:00.000Z`,
+    ...overrides,
+  };
 }
