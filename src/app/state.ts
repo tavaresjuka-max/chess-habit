@@ -2,13 +2,13 @@ import { useCallback, useEffect } from 'react';
 import {
   appendPlanSession,
   buildPuzzleThemeStats,
-  detectWeaknesses,
-  filterFreshSignals,
   createKnownManualSignals,
   createTutorQuestionSignal,
   completeTrainingLog,
   createTrainingRoadmap,
   createTrainingLog,
+  detectWeaknesses,
+  filterFreshSignals,
   generatePlan,
   getNextPlanSessionNumber,
   skipTrainingLog,
@@ -29,8 +29,6 @@ import {
 } from '../domain';
 import { advancePendingItem, masteryTargetFromCompletedLog } from '../domain/method';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
-import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
-import { importLichessSignals } from '../infra/lichess/games';
 import { revokeLichessOAuthToken } from '../infra/lichess/oauth';
 import { createDailyStudy } from '../infra/lichess/study';
 import {
@@ -46,14 +44,12 @@ import {
   type BackupImportResult,
   getLichessStudyLink,
   getTrainingLog,
-  loadChesscomMonthCache,
   loadLichessOAuthToken,
   loadSignals,
   loadTrainingLogs,
   loadTrainingLogsForDate,
   replaceSignalsForSource,
   replaceWeaknesses,
-  saveChesscomMonthCache,
   savePendingItem,
   saveLichessStudyLink,
   savePlacementResult as savePlacementResultRecord,
@@ -73,7 +69,7 @@ import type { BackupMetaRecord } from '../infra/storage/db';
 import type { StoragePersistenceStatus } from '../infra/storage/persistence';
 import { syncAchievements } from './achievementsSync';
 import { getTodayDate } from './date';
-import { toDiagnosisErrorMessage, toErrorMessage, toLichessErrorMessage } from './errorMessages';
+import { toErrorMessage, toLichessErrorMessage } from './errorMessages';
 import { openExternalUrl } from './externalOpen';
 import { startLichessOAuthConnection } from './oauthFlow';
 import {
@@ -87,6 +83,7 @@ import {
   reconcileLichessPuzzleDiagnostics,
   upsertTrainingLog,
 } from './trainingLogFlow';
+import { useDiagnosisActions } from './useDiagnosisActions';
 import { useAppData } from './useAppData';
 import { usePendingActions } from './usePendingActions';
 
@@ -160,34 +157,6 @@ export type AppState = {
 // de stats/lista/mês atual. Lichess não tem cache, então o ganho é maior.)
 const AUTO_SYNC_FRESHNESS_MS = 6 * 60 * 60 * 1000;
 
-// Decisão 4 do dono (aprovada): o auto-sync (ao salvar) puxa só as partidas
-// recentes para não travar no celular; o botão manual "Atualizar Lichess"
-// continua puxando o histórico completo (max indefinido).
-const AUTO_SYNC_MAX_LICHESS_GAMES = 500;
-
-type DiagnosisSyncOptions = { maxAgeMs?: number };
-
-type DiagnosisSyncResult = {
-  signals: Signal[];
-  weaknesses: Weakness[];
-};
-
-// Quando foi o último diagnóstico bem-sucedido de uma fonte: derivado do
-// observedAt mais recente dos sinais salvos daquela fonte (cada sync grava
-// observedAt = agora). undefined se a fonte nunca sincronizou.
-async function latestSignalObservedAt(source: Signal['source']): Promise<string | undefined> {
-  const all = await loadSignals();
-  let latest: string | undefined;
-
-  for (const signal of all) {
-    if (signal.source === source && (latest === undefined || signal.observedAt > latest)) {
-      latest = signal.observedAt;
-    }
-  }
-
-  return latest;
-}
-
 export function useAppState(): AppState {
   const {
     activeView,
@@ -245,163 +214,23 @@ export function useAppState(): AppState {
     latestPlanRef.current = todayPlan;
   }, [todayPlan]);
 
-  const runDiagnosisSync = useCallback(
-    async (input: {
-      source: Extract<Signal['source'], 'chesscom' | 'lichess'>;
-      targetProfile: LearnerProfile;
-      fetchSignals: () => Promise<Signal[]>;
-      onStart: () => void;
-      options?: DiagnosisSyncOptions;
-    }): Promise<DiagnosisSyncResult | undefined> => {
-      if (input.options?.maxAgeMs !== undefined) {
-        const lastSyncAt = await latestSignalObservedAt(input.source);
-        if (lastSyncAt !== undefined && Date.now() - Date.parse(lastSyncAt) < input.options.maxAgeMs) {
-          return undefined;
-        }
-      }
-
-      input.onStart();
-
-      const signals = await input.fetchSignals();
-
-      await replaceSignalsForSource(input.source, signals);
-
-      const allSignals = await loadSignals();
-      setSignals(allSignals);
-      const nextWeaknesses = detectWeaknesses(
-        filterFreshSignals(allSignals, new Date().toISOString()),
-        input.targetProfile.band,
-      );
-      const date = getTodayDate();
-      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-      const plan = generatePlan(
-        input.targetProfile,
-        nextWeaknesses,
-        sessionMinutes,
-        date,
-        buildPlanContext({
-          previousPlan: latestPlanRef.current,
-          recentThemeStats,
-          trainingLogs,
-          pendingItems,
-          diplomaAttempts,
-        }),
-      );
-
-      // Preserva a aprovação do plano: se o aluno aprovou enquanto a rede
-      // respondia, o plano mais recente (ref) carrega a resposta — mantemos.
-      const latestPlan = latestPlanRef.current;
-      const mergedPlan =
-        latestPlan?.date === plan.date && latestPlan.learningPlanResponse !== undefined
-          ? { ...plan, learningPlanResponse: latestPlan.learningPlanResponse }
-          : plan;
-
-      await replaceWeaknesses(nextWeaknesses);
-      await savePlan(mergedPlan);
-
-      setWeaknesses(nextWeaknesses);
-      setTodayPlan(mergedPlan);
-      latestPlanRef.current = mergedPlan;
-
-      return { signals, weaknesses: nextWeaknesses };
-    },
-    [diplomaAttempts, pendingItems, sessionMinutes, trainingLogs],
-  );
-
-  // Núcleo do diagnóstico Chess.com, parametrizado pelo perfil-alvo. Recebe o
-  // perfil explícito (não o do estado) para que o auto-sync logo após salvar
-  // use os dados recém-gravados, sem esperar o re-render.
-  const runChesscomSync = useCallback(
-    async (targetProfile: LearnerProfile, options?: DiagnosisSyncOptions) => {
-      if (targetProfile.chesscomUsername === undefined || targetProfile.chesscomUsername.trim() === '') {
-        return;
-      }
-
-      try {
-        const result = await runDiagnosisSync({
-          source: 'chesscom',
-          targetProfile,
-          options,
-          onStart: () => {
-            setDiagnosisState('syncing');
-            setDiagnosisMessage('Atualizando diagnóstico Chess.com.');
-          },
-          fetchSignals: () =>
-            importChesscomSignals(targetProfile.chesscomUsername ?? '', {
-              cache: {
-                loadMonth: loadChesscomMonthCache,
-                saveMonth: saveChesscomMonthCache,
-              },
-            }),
-        });
-
-        if (result === undefined) {
-          return;
-        }
-
-        setDiagnosisState('success');
-        setDiagnosisMessage(
-          result.weaknesses.length === 0
-            ? `Diagnóstico atualizado com ${String(result.signals.length)} sinais derivados. Ainda sem limiar suficiente; mantive plano conservador.`
-            : `Diagnóstico atualizado com ${String(result.signals.length)} sinais derivados e ${String(result.weaknesses.length)} hipóteses.`,
-        );
-        setErrorMessage(undefined);
-      } catch (error) {
-        setDiagnosisState('error');
-        setDiagnosisMessage(toDiagnosisErrorMessage(error));
-      }
-    },
-    [runDiagnosisSync],
-  );
-
-  // Núcleo do diagnóstico Lichess, também parametrizado pelo perfil-alvo.
-  const runLichessSync = useCallback(
-    async (targetProfile: LearnerProfile, options?: DiagnosisSyncOptions) => {
-      if (targetProfile.lichessUsername === undefined || targetProfile.lichessUsername.trim() === '') {
-        return;
-      }
-
-      let token: LichessOAuthToken | undefined;
-
-      try {
-        const result = await runDiagnosisSync({
-          source: 'lichess',
-          targetProfile,
-          options,
-          onStart: () => {
-            setLichessConnectionState('syncing');
-            setLichessMessage('Atualizando diagnóstico Lichess.');
-          },
-          fetchSignals: async () => {
-            token = await loadLichessOAuthToken();
-            // Auto-sync (maxAgeMs presente) limita ao recente; manual puxa tudo.
-            const max = options?.maxAgeMs !== undefined ? AUTO_SYNC_MAX_LICHESS_GAMES : undefined;
-
-            return importLichessSignals({
-              username: targetProfile.lichessUsername ?? '',
-              token: token?.accessToken,
-              ...(max === undefined ? {} : { max }),
-            });
-          },
-        });
-
-        if (result === undefined) {
-          return;
-        }
-
-        setLichessConnectionState(token === undefined ? 'disconnected' : 'connected');
-        setLichessMessage(
-          result.signals.length === 0
-            ? 'Lichess atualizado, mas ainda sem sinais suficientes.'
-            : `Lichess atualizado com ${String(result.signals.length)} sinais derivados.`,
-        );
-      } catch (error) {
-        setLichessConnectionState('error');
-        setLichessMessage(toLichessErrorMessage(error));
-      }
-    },
-    [runDiagnosisSync],
-  );
+  const { runChesscomSync, runLichessSync, syncChesscomDiagnosis, syncLichessDiagnosis } = useDiagnosisActions({
+    profile,
+    sessionMinutes,
+    trainingLogs,
+    pendingItems,
+    diplomaAttempts,
+    latestPlanRef,
+    setActiveView,
+    setDiagnosisState,
+    setDiagnosisMessage,
+    setErrorMessage,
+    setSignals,
+    setWeaknesses,
+    setTodayPlan,
+    setLichessConnectionState,
+    setLichessMessage,
+  });
 
   const saveProfile = useCallback(async (nextProfile: LearnerProfile) => {
     const date = getTodayDate();
@@ -533,22 +362,6 @@ export function useAppState(): AppState {
     [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
   );
 
-  const syncChesscomDiagnosis = useCallback(async () => {
-    if (profile === undefined) {
-      setActiveView('config');
-      return;
-    }
-
-    if (profile.chesscomUsername === undefined || profile.chesscomUsername.trim() === '') {
-      setDiagnosisState('error');
-      setDiagnosisMessage('Informe seu usuário Chess.com na Config.');
-      setActiveView('config');
-      return;
-    }
-
-    await runChesscomSync(profile);
-  }, [profile, runChesscomSync]);
-
   const importKnownManualSignals = useCallback(async () => {
     const manualSignals = createKnownManualSignals(new Date().toISOString());
 
@@ -634,22 +447,6 @@ export function useAppState(): AppState {
       setLichessMessage('Conexão Lichess removida.');
     }
   }, []);
-
-  const syncLichessDiagnosis = useCallback(async () => {
-    if (profile === undefined) {
-      setActiveView('config');
-      return;
-    }
-
-    if (profile.lichessUsername === undefined || profile.lichessUsername.trim() === '') {
-      setLichessConnectionState('error');
-      setLichessMessage('Informe seu usuário Lichess na Config.');
-      setActiveView('config');
-      return;
-    }
-
-    await runLichessSync(profile);
-  }, [profile, runLichessSync]);
 
   const reconcileLichessResults = useCallback(async () => {
     const token = await loadLichessOAuthToken();
