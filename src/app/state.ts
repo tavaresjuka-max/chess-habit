@@ -174,6 +174,11 @@ export type AppState = {
 // de stats/lista/mês atual. Lichess não tem cache, então o ganho é maior.)
 const AUTO_SYNC_FRESHNESS_MS = 6 * 60 * 60 * 1000;
 
+// Decisão 4 do dono (aprovada): o auto-sync (ao salvar) puxa só as partidas
+// recentes para não travar no celular; o botão manual "Atualizar Lichess"
+// continua puxando o histórico completo (max indefinido).
+const AUTO_SYNC_MAX_LICHESS_GAMES = 500;
+
 // Quando foi o último diagnóstico bem-sucedido de uma fonte: derivado do
 // observedAt mais recente dos sinais salvos daquela fonte (cada sync grava
 // observedAt = agora). undefined se a fonte nunca sincronizou.
@@ -463,9 +468,12 @@ export function useAppState(): AppState {
 
       try {
         const token = await loadLichessOAuthToken();
+        // Auto-sync (maxAgeMs presente) limita ao recente; manual puxa tudo.
+        const max = options?.maxAgeMs !== undefined ? AUTO_SYNC_MAX_LICHESS_GAMES : undefined;
         const signals = await importLichessSignals({
           username: targetProfile.lichessUsername,
           token: token?.accessToken,
+          ...(max === undefined ? {} : { max }),
         });
 
         await replaceSignalsForSource('lichess', signals);
