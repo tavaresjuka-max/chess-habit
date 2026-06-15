@@ -28,6 +28,43 @@ describe('getTimeBudget', () => {
   });
 });
 
+describe('ponte puzzle->fraqueza (selectPrimaryWeakness)', () => {
+  const themeStats = (theme: string, losses: number) => ({
+    since: '2026-06-01',
+    until: '2026-06-06',
+    themes: [{ theme, attempts: losses + 2, losses }],
+  });
+
+  it('usa o tema fraco dos puzzles como tema do dia quando não há fraqueza de partida', () => {
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {
+      recentThemeStats: themeStats('backRankMate', 3),
+    });
+
+    // back-rank vem dos puzzles, não do tema padrão da banda 800-1000 (fork).
+    expect(plan.weeklyFocus?.tag).toBe('back-rank');
+  });
+
+  it('mantém o tema padrão da banda quando nenhum tema de puzzle tem erros', () => {
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {
+      recentThemeStats: themeStats('backRankMate', 0),
+    });
+
+    expect(plan.weeklyFocus?.tag).toBe('fork');
+  });
+
+  it('deixa uma fraqueza real de partida vencer o tema de puzzle', () => {
+    const plan = generatePlan(
+      baseProfile,
+      [{ tag: 'pin', score: 0.8, confidence: 'high', evidence: 'erros recorrentes em jogo' }],
+      15,
+      '2026-06-06',
+      { recentThemeStats: themeStats('backRankMate', 5) },
+    );
+
+    expect(plan.weeklyFocus?.tag).toBe('pin');
+  });
+});
+
 describe('generatePlan', () => {
   it.each([
     [5, 1],

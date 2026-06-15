@@ -1,4 +1,5 @@
 import type { Confidence, Diagnosis, PuzzleThemeStat, PuzzleThemeStats, Weakness, WeaknessTag } from '../types';
+import { weaknessTagFromPuzzleTheme } from './puzzleThemeStats';
 
 type PuzzleThemeCandidate = {
   stat: PuzzleThemeStat;
@@ -111,7 +112,7 @@ function diagnosePuzzleTheme(puzzleThemeStats: PuzzleThemeStats | undefined): Di
 
   const [candidate] = puzzleThemeStats.themes
     .map((stat): PuzzleThemeCandidate | undefined => {
-      const weaknessTag = puzzleThemeToWeaknessTag[stat.theme];
+      const weaknessTag = weaknessTagFromPuzzleTheme(stat.theme);
 
       if (weaknessTag === undefined) {
         return undefined;
@@ -158,29 +159,6 @@ function diagnosePuzzleTheme(puzzleThemeStats: PuzzleThemeStats | undefined): Di
     procedure: cause.procedure,
   };
 }
-
-const puzzleThemeToWeaknessTag: Partial<Record<string, WeaknessTag>> = {
-  backRankMate: 'back-rank',
-  discoveredAttack: 'discovered',
-  discoveredCheck: 'discovered',
-  fork: 'fork',
-  hangingPiece: 'hanging-piece',
-  mate: 'mate-in-2',
-  mateIn1: 'mate-in-1',
-  mateIn2: 'mate-in-2',
-  pin: 'pin',
-  skewer: 'skewer',
-  advantage: 'conversion',
-  crushing: 'conversion',
-  defensiveMove: 'conversion',
-  capturingDefender: 'conversion',
-  deflection: 'conversion',
-  pawnEndgame: 'endgame-pawn',
-  advancedPawn: 'endgame-pawn',
-  promotion: 'endgame-pawn',
-  underPromotion: 'endgame-pawn',
-  rookEndgame: 'endgame-rook',
-};
 
 const puzzleThemeLabelByTheme: Partial<Record<string, string>> = {
   backRankMate: 'mate na última fileira',

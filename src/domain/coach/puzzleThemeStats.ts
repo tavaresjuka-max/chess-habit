@@ -1,4 +1,4 @@
-import type { PuzzleThemeStats, TrainingLog } from '../types';
+import type { PuzzleThemeStats, TrainingLog, WeaknessTag } from '../types';
 
 export function buildPuzzleThemeStats(logs: TrainingLog[]): PuzzleThemeStats | undefined {
   const byTheme = new Map<string, { theme: string; attempts: number; losses: number }>();
@@ -38,4 +38,34 @@ export function buildPuzzleThemeStats(logs: TrainingLog[]): PuzzleThemeStats | u
         right.losses - left.losses || right.attempts - left.attempts || left.theme.localeCompare(right.theme),
     ),
   };
+}
+
+// Fonte única do mapa tema-de-puzzle (chave camelCase do Lichess) → fraqueza
+// tática interna. Usada pelo diagnóstico (mensagem do coach) e pela seleção de
+// tema do plano (ponte puzzle→fraqueza).
+const puzzleThemeToWeaknessTag: Partial<Record<string, WeaknessTag>> = {
+  backRankMate: 'back-rank',
+  discoveredAttack: 'discovered',
+  discoveredCheck: 'discovered',
+  fork: 'fork',
+  hangingPiece: 'hanging-piece',
+  mate: 'mate-in-2',
+  mateIn1: 'mate-in-1',
+  mateIn2: 'mate-in-2',
+  pin: 'pin',
+  skewer: 'skewer',
+  advantage: 'conversion',
+  crushing: 'conversion',
+  defensiveMove: 'conversion',
+  capturingDefender: 'conversion',
+  deflection: 'conversion',
+  pawnEndgame: 'endgame-pawn',
+  advancedPawn: 'endgame-pawn',
+  promotion: 'endgame-pawn',
+  underPromotion: 'endgame-pawn',
+  rookEndgame: 'endgame-rook',
+};
+
+export function weaknessTagFromPuzzleTheme(theme: string): WeaknessTag | undefined {
+  return puzzleThemeToWeaknessTag[theme];
 }

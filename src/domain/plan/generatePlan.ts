@@ -1,4 +1,5 @@
 import { getCoachNote } from '../coach/coachCatalog';
+import { weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
 import { getRecentlyEarnedDiploma } from '../method/diplomas';
 import { getMethodTrackTitle } from '../method/methodTracks';
 import { isDueToday } from '../method/pendingItems';
@@ -66,7 +67,7 @@ export function generatePlan(
   date: string,
   options: GeneratePlanOptions = {},
 ): DailyPlan {
-  const primaryWeakness = selectPrimaryWeakness(profile, weaknesses);
+  const primaryWeakness = selectPrimaryWeakness(profile, weaknesses, options.recentThemeStats);
   const secondaryWeakness = selectSecondaryWeakness(weaknesses, primaryWeakness);
   const updatedAt = toPlanTimestamp(date);
   const sessionNumber = options.sessionNumber ?? 1;
@@ -523,11 +524,36 @@ function selectSecondaryWeakness(weaknesses: Weakness[], primary: Weakness): Wea
     .find((weakness) => weakness.tag !== primary.tag);
 }
 
-function selectPrimaryWeakness(profile: LearnerProfile, weaknesses: Weakness[]): Weakness {
+function selectPrimaryWeakness(
+  profile: LearnerProfile,
+  weaknesses: Weakness[],
+  recentThemeStats?: PuzzleThemeStats,
+): Weakness {
   const [firstWeakness] = [...weaknesses].sort((left, right) => right.score - left.score);
 
   if (firstWeakness !== undefined) {
     return firstWeakness;
+  }
+
+  // Ponte puzzle→fraqueza: sem sinal de partida, a fraqueza real dos puzzles
+  // conferidos no Lichess vence o tema genérico da banda. Os temas já chegam
+  // ordenados por mais erros (buildPuzzleThemeStats), então o primeiro mapeável
+  // é o mais fraco. Sinais de partida continuam tendo prioridade (acima).
+  for (const theme of recentThemeStats?.themes ?? []) {
+    if (theme.losses <= 0) {
+      continue;
+    }
+
+    const tag = weaknessTagFromPuzzleTheme(theme.theme);
+
+    if (tag !== undefined) {
+      return {
+        tag,
+        score: 0,
+        confidence: 'low',
+        evidence: `Sinal dos puzzles conferidos no Lichess: ${weaknessTitleByTag[tag]} concentrou ${String(theme.losses)} erro(s) recente(s).`,
+      };
+    }
   }
 
   const fallbackTag = primaryThemeByBand[profile.band];
