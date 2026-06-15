@@ -63,6 +63,7 @@ export function generatePlan(
   options: GeneratePlanOptions = {},
 ): DailyPlan {
   const primaryWeakness = selectPrimaryWeakness(profile, weaknesses);
+  const secondaryWeakness = selectSecondaryWeakness(weaknesses, primaryWeakness);
   const updatedAt = toPlanTimestamp(date);
   const sessionNumber = options.sessionNumber ?? 1;
   const latestThemeSignal = getLatestThemeSignalForWeakness(
@@ -103,6 +104,7 @@ export function generatePlan(
             kind: budgetBlock.kind,
             minutes: budgetBlock.minutes,
             primaryWeakness,
+            secondaryWeakness,
             latestThemeSignal,
             recentThemeStats: options.recentThemeStats,
             completedResourceIds,
@@ -131,6 +133,7 @@ function createPlanBlock(input: {
   kind: PlanBlockKind;
   minutes: number;
   primaryWeakness: Weakness;
+  secondaryWeakness?: Weakness;
   latestThemeSignal: LatestThemeSignal | undefined;
   recentThemeStats?: PuzzleThemeStats;
   completedResourceIds: readonly string[];
@@ -138,7 +141,7 @@ function createPlanBlock(input: {
   activeTrack: MethodTrackId;
 }): PlanBlock {
   const resourceStage = getResourceStage(input.kind, input.latestThemeSignal);
-  const copy = getBlockCopy(input.kind, input.primaryWeakness, resourceStage);
+  const copy = getBlockCopy(input.kind, input.primaryWeakness, resourceStage, input.secondaryWeakness);
   const destination = getDestinationForWeakness(copy.weaknessTag, resourceStage, {
     learnerBand: input.profile.band,
     blockMinutes: input.minutes,
@@ -278,8 +281,18 @@ function getGuidingQuestion(trackId: MethodTrackId): string {
   return questions[trackId];
 }
 
-function getBlockCopy(kind: PlanBlockKind, primaryWeakness: Weakness, resourceStage: PlanResourceStage): BlockCopy {
-  const primaryTheme = primaryWeakness.tag;
+function getBlockCopy(
+  kind: PlanBlockKind,
+  primaryWeakness: Weakness,
+  resourceStage: PlanResourceStage,
+  secondaryWeakness?: Weakness,
+): BlockCopy {
+  // O bloco de transferência treina a fraqueza secundária quando existe uma real
+  // e distinta da primária (decisão 1 do dono): reduz monotonia e ataca uma
+  // segunda frente. Os demais blocos seguem a fraqueza primária.
+  const themeWeakness =
+    kind === 'transferencia' && secondaryWeakness !== undefined ? secondaryWeakness : primaryWeakness;
+  const primaryTheme = themeWeakness.tag;
 
   switch (kind) {
     case 'aquecimento':
@@ -495,6 +508,12 @@ function getWeekStartDate(date: string): string {
   parsed.setUTCDate(parsed.getUTCDate() - day + 1);
 
   return parsed.toISOString().slice(0, 10);
+}
+
+function selectSecondaryWeakness(weaknesses: Weakness[], primary: Weakness): Weakness | undefined {
+  return [...weaknesses]
+    .sort((left, right) => right.score - left.score)
+    .find((weakness) => weakness.tag !== primary.tag);
 }
 
 function selectPrimaryWeakness(profile: LearnerProfile, weaknesses: Weakness[]): Weakness {

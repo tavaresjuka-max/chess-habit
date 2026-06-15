@@ -70,6 +70,29 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.methodTrackId).toBe('calculation-bridge');
   });
 
+  it('treina a fraqueza secundária no bloco de transferência (decisão 1)', () => {
+    const weaknesses = [
+      { tag: 'fork' as const, score: 0.8, confidence: 'medium' as const, evidence: 'Garfos frequentes.' },
+      { tag: 'pin' as const, score: 0.6, confidence: 'medium' as const, evidence: 'Cravadas perdidas.' },
+    ];
+    const plan = generatePlan(baseProfile, weaknesses, 30, '2026-06-06');
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+    const transferencia = plan.blocks.find((block) => block.id.endsWith('-transferencia'));
+
+    expect(tema?.weaknessTag).toBe('fork');
+    expect(transferencia?.weaknessTag).toBe('pin');
+  });
+
+  it('volta à fraqueza primária na transferência quando não há secundária distinta', () => {
+    const weaknesses = [
+      { tag: 'fork' as const, score: 0.8, confidence: 'medium' as const, evidence: 'Garfos frequentes.' },
+    ];
+    const plan = generatePlan(baseProfile, weaknesses, 30, '2026-06-06');
+    const transferencia = plan.blocks.find((block) => block.id.endsWith('-transferencia'));
+
+    expect(transferencia?.weaknessTag).toBe('fork');
+  });
+
   it('introduces the guided fork lesson with simple Professor Lemos context', () => {
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const note = plan.blocks[0]?.coachNote ?? '';
