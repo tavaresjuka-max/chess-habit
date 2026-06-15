@@ -2,10 +2,8 @@ import { useCallback, useEffect } from 'react';
 import {
   appendPlanSession,
   buildPuzzleThemeStats,
-  computeConsistency,
   detectWeaknesses,
   filterFreshSignals,
-  getReturnSessionMinutes,
   createKnownManualSignals,
   createTutorQuestionSignal,
   completeTrainingLog,
@@ -13,7 +11,6 @@ import {
   createTrainingLog,
   generatePlan,
   getNextPlanSessionNumber,
-  normalizePlanDestinations,
   skipTrainingLog,
   type Achievement,
   type DailyPlan,
@@ -42,26 +39,18 @@ import {
   clearLichessOAuthToken,
   exportAllAsJson,
   importBackupFromJson,
-  loadAutoBackupConfig,
   loadBackupMeta,
-  loadOnboardingCompletedAt,
   markOnboardingCompleted,
   saveAutoBackupConfig,
   appendSignals,
   type BackupImportResult,
-  getLatestPlanBefore,
   getLichessStudyLink,
-  getPlan,
   getTrainingLog,
-  loadDiplomaAttempts,
   loadChesscomMonthCache,
   loadLichessOAuthToken,
-  loadOpenPendingItems,
-  loadProfile,
   loadSignals,
   loadTrainingLogs,
   loadTrainingLogsForDate,
-  loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
@@ -80,21 +69,17 @@ import {
   pickAutoBackupFile,
   writeAutoBackup,
   type AutoBackupStatus,
-  type FileSystemFileHandleLike,
 } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
-import { requestPersistentStorage, type StoragePersistenceStatus } from '../infra/storage/persistence';
+import type { StoragePersistenceStatus } from '../infra/storage/persistence';
 import { syncAchievements } from './achievementsSync';
 import { getTodayDate } from './date';
 import { toDiagnosisErrorMessage, toErrorMessage, toLichessErrorMessage } from './errorMessages';
 import { openExternalUrl } from './externalOpen';
-import { completeLichessOAuthIfNeeded, startLichessOAuthConnection } from './oauthFlow';
+import { startLichessOAuthConnection } from './oauthFlow';
 import {
   buildPlanContext,
-  combinePlanHistory,
   getLichessThemeFromUrl,
-  getOpenedTrainingBlockIds,
-  getWeakThemesFromThemeStats,
   toSessionMinutes,
   upsertPendingItem,
 } from './stateHelpers';
@@ -211,7 +196,6 @@ export function useAppState(): AppState {
     activeView,
     setActiveView,
     loadState,
-    setLoadState,
     profile,
     setProfile,
     todayPlan,
@@ -248,7 +232,6 @@ export function useAppState(): AppState {
     errorMessage,
     setErrorMessage,
     storagePersistence,
-    setStoragePersistence,
     backupMeta,
     setBackupMeta,
     autoBackupStatus,
@@ -258,148 +241,6 @@ export function useAppState(): AppState {
     onboardingCompletedAt,
     setOnboardingCompletedAt,
   } = useAppData();
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadAppData() {
-      try {
-        const persistenceStatus = await requestPersistentStorage();
-        const storedBackupMeta = await loadBackupMeta();
-        const storedOnboardingCompletedAt = await loadOnboardingCompletedAt();
-
-        if (isMounted) {
-          setStoragePersistence(persistenceStatus);
-          setBackupMeta(storedBackupMeta);
-          setOnboardingCompletedAt(storedOnboardingCompletedAt);
-        }
-
-        // Backup automatico: grava na abertura do app, somente com dados presentes
-        // (nunca sobrescreve o arquivo bom do usuario com um estado vazio).
-        const autoBackupConfig = await loadAutoBackupConfig();
-
-        if (isMounted && autoBackupConfig?.enabled === true) {
-          setAutoBackupFileName(autoBackupConfig.fileName);
-
-          const handle = autoBackupConfig.handle as FileSystemFileHandleLike | undefined;
-          const hasData = (await loadProfile()) !== undefined;
-
-          if (handle === undefined) {
-            setAutoBackupStatus('needs-permission');
-          } else if (!hasData) {
-            setAutoBackupStatus('enabled');
-          } else {
-            const written = await writeAutoBackup(handle, await exportAllAsJson());
-
-            setAutoBackupStatus(
-              written === 'written' ? 'enabled' : written === 'needs-permission' ? 'needs-permission' : 'error',
-            );
-
-            if (written === 'written') {
-              setBackupMeta(await loadBackupMeta());
-            }
-          }
-        }
-
-        const completion = await completeLichessOAuthIfNeeded();
-        const storedProfile = await loadProfile();
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (completion.kind === 'connected') {
-          setLichessToken(completion.token);
-          setLichessConnectionState('connected');
-          setLichessMessage('Lichess conectado.');
-        } else {
-          const storedToken = await loadLichessOAuthToken();
-
-          setLichessToken(storedToken);
-          setLichessConnectionState(storedToken === undefined ? 'disconnected' : 'connected');
-
-          if (completion.kind === 'cancelled') {
-            setLichessMessage(completion.message);
-          }
-        }
-
-        if (storedProfile === undefined) {
-          setActiveView('config');
-          setLoadState('ready');
-          return;
-        }
-
-        const date = getTodayDate();
-        const storedWeaknesses = await loadWeaknesses();
-        const storedSignals = await loadSignals();
-        const storedPlan = await getPlan(date);
-        const previousPlan = await getLatestPlanBefore(date);
-        const storedAllTrainingLogs = await loadTrainingLogs();
-        const storedTrainingLogs = await loadTrainingLogsForDate(date);
-        const storedStudyLink = await getLichessStudyLink(date);
-        const storedPendingItems = await loadOpenPendingItems();
-        const storedDiplomaAttempts = await loadDiplomaAttempts();
-        const storedAchievements = await syncAchievements(storedAllTrainingLogs);
-        const recentThemeStats = buildPuzzleThemeStats(storedTrainingLogs);
-        const normalizedStoredPlan =
-          storedPlan === undefined ? undefined : normalizePlanDestinations(storedPlan);
-        const normalizedPreviousPlan =
-          previousPlan === undefined ? undefined : normalizePlanDestinations(previousPlan);
-        const openedBlockIds = getOpenedTrainingBlockIds(storedTrainingLogs);
-        // Retorno apos ausencia longa: plano novo do dia nasce mais curto.
-        const returnMinutes = getReturnSessionMinutes(
-          computeConsistency(storedAllTrainingLogs, date),
-          storedProfile.defaultSessionMinutes,
-        );
-        const plan =
-          normalizedStoredPlan === undefined
-            ? generatePlan(storedProfile, storedWeaknesses, returnMinutes, date, {
-                previousPlan: normalizedPreviousPlan,
-                recentThemeStats,
-                openedBlockIds,
-                openPendingItems: storedPendingItems,
-                weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-              })
-            : generatePlan(storedProfile, storedWeaknesses, toSessionMinutes(normalizedStoredPlan.sessionMinutes, storedProfile.defaultSessionMinutes), date, {
-                previousPlan: combinePlanHistory(normalizedStoredPlan, normalizedPreviousPlan),
-                recentThemeStats,
-                openedBlockIds,
-                openPendingItems: storedPendingItems,
-                weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-              });
-
-        if (storedPlan === undefined || plan !== storedPlan) {
-          await savePlan(plan);
-        }
-
-        setProfile(storedProfile);
-        setSessionMinutes(toSessionMinutes(plan.sessionMinutes, storedProfile.defaultSessionMinutes));
-        setTrainingLogs(storedTrainingLogs);
-        setAllTrainingLogs(storedAllTrainingLogs);
-        setPendingItems(storedPendingItems);
-        setDiplomaAttempts(storedDiplomaAttempts);
-        setAchievements(storedAchievements);
-        setWeaknesses(storedWeaknesses);
-        setSignals(storedSignals);
-        setLichessStudyLink(storedStudyLink);
-        setTodayPlan(plan);
-        setLoadState('ready');
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setErrorMessage(toErrorMessage(error));
-        setLoadState('error');
-      }
-    }
-
-    void loadAppData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Mantém o ref do plano sempre com o valor mais recente, para o auto-sync em
   // segundo plano não sobrescrever uma aprovação feita durante o fetch.
