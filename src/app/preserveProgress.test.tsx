@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from '../ui/App';
 import { clearAll, markOnboardingCompleted, saveProfile } from '../infra/storage/appData';
 
 beforeEach(async () => {
+  // Salvar a config dispara auto-sync de fundo (Lichess/Chess.com). Sem stub, ele
+  // bate na rede real e a promessa pendente deixava o teste instável (flake).
+  vi.stubGlobal('fetch', () => Promise.reject(new TypeError('rede desativada no teste')));
   await clearAll();
   await saveProfile({
     lichessUsername: 'jukasparov',
@@ -20,6 +23,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
 });
 
 describe('preserve progress across regeneration', () => {
