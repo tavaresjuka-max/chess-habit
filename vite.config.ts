@@ -54,4 +54,25 @@ export default defineConfig({
     react(),
     VitePWA(pwaOptions),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Isola dependências estáveis em chunks próprios: melhora o cache de
+        // longa duração (mudar o app não invalida o vendor) e remove o aviso de
+        // chunk principal acima de 500 kB. Forma de função (rolldown-vite).
+        manualChunks(id: string): string | undefined {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+            return 'react-vendor';
+          }
+          if (id.includes('node_modules/dexie')) {
+            return 'dexie';
+          }
+          if (id.includes('node_modules/lucide-react')) {
+            return 'icons';
+          }
+          return undefined;
+        },
+      },
+    },
+  },
 });
