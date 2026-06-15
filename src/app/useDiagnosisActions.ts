@@ -1,6 +1,8 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
   buildPuzzleThemeStats,
+  createKnownManualSignals,
+  createTutorQuestionSignal,
   detectWeaknesses,
   filterFreshSignals,
   generatePlan,
@@ -10,12 +12,14 @@ import {
   type Signal,
   type SessionMinutes,
   type TrainingLog,
+  type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
 import { importLichessSignals } from '../infra/lichess/games';
 import {
+  appendSignals,
   loadChesscomMonthCache,
   loadLichessOAuthToken,
   loadSignals,
@@ -47,6 +51,7 @@ type LatestPlanRef = {
 
 export type UseDiagnosisActionsInput = {
   profile: LearnerProfile | undefined;
+  todayPlan: DailyPlan | undefined;
   sessionMinutes: SessionMinutes;
   trainingLogs: TrainingLog[];
   pendingItems: PendingTrainingItem[];
@@ -266,7 +271,89 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     await runLichessSync(input.profile);
   }, [input, runLichessSync]);
 
+  const importKnownManualSignals = useCallback(async () => {
+    const manualSignals = createKnownManualSignals(new Date().toISOString());
+
+    await replaceSignalsForSource('outro', manualSignals);
+
+    const allSignals = await loadSignals();
+    input.setSignals(allSignals);
+    const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), input.profile?.band);
+
+    await replaceWeaknesses(nextWeaknesses);
+    input.setWeaknesses(nextWeaknesses);
+
+    if (input.profile !== undefined) {
+      const date = getTodayDate();
+      const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+      const plan = generatePlan(
+        input.profile,
+        nextWeaknesses,
+        input.sessionMinutes,
+        date,
+        buildPlanContext({
+          previousPlan: input.todayPlan,
+          recentThemeStats,
+          trainingLogs: input.trainingLogs,
+          pendingItems: input.pendingItems,
+          diplomaAttempts: input.diplomaAttempts,
+        }),
+      );
+
+      await savePlan(plan);
+      input.setTodayPlan(plan);
+    }
+
+    return manualSignals.length;
+  }, [input]);
+
+  const answerTutorQuestion = useCallback(
+    async (answer: TutorQuestionAnswer) => {
+      const signal = createTutorQuestionSignal(answer, new Date().toISOString());
+
+      await appendSignals([signal]);
+
+      const allSignals = await loadSignals();
+      input.setSignals(allSignals);
+      const nextWeaknesses = detectWeaknesses(
+        filterFreshSignals(allSignals, new Date().toISOString()),
+        input.profile?.band,
+      );
+
+      await replaceWeaknesses(nextWeaknesses);
+      input.setWeaknesses(nextWeaknesses);
+
+      if (input.profile !== undefined) {
+        const date = getTodayDate();
+        const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+        const plan = generatePlan(
+          input.profile,
+          nextWeaknesses,
+          input.sessionMinutes,
+          date,
+          buildPlanContext({
+            previousPlan: input.todayPlan,
+            recentThemeStats,
+            trainingLogs: input.trainingLogs,
+            pendingItems: input.pendingItems,
+            diplomaAttempts: input.diplomaAttempts,
+          }),
+        );
+
+        await savePlan(plan);
+        input.setTodayPlan(plan);
+      }
+
+      input.setDiagnosisState('success');
+      input.setDiagnosisMessage('Resposta registrada. Ajustei as hipóteses do treino.');
+      input.setErrorMessage(undefined);
+    },
+    [input],
+  );
+
   return {
+    answerTutorQuestion,
+    importKnownManualSignals,
     runChesscomSync,
     runLichessSync,
     syncChesscomDiagnosis,

@@ -2,13 +2,9 @@ import { useCallback, useEffect } from 'react';
 import {
   appendPlanSession,
   buildPuzzleThemeStats,
-  createKnownManualSignals,
-  createTutorQuestionSignal,
   completeTrainingLog,
   createTrainingRoadmap,
   createTrainingLog,
-  detectWeaknesses,
-  filterFreshSignals,
   generatePlan,
   getNextPlanSessionNumber,
   skipTrainingLog,
@@ -40,16 +36,12 @@ import {
   loadBackupMeta,
   markOnboardingCompleted,
   saveAutoBackupConfig,
-  appendSignals,
   type BackupImportResult,
   getLichessStudyLink,
   getTrainingLog,
   loadLichessOAuthToken,
-  loadSignals,
   loadTrainingLogs,
   loadTrainingLogsForDate,
-  replaceSignalsForSource,
-  replaceWeaknesses,
   savePendingItem,
   saveLichessStudyLink,
   savePlacementResult as savePlacementResultRecord,
@@ -214,8 +206,16 @@ export function useAppState(): AppState {
     latestPlanRef.current = todayPlan;
   }, [todayPlan]);
 
-  const { runChesscomSync, runLichessSync, syncChesscomDiagnosis, syncLichessDiagnosis } = useDiagnosisActions({
+  const {
+    answerTutorQuestion,
+    importKnownManualSignals,
+    runChesscomSync,
+    runLichessSync,
+    syncChesscomDiagnosis,
+    syncLichessDiagnosis,
+  } = useDiagnosisActions({
     profile,
+    todayPlan,
     sessionMinutes,
     trainingLogs,
     pendingItems,
@@ -360,71 +360,6 @@ export function useAppState(): AppState {
       setErrorMessage(undefined);
     },
     [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
-  );
-
-  const importKnownManualSignals = useCallback(async () => {
-    const manualSignals = createKnownManualSignals(new Date().toISOString());
-
-    await replaceSignalsForSource('outro', manualSignals);
-
-    const allSignals = await loadSignals();
-    setSignals(allSignals);
-    const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), profile?.band);
-
-    await replaceWeaknesses(nextWeaknesses);
-    setWeaknesses(nextWeaknesses);
-
-    if (profile !== undefined) {
-      const date = getTodayDate();
-      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-      const plan = generatePlan(
-        profile,
-        nextWeaknesses,
-        sessionMinutes,
-        date,
-        buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
-      );
-
-      await savePlan(plan);
-      setTodayPlan(plan);
-    }
-
-    return manualSignals.length;
-  }, [pendingItems, profile, sessionMinutes, todayPlan, trainingLogs]);
-
-  const answerTutorQuestion = useCallback(
-    async (answer: TutorQuestionAnswer) => {
-      const signal = createTutorQuestionSignal(answer, new Date().toISOString());
-
-      await appendSignals([signal]);
-
-      const allSignals = await loadSignals();
-      setSignals(allSignals);
-      const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), profile?.band);
-
-      await replaceWeaknesses(nextWeaknesses);
-      setWeaknesses(nextWeaknesses);
-
-      if (profile !== undefined) {
-        const date = getTodayDate();
-        const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
-        const plan = generatePlan(
-          profile,
-          nextWeaknesses,
-          sessionMinutes,
-          date,
-          buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
-        );
-
-        await savePlan(plan);
-        setTodayPlan(plan);
-      }
-
-      setDiagnosisState('success');
-      setDiagnosisMessage('Resposta registrada. Ajustei as hipóteses do treino.');
-      setErrorMessage(undefined);
-    },
-    [diplomaAttempts, pendingItems, profile, sessionMinutes, todayPlan, trainingLogs],
   );
 
   const connectLichess = useCallback(async () => {
