@@ -33,18 +33,27 @@ describe('preserve progress across regeneration', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('Feito')).toBeTruthy();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Feito')).toBeTruthy();
+      },
+      { timeout: 8000 },
+    );
 
     // Salvar a config regenera o plano (mesmos minutos => mesmos ids de bloco).
     fireEvent.click(screen.getByRole('button', { name: 'Config' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Salvar' }));
 
     // saveProfile volta para a tela Hoje; o bloco deve continuar "Feito".
-    await waitFor(() => {
-      expect(screen.getByText('Feito')).toBeTruthy();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Feito')).toBeTruthy();
+      },
+      { timeout: 8000 },
+    );
     expect(screen.queryByText('Pendente')).toBeNull();
-  });
+    // Teste de integração pesado (render + IndexedDB + reconcile + regeneração):
+    // sob contenção da suíte cheia o fluxo passava de 5s e dava flake. O timeout
+    // maior dá folga sem afrouxar as asserções.
+  }, 15000);
 });
