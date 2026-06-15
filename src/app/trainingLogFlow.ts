@@ -8,7 +8,7 @@ import {
 import { createPendingItemFromFeedback } from '../domain/method/pendingItems';
 import type { MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import { loadLichessOAuthToken } from '../infra/storage/appData';
-import { fetchPuzzleActivity, summarizePuzzleActivity } from '../infra/lichess/puzzleActivity';
+import { fetchPuzzleActivity, LichessRateLimitError, summarizePuzzleActivity } from '../infra/lichess/puzzleActivity';
 import {
   fetchPuzzleDashboard,
   fetchPuzzleReplay,
@@ -231,10 +231,11 @@ function isPuzzleTrainingLog(log: TrainingLog): boolean {
   return log.destinationLabel.includes('Puzzles') || log.destinationLabel.includes('Puzzle');
 }
 
-async function createReplayLogIfPossible(
+export async function createReplayLogIfPossible(
   token: string,
   dashboardResult: Extract<TrainingResult, { kind: 'puzzle-dashboard' }>,
   fetchedAt: string,
+  fetcher?: typeof fetch,
 ): Promise<TrainingLog | undefined> {
   const theme = dashboardResult.weakThemes[0];
 
@@ -243,7 +244,7 @@ async function createReplayLogIfPossible(
   }
 
   try {
-    const replay = await fetchPuzzleReplay({ token, days: dashboardResult.days, theme });
+    const replay = await fetchPuzzleReplay({ token, days: dashboardResult.days, theme, fetcher });
 
     if (replay.remainingCount === 0) {
       return undefined;
@@ -255,7 +256,12 @@ async function createReplayLogIfPossible(
       label: `Lichess Puzzle Replay: ${theme}`,
       result: summarizePuzzleReplay({ replay, fetchedAt }),
     });
-  } catch {
+  } catch (error) {
+    // 429 precisa propagar para ativar o cooldown da fila (invariante do Corte C).
+    // Demais erros de replay continuam com fallback silencioso (diagnóstico opcional).
+    if (error instanceof LichessRateLimitError) {
+      throw error;
+    }
     return undefined;
   }
 }

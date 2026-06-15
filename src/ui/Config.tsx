@@ -58,8 +58,8 @@ export function Config({
 }: ConfigProps) {
   const restoreInputRef = useRef<HTMLInputElement>(null);
   const initialProfile = profile ?? createDefaultProfile();
-  const [lichessUsername, setLichessUsername] = useState(initialProfile.lichessUsername ?? 'jukasparov');
-  const [chesscomUsername, setChesscomUsername] = useState(initialProfile.chesscomUsername ?? 'jukatavares');
+  const [lichessUsername, setLichessUsername] = useState(initialProfile.lichessUsername ?? '');
+  const [chesscomUsername, setChesscomUsername] = useState(initialProfile.chesscomUsername ?? '');
   const [band, setBand] = useState<LearnerBand>(initialProfile.band);
   const [defaultSessionMinutes, setDefaultSessionMinutes] = useState<SessionMinutes>(
     initialProfile.defaultSessionMinutes,
