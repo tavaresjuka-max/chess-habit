@@ -6,6 +6,9 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
+      // Só os testes unitários de src. Isola o e2e/*.spec.ts do Playwright, que
+      // o include default do vitest (.spec) pegaria por engano.
+      include: ['src/**/*.test.{ts,tsx}'],
       alias: {
         // O módulo virtual do vite-plugin-pwa não existe no vitest/jsdom.
         'virtual:pwa-register/react': fileURLToPath(new URL('./src/test/pwaRegisterMock.ts', import.meta.url)),
