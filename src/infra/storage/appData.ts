@@ -299,18 +299,35 @@ export async function saveDiplomaAttempt(attempt: DiplomaAttempt): Promise<void>
 }
 
 export async function exportAllAsJson(nowIso = new Date().toISOString()): Promise<string> {
-  const data: BackupData = {
-    profile: await db.profile.toArray(),
-    plans: await db.plans.toArray(),
-    logs: await db.logs.toArray(),
-    signals: await db.signals.toArray(),
-    weaknesses: await db.weaknesses.toArray(),
-    methodTracks: await db.methodTracks.toArray(),
-    pendingItems: await db.pendingItems.toArray(),
-    diplomaAttempts: await db.diplomaAttempts.toArray(),
-    achievements: await db.achievements.toArray(),
-    placementResults: await db.placementResults.toArray(),
-  };
+  // Snapshot consistente: ler todas as tabelas dentro de uma transação 'r' evita
+  // um export inconsistente se um sync de fundo escrever no meio da leitura.
+  const data: BackupData = await db.transaction(
+    'r',
+    [
+      db.profile,
+      db.plans,
+      db.logs,
+      db.signals,
+      db.weaknesses,
+      db.methodTracks,
+      db.pendingItems,
+      db.diplomaAttempts,
+      db.achievements,
+      db.placementResults,
+    ],
+    async () => ({
+      profile: await db.profile.toArray(),
+      plans: await db.plans.toArray(),
+      logs: await db.logs.toArray(),
+      signals: await db.signals.toArray(),
+      weaknesses: await db.weaknesses.toArray(),
+      methodTracks: await db.methodTracks.toArray(),
+      pendingItems: await db.pendingItems.toArray(),
+      diplomaAttempts: await db.diplomaAttempts.toArray(),
+      achievements: await db.achievements.toArray(),
+      placementResults: await db.placementResults.toArray(),
+    }),
+  );
 
   const backupFile = await createBackupFile(data, nowIso);
 
