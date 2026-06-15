@@ -69,7 +69,7 @@ describe('extractSignalsFromChesscomGames', () => {
     const serializedSignals = JSON.stringify(signals);
 
     const openingSignal = signals.find((signal) => signal.value.kind === 'opening');
-    const judgmentSignal = signals.find((signal) => signal.value.kind === 'judgment');
+    const accuracySignal = signals.find((signal) => signal.value.kind === 'accuracy');
 
     expect(openingSignal?.value).toEqual({
       kind: 'opening',
@@ -78,11 +78,9 @@ describe('extractSignalsFromChesscomGames', () => {
       games: 6,
       lossRate: 0.667,
     });
-    expect(judgmentSignal?.value).toEqual({
-      kind: 'judgment',
-      blunders: 4,
-      mistakes: 0,
-      inaccuracies: 0,
+    expect(accuracySignal?.value).toEqual({
+      kind: 'accuracy',
+      lowAccuracyGames: 4,
       games: 6,
     });
     expect(serializedSignals).not.toContain('1. e4');

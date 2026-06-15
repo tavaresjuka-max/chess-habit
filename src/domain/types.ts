@@ -40,6 +40,7 @@ export type SignalValue =
       games: number;
     }
   | { kind: 'clock'; timeoutLosses: number; games: number }
+  | { kind: 'accuracy'; lowAccuracyGames: number; games: number }
   | { kind: 'manual'; tag: WeaknessTag; note?: string };
 
 export type Signal = {

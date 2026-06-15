@@ -7,6 +7,12 @@ import type { Confidence, LearnerBand, Signal, Weakness, WeaknessTag } from '../
 const BLUNDER_RATE_BEGINNER = 0.3;
 const BLUNDER_RATE_DEFAULT = 0.5;
 
+// Precisão (accuracy) baixa é normal para iniciantes — por isso o limiar deles é
+// mais alto: só vira sinal quando quase todas as partidas têm accuracy baixa.
+// Acima de 800, basta uma maioria das partidas com precisão baixa.
+const ACCURACY_LOW_RATE_BEGINNER = 0.8;
+const ACCURACY_LOW_RATE_DEFAULT = 0.6;
+
 type WeaknessCandidate = {
   tag: WeaknessTag;
   contribution: number;
@@ -50,8 +56,10 @@ export function filterFreshSignals(
 }
 
 export function detectWeaknesses(signals: Signal[], band?: LearnerBand): Weakness[] {
-  const blunderThreshold = isBeginnerBand(band) ? BLUNDER_RATE_BEGINNER : BLUNDER_RATE_DEFAULT;
-  const weaknesses = detectNonColorWeaknesses(signals, blunderThreshold);
+  const beginner = isBeginnerBand(band);
+  const blunderThreshold = beginner ? BLUNDER_RATE_BEGINNER : BLUNDER_RATE_DEFAULT;
+  const accuracyThreshold = beginner ? ACCURACY_LOW_RATE_BEGINNER : ACCURACY_LOW_RATE_DEFAULT;
+  const weaknesses = detectNonColorWeaknesses(signals, blunderThreshold, accuracyThreshold);
   const colorWeakness = detectColorWeakness(signals);
 
   if (colorWeakness === undefined) {
@@ -75,8 +83,12 @@ export function detectWeaknesses(signals: Signal[], band?: LearnerBand): Weaknes
   );
 }
 
-function detectNonColorWeaknesses(signals: Signal[], blunderThreshold: number): Weakness[] {
-  const candidates = signals.flatMap((signal) => signalToCandidates(signal, blunderThreshold));
+function detectNonColorWeaknesses(
+  signals: Signal[],
+  blunderThreshold: number,
+  accuracyThreshold: number,
+): Weakness[] {
+  const candidates = signals.flatMap((signal) => signalToCandidates(signal, blunderThreshold, accuracyThreshold));
   const byTag = new Map<WeaknessTag, Weakness>();
 
   for (const candidate of candidates) {
@@ -104,7 +116,11 @@ function detectNonColorWeaknesses(signals: Signal[], blunderThreshold: number): 
   return [...byTag.values()].sort(sortWeaknesses);
 }
 
-function signalToCandidates(signal: Signal, blunderThreshold: number): WeaknessCandidate[] {
+function signalToCandidates(
+  signal: Signal,
+  blunderThreshold: number,
+  accuracyThreshold: number,
+): WeaknessCandidate[] {
   switch (signal.value.kind) {
     case 'judgment':
       if (signal.value.games >= 5 && signal.value.blunders / signal.value.games > blunderThreshold) {
@@ -116,6 +132,21 @@ function signalToCandidates(signal: Signal, blunderThreshold: number): WeaknessC
             confidence: signal.confidence,
             evidence:
               'Nas partidas analisadas recentes apareceram mais erros graves que o esperado; hoje vale testar uma rotina curta anti-blunder.',
+          },
+        ];
+      }
+      return [];
+
+    case 'accuracy':
+      if (signal.value.games >= 8 && signal.value.lowAccuracyGames / signal.value.games >= accuracyThreshold) {
+        return [
+          {
+            tag: 'blunder-rate',
+            contribution: signal.value.games,
+            minContribution: 8,
+            confidence: 'low',
+            evidence:
+              'Em várias partidas recentes a precisão (accuracy) ficou baixa; uma rotina curta anti-blunder ajuda a estabilizar.',
           },
         ];
       }

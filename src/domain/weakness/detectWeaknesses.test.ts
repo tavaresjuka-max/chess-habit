@@ -40,6 +40,35 @@ describe('detectWeaknesses', () => {
     expect(detectWeaknesses(signals, '1000-1200')).toEqual([]);
   });
 
+  it('trata accuracy baixa como sinal próprio com limiar calibrado por banda', () => {
+    // 6 de 8 partidas com accuracy baixa = 0,75.
+    const signals: Signal[] = [
+      {
+        source: 'chesscom',
+        confidence: 'low',
+        observedAt,
+        value: { kind: 'accuracy', lowAccuracyGames: 6, games: 8 },
+      },
+    ];
+
+    // Default (0,6) dispara; iniciante (0,8) não — accuracy baixa é normal lá.
+    expect(detectWeaknesses(signals, '1000-1200')[0]).toMatchObject({ tag: 'blunder-rate', confidence: 'low' });
+    expect(detectWeaknesses(signals, '400-800')).toEqual([]);
+  });
+
+  it('ignora accuracy baixa com amostra pequena (< 8 partidas)', () => {
+    const signals: Signal[] = [
+      {
+        source: 'chesscom',
+        confidence: 'low',
+        observedAt,
+        value: { kind: 'accuracy', lowAccuracyGames: 6, games: 7 },
+      },
+    ];
+
+    expect(detectWeaknesses(signals, '1000-1200')).toEqual([]);
+  });
+
   it('keeps the plan conservative when thresholds do not fire', () => {
     const signals: Signal[] = [
       {

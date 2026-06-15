@@ -249,10 +249,10 @@ function accuracySignals(accuracies: AccuracyAggregate, observedAt: string): Sig
       confidence: 'low',
       observedAt,
       value: {
-        kind: 'judgment',
-        blunders: accuracies.lowAccuracyGames,
-        mistakes: 0,
-        inaccuracies: 0,
+        // Accuracy baixa não é "blunder" de lance: é um sinal próprio e mais
+        // fraco, com limiar calibrado por banda no detector (J4 — item 17).
+        kind: 'accuracy',
+        lowAccuracyGames: accuracies.lowAccuracyGames,
         games: accuracies.games,
       },
     },
