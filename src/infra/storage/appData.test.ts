@@ -4,6 +4,7 @@ import { generatePlan } from '../../domain';
 import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
 import type { LearnerProfile, Signal, Weakness } from '../../domain';
 import { db } from './db';
+import { computeBackupChecksum } from './backup';
 import {
   appendSignals,
   clearAll,
@@ -461,6 +462,34 @@ describe('appData storage', () => {
     expect(
       (await importBackupFromJson('{"format":"lichess-tutor-backup","version":99,"exportedAt":"x","checksum":"y","data":{}}')).ok,
     ).toBe(false);
+  });
+
+  it('rejects a backup where profile is not an array (shape inválida)', async () => {
+    // data.profile deve ser array — qualquer outro tipo falha na validação de shape
+    // antes mesmo de chegar ao validateBackupData.
+    const invalidData = {
+      profile: 'not-an-array',
+      plans: [],
+      logs: [],
+      signals: [],
+      weaknesses: [],
+      methodTracks: [],
+      pendingItems: [],
+      diplomaAttempts: [],
+    };
+
+    const checksum = await computeBackupChecksum(JSON.stringify(invalidData), 'fnv1a');
+    const json = JSON.stringify({
+      format: 'lichess-tutor-backup',
+      version: 1,
+      exportedAt: '2026-06-16T00:00:00.000Z',
+      checksum,
+      data: invalidData,
+    });
+
+    const result = await importBackupFromJson(json);
+
+    expect(result.ok).toBe(false);
   });
 
   it('inclui Lichess study links no backup (Corte F: dado durável do usuário)', async () => {

@@ -4,6 +4,7 @@ import {
   createLichessOAuthRequest,
   exchangeLichessOAuthCode,
   parseLichessOAuthCallback,
+  revokeLichessOAuthToken,
   stripOAuthQuery,
 } from './oauth';
 
@@ -81,6 +82,56 @@ describe('lichess oauth', () => {
       obtainedAt: '2026-06-06T10:00:00.000Z',
       expiresAt: '2027-06-06T10:00:00.000Z',
     });
+  });
+
+  it('throws when the OAuth token exchange response has an unexpected shape', async () => {
+    const fetcher = (): Promise<Response> =>
+      Promise.resolve(Response.json({ unexpected: true }));
+
+    await expect(
+      exchangeLichessOAuthCode({
+        code: 'abc',
+        codeVerifier: 'verifier',
+        redirectUri: 'http://127.0.0.1:5174/',
+        clientId: 'lichess-tutor-local',
+        scopes: ['puzzle:read'],
+        nowIso: '2026-06-06T10:00:00.000Z',
+        fetcher,
+      }),
+    ).rejects.toThrow('inesperada');
+  });
+
+  it('throws when the OAuth token exchange response has the wrong token_type', async () => {
+    const fetcher = (): Promise<Response> =>
+      Promise.resolve(
+        Response.json({ token_type: 'Basic', access_token: 'tok', expires_in: 31536000 }),
+      );
+
+    await expect(
+      exchangeLichessOAuthCode({
+        code: 'abc',
+        codeVerifier: 'verifier',
+        redirectUri: 'http://127.0.0.1:5174/',
+        clientId: 'lichess-tutor-local',
+        scopes: ['puzzle:read'],
+        nowIso: '2026-06-06T10:00:00.000Z',
+        fetcher,
+      }),
+    ).rejects.toThrow('inesperada');
+  });
+
+  it('throws when token revocation fails with a non-401 status', async () => {
+    const fetcher = (): Promise<Response> =>
+      Promise.resolve(new Response('Server Error', { status: 500 }));
+
+    await expect(revokeLichessOAuthToken({ token: 'tok', fetcher })).rejects.toThrow('500');
+  });
+
+  it('does not throw when token revocation responds with 401 (already expired)', async () => {
+    const fetcher = (): Promise<Response> =>
+      Promise.resolve(new Response(null, { status: 401 }));
+
+    await expect(revokeLichessOAuthToken({ token: 'tok', fetcher })).resolves.toBeUndefined();
   });
 });
 

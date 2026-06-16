@@ -160,6 +160,68 @@ describe('lichess study', () => {
 
     expect(events).toEqual(['create', 'saved:fresh77', 'import']);
   });
+
+  it('throws when the Lichess API rate-limits the study creation', async () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    const fetcher = (): Promise<Response> =>
+      Promise.resolve(new Response(null, { status: 429 }));
+
+    await expect(
+      createDailyStudy({ token: 'tok', plan, nowIso: '2026-06-06T10:00:00.000Z', fetcher }),
+    ).rejects.toThrow();
+  });
+
+  it('throws with the HTTP status when study creation fails', async () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    const fetcher = (): Promise<Response> =>
+      Promise.resolve(new Response('Server Error', { status: 500 }));
+
+    await expect(
+      createDailyStudy({ token: 'tok', plan, nowIso: '2026-06-06T10:00:00.000Z', fetcher }),
+    ).rejects.toThrow('500');
+  });
+
+  it('throws when the study creation response has an unexpected shape', async () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    const fetcher = (): Promise<Response> =>
+      Promise.resolve(Response.json({ notAnId: true }));
+
+    await expect(
+      createDailyStudy({ token: 'tok', plan, nowIso: '2026-06-06T10:00:00.000Z', fetcher }),
+    ).rejects.toThrow('inesperada');
+  });
+
+  it('throws when the Lichess API rate-limits the PGN import', async () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    let callCount = 0;
+    const fetcher = (): Promise<Response> => {
+      callCount += 1;
+      if (callCount === 1) {
+        return Promise.resolve(Response.json({ id: 'study99' }));
+      }
+      return Promise.resolve(new Response(null, { status: 429 }));
+    };
+
+    await expect(
+      createDailyStudy({ token: 'tok', plan, nowIso: '2026-06-06T10:00:00.000Z', fetcher }),
+    ).rejects.toThrow();
+  });
+
+  it('throws with HTTP status when the PGN import fails', async () => {
+    const plan = generatePlan(profile, [], 5, '2026-06-06');
+    let callCount = 0;
+    const fetcher = (): Promise<Response> => {
+      callCount += 1;
+      if (callCount === 1) {
+        return Promise.resolve(Response.json({ id: 'study99' }));
+      }
+      return Promise.resolve(new Response('Bad Request', { status: 400 }));
+    };
+
+    await expect(
+      createDailyStudy({ token: 'tok', plan, nowIso: '2026-06-06T10:00:00.000Z', fetcher }),
+    ).rejects.toThrow('400');
+  });
 });
 
 function requestUrl(input: RequestInfo | URL): string {

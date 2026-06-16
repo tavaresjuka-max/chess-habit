@@ -101,6 +101,32 @@ describe('detectWeaknesses', () => {
     });
   });
 
+  it('ordena alfabeticamente por tag quando dois scores são iguais', () => {
+    // Dois sinais manuais com confidence 'medium' produzem score 0.6 cada.
+    // sortWeaknesses usa localeCompare(tag) como desempate → 'blunder-rate' < 'fork'.
+    const signals: Signal[] = [
+      {
+        source: 'outro',
+        confidence: 'medium',
+        observedAt,
+        value: { kind: 'manual', tag: 'fork', note: 'Sinal manual: garfo.' },
+      },
+      {
+        source: 'outro',
+        confidence: 'medium',
+        observedAt,
+        value: { kind: 'manual', tag: 'blunder-rate', note: 'Sinal manual: anti-blunder.' },
+      },
+    ];
+
+    const weaknesses = detectWeaknesses(signals);
+
+    expect(weaknesses).toHaveLength(2);
+    expect(weaknesses[0]?.score).toBe(weaknesses[1]?.score);
+    expect(weaknesses[0]?.tag).toBe('blunder-rate');
+    expect(weaknesses[1]?.tag).toBe('fork');
+  });
+
   it('aggregates opening signals under one opening-principles weakness', () => {
     const signals: Signal[] = [
       {
