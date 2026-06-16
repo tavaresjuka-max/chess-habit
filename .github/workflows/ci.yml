@@ -1,6 +1,6 @@
 name: CI
 
-# Gate objetivo: lint + testes + build em todo push/PR. Substitui o checkpoint
+# Gate objetivo: lint + testes + coverage + build em todo push/PR. Substitui o checkpoint
 # manual local (PLANO.md: "lint && test && build verdes").
 on:
   push:
@@ -19,4 +19,18 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run test
+      - run: npm run coverage
       - run: npm run build
+
+  smoke:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run smoke:pwa

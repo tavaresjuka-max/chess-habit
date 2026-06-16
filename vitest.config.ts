@@ -19,6 +19,11 @@ export default mergeConfig(
       coverage: {
         provider: 'v8',
         reporter: ['text', 'html'],
+        thresholds: {
+          lines: 78,
+          functions: 85,
+          branches: 72,
+        },
         include: ['src/**/*.{ts,tsx}'],
         exclude: [
           'src/**/*.test.{ts,tsx}',
