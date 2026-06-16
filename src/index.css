@@ -453,6 +453,13 @@ button[aria-disabled='true'] {
   color: var(--ink-600);
 }
 
+.config-version {
+  margin-top: 18px;
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
 .field-hint {
   color: var(--ink-600);
   font-weight: 450;

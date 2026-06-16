@@ -106,6 +106,11 @@ describe('Config — rendering', () => {
     render(<Config {...makeProps({ profile: undefined })} />);
     expect(screen.getByRole('heading', { name: 'Configuração' })).toBeInTheDocument();
   });
+
+  it('renders the app version discreetly', () => {
+    render(<Config {...makeProps()} />);
+    expect(screen.getByText('versão 0.0.0')).toBeInTheDocument();
+  });
 });
 
 // ---------------------------------------------------------------------------

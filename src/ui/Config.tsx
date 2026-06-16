@@ -383,6 +383,7 @@ export function Config({
         </div>
         </div>
       </Fold>
+      <p className="config-version">versão {__APP_VERSION__}</p>
     </section>
   );
 }
