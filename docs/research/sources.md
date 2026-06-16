@@ -42,6 +42,18 @@ Pesquisa executada antes de implementar o coletor P1 de diagnostico primario.
 - [Chess.com Help Center: What is the PubAPI and how do I use it?](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it): confirmou que a PubAPI e REST, JSON-LD e read-only, nao inclui dados privados como chat, documenta cache, `ETag`/`Last-Modified`, resposta 429 e recomenda acesso serial para evitar rate limit.
 - [Chess.com Published-Data API](https://www.chess.com/news/view/published-data-api): confirmou endpoints `GET /pub/player/{username}/stats`, `GET /pub/player/{username}/games/archives` e `GET /pub/player/{username}/games/{YYYY}/{MM}`, campos dos jogos mensais (`pgn`, `time_class`, `rules`, `white/black.result`, `accuracies`, `eco`) e codigos de resultado como `win`, `timeout`, `resigned`, `checkmated`, `stalemate`, `timevsinsufficient`.
 
+## Pesquisa Pontual Em 2026-06-16: Auditoria 360 Codex GPT-5
+
+Pesquisa executada para `docs/review/analise_completa_codex-gpt-5_2026-06-16.md`.
+
+- [Lichess API Tips](https://lichess.org/page/api-tips): revalidou preferencia por endpoint oficial em vez de scraping/browser automation, uma requisicao por vez e espera de 1 minuto apos HTTP 429.
+- [Lichess games export spec](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/games/api-games-user-username.yaml): revalidou export em NDJSON/PGN, risco de respostas muito longas e parametros `max`, `moves`, `pgnInJson`, `accuracy`, `opening`, `finished` e `sort`.
+- [Lichess OAuth endpoint spec](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/oauth/oauth.yaml): revalidou Authorization Code Flow with PKCE, `code_verifier`, `state`, `code_challenge_method=S256` e checagem de `state` no callback.
+- [Lichess Create Study spec](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/tags/studies/api-study.yaml): revalidou `POST /api/study`, limite de 30 novos estudos/dia, `visibility` e escopo `study:write`.
+- [Chess.com Help Center: PubAPI](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it): revalidou API REST read-only, JSON-LD, ausencia de dados privados como chat, cache/ETag, 429 e recomendacao de acesso serial e user-agent identificavel.
+- [Chess.com Published-Data API](https://www.chess.com/news/view/published-data-api): revalidou endpoints publicos, cache, respostas 304/429, rate limit em requisicoes paralelas e restricoes de marca/IP.
+- [MDN: Making PWAs installable](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable): revalidou requisitos de manifest, icones 192/512, `start_url`, `display`, HTTPS/localhost/loopback e uso comum de service worker para experiencia offline.
+
 ## Pesquisa Pontual Em 2026-06-06: Lichess Puzzle Activity P2
 
 Pesquisa executada antes de preparar a reconciliacao de resultados de treino em puzzles.
@@ -720,3 +732,83 @@ Pesquisa executada para criar os prompts de planejamento `deepseek-plano-impleme
   consultadas novamente antes de gerar `docs/research/plano-implementacao-metodo-lichess-DIRETOR.md`. Decisao:
   consenso suficiente para implementar sem nova rodada de planejamento; manter `puzzle:read`,
   `study:write`, deep links, Study do dia e rate limit oficial.
+
+## Rechecagem Codex Da Auditoria Geral (2026-06-13)
+
+Pesquisa executada para a auditoria geral registrada em
+`docs/review/relatorio-codex-auditoria-geral-2026-06-13.md` e para alinhar documentacao de API/PWA.
+
+- **[Lichess API Tips](https://lichess.org/page/api-tips):** revalidou preferencia por endpoints
+  oficiais em vez de scraping/browser automation; regra operacional continua sendo uma requisicao por
+  vez e espera de 1 minuto completo apos HTTP 429.
+- **[Chess.com Help Center: What is the PubAPI and how do I use it?](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it):**
+  artigo atualizado em 2026-04-20; revalidou que a PubAPI e read-only, nao envia lances/comandos de
+  jogo, nao inclui dados privados como chat, e que acesso serial evita rate limit 429.
+- **[MDN: CycleTracker - Service workers](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/CycleTracker/Service_workers):**
+  revalidou responsabilidades de service worker para offline/update: lista de recursos, versao/cache,
+  instalacao, atualizacao e remocao de arquivos antigos.
+- **[Vite PWA: Prompt for new content refreshing](https://vite-pwa-org.netlify.app/guide/prompt-for-update):**
+  revalidou o fluxo de `virtual:pwa-register`, prompt de atualizacao e chamada `updateSW()` usado pela
+  configuracao atual com `vite-plugin-pwa`.
+
+## Rechecagem Codex Critica Nota 9,5 (2026-06-14)
+
+Pesquisa executada para `docs/review/relatorio-codex-revisao-critica-nota-95-2026-06-14.md`,
+com foco em API, PWA, privacidade/local storage e base pedagogica para revisao espaciada.
+
+- **[Lichess API Tips](https://lichess.org/page/api-tips):** revalidou que o uso correto e via
+  endpoints oficiais, com uma requisicao por vez e espera de 1 minuto completo apos HTTP 429.
+- **[Lichess OpenAPI raw](https://raw.githubusercontent.com/lichess-org/api/master/doc/specs/lichess-api.yaml):**
+  revalidou rate limit, uso de NDJSON streaming em endpoints aplicaveis e cuidados com tokens/OAuth PKCE.
+- **[Chess.com Published Data API](https://www.chess.com/news/view/published-data-api):** artigo
+  atualizado em 2026-04-22; revalidou que a PubAPI e read-only, que acesso serial evita rate limit,
+  e que respostas suportam `ETag`/`Last-Modified` e `304 Not Modified`.
+- **[MDN StorageManager.persist](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist):**
+  confirmou retorno booleano, contexto seguro e excecoes possiveis de `navigator.storage.persist()`.
+- **[web.dev Persistent storage](https://web.dev/articles/persistent-storage):** recomenda solicitar
+  persistencia ao salvar dado critico, idealmente com gesto do usuario, e nao durante page load/bootstrap.
+- **[Carpenter, Pan & Butler 2022](https://www.nature.com/articles/s44159-022-00089-1):** revisao
+  academica sobre spacing e retrieval practice como estrategias gerais de aprendizagem.
+- **[SuperMemo SM-2](https://super-memory.com/english/ol/sm2.htm):** referencia historica para
+  ajustar intervalos por qualidade de resposta; util apenas como inspiracao para uma versao simplificada.
+
+## Rechecagem Codex Analise Completa (2026-06-15)
+
+Pesquisa executada para `docs/review/analise_completa_codex_2026_06_15.md`, com foco em API,
+rate limit, PWA/storage, headers de deploy e seguranca frontend.
+
+- **[Lichess API Tips](https://lichess.org/page/api-tips):** revalidou que o Lichess prefere
+  endpoints oficiais a scraping/browser automation; regras operacionais continuam sendo uma
+  requisicao por vez e espera de um minuto completo apos HTTP 429.
+- **[Chess.com Help Center: What is the PubAPI and how do I use it?](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it):**
+  revalidou PubAPI read-only, cache/refresh de ate 12h e orientacao de acesso serial para evitar
+  rate limit 429.
+- **[MDN StorageManager.persist](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist):**
+  revalidou que `persist()` exige contexto seguro, retorna booleano e pode ser negado por regras do
+  navegador.
+- **[web.dev Persistent storage](https://web.dev/articles/persistent-storage):** reforcou que a melhor
+  hora para pedir persistencia e quando o usuario salva dado critico; nao no carregamento/bootstrap.
+- **[MDN Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP):**
+  revalidou CSP como defesa em profundidade contra XSS, clickjacking e `javascript:`/inline script,
+  preferencialmente via header HTTP.
+- **[Vercel vercel.json](https://vercel.com/docs/project-configuration/vercel-json):** confirmou que
+  `vercel.json` versionado suporta a propriedade `headers`, usada hoje apenas para `X-Robots-Tag`.
+
+## Rechecagem Codex Execucao Cortes M1-M5 (2026-06-16)
+
+Pesquisa executada para `docs/review/relatorio-codex-execucao-cortes-M1-M5-2026-06-15.md` e para
+os itens M2.1, M4.1 e M4.3 do pacote de pendencias.
+
+- **[Chess.com Help Center: What is the PubAPI and how do I use it?](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it):**
+  revalidou PubAPI read-only, ausencia de comandos de jogo e recomendacao operacional de acesso
+  serial para reduzir risco de 429.
+- **[Chess.com Published Data API](https://www.chess.com/news/view/published-data-api):** artigo
+  atualizado em 2026-04-22; revalidou arquivos mensais, ordem por `end_time`, campos `end_time`,
+  `accuracies` e `pgn`, e suporte a cache condicional.
+- **[Vercel vercel.json](https://vercel.com/docs/project-configuration/vercel-json):** confirmou que
+  `headers` versionado em `vercel.json` e o ponto correto para os headers defensivos do deploy.
+- **[MDN Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy):**
+  revalidou CSP como header HTTP de defesa em profundidade, incluindo restricoes de `script-src`.
+- **[Lichess OpenAPI spec](https://github.com/lichess-org/api/blob/master/doc/specs/lichess-api.yaml):**
+  revalidou os endpoints oficiais usados pelo app para Puzzle Activity, Dashboard, Replay e Studies;
+  sem scraping, sem Board/Bot/Challenge API.

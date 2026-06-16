@@ -14,5 +14,10 @@ Ordem recomendada antes de uma nova fase grande:
 5. `review-pedagogy.md`
 6. `handoff-implementation.md`
 
+## Analises Ativas
+
+- `claude-analise-nota-95-2026-06-13.md`: pede ao Claude arbitragem sobre os achados Codex e o plano
+  para levar o app a nota 9,5, usando os relatorios em `docs/review/`.
+
 Prompts historicos de pesquisa e implementacao do Metodo Professor Lemos foram arquivados em
 `archive/2026-06-method/`.

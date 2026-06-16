@@ -295,5 +295,36 @@
   - [x] Validacao tecnica confirmou 41/41 arquivos, zero faltantes e proporcoes conforme o prompt.
   - [x] Folha de contato criada em `output/imagegen/gabinete-contact-sheet-2026-06-12.png` para revisao visual rapida.
   - [x] Gate final executado: `npm run lint`, `npm run test` e `npm run build` verdes.
+- [x] **Selos de conceito premium integrados (2026-06-12)**.
+  - [x] `prompts/geracao-selos-conceito-2026-06-12.md` executado com apoio multiagente para mapear prompts, conceitos e integracao.
+  - [x] 15 PNGs `selo-{conceito}.png` gerados em `entrega/` e otimizados para `public/art/selo-{conceito}.webp` em 128px.
+  - [x] `ConceptSeal` passou a usar os webp pintados, preservando fallback lucide por conceito.
+  - [x] Gate final executado: `npm run lint`, `npm run test` e `npm run build` verdes; Browser confirmou assets em Hoje/Progresso/Config e Playwright validou Config em desktop/mobile.
+- [x] **Auditoria geral Codex + docs zerados (2026-06-13)**.
+  - [x] Badges v1 aprovados pelo dono e spec atualizada em `docs/superpowers/specs/2026-06-10-badges-spec-draft.md`.
+  - [x] Relatorio de notas por area e melhorias salvo em `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md`.
+  - [x] Arquitetura atual corrigida para PWA local-first sem backend em `docs/architecture/system.md`; P4/P5 seguem congeladas.
+  - [x] Fontes oficiais de API/PWA revalidadas e registradas em `docs/research/sources.md`.
+  - [x] Lint breaker em `src/ui/Fold.tsx` corrigido sem alterar a experiencia do usuario.
+  - [x] `.gitignore` atualizado para ignorar `output/imagegen/` (folhas de contato/previews locais pesados).
+  - [x] Backlog tecnico registrado: fila/cooldown central de API, smoke PWA producao/offline, ADR `vite-plugin-pwa`, validacao profunda de backup, ledger de assets, bundle/estado.
+  - [x] Gate final verde: `npm run lint`, `npm run test` (370 testes em 57 arquivos), `npm run build`,
+    `npm audit --audit-level=moderate` e `npm audit --omit=dev --audit-level=moderate`.
+  - [x] Smoke Playwright desktop/mobile em `http://127.0.0.1:5173/`: dobras `Fold` alternam corretamente,
+    sem erro de console e sem overflow horizontal.
+- [x] **Pacote para Claude analisar achados Codex e plano nota 9,5 (2026-06-13)**.
+  - [x] Relatorio factual criado em `docs/review/relatorio-codex-achados-para-claude-2026-06-13.md`.
+  - [x] Plano por cortes N95 criado em `docs/review/relatorio-codex-plano-nota-95-para-claude-2026-06-13.md`.
+  - [x] Prompt operacional criado em `prompts/claude-analise-nota-95-2026-06-13.md`.
+  - [x] `prompts/README.md` atualizado para listar a analise ativa.
 - [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
 - [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.
+
+- [x] **Execucao Codex cortes M1-M5 para zerar pendencias (2026-06-16)**.
+  - [x] Prompt `prompts/codex-cortes-M1-M5-zerar-pendencias-2026-06-15.md` executado.
+  - [x] 21 commits atomicos criados, de M1.1 a M5.4, sem push.
+  - [x] Principais entregas: boot de diplomas, bloqueio de URL externa, headers Vercel/CSP,
+    transacoes Dexie, Chess.com por `end_time`, fraqueza derivada de puzzles, threshold de accuracy,
+    hard sem avanco de estagio, cobertura/CI/pre-commit e classificacao estrutural `logKind`.
+  - [x] Gate final verde: lint, testes 3x, build, coverage e smoke PWA.
+  - [x] Relatorio salvo em `docs/review/relatorio-codex-execucao-cortes-M1-M5-2026-06-15.md`.

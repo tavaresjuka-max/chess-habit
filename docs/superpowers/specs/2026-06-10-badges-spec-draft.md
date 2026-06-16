@@ -1,10 +1,11 @@
-# Spec (RASCUNHO) — Badges de Esforço e Hábito
+# Spec — Badges de Esforço e Hábito
 
 - Data: 2026-06-10
-- Status: **rascunho para aprovação do dono**. Por decisão C-3, NENHUM badge é
-  implementado antes desta spec ser aprovada. Este documento consolida os insumos
-  da rodada de arbitragem (10 perguntas do Codex, desenhos do Gemini, métricas de
-  qualidade do DeepSeek) em propostas concretas.
+- Status: **aprovada pelo dono em 2026-06-13**. A v1 aprovada mantém os 5 badges
+  abaixo, todos únicos, sem ranking, sem streak punitivo e com métrica de qualidade
+  acoplada. Este documento consolida os insumos da rodada de arbitragem (10
+  perguntas do Codex, desenhos do Gemini, métricas de qualidade do DeepSeek) e
+  passa a ser contrato executável do Corte 7.
 
 ## Princípios travados (decisões do dono, não negociáveis)
 
@@ -15,7 +16,7 @@
    volume sozinho não conta ("1000 puzzles chutados" não é conquista).
 4. Tom Professor Lemos: sóbrio, factual, sem emoji, sem "parabéns!!!".
 
-## Badges propostos (v1 — 5 badges)
+## Badges aprovados (v1 — 5 badges)
 
 | Badge | Gatilho (dados reais) | Métrica de qualidade acoplada |
 |---|---|---|
@@ -32,13 +33,13 @@
 - Conquista gera uma linha sóbria no relatório do dia ("Você fechou 10 pendências
   com revisão espaçada. Isso tem nome: constância.") — sem modal, sem confete.
 
-## Perguntas que o dono precisa responder antes da implementação
+## Decisões de aprovação
 
-1. Os 5 badges acima bastam para a v1, ou cortar/adicionar algum?
-2. Badge repetível (ex.: Semana Inteira a cada semana) ou conquista única? Proposta: única na v1.
-3. Badges entram no export/backup (proposta: sim, tabela própria Dexie).
-4. Alguma celebração visual além da linha no relatório? Proposta: nenhuma na v1.
-5. Nome público dos badges em PT-BR está adequado ao tom?
+1. Os 5 badges acima bastam para a v1.
+2. Badges são conquistas únicas na v1; não se repetem semanalmente/mensalmente.
+3. Badges entram no export/backup por tabela própria Dexie.
+4. Celebração visual fica contida: linha sóbria no relatório e exibição na tela Progresso; sem modal, som ou confete.
+5. Os nomes públicos em PT-BR ficam aprovados para a ferramenta pessoal.
 
 ## Não-objetivos
 

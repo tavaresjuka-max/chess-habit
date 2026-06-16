@@ -1,7 +1,7 @@
 # Estado Atual
 
-Data: 2026-06-10 (atualizado apos arbitragem da rodada de debate, decisoes da rodada 2 do dono
-e conclusao dos Cortes 0 e 1 do plano consolidado).
+Data: 2026-06-13 (atualizado apos auditoria Codex geral, aprovacao dos badges v1 pelo dono e
+realinhamento da arquitetura atual local-first sem backend).
 
 ## Status
 
@@ -55,8 +55,9 @@ e conclusao dos Cortes 0 e 1 do plano consolidado).
   remanescentes explicitas.
 - Análise dos PDFs Baixados + ONDA 3 (Gemini) concluída em 2026-06-10: 67 arquivos analisados e catalogados. O relatório provou cientificamente a importância da autorreflexão de erros locais ($r=0.29$) e da verbalização ($r=0.18$), propôs a inserção de marcos de progresso baseados em "Diplomas" (Peão, Torre, Rei) de Tirado & Silva (1999), e introduziu o drill de "Tratamento de Pendências" (Christofoletti 2007) para re-resolver puzzles falhados. Detalhes em [analise-pdfs-baixados-onda3-GEMINI.md](docs/research/analise-pdfs-baixados-onda3-GEMINI.md).
 - Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
-- Specs vigentes: `docs/superpowers/specs/2026-06-08-professor-lemos-tutor-design.md` (tutor) e
-  `docs/superpowers/specs/2026-06-10-metodo-5-trilhas-design.md` (metodo 5 trilhas, as-built).
+- Specs vigentes: `docs/superpowers/specs/2026-06-08-professor-lemos-tutor-design.md` (tutor),
+  `docs/superpowers/specs/2026-06-10-metodo-5-trilhas-design.md` (metodo 5 trilhas, as-built) e
+  `docs/superpowers/specs/2026-06-10-badges-spec-draft.md` (badges v1 aprovados em 2026-06-13).
 - Roadmap vigente: plano de cortes 0-8 aprovado pelo dono em 2026-06-10
   (`docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md`, secao 4) + trilha
   paralela de validacao de eficacia (revisao ~2026-07-08).
@@ -87,8 +88,9 @@ e conclusao dos Cortes 0 e 1 do plano consolidado).
     enforced no chesscomClient (achado Codex).
   - Trilha paralela: linha de base de eficacia na tela Progresso (4 metricas aprovadas;
     revisao ~2026-07-08).
-  - Spec de badges em rascunho para aprovacao do dono:
-    `docs/superpowers/specs/2026-06-10-badges-spec-draft.md` (implementacao bloqueada por C-3).
+  - Corte 7 / Badges v1 aprovado pelo dono em 2026-06-13:
+    `docs/superpowers/specs/2026-06-10-badges-spec-draft.md` (5 conquistas unicas de esforco/habito,
+    sem rating, sem streak punitivo, com metrica de qualidade).
   Gate final verde: lint OK, 307 testes em 51 arquivos OK, build PWA OK.
 - **Passada visual premium CONCLUIDA em 2026-06-10** (mandato de polimento do dono):
   - Design tokens completos em `src/index.css` (familias de cor, raios, sombras, movimento);
@@ -104,6 +106,15 @@ e conclusao dos Cortes 0 e 1 do plano consolidado).
     hover de cards, barras de progresso animadas, `prefers-reduced-motion` respeitado.
   Referencias: familiaridade Lichess (sem replica de paleta), minimalismo Linear/Stripe.
   Gate verde apos cada commit da passada.
+- **Auditoria Codex geral e estabilizacao documental em 2026-06-13**:
+  - Relatorio salvo em `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md`.
+  - Badge spec aprovada pelo dono e sincronizada com implementacao existente.
+  - `docs/architecture/system.md` corrigido para refletir a arquitetura ativa: PWA local-first sem
+    backend; Worker/D1/sync seguem congelados para P4.
+  - Lint vermelho em `src/ui/Fold.tsx` corrigido removendo comentario de regra inexistente.
+  - Backlog tecnico registrado sem abrir fase nova: fila/cooldown central de API, smoke PWA
+    producao/offline, ADR sobre `vite-plugin-pwa`, validacao profunda de backup, ledger de assets e
+    manutencao de estado/bundle.
 
 ## Decisoes Vigentes
 
@@ -313,3 +324,8 @@ discovered, mate-in-2, endgame-pawn, calculo). short_name do PWA: "Rotina" (prov
 Handoff de execucao P0 para o Codex: `prompts/handoff-codex-P0.md`. Tarefa 1 (scaffold) estava feita
 antes desta retomada; tarefas 2-9 executadas pelo Codex nesta sessao. Dev server local em
 `http://127.0.0.1:5173/` foi deixado rodando para teste manual.
+
+Estado em 2026-06-16: pacote Codex M1-M5 de zerar pendencias concluido em 21 commits atomicos
+(`093f051` a `7db99af`). Gate final verde: lint, teste 3x (72 arquivos/555 testes), build,
+coverage (83.8/77.34/89.97/83.56) e smoke PWA. Relatorio salvo em
+`docs/review/relatorio-codex-execucao-cortes-M1-M5-2026-06-15.md`. P4/P5 continuam congeladas.

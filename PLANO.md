@@ -5,6 +5,8 @@
 > reservado para a Fase P5/comunidade). Specs vigentes: tutor
 > (`docs/superpowers/specs/2026-06-08-professor-lemos-tutor-design.md`) e metodo 5 trilhas
 > (`docs/superpowers/specs/2026-06-10-metodo-5-trilhas-design.md`).
+> Badges v1 de esforco/habito aprovados pelo dono em 2026-06-13:
+> `docs/superpowers/specs/2026-06-10-badges-spec-draft.md`.
 > REVISADO em 2026-06-10 (rodada 2): roadmap ativo passa a ser o plano de cortes 0-8 aprovado
 > pelo dono em `docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md`.
 
@@ -61,6 +63,16 @@ congelada para P4, se o dono descongelar sync depois.
 Clean-room; ChessKing fora do dominio; tipos estritos (sem `unknown`); sync por registro e congelado;
 slugs Lichess por allowlist oficial/manual; erro/offline especificados; linguagem de hipotese
 (sem promessa de rating); OAuth pessoal opt-in permitido somente para `puzzle:read`/`study:write`, sem escopos de jogo.
+
+## Auditoria Codex 2026-06-13
+
+Relatorio: `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md`.
+
+Resolvido nesta passada: spec de badges marcada como aprovada, arquitetura atual realinhada para PWA
+local-first sem backend, e lint vermelho em `Fold` corrigido. Melhorias registradas como backlog, sem
+descongelar P4/P5: fila/cooldown central de API, smoke PWA de producao/offline, ADR curta sobre
+`vite-plugin-pwa`, validacao mais profunda de backup importado, ledger de assets gerados e reducao
+gradual de estado/componente grande.
 
 ## Criterio De Pronto Por Fase
 

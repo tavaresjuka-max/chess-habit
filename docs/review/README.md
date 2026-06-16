@@ -7,6 +7,7 @@ investigar decisoes antigas.
 ## Ativo
 
 - [consolidacao_analise_2026-06-15.md](consolidacao_analise_2026-06-15.md) — consolidacao diretora vigente da rodada nota 9,5.
+- [analise_completa_antigravity_2026-06-15.md](analise_completa_antigravity_2026-06-15.md) — auditoria completa Antigravity.
 - [analise_completa_claude-opus_2026-06-15.md](analise_completa_claude-opus_2026-06-15.md) — auditoria completa Claude Opus.
 - [analise_completa_codex_2026_06_15.md](analise_completa_codex_2026_06_15.md) — auditoria completa Codex.
 - [analise_completa_deepseek_2026-06-15.md](analise_completa_deepseek_2026-06-15.md) — auditoria completa DeepSeek.

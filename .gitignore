@@ -28,6 +28,14 @@ output/free-resources/
 # Fontes PNG pesadas do gerador de imagens (os otimizados ficam em public/art)
 entrega/
 
+# Folhas de contato e previews locais do gerador de imagens
+output/imagegen/
+
 # Prints de auditoria visual (gerados por scripts/screenshots.mjs)
-output/playwright/
 screenshots/
+
+# Artefatos do smoke PWA (Playwright)
+output/playwright/
+test-results/
+playwright-report/
+/playwright/.cache/

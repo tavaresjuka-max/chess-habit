@@ -474,3 +474,38 @@ sem backend; nao descongela P4/P5). Primeiras impressoes do dono no celular:
    (Config inacessivel sem arrastar) e textos sem acentuacao em PT-BR.
 3. Descoberta: o dono procurou "conectar Chess.com" — nao existe login; e campo de
    usuario na Config + botao Atualizar na Hoje. Hint adicionado na UI.
+
+## 2026-06-13: Badges V1 Aprovados E Auditoria Geral Zerada
+
+O dono declarou: **"BADGE APROVADO"**. Decisao aplicada:
+
+- A spec `docs/superpowers/specs/2026-06-10-badges-spec-draft.md` deixa de ser rascunho e passa a ser
+  contrato aprovado do Corte 7 para a ferramenta pessoal.
+- V1 aprovada: Retorno de Ouro, Primeira Hora, Tratador de Pendencias, Semana Inteira e Calibrado.
+- Badges sao conquistas unicas, exportadas/backupeadas via Dexie, sem ranking, sem badge bloqueado,
+  sem streak punitivo, sem som/confete/modal e sem qualquer premio por rating.
+- Celebracao permitida: linha sobria no relatorio do dia e exibicao apenas de conquistas ja obtidas na
+  tela Progresso.
+
+Na mesma passada, a auditoria Codex de 2026-06-13 realinhou documentacao e gate:
+
+- `docs/architecture/system.md` agora descreve a arquitetura ativa real: PWA local-first sem backend.
+  Worker/D1/sync continuam congelados para P4.
+- `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md` registra notas por area, achados e
+  melhorias futuras.
+- Melhorias como fila/cooldown central de API, smoke PWA de producao/offline, ADR sobre
+  `vite-plugin-pwa`, validacao profunda de backup e ledger de assets sao backlog tecnico; nao
+  descongelam P4/P5 por si mesmas.
+
+## 2026-06-16: Fechamento Codex Cortes M1-M5
+
+- O pacote `prompts/codex-cortes-M1-M5-zerar-pendencias-2026-06-15.md` foi executado em commits
+  atomicos M1.1-M5.4, sem push.
+- Para M4.3, prevalece a decisao travada do dono: accuracy baixa no Chess.com usa limiar 65 nas
+  faixas 0-400 e 400-800, e 70 nas demais. A frase contraditoria do prompt sobre 67 para iniciante
+  foi tratada como desvio documentado, nao como nova decisao.
+- Para M5.4, `TrainingLog` ganhou `logKind?` opcional (`puzzle`, `free-activity`, `standard`) como
+  discriminante estrutural. Nao houve migracao Dexie porque o campo nao e indexado; logs novos gravam
+  o discriminante e logs ativos antigos sao enriquecidos no fechamento do bloco.
+- CI passa a exigir coverage com thresholds e smoke PWA; pre-commit local usa Husky/lint-staged com
+  ESLint e `tsc -b --noEmit`.
