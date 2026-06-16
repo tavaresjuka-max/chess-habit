@@ -18,12 +18,13 @@ import {
   loadWeaknesses,
   markOnboardingCompleted,
   saveLichessOAuthToken,
+  saveDiplomaAttempt,
   savePendingItem,
   savePlan,
   saveProfile,
   saveTrainingLog,
 } from '../infra/storage/appData';
-import type { PendingTrainingItem } from '../domain/method/types';
+import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 
 const profile: LearnerProfile = {
   lichessUsername: 'jukasparov',
@@ -260,6 +261,21 @@ describe('training flow', () => {
       expect(plan?.blocks[1]?.title).toContain('garfos');
       expect(plan?.blocks[1]?.resourceStage).toBe('retrieval');
       expect(plan?.blocks[1]?.destination.url).toBe('https://lichess.org/training/fork');
+    });
+  });
+
+  it('uses recent diploma attempts when generating the first boot plan', async () => {
+    const today = '2026-06-08';
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(`${today}T10:00:00.000-03:00`));
+    await Promise.all(createPassedPeaoDiplomaAttempts(today).map(saveDiplomaAttempt));
+
+    render(<App />);
+
+    await waitFor(async () => {
+      const plan = await getPlan(today);
+
+      expect(plan?.blocks.every((block) => block.methodTrackId === 'progress-diplomas')).toBe(true);
     });
   });
 
@@ -610,4 +626,18 @@ function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrai
     updatedAt: `${today}T00:00:00.000Z`,
     ...overrides,
   };
+}
+
+function createPassedPeaoDiplomaAttempts(date: string): DiplomaAttempt[] {
+  return ['coordenadas', 'valor-pecas', 'mates-basicos'].map((sectionId) => ({
+    id: `attempt-${sectionId}`,
+    diplomaId: 'peao',
+    sectionId,
+    scorePercent: 95,
+    totalItems: 10,
+    passed: true,
+    source: 'local',
+    createdAt: `${date}T08:00:00.000Z`,
+    updatedAt: `${date}T08:00:00.000Z`,
+  }));
 }

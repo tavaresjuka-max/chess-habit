@@ -49,9 +49,8 @@ import { getTodayDate } from './date';
 import { toErrorMessage } from './errorMessages';
 import { completeLichessOAuthIfNeeded } from './oauthFlow';
 import {
+  buildPlanContext,
   combinePlanHistory,
-  getOpenedTrainingBlockIds,
-  getWeakThemesFromThemeStats,
   toSessionMinutes,
 } from './stateHelpers';
 import type { AppView, DiagnosisState, LichessConnectionState, LoadState } from './state';
@@ -173,7 +172,6 @@ export function useAppData() {
         const normalizedStoredPlan = storedPlan === undefined ? undefined : normalizePlanDestinations(storedPlan);
         const normalizedPreviousPlan =
           previousPlan === undefined ? undefined : normalizePlanDestinations(previousPlan);
-        const openedBlockIds = getOpenedTrainingBlockIds(storedTrainingLogs);
         // Retorno apos ausencia longa: plano novo do dia nasce mais curto.
         const returnMinutes = getReturnSessionMinutes(
           computeConsistency(storedAllTrainingLogs, date),
@@ -181,25 +179,31 @@ export function useAppData() {
         );
         const plan =
           normalizedStoredPlan === undefined
-            ? generatePlan(storedProfile, storedWeaknesses, returnMinutes, date, {
-                previousPlan: normalizedPreviousPlan,
-                recentThemeStats,
-                openedBlockIds,
-                openPendingItems: storedPendingItems,
-                weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-              })
+            ? generatePlan(
+                storedProfile,
+                storedWeaknesses,
+                returnMinutes,
+                date,
+                buildPlanContext({
+                  previousPlan: normalizedPreviousPlan,
+                  recentThemeStats,
+                  trainingLogs: storedAllTrainingLogs,
+                  pendingItems: storedPendingItems,
+                  diplomaAttempts: storedDiplomaAttempts,
+                }),
+              )
             : generatePlan(
                 storedProfile,
                 storedWeaknesses,
                 toSessionMinutes(normalizedStoredPlan.sessionMinutes, storedProfile.defaultSessionMinutes),
                 date,
-                {
+                buildPlanContext({
                   previousPlan: combinePlanHistory(normalizedStoredPlan, normalizedPreviousPlan),
                   recentThemeStats,
-                  openedBlockIds,
-                  openPendingItems: storedPendingItems,
-                  weakThemesFromDashboard: getWeakThemesFromThemeStats(recentThemeStats),
-                },
+                  trainingLogs: storedAllTrainingLogs,
+                  pendingItems: storedPendingItems,
+                  diplomaAttempts: storedDiplomaAttempts,
+                }),
               );
 
         if (storedPlan === undefined || plan !== storedPlan) {
