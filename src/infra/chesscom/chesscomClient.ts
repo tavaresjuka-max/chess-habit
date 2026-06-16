@@ -57,7 +57,8 @@ export async function importChesscomSignals(username: string, options: ImportChe
     }
 
     const month = await fetchJson<ChesscomMonthlyArchiveResponse>(archiveUrl, fetcher);
-    const monthSignals = extractSignalsFromChesscomGames(normalizedUsername, month.games ?? [], observedAt);
+    const monthObservedAt = observedAtForArchive(archiveUrl, observedAt);
+    const monthSignals = extractSignalsFromChesscomGames(normalizedUsername, month.games ?? [], monthObservedAt);
 
     signals.push(...monthSignals);
     await saveCachedSignals(options.cache, normalizedUsername, archiveUrl, monthSignals, observedAt);
@@ -175,4 +176,27 @@ function expiresAtForArchive(archiveUrl: string, nowIso: string): string {
   const ttlMs = isCurrentMonth ? 12 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000;
 
   return new Date(now.getTime() + ttlMs).toISOString();
+}
+
+function observedAtForArchive(archiveUrl: string, nowIso: string): string {
+  const now = new Date(nowIso);
+  const archiveMonth = archiveUrl.match(/\/games\/(\d{4})\/(\d{2})$/);
+  const archiveYear = archiveMonth?.[1];
+  const archiveMonthNumber = archiveMonth?.[2];
+
+  if (archiveYear === undefined || archiveMonthNumber === undefined) {
+    return nowIso;
+  }
+
+  const monthEnd = new Date(Date.UTC(Number(archiveYear), Number(archiveMonthNumber), 0, 23, 59, 59, 999));
+
+  if (Number.isNaN(monthEnd.getTime())) {
+    return nowIso;
+  }
+
+  if (!Number.isNaN(now.getTime()) && monthEnd.getTime() > now.getTime()) {
+    return now.toISOString();
+  }
+
+  return monthEnd.toISOString();
 }

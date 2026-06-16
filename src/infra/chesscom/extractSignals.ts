@@ -6,6 +6,7 @@ type OpeningAggregate = {
   name: string;
   games: number;
   losses: number;
+  observedAt: string;
 };
 
 type TimeAggregate = {
@@ -13,17 +14,20 @@ type TimeAggregate = {
   games: number;
   losses: number;
   timeoutLosses: number;
+  observedAt: string;
 };
 
 type ColorAggregate = {
   color: ChesscomColor;
   games: number;
   losses: number;
+  observedAt: string;
 };
 
 type AccuracyAggregate = {
   games: number;
   lowAccuracyGames: number;
+  observedAt?: string;
 };
 
 export function getPlayerSideChesscom(game: ChesscomGame, username: string): ChesscomColor | null {
@@ -96,22 +100,23 @@ export function extractSignalsFromChesscomGames(
       continue;
     }
 
+    const gameObservedAt = observedAtFromGame(game, observedAt);
     const didLose = isLossResult(result);
-    addColor(colors, side, didLose);
-    addTimeControl(timeControls, game.time_class ?? 'unknown', didLose, isTimeoutLoss(result));
-    addAccuracy(accuracies, game.accuracies?.[side]);
+    addColor(colors, side, didLose, gameObservedAt);
+    addTimeControl(timeControls, game.time_class ?? 'unknown', didLose, isTimeoutLoss(result), gameObservedAt);
+    addAccuracy(accuracies, game.accuracies?.[side], gameObservedAt);
 
     const opening = getOpeningFromGame(game);
 
     if (opening !== undefined) {
-      addOpening(openings, opening, didLose);
+      addOpening(openings, opening, didLose, gameObservedAt);
     }
   }
 
   return [
-    ...openingSignals(openings, observedAt),
-    ...timeSignals(timeControls, observedAt),
-    ...colorSignals(colors, observedAt),
+    ...openingSignals(openings),
+    ...timeSignals(timeControls),
+    ...colorSignals(colors),
     ...accuracySignals(accuracies, observedAt),
   ];
 }
@@ -120,6 +125,7 @@ function addOpening(
   openings: Map<string, OpeningAggregate>,
   opening: { eco: string; name: string },
   didLose: boolean,
+  observedAt: string,
 ): void {
   const key = `${opening.eco}:${opening.name}`;
   const current = openings.get(key) ?? {
@@ -127,12 +133,14 @@ function addOpening(
     name: opening.name,
     games: 0,
     losses: 0,
+    observedAt,
   };
 
   openings.set(key, {
     ...current,
     games: current.games + 1,
     losses: current.losses + (didLose ? 1 : 0),
+    observedAt: latestObservedAt(current.observedAt, observedAt),
   });
 }
 
@@ -141,12 +149,14 @@ function addTimeControl(
   speed: string,
   didLose: boolean,
   didTimeout: boolean,
+  observedAt: string,
 ): void {
   const current = timeControls.get(speed) ?? {
     speed,
     games: 0,
     losses: 0,
     timeoutLosses: 0,
+    observedAt,
   };
 
   timeControls.set(speed, {
@@ -154,37 +164,47 @@ function addTimeControl(
     games: current.games + 1,
     losses: current.losses + (didLose ? 1 : 0),
     timeoutLosses: current.timeoutLosses + (didTimeout ? 1 : 0),
+    observedAt: latestObservedAt(current.observedAt, observedAt),
   });
 }
 
-function addColor(colors: Map<ChesscomColor, ColorAggregate>, color: ChesscomColor, didLose: boolean): void {
+function addColor(
+  colors: Map<ChesscomColor, ColorAggregate>,
+  color: ChesscomColor,
+  didLose: boolean,
+  observedAt: string,
+): void {
   const current = colors.get(color) ?? {
     color,
     games: 0,
     losses: 0,
+    observedAt,
   };
 
   colors.set(color, {
     ...current,
     games: current.games + 1,
     losses: current.losses + (didLose ? 1 : 0),
+    observedAt: latestObservedAt(current.observedAt, observedAt),
   });
 }
 
-function addAccuracy(accuracies: AccuracyAggregate, accuracy: number | undefined): void {
+function addAccuracy(accuracies: AccuracyAggregate, accuracy: number | undefined, observedAt: string): void {
   if (accuracy === undefined) {
     return;
   }
 
   accuracies.games += 1;
   accuracies.lowAccuracyGames += accuracy < 70 ? 1 : 0;
+  accuracies.observedAt =
+    accuracies.observedAt === undefined ? observedAt : latestObservedAt(accuracies.observedAt, observedAt);
 }
 
-function openingSignals(openings: Map<string, OpeningAggregate>, observedAt: string): Signal[] {
+function openingSignals(openings: Map<string, OpeningAggregate>): Signal[] {
   return [...openings.values()].map((opening) => ({
     source: 'chesscom',
     confidence: 'medium',
-    observedAt,
+    observedAt: opening.observedAt,
     value: {
       kind: 'opening',
       eco: opening.eco,
@@ -195,12 +215,12 @@ function openingSignals(openings: Map<string, OpeningAggregate>, observedAt: str
   }));
 }
 
-function timeSignals(timeControls: Map<string, TimeAggregate>, observedAt: string): Signal[] {
+function timeSignals(timeControls: Map<string, TimeAggregate>): Signal[] {
   return [...timeControls.values()].flatMap((timeControl) => {
     const timeControlSignal: Signal = {
       source: 'chesscom',
       confidence: 'low',
-      observedAt,
+      observedAt: timeControl.observedAt,
       value: {
         kind: 'time-control',
         speed: timeControl.speed,
@@ -212,7 +232,7 @@ function timeSignals(timeControls: Map<string, TimeAggregate>, observedAt: strin
     const clockSignal: Signal = {
       source: 'chesscom',
       confidence: 'medium',
-      observedAt,
+      observedAt: timeControl.observedAt,
       value: {
         kind: 'clock',
         timeoutLosses: timeControl.timeoutLosses,
@@ -224,11 +244,11 @@ function timeSignals(timeControls: Map<string, TimeAggregate>, observedAt: strin
   });
 }
 
-function colorSignals(colors: Map<ChesscomColor, ColorAggregate>, observedAt: string): Signal[] {
+function colorSignals(colors: Map<ChesscomColor, ColorAggregate>): Signal[] {
   return [...colors.values()].map((color) => ({
     source: 'chesscom',
     confidence: 'low',
-    observedAt,
+    observedAt: color.observedAt,
     value: {
       kind: 'color',
       color: color.color,
@@ -247,7 +267,7 @@ function accuracySignals(accuracies: AccuracyAggregate, observedAt: string): Sig
     {
       source: 'chesscom',
       confidence: 'low',
-      observedAt,
+      observedAt: accuracies.observedAt ?? observedAt,
       value: {
         // Accuracy baixa não é "blunder" de lance: é um sinal próprio e mais
         // fraco, com limiar calibrado por banda no detector (J4 — item 17).
@@ -273,6 +293,31 @@ function getOpeningFromGame(game: ChesscomGame): { eco: string; name: string } |
     eco: eco ?? 'unknown',
     name: name ?? 'Abertura sem nome',
   };
+}
+
+function observedAtFromGame(game: ChesscomGame, fallbackObservedAt: string): string {
+  if (typeof game.end_time !== 'number' || !Number.isFinite(game.end_time)) {
+    return fallbackObservedAt;
+  }
+
+  const observedAt = new Date(game.end_time * 1000);
+
+  return Number.isNaN(observedAt.getTime()) ? fallbackObservedAt : observedAt.toISOString();
+}
+
+function latestObservedAt(left: string, right: string): string {
+  const leftTime = Date.parse(left);
+  const rightTime = Date.parse(right);
+
+  if (Number.isNaN(leftTime)) {
+    return right;
+  }
+
+  if (Number.isNaN(rightTime)) {
+    return left;
+  }
+
+  return rightTime > leftTime ? right : left;
 }
 
 export function parsePgnTags(pgn: string): Record<string, string> {
