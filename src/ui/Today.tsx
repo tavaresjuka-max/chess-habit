@@ -317,6 +317,7 @@ export function Today({
         plan={plan}
         weaknesses={weaknesses}
         trainingLogs={trainingLogs}
+        allTrainingLogs={allTrainingLogs}
         today={plan.date}
         onAnswerTutorQuestion={onAnswerTutorQuestion}
         onReconcileLichessResults={onReconcileLichessResults}

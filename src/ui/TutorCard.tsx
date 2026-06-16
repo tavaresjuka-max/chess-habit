@@ -17,6 +17,10 @@ type TutorCardProps = {
   plan: DailyPlan;
   weaknesses: Weakness[];
   trainingLogs: TrainingLog[];
+  // Histórico completo: a constância (streak, retorno após pausa) precisa de
+  // todos os dias, não só os logs de hoje. trainingLogs segue sendo o recorte
+  // do dia para o estado "feito hoje".
+  allTrainingLogs: TrainingLog[];
   today: string;
   onAnswerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
   onReconcileLichessResults: () => Promise<void>;
@@ -54,11 +58,12 @@ export function TutorCard({
   plan,
   weaknesses,
   trainingLogs,
+  allTrainingLogs,
   today,
   onAnswerTutorQuestion,
   onReconcileLichessResults,
 }: TutorCardProps) {
-  const consistency = computeConsistency(trainingLogs, today);
+  const consistency = computeConsistency(allTrainingLogs, today);
   const primaryWeakness = weaknesses[0];
   const evidenceLine = getEvidenceLine(plan, weaknesses);
   const hasUnreconciledPuzzleLog = trainingLogs.some(

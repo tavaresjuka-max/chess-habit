@@ -56,7 +56,11 @@ const puzzleThemeToWeaknessTag: Partial<Record<string, WeaknessTag>> = {
   skewer: 'skewer',
   advantage: 'conversion',
   crushing: 'conversion',
-  defensiveMove: 'conversion',
+  // defensiveMove = "encontre o lance defensivo preciso" (anti-erro), não
+  // conversão de vantagem. Alinha com destinations/resourceCatalog (puzzle
+  // primário de blunder-rate), diagnosis ("defesa precisa") e selectMethodTrack
+  // (active-defense). Antes mapeava para 'conversion' por engano.
+  defensiveMove: 'blunder-rate',
   capturingDefender: 'conversion',
   deflection: 'conversion',
   pawnEndgame: 'endgame-pawn',

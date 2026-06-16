@@ -58,6 +58,7 @@ describe('TutorCard', () => {
         plan={plan}
         weaknesses={[weakness]}
         trainingLogs={[]}
+        allTrainingLogs={[]}
         today="2026-06-08"
         onAnswerTutorQuestion={answerTutorQuestion}
         onReconcileLichessResults={reconcileLichessResults}
@@ -73,6 +74,7 @@ describe('TutorCard', () => {
         plan={fallbackPlan}
         weaknesses={[]}
         trainingLogs={[]}
+        allTrainingLogs={[]}
         today="2026-06-08"
         onAnswerTutorQuestion={answerTutorQuestion}
         onReconcileLichessResults={reconcileLichessResults}
@@ -87,6 +89,7 @@ describe('TutorCard', () => {
         plan={plan}
         weaknesses={[weakness]}
         trainingLogs={[doneLog()]}
+        allTrainingLogs={[doneLog()]}
         today="2026-06-08"
         onAnswerTutorQuestion={answerTutorQuestion}
         onReconcileLichessResults={reconcileLichessResults}
@@ -102,6 +105,7 @@ describe('TutorCard', () => {
       <TutorCard
         plan={plan}
         weaknesses={[{ ...weakness, tag: 'blunder-rate' }]}
+        allTrainingLogs={[]}
         trainingLogs={[
           {
             ...log,
@@ -136,6 +140,7 @@ describe('TutorCard', () => {
         plan={plan}
         weaknesses={[]}
         trainingLogs={[doneLog()]}
+        allTrainingLogs={[doneLog()]}
         today="2026-06-08"
         onAnswerTutorQuestion={onAnswer}
         onReconcileLichessResults={reconcileLichessResults}
@@ -147,6 +152,45 @@ describe('TutorCard', () => {
     expect(onAnswer).toHaveBeenCalledWith('loose-piece');
   });
 
+  it('reads the streak from full history, not just today logs', () => {
+    const history: TrainingLog[] = [
+      { ...doneLog(), id: 'log-d1', date: '2026-06-06' },
+      { ...doneLog(), id: 'log-d2', date: '2026-06-07' },
+    ];
+
+    render(
+      <TutorCard
+        plan={plan}
+        weaknesses={[weakness]}
+        trainingLogs={[]}
+        allTrainingLogs={history}
+        today="2026-06-08"
+        onAnswerTutorQuestion={answerTutorQuestion}
+        onReconcileLichessResults={reconcileLichessResults}
+      />,
+    );
+
+    expect(screen.getByText('2 dias seguidos. Isso já é rotina.')).toBeInTheDocument();
+  });
+
+  it('greets a returning learner from the gap in full history, not today logs', () => {
+    const history: TrainingLog[] = [{ ...doneLog(), id: 'log-old', date: '2026-06-01' }];
+
+    render(
+      <TutorCard
+        plan={plan}
+        weaknesses={[weakness]}
+        trainingLogs={[]}
+        allTrainingLogs={history}
+        today="2026-06-08"
+        onAnswerTutorQuestion={answerTutorQuestion}
+        onReconcileLichessResults={reconcileLichessResults}
+      />,
+    );
+
+    expect(screen.getByText('Sem cobrança. O tabuleiro espera.')).toBeInTheDocument();
+  });
+
   it('offers puzzle reconciliation from the tutor card when a puzzle log has no result yet', () => {
     const onReconcile = vi.fn<() => Promise<void>>(() => Promise.resolve());
 
@@ -155,6 +199,7 @@ describe('TutorCard', () => {
         plan={plan}
         weaknesses={[]}
         trainingLogs={[{ ...doneLog(), destinationLabel: 'Puzzles Lichess: Fork', logKind: 'puzzle' }]}
+        allTrainingLogs={[{ ...doneLog(), destinationLabel: 'Puzzles Lichess: Fork', logKind: 'puzzle' }]}
         today="2026-06-08"
         onAnswerTutorQuestion={answerTutorQuestion}
         onReconcileLichessResults={onReconcile}
