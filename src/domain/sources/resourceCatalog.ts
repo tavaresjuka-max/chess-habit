@@ -3,6 +3,7 @@ import {
   improvingAndUpBands,
   learnerBands,
 } from '../bands';
+import { assertNever } from '../assertNever';
 import type { Destination, LearnerBand, LichessOAuthScope, WeaknessTag } from '../types';
 
 export type LichessResourceKind =
@@ -985,6 +986,8 @@ function getQualityRank(status: QualityStatus): number {
       return 1;
     case 'rejected':
       return 0;
+    default:
+      return assertNever(status);
   }
 }
 
@@ -1006,6 +1009,8 @@ function getKindRank(kind: LichessResourceKind): number {
       return 7;
     case 'analysis-tool':
       return 8;
+    default:
+      return assertNever(kind);
   }
 }
 
