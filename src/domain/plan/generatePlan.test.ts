@@ -203,6 +203,21 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/hangingPiece');
   });
 
+  it.each([
+    ['0-400', 'endgame-pawn', 'Final de peões'],
+    ['1000-1200', 'endgame-rook', 'Final de torre'],
+    ['1200-1600', 'conversion', 'Conversão de vantagem'],
+  ] satisfies Array<[LearnerProfile['band'], string, string]>)(
+    'uses %s to choose the final block theme',
+    (band, weaknessTag, title) => {
+      const profile: LearnerProfile = { ...baseProfile, band };
+      const plan = generatePlan(profile, [], 60, '2026-06-06');
+      const finalBlock = plan.blocks.find((block) => block.id.endsWith('-final'));
+
+      expect(finalBlock).toMatchObject({ weaknessTag, title });
+    },
+  );
+
   it('uses the strongest weakness when detector signals are available', () => {
     const plan = generatePlan(
       baseProfile,

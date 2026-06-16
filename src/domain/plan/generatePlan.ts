@@ -10,6 +10,7 @@ import { getDestinationForWeakness } from '../sources/destinations';
 import { findLichessResourceByUrl } from '../sources/resourceCatalog';
 import type {
   DailyPlan,
+  LearnerBand,
   LearnerProfile,
   PlanBlock,
   PlanBlockFeedback,
@@ -60,6 +61,8 @@ const primaryThemeByBand = {
   '1600-2000': 'conversion',
   '2000-2200': 'conversion',
 } satisfies Record<LearnerProfile['band'], WeaknessTag>;
+
+type FinalWeaknessTag = 'endgame-pawn' | 'endgame-rook' | 'conversion';
 
 export function generatePlan(
   profile: LearnerProfile,
@@ -150,7 +153,13 @@ function createPlanBlock(input: {
   activeTrack: MethodTrackId;
 }): PlanBlock {
   const resourceStage = getResourceStage(input.kind, input.latestThemeSignal);
-  const copy = getBlockCopy(input.kind, input.primaryWeakness, resourceStage, input.secondaryWeakness);
+  const copy = getBlockCopy(
+    input.kind,
+    input.primaryWeakness,
+    resourceStage,
+    input.profile.band,
+    input.secondaryWeakness,
+  );
   const destination = getDestinationForWeakness(copy.weaknessTag, resourceStage, {
     learnerBand: input.profile.band,
     blockMinutes: input.minutes,
@@ -294,6 +303,7 @@ function getBlockCopy(
   kind: PlanBlockKind,
   primaryWeakness: Weakness,
   resourceStage: PlanResourceStage,
+  band: LearnerBand,
   secondaryWeakness?: Weakness,
 ): BlockCopy {
   // O bloco de transferência treina a fraqueza secundária quando existe uma real
@@ -337,15 +347,55 @@ function getBlockCopy(
         weaknessTag: primaryTheme,
       };
     case 'final':
-      return {
-        title: 'Final básico',
-        task: 'Treine finais simples e conte material, rei ativo e promoção antes de calcular.',
-        stopRule: 'Pare no fim do tempo ou após uma linha que você consiga reconstruir sem olhar.',
-        reason: 'Finais curtos consolidam precisão sem depender de engine no app.',
-        weaknessTag: 'endgame-pawn',
-      };
+      return getFinalBlockCopy(getFinalThemeByBand(band));
     default:
       return assertNever(kind);
+  }
+}
+
+function getFinalThemeByBand(band: LearnerBand): FinalWeaknessTag {
+  switch (band) {
+    case '0-400':
+    case '400-800':
+      return 'endgame-pawn';
+    case '800-1000':
+    case '1000-1200':
+      return 'endgame-rook';
+    case '1200-1600':
+    case '1600-2000':
+    case '2000-2200':
+      return 'conversion';
+  }
+}
+
+function getFinalBlockCopy(theme: FinalWeaknessTag): BlockCopy {
+  switch (theme) {
+    case 'endgame-pawn':
+      return {
+        title: 'Final de peões',
+        task: 'Treine finais de peões e conte material, rei ativo e promoção antes de calcular.',
+        stopRule: 'Pare no fim do tempo ou após uma linha que você consiga reconstruir sem olhar.',
+        reason: 'Finais de peões consolidam oposição, regra do quadrado e precisão sem engine no app.',
+        weaknessTag: theme,
+      };
+    case 'endgame-rook':
+      return {
+        title: 'Final de torre',
+        task: 'Treine finais de torre e procure atividade, rei ativo e peões passados antes de calcular.',
+        stopRule: 'Pare no fim do tempo ou após uma linha que você consiga reconstruir sem olhar.',
+        reason: 'Finais de torre aparecem cedo em partidas reais e exigem plano simples antes de variantes.',
+        weaknessTag: theme,
+      };
+    case 'conversion':
+      return {
+        title: 'Conversão de vantagem',
+        task: 'Treine converter vantagem: simplifique quando fizer sentido, ative peças e corte contra-jogo.',
+        stopRule: 'Pare no fim do tempo ou após uma linha que você consiga explicar em uma frase.',
+        reason: 'Converter vantagem fecha o treino: transformar acerto tático em ponto prático.',
+        weaknessTag: theme,
+      };
+    default:
+      return assertNever(theme);
   }
 }
 
