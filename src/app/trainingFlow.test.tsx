@@ -63,9 +63,7 @@ describe('training flow', () => {
 
     fireEvent.click(openLink);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Treinando há/i)).toBeTruthy();
-    });
+    expect(await screen.findByText(/Treinando há/i, {}, { timeout: 5000 })).toBeTruthy();
 
     const log = await getFirstBlockLog();
 
@@ -85,9 +83,7 @@ describe('training flow', () => {
 
     fireEvent.click(openLink);
 
-    await waitFor(() => {
-      expect(screen.getByText(/bloqueou a nova aba/i)).toBeTruthy();
-    });
+    expect(await screen.findByText(/bloqueou a nova aba/i, {}, { timeout: 5000 })).toBeTruthy();
 
     expect(window.location.href).toBe(currentUrl);
     expect(screen.getByRole('heading', { name: 'Hoje' })).toBeTruthy();
@@ -144,9 +140,7 @@ describe('training flow', () => {
     await clickFirstButton('Concluir');
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('Feito')).toBeTruthy();
-    });
+    expect(await screen.findByText('Feito', {}, { timeout: 5000 })).toBeTruthy();
 
     expect(screen.queryByRole('button', { name: 'Concluir' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Fácil' })).toBeNull();
@@ -176,9 +170,7 @@ describe('training flow', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('0h de 6h - 1 de 72 sessões previstas.')).toBeTruthy();
-    });
+    expect(await screen.findByText('0h de 6h - 1 de 72 sessões previstas.', {}, { timeout: 5000 })).toBeTruthy();
     expect(screen.getByText('sessão')).toBeTruthy();
   });
 
@@ -188,9 +180,7 @@ describe('training flow', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/Treinou por menos de 1 min/i)).toBeTruthy();
-    });
+    expect(await screen.findByText(/Treinou por menos de 1 min/i, {}, { timeout: 5000 })).toBeTruthy();
 
     const log = await getFirstBlockLog();
 
@@ -347,9 +337,7 @@ describe('training flow', () => {
     await clickFirstButton('Concluir');
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('Feito')).toBeTruthy();
-    });
+    expect(await screen.findByText('Feito', {}, { timeout: 5000 })).toBeTruthy();
 
     const completedLog = await getFirstBlockLog();
     const reopenLink = screen.getByRole('link', { name: /Abrir de novo/i });
