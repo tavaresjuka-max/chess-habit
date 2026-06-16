@@ -2,8 +2,8 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { BackupImportResult } from '../app/backupStatus';
 import type { LearnerProfile } from '../domain';
-import type { BackupImportResult } from '../infra/storage/appData';
 import { Config } from './Config';
 
 // Flush the microtask queue so that async event handlers (void fn()) resolve

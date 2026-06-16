@@ -2,14 +2,19 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
-import type { BackupImportResult, StoredPlacementResult } from '../infra/storage/appData';
+import {
+  describeAutoBackupStatus,
+  describePersistenceStatus,
+  type AutoBackupStatus,
+  type BackupImportResult,
+  type BackupMeta,
+  type StoragePersistenceStatus,
+  type StoredPlacementResult,
+} from '../app/backupStatus';
 import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthToken, type SessionMinutes } from '../domain';
-import { describeAutoBackupStatus, type AutoBackupStatus } from '../infra/storage/autoBackup';
 import { BandaIcon } from './art/BandaIcon';
 import { Fold } from './Fold';
 import { PlacementCard } from './PlacementCard';
-import type { BackupMetaRecord } from '../infra/storage/db';
-import { describePersistenceStatus, type StoragePersistenceStatus } from '../infra/storage/persistence';
 
 type ConfigProps = {
   profile: LearnerProfile | undefined;
@@ -17,7 +22,7 @@ type ConfigProps = {
   lichessConnectionState: LichessConnectionState;
   lichessMessage: string | undefined;
   storagePersistence: StoragePersistenceStatus | undefined;
-  backupMeta: BackupMetaRecord | undefined;
+  backupMeta: BackupMeta | undefined;
   autoBackupStatus: AutoBackupStatus;
   autoBackupFileName: string | undefined;
   onEnableAutoBackup: () => Promise<void>;
@@ -388,7 +393,7 @@ export function Config({
   );
 }
 
-function formatBackupMeta(meta: BackupMetaRecord | undefined): string {
+function formatBackupMeta(meta: BackupMeta | undefined): string {
   if (meta === undefined) {
     return 'Nenhum backup exportado ainda.';
   }
