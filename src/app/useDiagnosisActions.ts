@@ -1,6 +1,7 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
   buildPuzzleThemeStats,
+  createWeaknessFromPuzzleStats,
   createKnownManualSignals,
   createTutorQuestionSignal,
   detectWeaknesses,
@@ -108,12 +109,13 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
 
       const allSignals = await loadSignals();
       input.setSignals(allSignals);
-      const nextWeaknesses = detectWeaknesses(
-        filterFreshSignals(allSignals, new Date().toISOString()),
-        args.targetProfile.band,
-      );
+      const nowIso = new Date().toISOString();
       const date = getTodayDate();
       const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+      const nextWeaknesses = mergePuzzleWeakness(
+        detectWeaknesses(filterFreshSignals(allSignals, nowIso), args.targetProfile.band),
+        createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
+      );
       const plan = generatePlan(
         args.targetProfile,
         nextWeaknesses,
@@ -278,14 +280,18 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
 
     const allSignals = await loadSignals();
     input.setSignals(allSignals);
-    const nextWeaknesses = detectWeaknesses(filterFreshSignals(allSignals, new Date().toISOString()), input.profile?.band);
+    const nowIso = new Date().toISOString();
+    const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+    const nextWeaknesses = mergePuzzleWeakness(
+      detectWeaknesses(filterFreshSignals(allSignals, nowIso), input.profile?.band),
+      createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
+    );
 
     await replaceWeaknesses(nextWeaknesses);
     input.setWeaknesses(nextWeaknesses);
 
     if (input.profile !== undefined) {
       const date = getTodayDate();
-      const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
       const plan = generatePlan(
         input.profile,
         nextWeaknesses,
@@ -315,9 +321,11 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
 
       const allSignals = await loadSignals();
       input.setSignals(allSignals);
-      const nextWeaknesses = detectWeaknesses(
-        filterFreshSignals(allSignals, new Date().toISOString()),
-        input.profile?.band,
+      const nowIso = new Date().toISOString();
+      const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+      const nextWeaknesses = mergePuzzleWeakness(
+        detectWeaknesses(filterFreshSignals(allSignals, nowIso), input.profile?.band),
+        createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
       );
 
       await replaceWeaknesses(nextWeaknesses);
@@ -325,7 +333,6 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
 
       if (input.profile !== undefined) {
         const date = getTodayDate();
-        const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
         const plan = generatePlan(
           input.profile,
           nextWeaknesses,
@@ -359,4 +366,46 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     syncChesscomDiagnosis,
     syncLichessDiagnosis,
   };
+}
+
+const confidenceRank = {
+  low: 0,
+  medium: 1,
+  high: 2,
+} satisfies Record<Weakness['confidence'], number>;
+
+function mergePuzzleWeakness(weaknesses: Weakness[], puzzleWeakness: Weakness | undefined): Weakness[] {
+  if (puzzleWeakness === undefined) {
+    return weaknesses;
+  }
+
+  const existing = weaknesses.find((weakness) => weakness.tag === puzzleWeakness.tag);
+
+  if (existing === undefined) {
+    return [...weaknesses, puzzleWeakness].sort(sortWeaknessesByScore);
+  }
+
+  return weaknesses
+    .map((weakness) =>
+      weakness.tag === puzzleWeakness.tag
+        ? {
+            ...weakness,
+            score: Math.max(weakness.score, puzzleWeakness.score),
+            confidence:
+              confidenceRank[puzzleWeakness.confidence] > confidenceRank[weakness.confidence]
+                ? puzzleWeakness.confidence
+                : weakness.confidence,
+            evidence: puzzleWeakness.score > weakness.score ? puzzleWeakness.evidence : weakness.evidence,
+          }
+        : weakness,
+    )
+    .sort(sortWeaknessesByScore);
+}
+
+function sortWeaknessesByScore(left: Weakness, right: Weakness): number {
+  if (right.score !== left.score) {
+    return right.score - left.score;
+  }
+
+  return left.tag.localeCompare(right.tag);
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { Signal } from '../types';
-import { detectColorWeakness, detectWeaknesses } from './detectWeaknesses';
+import { generatePlan } from '../plan/generatePlan';
+import type { LearnerProfile, PuzzleThemeStats, Signal } from '../types';
+import { createWeaknessFromPuzzleStats, detectColorWeakness, detectWeaknesses } from './detectWeaknesses';
 
 const observedAt = '2026-06-06T00:00:00.000Z';
 
@@ -153,3 +154,53 @@ describe('detectColorWeakness', () => {
     });
   });
 });
+
+describe('createWeaknessFromPuzzleStats', () => {
+  const profile: LearnerProfile = {
+    lichessUsername: 'jukasparov',
+    band: '800-1000',
+    defaultSessionMinutes: 15,
+    goals: ['treinar com constancia'],
+    updatedAt: '2026-06-06T00:00:00.000Z',
+  };
+
+  it('creates a durable weakness that survives plan regeneration without new game signals', () => {
+    const weakness = createWeaknessFromPuzzleStats(
+      puzzleStats({
+        until: '2026-06-10T12:00:00.000Z',
+        themes: [{ theme: 'fork', attempts: 6, losses: 4 }],
+      }),
+      '2026-06-15T00:00:00.000Z',
+    );
+
+    expect(weakness).toMatchObject({ tag: 'fork', confidence: 'medium' });
+
+    if (weakness === undefined) {
+      throw new Error('expected puzzle weakness');
+    }
+
+    const plan = generatePlan(profile, [weakness], 15, '2026-06-16');
+
+    expect(plan.weeklyFocus?.tag).toBe('fork');
+  });
+
+  it('decays puzzle weaknesses after 90 days', () => {
+    const weakness = createWeaknessFromPuzzleStats(
+      puzzleStats({
+        until: '2026-02-01T12:00:00.000Z',
+        themes: [{ theme: 'fork', attempts: 6, losses: 4 }],
+      }),
+      '2026-06-15T00:00:00.000Z',
+    );
+
+    expect(weakness).toBeUndefined();
+  });
+});
+
+function puzzleStats(input: { until: string; themes: PuzzleThemeStats['themes'] }): PuzzleThemeStats {
+  return {
+    since: input.until,
+    until: input.until,
+    themes: input.themes,
+  };
+}

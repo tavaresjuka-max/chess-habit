@@ -1,6 +1,7 @@
 import { isBeginnerBand } from '../bands';
 import { assertNever } from '../assertNever';
-import type { Confidence, LearnerBand, Signal, Weakness, WeaknessTag } from '../types';
+import { weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
+import type { Confidence, LearnerBand, PuzzleThemeStats, Signal, Weakness, WeaknessTag } from '../types';
 
 // Iniciantes (0-800) recebem um limiar de blunder mais baixo: anti-blunder é a
 // alavanca nº1 nessa fase, então o sinal dispara mais cedo. Acima de 800, só
@@ -13,6 +14,23 @@ const BLUNDER_RATE_DEFAULT = 0.5;
 // Acima de 800, basta uma maioria das partidas com precisão baixa.
 const ACCURACY_LOW_RATE_BEGINNER = 0.8;
 const ACCURACY_LOW_RATE_DEFAULT = 0.6;
+
+const puzzleWeaknessTitle = {
+  'hanging-piece': 'pecas penduradas',
+  fork: 'garfos',
+  pin: 'cravadas',
+  skewer: 'espetos',
+  discovered: 'ataques descobertos',
+  'mate-in-1': 'mate em 1',
+  'mate-in-2': 'mate em 2',
+  'back-rank': 'mate na ultima fileira',
+  'opening-principles': 'principios de abertura',
+  'time-trouble': 'gestao de tempo',
+  'endgame-pawn': 'finais de peoes',
+  'endgame-rook': 'finais de torres',
+  conversion: 'conversao',
+  'blunder-rate': 'seguranca anti-blunder',
+} satisfies Record<WeaknessTag, string>;
 
 type WeaknessCandidate = {
   tag: WeaknessTag;
@@ -43,17 +61,11 @@ export function filterFreshSignals(
   nowIso: string,
   maxAgeDays = SIGNAL_MAX_AGE_DAYS,
 ): Signal[] {
-  const cutoff = Date.parse(nowIso) - maxAgeDays * 86_400_000;
-
-  if (Number.isNaN(cutoff)) {
+  if (Number.isNaN(Date.parse(nowIso))) {
     return signals;
   }
 
-  return signals.filter((signal) => {
-    const observed = Date.parse(signal.observedAt);
-
-    return Number.isNaN(observed) || observed >= cutoff;
-  });
+  return signals.filter((signal) => isFreshObservedAt(signal.observedAt, nowIso, maxAgeDays));
 }
 
 export function detectWeaknesses(signals: Signal[], band?: LearnerBand): Weakness[] {
@@ -82,6 +94,40 @@ export function detectWeaknesses(signals: Signal[], band?: LearnerBand): Weaknes
         }
       : weakness,
   );
+}
+
+export function createWeaknessFromPuzzleStats(
+  themeStats: PuzzleThemeStats | undefined,
+  observedAt: string,
+): Weakness | undefined {
+  if (themeStats === undefined || !isFreshObservedAt(themeStats.until, observedAt, SIGNAL_MAX_AGE_DAYS)) {
+    return undefined;
+  }
+
+  for (const theme of themeStats.themes) {
+    if (theme.losses <= 0 || theme.attempts <= 0) {
+      continue;
+    }
+
+    const tag = weaknessTagFromPuzzleTheme(theme.theme);
+
+    if (tag === undefined) {
+      continue;
+    }
+
+    const lossRate = theme.losses / theme.attempts;
+    const confidence: Confidence = theme.attempts >= 5 && theme.losses >= 3 && lossRate >= 0.5 ? 'medium' : 'low';
+    const score = roundScore(confidenceScore[confidence] * Math.min(1, theme.losses / 3));
+
+    return {
+      tag,
+      score,
+      confidence,
+      evidence: `Sinal duravel dos puzzles conferidos no Lichess: ${puzzleWeaknessTitle[tag]} concentrou ${String(theme.losses)} erro(s) em ${String(theme.attempts)} tentativa(s).`,
+    };
+  }
+
+  return undefined;
 }
 
 function detectNonColorWeaknesses(
@@ -201,6 +247,17 @@ function signalToCandidates(
     default:
       return assertNever(signal.value);
   }
+}
+
+function isFreshObservedAt(observedAt: string, nowIso: string, maxAgeDays: number): boolean {
+  const observed = Date.parse(observedAt);
+  const now = Date.parse(nowIso);
+
+  if (Number.isNaN(observed) || Number.isNaN(now)) {
+    return true;
+  }
+
+  return observed >= now - maxAgeDays * 86_400_000;
 }
 
 export function detectColorWeakness(signals: Signal[]): Weakness | undefined {
