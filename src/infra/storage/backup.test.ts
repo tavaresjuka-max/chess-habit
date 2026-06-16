@@ -227,6 +227,42 @@ describe('validateBackupData', () => {
     expect(error).not.toBeNull();
     expect(error).toContain('profile');
   });
+
+  it('rejects achievements item with empty id', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      achievements: [{ id: '', unlockedAt: '2026-06-01T00:00:00.000Z' }],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('achievements');
+    expect(error).toContain('id');
+  });
+
+  it('rejects placementResults item with empty id', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      placementResults: [{ id: '' }],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('placementResults');
+    expect(error).toContain('id');
+  });
+
+  it('rejects appMeta item with empty id', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      appMeta: [{ id: '' }],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('appMeta');
+    expect(error).toContain('id');
+  });
 });
 
 describe('parseBackupFile error paths', () => {

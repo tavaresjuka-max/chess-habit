@@ -39,3 +39,6 @@ output/playwright/
 test-results/
 playwright-report/
 /playwright/.cache/
+
+# Arquivos temporários de auditoria/scripts locais
+tmp/

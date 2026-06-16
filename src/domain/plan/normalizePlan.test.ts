@@ -340,6 +340,115 @@ describe('normalizePlanDestinations', () => {
     }
   });
 
+  it('assigns specific task text for pin/skewer/discovered/mate training URLs in retrieval', () => {
+    const trainingTasks: [string, string][] = [
+      ['https://lichess.org/training/pin', 'cravadas'],
+      ['https://lichess.org/training/skewer', 'espetos'],
+      ['https://lichess.org/training/discoveredAttack', 'descobertos'],
+      ['https://lichess.org/training/mateIn1', 'mates em 1'],
+      ['https://lichess.org/training/mateIn2', 'mates em 2'],
+    ];
+
+    for (const [url, expectedFragment] of trainingTasks) {
+      const plan: DailyPlan = {
+        date: '2026-06-06',
+        sessionMinutes: 15,
+        generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+        blocks: [
+          {
+            id: 'block-1',
+            title: 'Puzzles',
+            source: 'lichess',
+            destination: { source: 'lichess', label: 'Lichess Puzzles', url },
+            resourceStage: 'retrieval',
+            estimatedMinutes: 10,
+            task: 'Treino.',
+            stopRule: 'Pare.',
+            reason: 'Sinal.',
+            coachNote: '',
+            status: 'pending',
+            updatedAt: '2026-06-06T00:00:00.000Z',
+          },
+        ],
+      };
+
+      const block = normalizePlanDestinations(plan).blocks[0];
+
+      expect(block?.task).toContain(expectedFragment);
+    }
+  });
+
+  it('assigns guided task for pin/skewer/discovered practice URLs', () => {
+    const practiceUrls = [
+      'https://lichess.org/practice/fundamental-tactics/the-pin/9ogFv8Ac',
+      'https://lichess.org/practice/fundamental-tactics/the-skewer/tuoBxVE5',
+      'https://lichess.org/practice/fundamental-tactics/discovered-attacks/MnsJEWnI',
+    ];
+
+    for (const url of practiceUrls) {
+      const plan: DailyPlan = {
+        date: '2026-06-06',
+        sessionMinutes: 15,
+        generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+        blocks: [
+          {
+            id: 'block-1',
+            title: 'Prática guiada',
+            source: 'lichess',
+            destination: { source: 'lichess', label: 'Lichess Practice', url },
+            resourceStage: 'retrieval',
+            estimatedMinutes: 10,
+            task: 'Treino.',
+            stopRule: 'Pare.',
+            reason: 'Sinal.',
+            coachNote: '',
+            status: 'pending',
+            updatedAt: '2026-06-06T00:00:00.000Z',
+          },
+        ],
+      };
+
+      const block = normalizePlanDestinations(plan).blocks[0];
+
+      expect(block?.task).toContain('padrão tático');
+    }
+  });
+
+  it('keeps original task when normalized destination has no specific task text', () => {
+    // conversion em stage review substitui /analysis pela URL de deflection,
+    // que não tem task mapeada — getNormalizedTaskForDestinationUrl retorna undefined
+    // (ramo default) e o task original é preservado.
+    const plan: DailyPlan = {
+      date: '2026-06-06',
+      sessionMinutes: 15,
+      generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+      blocks: [
+        {
+          id: 'block-1',
+          title: 'Revisão',
+          source: 'lichess',
+          destination: { source: 'lichess', label: 'Análise', url: 'https://lichess.org/analysis' },
+          weaknessTag: 'conversion',
+          resourceStage: 'review',
+          estimatedMinutes: 5,
+          task: 'Revise a posição.',
+          stopRule: 'Pare.',
+          reason: 'Sinal.',
+          coachNote: '',
+          status: 'pending',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const block = normalizePlanDestinations(plan).blocks[0];
+
+    // Destino foi atualizado (não é mais /analysis), task original preservado
+    // porque a URL de destino de 'conversion' não tem texto mapeado no switch.
+    expect(block?.destination.url).not.toBe('https://lichess.org/analysis');
+    expect(block?.task).toBe('Revise a posição.');
+  });
+
   it('assigns task text for video lessons when resourceStage is retrieval', () => {
     const videoTasks: [string, string][] = [
       ['https://lichess.org/video/wod7uXzkrTc', 'penduradas'],
