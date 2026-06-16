@@ -1,4 +1,10 @@
+const invalidExternalUrlMessage = 'Link inválido — só abrimos páginas do lichess.org.';
+
 export function openExternalUrl(url: string): string | undefined {
+  if (!isAllowedExternalUrl(url)) {
+    return invalidExternalUrlMessage;
+  }
+
   const opened = window.open(url, '_blank');
 
   if (opened === null) {
@@ -12,4 +18,14 @@ export function openExternalUrl(url: string): string | undefined {
   }
 
   return undefined;
+}
+
+export function isAllowedExternalUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+
+    return parsed.protocol === 'https:' && parsed.hostname === 'lichess.org';
+  } catch {
+    return false;
+  }
 }
