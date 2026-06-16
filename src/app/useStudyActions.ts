@@ -15,8 +15,8 @@ import {
   getLichessStudyLink,
   loadLichessOAuthToken,
   saveLichessStudyLink,
-  savePlan,
   saveTrainingLog,
+  saveTrainingLogsAndPlan,
 } from '../infra/storage/appData';
 import { syncAchievements } from './achievementsSync';
 import { getTodayDate } from './date';
@@ -81,10 +81,6 @@ export function useStudyActions(input: UseStudyActionsInput) {
     try {
       const reconciledLogs = await reconcileLichessPuzzleDiagnostics(trainingLogs, token.accessToken);
 
-      for (const log of reconciledLogs) {
-        await saveTrainingLog(log);
-      }
-
       const nextTrainingLogs = mergeTrainingLogs(trainingLogs, reconciledLogs);
       const nextAllTrainingLogs = mergeTrainingLogs(allTrainingLogs, reconciledLogs);
 
@@ -104,8 +100,12 @@ export function useStudyActions(input: UseStudyActionsInput) {
           }),
         );
 
-        await savePlan(nextPlan);
+        await saveTrainingLogsAndPlan(reconciledLogs, nextPlan);
         setTodayPlan(nextPlan);
+      } else {
+        for (const log of reconciledLogs) {
+          await saveTrainingLog(log);
+        }
       }
 
       setTrainingLogs(nextTrainingLogs);

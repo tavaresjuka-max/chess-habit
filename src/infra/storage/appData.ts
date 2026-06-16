@@ -94,6 +94,13 @@ export async function saveTrainingLogAndPlan(log: TrainingLog, plan: DailyPlan):
   });
 }
 
+export async function saveTrainingLogsAndPlan(logs: TrainingLog[], plan: DailyPlan): Promise<void> {
+  await db.transaction('rw', [db.logs, db.plans], async () => {
+    await db.logs.bulkPut(logs);
+    await db.plans.put(plan);
+  });
+}
+
 export async function getTrainingLog(id: string): Promise<TrainingLog | undefined> {
   return db.logs.get(id);
 }

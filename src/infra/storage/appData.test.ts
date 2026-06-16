@@ -39,6 +39,7 @@ import {
   saveProfileAndPlan,
   loadChesscomMonthCache,
   saveTrainingLog,
+  saveTrainingLogsAndPlan,
   updatePendingItemStatus,
 } from './appData';
 
@@ -171,6 +172,18 @@ describe('appData storage', () => {
     await expect(getTrainingLog(log.id)).resolves.toEqual(log);
     await expect(loadTrainingLogs()).resolves.toEqual([log]);
     await expect(loadTrainingLogsForDate('2026-06-06')).resolves.toEqual([log]);
+  });
+
+  it('rolls back training logs when saving logs and plan fails', async () => {
+    const firstLog = createTrainingLog('2026-06-06:block-1', 'block-1');
+    const secondLog = createTrainingLog('2026-06-06:block-2', 'block-2');
+    const plan = generatePlan(profile, [], 15, '2026-06-06');
+
+    vi.spyOn(db.plans, 'put').mockRejectedValueOnce(new Error('plan write failed'));
+
+    await expect(saveTrainingLogsAndPlan([firstLog, secondLog], plan)).rejects.toThrow('plan write failed');
+    await expect(loadTrainingLogs()).resolves.toEqual([]);
+    await expect(getPlan('2026-06-06')).resolves.toBeUndefined();
   });
 
   it('replaces derived signals by source and stores weaknesses', async () => {
@@ -511,4 +524,22 @@ function createPendingItem(): PendingTrainingItem {
     createdAt: '2026-06-10T00:00:00.000Z',
     updatedAt: '2026-06-10T00:00:00.000Z',
   };
+}
+
+function createTrainingLog(id: string, blockId: string) {
+  return {
+    id,
+    date: '2026-06-06',
+    blockId,
+    blockTitle: 'Tema',
+    source: 'lichess',
+    destinationLabel: 'Puzzles Lichess',
+    plannedSeconds: 300,
+    startedAt: '2026-06-06T10:00:00.000Z',
+    completedAt: '2026-06-06T10:04:00.000Z',
+    elapsedSeconds: 240,
+    timeLimitReached: false,
+    status: 'done',
+    updatedAt: '2026-06-06T10:04:00.000Z',
+  } as const;
 }
