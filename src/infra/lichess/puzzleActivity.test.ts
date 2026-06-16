@@ -104,6 +104,30 @@ describe('fetchPuzzleActivity', () => {
     expect(activities).toHaveLength(1);
   });
 
+  it('throws when the access token is blank', async () => {
+    await expect(
+      fetchPuzzleActivity({
+        token: '   ',
+        since: '2026-06-06T10:00:00.000Z',
+        until: '2026-06-06T10:10:00.000Z',
+      }),
+    ).rejects.toThrow();
+  });
+
+  it('throws on unexpected HTTP error status codes', async () => {
+    const fetcher = (): Promise<Response> =>
+      Promise.resolve(new Response('Server Error', { status: 500 }));
+
+    await expect(
+      fetchPuzzleActivity({
+        token: 'secret-token',
+        since: '2026-06-06T10:00:00.000Z',
+        until: '2026-06-06T10:10:00.000Z',
+        fetcher,
+      }),
+    ).rejects.toThrow('500');
+  });
+
   it('turns 429 into a Lichess rate-limit error', async () => {
     const fetcher = (): Promise<Response> => Promise.resolve(new Response('', { status: 429 }));
 

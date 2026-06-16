@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generatePlan } from '../plan/generatePlan';
 import type { LearnerProfile, PuzzleThemeStats, Signal } from '../types';
-import { createWeaknessFromPuzzleStats, detectColorWeakness, detectWeaknesses } from './detectWeaknesses';
+import { createWeaknessFromPuzzleStats, detectColorWeakness, detectWeaknesses, filterFreshSignals } from './detectWeaknesses';
 
 const observedAt = '2026-06-06T00:00:00.000Z';
 
@@ -131,6 +131,22 @@ describe('detectWeaknesses', () => {
   });
 });
 
+describe('filterFreshSignals', () => {
+  it('keeps a signal whose observedAt is an invalid date string', () => {
+    const invalidSignal: Signal = {
+      source: 'outro',
+      confidence: 'medium',
+      observedAt: 'not-a-date',
+      value: { kind: 'manual', tag: 'fork', note: 'Sinal com data inválida.' },
+    };
+
+    const result = filterFreshSignals([invalidSignal], '2026-06-06T00:00:00.000Z');
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toBe(invalidSignal);
+  });
+});
+
 describe('detectColorWeakness', () => {
   it('detects a color imbalance only when both colors have enough games', () => {
     const signals: Signal[] = [
@@ -152,6 +168,26 @@ describe('detectColorWeakness', () => {
       tag: 'opening-principles',
       confidence: 'low',
     });
+  });
+
+  it('returns undefined when color loss rates are too close to diagnose a weakness', () => {
+    const signals: Signal[] = [
+      {
+        source: 'chesscom',
+        confidence: 'low',
+        observedAt,
+        value: { kind: 'color', color: 'white', games: 10, lossRate: 0.5 },
+      },
+      {
+        source: 'chesscom',
+        confidence: 'low',
+        observedAt,
+        value: { kind: 'color', color: 'black', games: 10, lossRate: 0.45 },
+      },
+    ];
+
+    // lossRateDiff = 0.05 ≤ 0.2 → no diagnosable color weakness
+    expect(detectColorWeakness(signals)).toBeUndefined();
   });
 });
 

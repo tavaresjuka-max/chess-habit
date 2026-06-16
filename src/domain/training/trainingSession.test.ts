@@ -6,6 +6,7 @@ import {
   elapsedSecondsBetween,
   formatElapsedMinutes,
   reconcileTrainingLogResult,
+  skipTrainingLog,
 } from './trainingSession';
 
 const block: PlanBlock = {
@@ -105,6 +106,34 @@ describe('trainingSession', () => {
 
   it('guards invalid elapsed dates', () => {
     expect(elapsedSecondsBetween('bad', '2026-06-06T10:00:00.000Z')).toBe(0);
+  });
+
+  it('skips a log and records real elapsed time', () => {
+    const log = createTrainingLog({
+      block,
+      date: '2026-06-06',
+      startedAt: '2026-06-06T10:00:00.000Z',
+    });
+
+    const skipped = skipTrainingLog({ log, skippedAt: '2026-06-06T10:03:00.000Z' });
+
+    expect(skipped.status).toBe('skipped');
+    expect(skipped.elapsedSeconds).toBe(180);
+    expect(skipped.completedAt).toBe('2026-06-06T10:03:00.000Z');
+    expect(skipped.timeLimitReached).toBe(false);
+  });
+
+  it('classifies a destination with an unparseable URL as a standard log', () => {
+    const log = createTrainingLog({
+      block: {
+        ...block,
+        destination: { source: 'lichess', label: 'Quebrado', url: 'not-a-valid-url' },
+      },
+      date: '2026-06-06',
+      startedAt: '2026-06-06T10:00:00.000Z',
+    });
+
+    expect(log.logKind).toBe('standard');
   });
 
   it('reconciles later puzzle activity into an active log', () => {

@@ -663,6 +663,82 @@ describe('generatePlan', () => {
 
     expect(plan.blocks.length).toBeGreaterThan(0);
   });
+
+  it('advances from explain to guided stage when the previous block had good feedback', () => {
+    const prevPlan = generatePlan(
+      baseProfile,
+      [{ tag: 'time-trouble', score: 0.8, confidence: 'high', evidence: 'Erros por tempo.' }],
+      15,
+      '2026-06-05',
+    );
+
+    const prevBlocks = prevPlan.blocks.map((b) =>
+      b.weaknessTag === 'time-trouble'
+        ? { ...b, status: 'done' as const, feedback: 'good' as const, resourceStage: 'explain' as const }
+        : b,
+    );
+
+    const plan = generatePlan(
+      baseProfile,
+      [{ tag: 'time-trouble', score: 0.8, confidence: 'high', evidence: 'Erros por tempo.' }],
+      15,
+      '2026-06-06',
+      { previousPlan: { ...prevPlan, blocks: prevBlocks } },
+    );
+
+    const themeBlock = plan.blocks.find((b) => b.weaknessTag === 'time-trouble');
+
+    expect(themeBlock?.resourceStage).toBe('guided');
+  });
+
+  it('defaults to guided stage when a done block had good feedback but no resource stage recorded', () => {
+    const prevPlan = generatePlan(
+      baseProfile,
+      [{ tag: 'fork', score: 0.8, confidence: 'high', evidence: 'Erros em garfos.' }],
+      15,
+      '2026-06-05',
+    );
+
+    const prevBlocks = prevPlan.blocks.map((b) =>
+      b.weaknessTag === 'fork'
+        ? { ...b, status: 'done' as const, feedback: 'good' as const, resourceStage: undefined }
+        : b,
+    );
+
+    const plan = generatePlan(
+      baseProfile,
+      [{ tag: 'fork', score: 0.8, confidence: 'high', evidence: 'Erros em garfos.' }],
+      15,
+      '2026-06-06',
+      { previousPlan: { ...prevPlan, blocks: prevBlocks } },
+    );
+
+    const themeBlock = plan.blocks.find((b) => b.weaknessTag === 'fork');
+
+    expect(themeBlock?.resourceStage).toBe('guided');
+  });
+
+  it('skips done blocks with unrecognized URLs when computing completed resource ids', () => {
+    const prevPlan = generatePlan(baseProfile, [], 15, '2026-06-05');
+    const firstBlock = prevPlan.blocks[0];
+
+    if (firstBlock === undefined) {
+      throw new Error('Expected at least one block in the previous plan');
+    }
+
+    const planWithUnknownUrl = {
+      ...prevPlan,
+      blocks: [{
+        ...firstBlock,
+        status: 'done' as const,
+        destination: { source: 'lichess' as const, label: 'Desconhecido', url: 'https://lichess.org/unknown-resource-xyz-99999' },
+      }],
+    };
+
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', { previousPlan: planWithUnknownUrl });
+
+    expect(plan.blocks.length).toBeGreaterThan(0);
+  });
 });
 
 function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {

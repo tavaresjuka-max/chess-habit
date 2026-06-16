@@ -1,6 +1,9 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest';
 import {
   describeAutoBackupStatus,
+  getSaveFilePicker,
+  pickAutoBackupFile,
   writeAutoBackup,
   type FileSystemFileHandleLike,
 } from './autoBackup';
@@ -77,6 +80,51 @@ describe('writeAutoBackup', () => {
     });
 
     expect(await writeAutoBackup(handle, 'x')).toBe('error');
+  });
+});
+
+describe('getSaveFilePicker', () => {
+  it('returns undefined when showSaveFilePicker is not available in the environment', () => {
+    // jsdom does not implement the File System Access API
+    expect(getSaveFilePicker()).toBeUndefined();
+  });
+
+  it('returns the picker function when showSaveFilePicker is available', () => {
+    const fakePicker = vi.fn();
+    const g = globalThis as Record<string, unknown>;
+    g['showSaveFilePicker'] = fakePicker;
+    try {
+      expect(getSaveFilePicker()).toBe(fakePicker);
+    } finally {
+      delete g['showSaveFilePicker'];
+    }
+  });
+});
+
+describe('pickAutoBackupFile', () => {
+  it('returns undefined when the File System Access API is not supported', async () => {
+    expect(await pickAutoBackupFile()).toBeUndefined();
+  });
+
+  it('returns undefined when the user cancels the file picker dialog', async () => {
+    const g = globalThis as Record<string, unknown>;
+    g['showSaveFilePicker'] = () => Promise.reject(new DOMException('cancelled', 'AbortError'));
+    try {
+      expect(await pickAutoBackupFile()).toBeUndefined();
+    } finally {
+      delete g['showSaveFilePicker'];
+    }
+  });
+
+  it('returns the file handle when the user selects a file', async () => {
+    const fakeHandle: FileSystemFileHandleLike = { createWritable: vi.fn() };
+    const g = globalThis as Record<string, unknown>;
+    g['showSaveFilePicker'] = () => Promise.resolve(fakeHandle);
+    try {
+      expect(await pickAutoBackupFile()).toBe(fakeHandle);
+    } finally {
+      delete g['showSaveFilePicker'];
+    }
   });
 });
 
