@@ -29,4 +29,5 @@ output/free-resources/
 entrega/
 
 # Prints de auditoria visual (gerados por scripts/screenshots.mjs)
+output/playwright/
 screenshots/
