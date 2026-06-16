@@ -86,6 +86,42 @@ MDN PWA, Cloudflare Workers/D1.
 - Verificar desktop e mobile no browser.
 - Atualizar `memory/state.md`, `memory/decisions.md` e `memory/progress.md` a cada decisao relevante.
 
+## Comandos & Capacidades
+
+Itemizacao do que o agente PODE rodar neste repo (declarar evita re-derivar do zero e
+desperdicar tokens em todo sessao). Voce tem agencia: se achar que "nao da", esta errado — roda.
+
+- **Gates** (rodar antes de fechar tarefa): `npm run lint` · `npm test` · `npm run build`.
+  Cobertura (fora do gate, com thresholds no CI): `npm run coverage` — minimos atuais
+  78 lines / 85 funcs / 72 branches, hoje em ~86% stmts / ~80% branches / ~90% funcs.
+- **tsc estrito**: o `vitest` NAO pega tudo (noUncheckedIndexedAccess, mocks tipados).
+  Sempre `npm run build` (= `tsc -b && vite build`), nao so vitest, ao revisar testes.
+- **Pre-commit**: lint-staged roda `eslint --fix` + `tsc -b --noEmit` no commit. `--max-warnings=0`.
+- **Smoke PWA** (isolado, fora do `npm test`/CI): `npm run smoke:pwa` (Playwright, webServer 127.0.0.1:4188).
+- **Deploy (OBRIGATORIO via prebuilt)**: `vercel build --prod --yes` seguido de
+  `vercel deploy --prebuilt --prod --yes`. O deploy direto (`vercel --prod`) **FALHA** com
+  "Upload aborted" porque `output/` tem ~779 MB de artefatos de pesquisa; o prebuilt sobe so
+  `.vercel/output` (~888 KB). URL estavel: https://rotina-pied.vercel.app (projeto `rotina`,
+  conta `tavaresjuka-2166`). Anti-indexacao: `robots.txt` + `X-Robots-Tag` no `vercel.json`.
+- **Preview/dev** (`.claude/launch.json`): `rotina-dev` na **porta 5173** — o OAuth do Lichess
+  precisa dessa porta (redirectUri = origin+pathname); se ocupada pelo dev do dono, verificar por teste.
+- **Dados local-first por aparelho** (sem sync, P4 congelada): ponte entre aparelhos = export/import
+  de backup. Backup automatico (File System Access) nao funciona no Android — export manual ~1x/semana.
+
+## Falsos Positivos Refutados (NAO Reabrir)
+
+Auditorias passadas (DeepSeek/Gemini/Codex e subagentes) ja alucinaram bugs aqui. Antes de
+"corrigir" um destes, leia o caminho de codigo end-to-end (inclusive os chamadores). Registro
+completo em `memory/plano-nota-95-estado.md`. Refutados por codigo:
+
+- **OAuth state E validado** em `app/oauthFlow.ts` (`pending.state !== callback.state`) — nao no
+  `parseLichessOAuthCallback` de baixo nivel. Nao ha CSRF aberto.
+- **Purge de signals** (`replaceSignalsForSource`, cutoff 90d) e GC global intencional, nao bug por fonte.
+- **`hard` -> `explain`** (nao avanca o estagio) e intencional: dificuldade pede mais suporte.
+- **Deps de `useCallback`** com setters do React sao estaveis; lint passa em `--max-warnings=0`.
+- **`addDays`/datas locais**: o dono nao tem DST (Brasil desde 2019); nao tratar como off-by-one.
+- **"Suite quebrada"/"sem dark mode"**: falso — suite verde; dark em `index.css`.
+
 ## Resposta Final Dos Agentes
 
 Toda entrega deve informar: o que mudou; quais arquivos foram criados/alterados; quais verificacoes
