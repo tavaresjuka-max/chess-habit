@@ -595,6 +595,74 @@ describe('generatePlan', () => {
 
     expect(first).toEqual(second);
   });
+
+  it('generates a plan without throwing when the date string is invalid', () => {
+    // getWeekStartDate receives an invalid date → new Date(NaN) → returns date.slice(0,10)
+    const plan = generatePlan(baseProfile, [], 15, 'not-a-date');
+
+    expect(plan.blocks.length).toBeGreaterThan(0);
+    expect(plan.weeklyFocus?.startsOn).toBe('not-a-date');
+  });
+
+  it('generates Puzzle Streak task text for the time-trouble guided block', () => {
+    const plan = generatePlan(
+      baseProfile,
+      [{ tag: 'time-trouble', score: 0.8, confidence: 'high', evidence: 'Erros por falta de tempo.' }],
+      15,
+      '2026-06-06',
+    );
+
+    expect(plan.weeklyFocus?.tag).toBe('time-trouble');
+    expect(plan.blocks[0]?.task).toContain('Puzzle Streak');
+  });
+
+  it('generates final simples task text for the endgame-rook guided block', () => {
+    const plan = generatePlan(
+      baseProfile,
+      [{ tag: 'endgame-rook', score: 0.8, confidence: 'high', evidence: 'Erros em finais de torres.' }],
+      15,
+      '2026-06-06',
+    );
+
+    expect(plan.weeklyFocus?.tag).toBe('endgame-rook');
+    expect(plan.blocks[0]?.task).toContain('final simples');
+  });
+
+  it('generates vantagem task text for the conversion guided block', () => {
+    const plan = generatePlan(
+      baseProfile,
+      [{ tag: 'conversion', score: 0.8, confidence: 'high', evidence: 'Dificuldade em converter vantagem.' }],
+      15,
+      '2026-06-06',
+    );
+
+    expect(plan.weeklyFocus?.tag).toBe('conversion');
+    expect(plan.blocks[0]?.task).toContain('simplificar');
+  });
+
+  it('marks the puzzle-replay resource id as completed when a previous Replay block was done', () => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-05');
+    const firstBlock = previousPlan.blocks[0];
+
+    if (firstBlock === undefined) {
+      throw new Error('Expected at least one block in the previous plan');
+    }
+
+    const planWithReplay = {
+      ...previousPlan,
+      blocks: [{
+        ...firstBlock,
+        status: 'done' as const,
+        destination: { source: 'lichess' as const, label: 'Replay: garfos', url: 'https://lichess.org/training/fork' },
+      }],
+    };
+
+    // getCompletedResourceIds: block label includes 'Replay' + resource id starts with 'puzzle:'
+    // → adds 'puzzle-replay:<theme>' to prevent re-scheduling the same replay.
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06', { previousPlan: planWithReplay });
+
+    expect(plan.blocks.length).toBeGreaterThan(0);
+  });
 });
 
 function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {

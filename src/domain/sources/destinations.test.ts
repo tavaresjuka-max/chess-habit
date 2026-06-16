@@ -165,4 +165,56 @@ describe('lichessDestinationsByWeakness', () => {
       }),
     ).toEqual(lichessDestinationsByWeakness['endgame-pawn']);
   });
+
+  it('normalizes old generic Practice torre links to the endgame-rook study', () => {
+    expect(
+      normalizeDestination({
+        source: 'lichess',
+        label: 'Lichess Practice: finais de torres',
+        url: 'https://lichess.org/practice',
+      }),
+    ).toEqual(lichessDestinationsByWeakness['endgame-rook']);
+  });
+
+  it('normalizes legacy training/pin, /skewer and /discoveredAttack links to guided lessons', () => {
+    expect(
+      normalizeDestination({ source: 'lichess', label: 'Puzzles: cravadas', url: 'https://lichess.org/training/pin' }),
+    ).toEqual(lichessDestinationsByWeakness.pin);
+
+    expect(
+      normalizeDestination({ source: 'lichess', label: 'Puzzles: espetos', url: 'https://lichess.org/training/skewer' }),
+    ).toEqual(lichessDestinationsByWeakness.skewer);
+
+    expect(
+      normalizeDestination({ source: 'lichess', label: 'Puzzles: descoberto', url: 'https://lichess.org/training/discoveredAttack' }),
+    ).toEqual(lichessDestinationsByWeakness.discovered);
+  });
+
+  it('normalizes legacy training/mateIn1 and /mateIn2 links to guided mate lessons', () => {
+    expect(
+      normalizeDestination({ source: 'lichess', label: 'Puzzles: mate em 1', url: 'https://lichess.org/training/mateIn1' }),
+    ).toEqual(lichessDestinationsByWeakness['mate-in-1']);
+
+    expect(
+      normalizeDestination({ source: 'lichess', label: 'Puzzles: mate em 2', url: 'https://lichess.org/training/mateIn2' }),
+    ).toEqual(lichessDestinationsByWeakness['mate-in-2']);
+  });
+
+  it('normalizes legacy video opening-principles filter URLs to the curated opening lesson', () => {
+    expect(
+      normalizeDestination({
+        source: 'lichess',
+        label: 'Lichess Video: abertura',
+        url: 'https://lichess.org/video/gpsZAim-mYc?tags=opening+principles',
+      }),
+    ).toEqual(lichessDestinationsByWeakness['opening-principles']);
+
+    expect(
+      normalizeDestination({
+        source: 'lichess',
+        label: 'Lichess Videos: abertura',
+        url: 'https://lichess.org/video?tags=opening+principles',
+      }),
+    ).toEqual(lichessDestinationsByWeakness['opening-principles']);
+  });
 });
