@@ -211,4 +211,73 @@ describe('validateBackupData', () => {
     expect(data.appMeta).toBeUndefined();
     expect(validateBackupData(data)).toBeNull();
   });
+
+  it('rejects profile item missing band', () => {
+    const data: BackupData = { ...createEmptyData(), profile: [{ updatedAt: '2026-06-01T00:00:00.000Z' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('profile');
+  });
+
+  it('rejects profile item missing updatedAt', () => {
+    const data: BackupData = { ...createEmptyData(), profile: [{ band: '800-1000' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('profile');
+  });
+});
+
+describe('parseBackupFile error paths', () => {
+  it('rejects non-JSON input', async () => {
+    const result = await parseBackupFile('not json at all {{{');
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('JSON');
+    }
+  });
+
+  it('rejects a JSON null value', async () => {
+    const result = await parseBackupFile('null');
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('estrutura');
+    }
+  });
+
+  it('rejects a backup where exportedAt is missing', async () => {
+    const file = await createBackupFile(createEmptyData(), '2026-06-10T12:00:00.000Z');
+    const broken = JSON.parse(JSON.stringify(file)) as Record<string, unknown>;
+
+    delete broken.exportedAt;
+
+    const result = await parseBackupFile(JSON.stringify(broken));
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('checksum');
+    }
+  });
+
+  it('rejects a backup where data is null', async () => {
+    const file = await createBackupFile(createEmptyData(), '2026-06-10T12:00:00.000Z');
+    const broken = JSON.parse(JSON.stringify(file)) as Record<string, unknown>;
+
+    broken.data = null;
+    broken.checksum = await (await import('./backup')).computeBackupChecksum(JSON.stringify(null));
+
+    const result = await parseBackupFile(JSON.stringify(broken));
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('dados');
+    }
+  });
 });

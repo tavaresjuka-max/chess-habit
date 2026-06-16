@@ -272,4 +272,111 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizePlanDestinations(plan)).toEqual(plan);
   });
+
+  it('uses weekly focus for old blocks with unaccented title "Revisao curta" tagged as conversion', () => {
+    const plan: DailyPlan = {
+      date: '2026-06-06',
+      sessionMinutes: 15,
+      weeklyFocus: { tag: 'hanging-piece', title: 'peças penduradas', reason: 'Tema.', startsOn: '2026-06-01' },
+      generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+      blocks: [
+        {
+          id: 'block-1',
+          title: 'Revisao curta',
+          source: 'lichess',
+          destination: { source: 'lichess', label: 'Analysis', url: 'https://lichess.org/analysis' },
+          weaknessTag: 'conversion',
+          resourceStage: 'review',
+          estimatedMinutes: 5,
+          task: 'Revise.',
+          stopRule: 'Pare.',
+          reason: 'Revisão.',
+          coachNote: '',
+          status: 'pending',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const block = normalizePlanDestinations(plan).blocks[0];
+
+    expect(block?.weaknessTag).toBe('hanging-piece');
+  });
+
+  it('replaces rejected study URLs with a lichess.org destination', () => {
+    const studyUrls = [
+      'https://lichess.org/study/dXKWlrkg',
+      'https://lichess.org/study/izZ71JC2',
+      'https://lichess.org/study/APSzIEsV',
+    ];
+
+    for (const studyUrl of studyUrls) {
+      const plan: DailyPlan = {
+        date: '2026-06-06',
+        sessionMinutes: 15,
+        generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+        blocks: [
+          {
+            id: 'block-1',
+            title: 'Tema',
+            source: 'lichess',
+            destination: { source: 'lichess', label: 'Estudo', url: studyUrl },
+            estimatedMinutes: 10,
+            task: 'Treino.',
+            stopRule: 'Pare.',
+            reason: 'Sinal.',
+            coachNote: '',
+            status: 'pending',
+            updatedAt: '2026-06-06T00:00:00.000Z',
+          },
+        ],
+      };
+
+      const block = normalizePlanDestinations(plan).blocks[0];
+
+      // A URL foi substituída por um destino real — não é mais o estudo rejeitado.
+      expect(block?.destination.url).not.toBe(studyUrl);
+      expect(block?.destination.url).toContain('lichess.org');
+    }
+  });
+
+  it('assigns task text for video lessons when resourceStage is retrieval', () => {
+    const videoTasks: [string, string][] = [
+      ['https://lichess.org/video/wod7uXzkrTc', 'penduradas'],
+      ['https://lichess.org/video/VjwSudAqLn8', 'cravadas'],
+      ['https://lichess.org/video/ZexQ1kow1MM', 'espetos'],
+      ['https://lichess.org/video/nMADfn1scbI', 'descoberto'],
+      ['https://lichess.org/video/uhQhasudq9M', 'mate'],
+      ['https://lichess.org/video/QUqq7wSLE78', 'peões'],
+      ['https://lichess.org/video/0-ouahZH8X4', 'conversao'],
+    ];
+
+    for (const [url, expectedFragment] of videoTasks) {
+      const plan: DailyPlan = {
+        date: '2026-06-06',
+        sessionMinutes: 15,
+        generatedFromWeaknessesAt: '2026-06-06T00:00:00.000Z',
+        blocks: [
+          {
+            id: 'block-1',
+            title: 'Vídeo',
+            source: 'lichess',
+            destination: { source: 'lichess', label: 'Lichess Video', url },
+            resourceStage: 'retrieval',
+            estimatedMinutes: 10,
+            task: 'Assista.',
+            stopRule: 'Pare.',
+            reason: 'Sinal.',
+            coachNote: '',
+            status: 'pending',
+            updatedAt: '2026-06-06T00:00:00.000Z',
+          },
+        ],
+      };
+
+      const block = normalizePlanDestinations(plan).blocks[0];
+
+      expect(block?.task).toContain(expectedFragment);
+    }
+  });
 });

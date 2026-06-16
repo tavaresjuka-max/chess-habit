@@ -30,6 +30,40 @@ afterEach(() => {
 });
 
 describe('syncAchievements', () => {
+  it('does not call saveAchievements when nothing new is unlocked', async () => {
+    await syncAchievements([]);
+
+    expect(saveAchievements).not.toHaveBeenCalled();
+  });
+
+  it('returns already-unlocked achievements even when no new ones qualify', async () => {
+    vi.mocked(loadAchievements).mockResolvedValue([
+      { id: 'calibrado', unlockedAt: '2026-06-01T00:00:00.000Z' },
+    ]);
+
+    const result = await syncAchievements([]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.id).toBe('calibrado');
+    expect(saveAchievements).not.toHaveBeenCalled();
+  });
+
+  it('does not re-unlock achievements already in the unlocked list', async () => {
+    vi.mocked(loadAchievements).mockResolvedValue([
+      { id: 'primeira-hora', unlockedAt: '2026-06-01T00:00:00.000Z' },
+    ]);
+
+    const result = await syncAchievements([
+      doneLog('a', '2026-06-10', 1_200),
+      doneLog('b', '2026-06-11', 1_200),
+      doneLog('c', '2026-06-12', 1_200),
+    ]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.id).toBe('primeira-hora');
+    expect(saveAchievements).not.toHaveBeenCalled();
+  });
+
   it('persists newly unlocked achievements and returns the full sorted list', async () => {
     vi.mocked(loadAchievements).mockResolvedValue([
       { id: 'calibrado', unlockedAt: '2026-06-01T00:00:00.000Z' },
