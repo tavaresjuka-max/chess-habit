@@ -423,7 +423,8 @@ function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined)
 
   switch (latestThemeSignal?.feedback) {
     case 'hard':
-      return latestThemeSignal.resourceStage === 'explain' ? 'retrieval' : 'explain';
+      // hard nunca avanca o estagio: dificuldade pede mais suporte, nao mais desafio.
+      return 'explain';
     case 'good':
       return getNextGoodResourceStage(latestThemeSignal.resourceStage);
     case 'easy':

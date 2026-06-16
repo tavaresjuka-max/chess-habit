@@ -371,7 +371,7 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.task).toContain('Revise uma explicação curta de garfos');
   });
 
-  it('switches to varied retrieval after a hard explanation was already tried', () => {
+  it('keeps explanation support after a hard explanation was already tried', () => {
     const guidedPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const explanationPlan = generatePlan(baseProfile, [], 15, '2026-06-06', {
       previousPlan: {
@@ -402,9 +402,36 @@ describe('generatePlan', () => {
       sessionNumber: 2,
     });
 
-    expect(plan.blocks[0]?.resourceStage).toBe('retrieval');
-    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
-    expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');
+    expect(plan.blocks[0]?.resourceStage).toBe('explain');
+    expect(plan.blocks[0]?.destination.source).toBe('lichess');
+    expect(plan.blocks[0]?.task).toContain('Revise uma explica');
+  });
+
+  it.each([
+    ['guided', 'explain'],
+    ['explain', 'explain'],
+    ['retrieval', 'explain'],
+    ['transfer', 'explain'],
+    ['review', 'explain'],
+  ] as const)('never advances stage after hard feedback from %s', (resourceStage, expectedStage) => {
+    const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-07', {
+      previousPlan: {
+        ...previousPlan,
+        blocks: previousPlan.blocks.map((block, index) =>
+          index === 0
+            ? {
+                ...block,
+                resourceStage,
+                status: 'done',
+                feedback: 'hard',
+              }
+            : block,
+        ),
+      },
+    });
+
+    expect(plan.blocks[0]?.resourceStage).toBe(expectedStage);
   });
 
   it('keeps a good repeated theme in the same resource stage', () => {
