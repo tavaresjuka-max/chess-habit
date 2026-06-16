@@ -3,6 +3,7 @@ import {
   buildPuzzleThemeStats,
   completeTrainingLog,
   createTrainingLog,
+  ensureTrainingLogKind,
   generatePlan,
   skipTrainingLog,
   type Achievement,
@@ -121,8 +122,9 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
               date: todayPlan.date,
               startedAt: updatedAt,
             });
+          const typedLog = ensureTrainingLogKind(baseLog, block);
           const completedLog = completeTrainingLog({
-            log: baseLog,
+            log: typedLog,
             completedAt: updatedAt,
             feedback,
           });

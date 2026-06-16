@@ -53,12 +53,37 @@ export type UseBackupActionsInput = {
 };
 
 export function useBackupActions(input: UseBackupActionsInput) {
+  const {
+    setAchievements,
+    setActiveView,
+    setAllTrainingLogs,
+    setAutoBackupFileName,
+    setAutoBackupStatus,
+    setBackupMeta,
+    setDiagnosisMessage,
+    setDiagnosisState,
+    setDiplomaAttempts,
+    setErrorMessage,
+    setLichessConnectionState,
+    setLichessMessage,
+    setLichessStudyLink,
+    setLichessToken,
+    setOnboardingCompletedAt,
+    setPendingItems,
+    setProfile,
+    setSessionMinutes,
+    setSignals,
+    setTodayPlan,
+    setTrainingLogs,
+    setWeaknesses,
+  } = input;
+
   const enableAutoBackup = useCallback(async () => {
     const handle = await pickAutoBackupFile();
 
     if (handle === undefined) {
       // Sem suporte ou usuario cancelou: status honesto, sem fingir sucesso.
-      input.setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
+      setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
       return;
     }
 
@@ -67,7 +92,7 @@ export function useBackupActions(input: UseBackupActionsInput) {
     });
 
     if (written !== 'written') {
-      input.setAutoBackupStatus('error');
+      setAutoBackupStatus('error');
       return;
     }
 
@@ -76,43 +101,66 @@ export function useBackupActions(input: UseBackupActionsInput) {
       ...(handle.name === undefined ? {} : { fileName: handle.name }),
       handle,
     });
-    input.setAutoBackupFileName(handle.name);
-    input.setAutoBackupStatus('enabled');
-    input.setBackupMeta(await loadBackupMeta());
-  }, [input]);
+    setAutoBackupFileName(handle.name);
+    setAutoBackupStatus('enabled');
+    setBackupMeta(await loadBackupMeta());
+  }, [setAutoBackupFileName, setAutoBackupStatus, setBackupMeta]);
 
   const disableAutoBackup = useCallback(async () => {
     await clearAutoBackupConfig();
-    input.setAutoBackupFileName(undefined);
-    input.setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
-  }, [input]);
+    setAutoBackupFileName(undefined);
+    setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
+  }, [setAutoBackupFileName, setAutoBackupStatus]);
 
   const clearAllData = useCallback(async () => {
     await clearAll();
-    input.setBackupMeta(undefined);
-    input.setAutoBackupFileName(undefined);
-    input.setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
-    input.setProfile(undefined);
-    input.setTodayPlan(undefined);
-    input.setSessionMinutes(15);
-    input.setTrainingLogs([]);
-    input.setAllTrainingLogs([]);
-    input.setPendingItems([]);
-    input.setDiplomaAttempts([]);
-    input.setAchievements([]);
-    input.setWeaknesses([]);
-    input.setSignals([]);
-    input.setLichessToken(undefined);
-    input.setLichessStudyLink(undefined);
-    input.setLichessConnectionState('disconnected');
-    input.setLichessMessage(undefined);
-    input.setDiagnosisState('idle');
-    input.setDiagnosisMessage(undefined);
-    input.setActiveView('config');
-    input.setErrorMessage(undefined);
+    setBackupMeta(undefined);
+    setAutoBackupFileName(undefined);
+    setAutoBackupStatus(isAutoBackupSupported() ? 'disabled' : 'unsupported');
+    setProfile(undefined);
+    setTodayPlan(undefined);
+    setSessionMinutes(15);
+    setTrainingLogs([]);
+    setAllTrainingLogs([]);
+    setPendingItems([]);
+    setDiplomaAttempts([]);
+    setAchievements([]);
+    setWeaknesses([]);
+    setSignals([]);
+    setLichessToken(undefined);
+    setLichessStudyLink(undefined);
+    setLichessConnectionState('disconnected');
+    setLichessMessage(undefined);
+    setDiagnosisState('idle');
+    setDiagnosisMessage(undefined);
+    setActiveView('config');
+    setErrorMessage(undefined);
     // Apagar tudo volta o funil de onboarding para o início.
-    input.setOnboardingCompletedAt(undefined);
-  }, [input]);
+    setOnboardingCompletedAt(undefined);
+  }, [
+    setAchievements,
+    setActiveView,
+    setAllTrainingLogs,
+    setAutoBackupFileName,
+    setAutoBackupStatus,
+    setBackupMeta,
+    setDiagnosisMessage,
+    setDiagnosisState,
+    setDiplomaAttempts,
+    setErrorMessage,
+    setLichessConnectionState,
+    setLichessMessage,
+    setLichessStudyLink,
+    setLichessToken,
+    setOnboardingCompletedAt,
+    setPendingItems,
+    setProfile,
+    setSessionMinutes,
+    setSignals,
+    setTodayPlan,
+    setTrainingLogs,
+    setWeaknesses,
+  ]);
 
   return {
     enableAutoBackup,

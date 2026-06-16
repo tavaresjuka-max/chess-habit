@@ -37,9 +37,27 @@ describe('trainingSession', () => {
     expect(log).toMatchObject({
       id: '2026-06-06:2026-06-06-01-tema',
       blockId: block.id,
+      logKind: 'puzzle',
       plannedSeconds: 600,
       status: 'active',
     });
+  });
+
+  it('classifies non-training Lichess destinations as standard logs', () => {
+    const log = createTrainingLog({
+      block: {
+        ...block,
+        destination: {
+          source: 'lichess',
+          label: 'Lichess Practice: The Fork',
+          url: 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
+        },
+      },
+      date: '2026-06-06',
+      startedAt: '2026-06-06T10:00:00.000Z',
+    });
+
+    expect(log.logKind).toBe('standard');
   });
 
   it('completes a log with real elapsed time and limit status', () => {

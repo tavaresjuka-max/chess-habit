@@ -166,6 +166,7 @@ function doneLog(input: Pick<TrainingLog, 'blockId' | 'elapsedSeconds'> & Partia
     blockTitle: input.blockId,
     source: 'lichess',
     destinationLabel: input.blockId === 'warmup' ? 'Puzzles Lichess: Fork' : 'Lichess Practice: The Fork',
+    logKind: input.blockId === 'warmup' ? 'puzzle' : 'standard',
     plannedSeconds: 600,
     startedAt: '2026-06-08T10:00:00.000Z',
     completedAt: '2026-06-08T10:10:00.000Z',

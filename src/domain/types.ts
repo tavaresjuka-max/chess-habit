@@ -229,6 +229,8 @@ export type TrainingResult =
 
 export type TrainingLogStatus = 'active' | 'done' | 'skipped';
 
+export type TrainingLogKind = 'puzzle' | 'free-activity' | 'standard';
+
 export type TrainingLog = {
   id: string;
   date: string;
@@ -236,6 +238,7 @@ export type TrainingLog = {
   blockTitle: string;
   source: SourceId;
   destinationLabel: string;
+  logKind?: TrainingLogKind;
   plannedSeconds: number;
   startedAt: string;
   completedAt?: string;

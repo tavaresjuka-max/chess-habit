@@ -27,69 +27,92 @@ export type UsePendingActionsInput = {
 };
 
 export function usePendingActions(input: UsePendingActionsInput) {
+  const {
+    diplomaAttempts,
+    pendingItems,
+    profile,
+    todayPlan,
+    trainingLogs,
+    weaknesses,
+    setErrorMessage,
+    setLichessMessage,
+    setPendingItems,
+    setTodayPlan,
+  } = input;
+
   const openPendingItem = useCallback(
     (item: PendingTrainingItem): Promise<void> => {
       if (item.lichessUrl === undefined) {
-        input.setLichessMessage('Pendência registrada, mas ainda sem link Lichess.');
+        setLichessMessage('Pendência registrada, mas ainda sem link Lichess.');
         return Promise.resolve();
       }
 
-      input.setLichessMessage(openExternalUrl(item.lichessUrl) ?? 'Pendência aberta no Lichess.');
+      setLichessMessage(openExternalUrl(item.lichessUrl) ?? 'Pendência aberta no Lichess.');
       return Promise.resolve();
     },
-    [input],
+    [setLichessMessage],
   );
 
   const deferPendingItem = useCallback(
     async (item: PendingTrainingItem) => {
       await updatePendingItemStatus(item.id, 'deferred');
 
-      const nextPendingItems = input.pendingItems.filter((pendingItem) => pendingItem.id !== item.id);
+      const nextPendingItems = pendingItems.filter((pendingItem) => pendingItem.id !== item.id);
 
-      input.setPendingItems(nextPendingItems);
+      setPendingItems(nextPendingItems);
 
-      if (input.profile !== undefined && input.todayPlan !== undefined) {
-        const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+      if (profile !== undefined && todayPlan !== undefined) {
+        const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
         const nextPlan = generatePlan(
-          input.profile,
-          input.weaknesses,
-          toSessionMinutes(input.todayPlan.sessionMinutes, input.profile.defaultSessionMinutes),
-          input.todayPlan.date,
+          profile,
+          weaknesses,
+          toSessionMinutes(todayPlan.sessionMinutes, profile.defaultSessionMinutes),
+          todayPlan.date,
           buildPlanContext({
-            previousPlan: input.todayPlan,
+            previousPlan: todayPlan,
             recentThemeStats,
-            trainingLogs: input.trainingLogs,
+            trainingLogs,
             pendingItems: nextPendingItems,
-            diplomaAttempts: input.diplomaAttempts,
+            diplomaAttempts,
           }),
         );
 
         await savePlan(nextPlan);
-        input.setTodayPlan(nextPlan);
+        setTodayPlan(nextPlan);
       }
 
-      input.setLichessMessage('Pendência adiada.');
+      setLichessMessage('Pendência adiada.');
     },
-    [input],
+    [
+      diplomaAttempts,
+      pendingItems,
+      profile,
+      setLichessMessage,
+      setPendingItems,
+      setTodayPlan,
+      todayPlan,
+      trainingLogs,
+      weaknesses,
+    ],
   );
 
   const savePendingFromHardFeedback = useCallback(
     async (blockId: string) => {
-      if (input.todayPlan === undefined) {
+      if (todayPlan === undefined) {
         return;
       }
 
-      const block = input.todayPlan.blocks.find((planBlock) => planBlock.id === blockId);
+      const block = todayPlan.blocks.find((planBlock) => planBlock.id === blockId);
 
       if (block?.weaknessTag === undefined || block.methodTrackId === undefined) {
-        input.setErrorMessage('Não consegui criar pendência para este bloco.');
+        setErrorMessage('Não consegui criar pendência para este bloco.');
         return;
       }
 
-      const log = await getTrainingLog(`${input.todayPlan.date}:${blockId}`);
+      const log = await getTrainingLog(`${todayPlan.date}:${blockId}`);
 
       if (log === undefined) {
-        input.setErrorMessage('Conclua o bloco antes de guardar como pendência.');
+        setErrorMessage('Conclua o bloco antes de guardar como pendência.');
         return;
       }
 
@@ -101,11 +124,11 @@ export function usePendingActions(input: UsePendingActionsInput) {
       );
 
       await savePendingItem(item);
-      input.setPendingItems((current) => upsertPendingItem(current, item));
-      input.setLichessMessage('Pendência guardada para revisão amanhã.');
-      input.setErrorMessage(undefined);
+      setPendingItems((current) => upsertPendingItem(current, item));
+      setLichessMessage('Pendência guardada para revisão amanhã.');
+      setErrorMessage(undefined);
     },
-    [input],
+    [setErrorMessage, setLichessMessage, setPendingItems, todayPlan],
   );
 
   return {

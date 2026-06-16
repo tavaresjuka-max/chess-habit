@@ -219,34 +219,46 @@ export function useAppState(): AppState {
 
     // Auto-diagnóstico: ao salvar usuários (no onboarding ou na Config), já puxa
     // as partidas para o professor calcular com dados reais desde o início.
-    // Sequencial e em segundo plano — não trava o salvar; o estado "syncing" dá
-    // o retorno visual e o plano é regenerado quando os sinais chegam.
+    // Paralelo e em segundo plano: nao trava o salvar; "syncing" exibe o retorno
+    // visual e o plano e regenerado quando os sinais chegam.
     const wantsChesscom = (nextProfile.chesscomUsername ?? '').trim() !== '';
     const wantsLichess = (nextProfile.lichessUsername ?? '').trim() !== '';
 
     if (wantsChesscom || wantsLichess) {
-      // Sequencial e em segundo plano. Cada fonte tem try/catch próprio: um erro
-      // inesperado de uma não cancela a outra nem some no void silencioso —
-      // vai para a mensagem de erro visível (J3 — falha auditável).
-      void (async () => {
-        if (wantsChesscom) {
-          try {
-            await runChesscomSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS });
-          } catch (error) {
-            setErrorMessage(toErrorMessage(error));
-          }
-        }
+      // Cada fonte tem catch proprio: um erro inesperado fica visivel por fonte
+      // e nao cancela o outro sync (J3: falha auditavel).
+      const syncJobs = [
+        wantsChesscom
+          ? runChesscomSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS }).catch((error: unknown) => {
+              setErrorMessage(`Chess.com: ${toErrorMessage(error)}`);
+            })
+          : undefined,
+        wantsLichess
+          ? runLichessSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS }).catch((error: unknown) => {
+              setErrorMessage(`Lichess: ${toErrorMessage(error)}`);
+            })
+          : undefined,
+      ].filter((job): job is Promise<void> => job !== undefined);
 
-        if (wantsLichess) {
-          try {
-            await runLichessSync(nextProfile, { maxAgeMs: AUTO_SYNC_FRESHNESS_MS });
-          } catch (error) {
-            setErrorMessage(toErrorMessage(error));
-          }
-        }
-      })();
+      // Paralelo e auditavel: uma fonte lenta ou com erro inesperado nao cancela a outra.
+      void Promise.allSettled(syncJobs);
     }
-  }, [diplomaAttempts, pendingItems, todayPlan, trainingLogs, weaknesses, runChesscomSync, runLichessSync]);
+  }, [
+    diplomaAttempts,
+    pendingItems,
+    runChesscomSync,
+    runLichessSync,
+    setActiveView,
+    setAllTrainingLogs,
+    setErrorMessage,
+    setProfile,
+    setSessionMinutes,
+    setTodayPlan,
+    setTrainingLogs,
+    todayPlan,
+    trainingLogs,
+    weaknesses,
+  ]);
 
   const {
     savePlacementResult,

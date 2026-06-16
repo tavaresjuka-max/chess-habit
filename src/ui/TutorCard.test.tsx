@@ -154,7 +154,7 @@ describe('TutorCard', () => {
       <TutorCard
         plan={plan}
         weaknesses={[]}
-        trainingLogs={[{ ...doneLog(), destinationLabel: 'Puzzles Lichess: Fork' }]}
+        trainingLogs={[{ ...doneLog(), destinationLabel: 'Puzzles Lichess: Fork', logKind: 'puzzle' }]}
         today="2026-06-08"
         onAnswerTutorQuestion={answerTutorQuestion}
         onReconcileLichessResults={onReconcile}

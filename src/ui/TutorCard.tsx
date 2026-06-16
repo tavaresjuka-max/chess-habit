@@ -4,6 +4,7 @@ import {
   buildPuzzleThemeStats,
   computeConsistency,
   diagnose,
+  isPuzzleTrainingLog,
   type CoachMessagePhase,
   type DailyPlan,
   type PlanBlockFeedback,
@@ -61,7 +62,7 @@ export function TutorCard({
   const primaryWeakness = weaknesses[0];
   const evidenceLine = getEvidenceLine(plan, weaknesses);
   const hasUnreconciledPuzzleLog = trainingLogs.some(
-    (log) => log.date === today && log.status === 'done' && log.result === undefined && isPuzzleLog(log),
+    (log) => log.date === today && log.status === 'done' && log.result === undefined && isPuzzleTrainingLog(log),
   );
   const doneToday = trainingLogs
     .filter((log) => log.date === today && log.status === 'done')
@@ -183,8 +184,4 @@ function getEvidenceLine(plan: DailyPlan, weaknesses: Weakness[]): string | unde
   }
 
   return 'Faltam sinais do seu histórico. Atualize Chess.com ou Lichess para calibrar.';
-}
-
-function isPuzzleLog(log: TrainingLog): boolean {
-  return log.destinationLabel.includes('Puzzle') || log.destinationLabel.includes('Puzzles');
 }

@@ -86,6 +86,25 @@ async function latestSignalObservedAt(source: Signal['source']): Promise<string 
 }
 
 export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
+  const {
+    diplomaAttempts,
+    latestPlanRef,
+    pendingItems,
+    profile,
+    sessionMinutes,
+    todayPlan,
+    trainingLogs,
+    setActiveView,
+    setDiagnosisMessage,
+    setDiagnosisState,
+    setErrorMessage,
+    setLichessConnectionState,
+    setLichessMessage,
+    setSignals,
+    setTodayPlan,
+    setWeaknesses,
+  } = input;
+
   const runDiagnosisSync = useCallback(
     async (args: {
       source: Extract<Signal['source'], 'chesscom' | 'lichess'>;
@@ -108,10 +127,10 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       await replaceSignalsForSource(args.source, signals);
 
       const allSignals = await loadSignals();
-      input.setSignals(allSignals);
+      setSignals(allSignals);
       const nowIso = new Date().toISOString();
       const date = getTodayDate();
-      const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const nextWeaknesses = mergePuzzleWeakness(
         detectWeaknesses(filterFreshSignals(allSignals, nowIso), args.targetProfile.band),
         createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
@@ -119,20 +138,20 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       const plan = generatePlan(
         args.targetProfile,
         nextWeaknesses,
-        input.sessionMinutes,
+        sessionMinutes,
         date,
         buildPlanContext({
-          previousPlan: input.latestPlanRef.current,
+          previousPlan: latestPlanRef.current,
           recentThemeStats,
-          trainingLogs: input.trainingLogs,
-          pendingItems: input.pendingItems,
-          diplomaAttempts: input.diplomaAttempts,
+          trainingLogs,
+          pendingItems,
+          diplomaAttempts,
         }),
       );
 
       // Preserva a aprovação do plano: se o aluno aprovou enquanto a rede
       // respondia, o plano mais recente (ref) carrega a resposta — mantemos.
-      const latestPlan = input.latestPlanRef.current;
+      const latestPlan = latestPlanRef.current;
       const mergedPlan =
         latestPlan?.date === plan.date && latestPlan.learningPlanResponse !== undefined
           ? { ...plan, learningPlanResponse: latestPlan.learningPlanResponse }
@@ -141,13 +160,22 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       await replaceWeaknesses(nextWeaknesses);
       await savePlan(mergedPlan);
 
-      input.setWeaknesses(nextWeaknesses);
-      input.setTodayPlan(mergedPlan);
-      input.latestPlanRef.current = mergedPlan;
+      setWeaknesses(nextWeaknesses);
+      setTodayPlan(mergedPlan);
+      latestPlanRef.current = mergedPlan;
 
       return { signals, weaknesses: nextWeaknesses };
     },
-    [input],
+    [
+      diplomaAttempts,
+      latestPlanRef,
+      pendingItems,
+      sessionMinutes,
+      setSignals,
+      setTodayPlan,
+      setWeaknesses,
+      trainingLogs,
+    ],
   );
 
   const runChesscomSync = useCallback(
@@ -162,8 +190,8 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
           targetProfile,
           options,
           onStart: () => {
-            input.setDiagnosisState('syncing');
-            input.setDiagnosisMessage('Atualizando diagnóstico Chess.com.');
+            setDiagnosisState('syncing');
+            setDiagnosisMessage('Atualizando diagnóstico Chess.com.');
           },
           fetchSignals: () =>
             importChesscomSignals(targetProfile.chesscomUsername ?? '', {
@@ -179,19 +207,19 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
           return;
         }
 
-        input.setDiagnosisState('success');
-        input.setDiagnosisMessage(
+        setDiagnosisState('success');
+        setDiagnosisMessage(
           result.weaknesses.length === 0
             ? `Diagnóstico atualizado com ${String(result.signals.length)} sinais derivados. Ainda sem limiar suficiente; mantive plano conservador.`
             : `Diagnóstico atualizado com ${String(result.signals.length)} sinais derivados e ${String(result.weaknesses.length)} hipóteses.`,
         );
-        input.setErrorMessage(undefined);
+        setErrorMessage(undefined);
       } catch (error) {
-        input.setDiagnosisState('error');
-        input.setDiagnosisMessage(toDiagnosisErrorMessage(error));
+        setDiagnosisState('error');
+        setDiagnosisMessage(toDiagnosisErrorMessage(error));
       }
     },
-    [input, runDiagnosisSync],
+    [runDiagnosisSync, setDiagnosisMessage, setDiagnosisState, setErrorMessage],
   );
 
   const runLichessSync = useCallback(
@@ -208,8 +236,8 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
           targetProfile,
           options,
           onStart: () => {
-            input.setLichessConnectionState('syncing');
-            input.setLichessMessage('Atualizando diagnóstico Lichess.');
+            setLichessConnectionState('syncing');
+            setLichessMessage('Atualizando diagnóstico Lichess.');
           },
           fetchSignals: async () => {
             token = await loadLichessOAuthToken();
@@ -228,51 +256,51 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
           return;
         }
 
-        input.setLichessConnectionState(token === undefined ? 'disconnected' : 'connected');
-        input.setLichessMessage(
+        setLichessConnectionState(token === undefined ? 'disconnected' : 'connected');
+        setLichessMessage(
           result.signals.length === 0
             ? 'Lichess atualizado, mas ainda sem sinais suficientes.'
             : `Lichess atualizado com ${String(result.signals.length)} sinais derivados.`,
         );
       } catch (error) {
-        input.setLichessConnectionState('error');
-        input.setLichessMessage(toLichessErrorMessage(error));
+        setLichessConnectionState('error');
+        setLichessMessage(toLichessErrorMessage(error));
       }
     },
-    [input, runDiagnosisSync],
+    [runDiagnosisSync, setLichessConnectionState, setLichessMessage],
   );
 
   const syncChesscomDiagnosis = useCallback(async () => {
-    if (input.profile === undefined) {
-      input.setActiveView('config');
+    if (profile === undefined) {
+      setActiveView('config');
       return;
     }
 
-    if (input.profile.chesscomUsername === undefined || input.profile.chesscomUsername.trim() === '') {
-      input.setDiagnosisState('error');
-      input.setDiagnosisMessage('Informe seu usuário Chess.com na Config.');
-      input.setActiveView('config');
+    if (profile.chesscomUsername === undefined || profile.chesscomUsername.trim() === '') {
+      setDiagnosisState('error');
+      setDiagnosisMessage('Informe seu usuário Chess.com na Config.');
+      setActiveView('config');
       return;
     }
 
-    await runChesscomSync(input.profile);
-  }, [input, runChesscomSync]);
+    await runChesscomSync(profile);
+  }, [profile, runChesscomSync, setActiveView, setDiagnosisMessage, setDiagnosisState]);
 
   const syncLichessDiagnosis = useCallback(async () => {
-    if (input.profile === undefined) {
-      input.setActiveView('config');
+    if (profile === undefined) {
+      setActiveView('config');
       return;
     }
 
-    if (input.profile.lichessUsername === undefined || input.profile.lichessUsername.trim() === '') {
-      input.setLichessConnectionState('error');
-      input.setLichessMessage('Informe seu usuário Lichess na Config.');
-      input.setActiveView('config');
+    if (profile.lichessUsername === undefined || profile.lichessUsername.trim() === '') {
+      setLichessConnectionState('error');
+      setLichessMessage('Informe seu usuário Lichess na Config.');
+      setActiveView('config');
       return;
     }
 
-    await runLichessSync(input.profile);
-  }, [input, runLichessSync]);
+    await runLichessSync(profile);
+  }, [profile, runLichessSync, setActiveView, setLichessConnectionState, setLichessMessage]);
 
   const importKnownManualSignals = useCallback(async () => {
     const manualSignals = createKnownManualSignals(new Date().toISOString());
@@ -280,39 +308,49 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     await replaceSignalsForSource('outro', manualSignals);
 
     const allSignals = await loadSignals();
-    input.setSignals(allSignals);
+    setSignals(allSignals);
     const nowIso = new Date().toISOString();
-    const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+    const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
     const nextWeaknesses = mergePuzzleWeakness(
-      detectWeaknesses(filterFreshSignals(allSignals, nowIso), input.profile?.band),
+      detectWeaknesses(filterFreshSignals(allSignals, nowIso), profile?.band),
       createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
     );
 
     await replaceWeaknesses(nextWeaknesses);
-    input.setWeaknesses(nextWeaknesses);
+    setWeaknesses(nextWeaknesses);
 
-    if (input.profile !== undefined) {
+    if (profile !== undefined) {
       const date = getTodayDate();
       const plan = generatePlan(
-        input.profile,
+        profile,
         nextWeaknesses,
-        input.sessionMinutes,
+        sessionMinutes,
         date,
         buildPlanContext({
-          previousPlan: input.todayPlan,
+          previousPlan: todayPlan,
           recentThemeStats,
-          trainingLogs: input.trainingLogs,
-          pendingItems: input.pendingItems,
-          diplomaAttempts: input.diplomaAttempts,
+          trainingLogs,
+          pendingItems,
+          diplomaAttempts,
         }),
       );
 
       await savePlan(plan);
-      input.setTodayPlan(plan);
+      setTodayPlan(plan);
     }
 
     return manualSignals.length;
-  }, [input]);
+  }, [
+    diplomaAttempts,
+    pendingItems,
+    profile,
+    sessionMinutes,
+    setSignals,
+    setTodayPlan,
+    setWeaknesses,
+    todayPlan,
+    trainingLogs,
+  ]);
 
   const answerTutorQuestion = useCallback(
     async (answer: TutorQuestionAnswer) => {
@@ -321,42 +359,55 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       await appendSignals([signal]);
 
       const allSignals = await loadSignals();
-      input.setSignals(allSignals);
+      setSignals(allSignals);
       const nowIso = new Date().toISOString();
-      const recentThemeStats = buildPuzzleThemeStats(input.trainingLogs);
+      const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const nextWeaknesses = mergePuzzleWeakness(
-        detectWeaknesses(filterFreshSignals(allSignals, nowIso), input.profile?.band),
+        detectWeaknesses(filterFreshSignals(allSignals, nowIso), profile?.band),
         createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
       );
 
       await replaceWeaknesses(nextWeaknesses);
-      input.setWeaknesses(nextWeaknesses);
+      setWeaknesses(nextWeaknesses);
 
-      if (input.profile !== undefined) {
+      if (profile !== undefined) {
         const date = getTodayDate();
         const plan = generatePlan(
-          input.profile,
+          profile,
           nextWeaknesses,
-          input.sessionMinutes,
+          sessionMinutes,
           date,
           buildPlanContext({
-            previousPlan: input.todayPlan,
+            previousPlan: todayPlan,
             recentThemeStats,
-            trainingLogs: input.trainingLogs,
-            pendingItems: input.pendingItems,
-            diplomaAttempts: input.diplomaAttempts,
+            trainingLogs,
+            pendingItems,
+            diplomaAttempts,
           }),
         );
 
         await savePlan(plan);
-        input.setTodayPlan(plan);
+        setTodayPlan(plan);
       }
 
-      input.setDiagnosisState('success');
-      input.setDiagnosisMessage('Resposta registrada. Ajustei as hipóteses do treino.');
-      input.setErrorMessage(undefined);
+      setDiagnosisState('success');
+      setDiagnosisMessage('Resposta registrada. Ajustei as hipóteses do treino.');
+      setErrorMessage(undefined);
     },
-    [input],
+    [
+      diplomaAttempts,
+      pendingItems,
+      profile,
+      sessionMinutes,
+      setDiagnosisMessage,
+      setDiagnosisState,
+      setErrorMessage,
+      setSignals,
+      setTodayPlan,
+      setWeaknesses,
+      todayPlan,
+      trainingLogs,
+    ],
   );
 
   return {

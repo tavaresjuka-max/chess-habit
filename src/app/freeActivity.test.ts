@@ -52,6 +52,7 @@ describe('importFreeActivity', () => {
     });
 
     expect(outcome.log?.blockId).toBe(freeActivityBlockId);
+    expect(outcome.log?.logKind).toBe('free-activity');
     expect(outcome.log?.result?.puzzles).toBe(2);
     expect(outcome.log?.result?.wins).toBe(1);
     expect(outcome.log?.plannedSeconds).toBe(0);

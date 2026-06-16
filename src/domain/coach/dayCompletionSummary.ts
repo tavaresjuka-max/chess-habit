@@ -1,6 +1,6 @@
 import type { TrainingRoadmapItem } from '../plan/planSessions';
 import type { DailyPlan, PlanBlockFeedback, TrainingLog, TrainingResult } from '../types';
-import { formatElapsedMinutes } from '../training/trainingSession';
+import { formatElapsedMinutes, isPuzzleTrainingLog } from '../training/trainingSession';
 
 export type DayCompletionSummary = {
   heading: string;
@@ -101,7 +101,7 @@ function formatFeedbackCount(feedback: PlanBlockFeedback, count: number): string
 }
 
 function buildPuzzleLine(dayLogs: TrainingLog[]): string | undefined {
-  const completedPuzzleLogs = dayLogs.filter((log) => log.status === 'done' && isPuzzleLog(log));
+  const completedPuzzleLogs = dayLogs.filter((log) => log.status === 'done' && isPuzzleTrainingLog(log));
   const puzzleResults = completedPuzzleLogs
     .map((log) => log.result)
     .filter((result): result is Extract<TrainingResult, { kind: 'puzzle-activity' }> => result?.kind === 'puzzle-activity');
@@ -140,10 +140,6 @@ function buildNextLine(roadmap: TrainingRoadmapItem[]): string | undefined {
   return `Na próxima sessão vamos estudar ${nextItem.title} (${String(nextItem.minutes)} min) em ${
     nextItem.destinationLabel
   }.`;
-}
-
-function isPuzzleLog(log: TrainingLog): boolean {
-  return log.destinationLabel.includes('Puzzle') || log.destinationLabel.includes('Puzzles');
 }
 
 function formatCount(count: number, singular: string, plural: string): string {

@@ -1,4 +1,4 @@
-import type { PlanBlock, PlanBlockFeedback, TrainingLog, TrainingResult } from '../types';
+import type { Destination, PlanBlock, PlanBlockFeedback, TrainingLog, TrainingLogKind, TrainingResult } from '../types';
 
 export function createTrainingLog(input: { block: PlanBlock; date: string; startedAt: string }): TrainingLog {
   return {
@@ -8,6 +8,7 @@ export function createTrainingLog(input: { block: PlanBlock; date: string; start
     blockTitle: input.block.title,
     source: input.block.source,
     destinationLabel: input.block.destination.label,
+    logKind: getTrainingLogKindFromBlock(input.block),
     plannedSeconds: input.block.estimatedMinutes * 60,
     startedAt: input.startedAt,
     timeLimitReached: false,
@@ -15,6 +16,18 @@ export function createTrainingLog(input: { block: PlanBlock; date: string; start
     ...(input.block.methodTrackId === undefined ? {} : { methodTrackId: input.block.methodTrackId }),
     updatedAt: input.startedAt,
   };
+}
+
+export function ensureTrainingLogKind(log: TrainingLog, block: PlanBlock): TrainingLog {
+  return log.logKind === undefined ? { ...log, logKind: getTrainingLogKindFromBlock(block) } : log;
+}
+
+export function isPuzzleTrainingLog(log: TrainingLog): boolean {
+  if (log.logKind !== undefined) {
+    return log.logKind === 'puzzle' || log.logKind === 'free-activity';
+  }
+
+  return log.result !== undefined;
 }
 
 export function completeTrainingLog(input: {
@@ -86,4 +99,22 @@ export function formatElapsedMinutes(seconds: number): string {
 
 function trainingLogId(date: string, blockId: string): string {
   return `${date}:${blockId}`;
+}
+
+function getTrainingLogKindFromBlock(block: PlanBlock): TrainingLogKind {
+  return isLichessPuzzleDestination(block.destination) ? 'puzzle' : 'standard';
+}
+
+function isLichessPuzzleDestination(destination: Destination): boolean {
+  if (destination.source !== 'lichess' || destination.url === undefined) {
+    return false;
+  }
+
+  try {
+    const url = new URL(destination.url);
+
+    return url.protocol === 'https:' && url.hostname === 'lichess.org' && url.pathname.startsWith('/training');
+  } catch {
+    return false;
+  }
 }

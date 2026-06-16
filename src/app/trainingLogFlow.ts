@@ -1,5 +1,6 @@
 import {
   createId,
+  isPuzzleTrainingLog,
   reconcileTrainingLogResult,
   type TrainingLog,
   type TrainingResult,
@@ -197,6 +198,7 @@ export async function importFreeActivity(input: {
     blockTitle: 'Atividade livre (puzzles)',
     source: 'lichess',
     destinationLabel: 'Puzzles Lichess (atividade livre)',
+    logKind: 'free-activity',
     plannedSeconds: 0,
     startedAt: since,
     completedAt: now,
@@ -225,14 +227,6 @@ export function upsertTrainingLog(logs: TrainingLog[], nextLog: TrainingLog): Tr
   }
 
   return logs.map((log, index) => (index === existingIndex ? nextLog : log));
-}
-
-function isPuzzleTrainingLog(log: TrainingLog): boolean {
-  return (
-    log.destinationLabel.includes('Puzzles') ||
-    log.destinationLabel.includes('Puzzle') ||
-    log.destinationLabel.startsWith('Pendência Lichess:')
-  );
 }
 
 export async function createReplayLogIfPossible(
@@ -283,6 +277,7 @@ function createDiagnosticLog(input: {
     blockTitle: input.title,
     source: 'lichess',
     destinationLabel: input.label,
+    logKind: 'puzzle',
     plannedSeconds: 0,
     startedAt: input.result.fetchedAt,
     completedAt: input.result.fetchedAt,
