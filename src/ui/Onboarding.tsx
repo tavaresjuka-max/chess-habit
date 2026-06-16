@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   buildLearningPlanProposal,
   learnerBands,
@@ -12,9 +12,10 @@ import {
 } from '../domain';
 import type { MethodTrackId } from '../domain/method/types';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
+import { PlacementCard, type PlacementApplication } from './PlacementCard';
 import { Welcome } from './Welcome';
 
-export type OnboardingStep = 'welcome' | 'setup' | 'plan';
+export type OnboardingStep = 'welcome' | 'accounts' | 'importing' | 'questions' | 'plan';
 
 type OnboardingProps = {
   step: OnboardingStep;
@@ -28,30 +29,63 @@ type OnboardingProps = {
   onStartSetup: () => void;
   onQuickStart: () => Promise<void>;
   onBackToWelcome: () => void;
-  onSaveProfile: (profile: LearnerProfile) => Promise<void>;
+  // Salva o perfil (sem auto-sync) e segue: com conta → Importando; sem conta → Avaliação.
+  onContinueAccounts: (profile: LearnerProfile) => Promise<void>;
+  // Salva o perfil e dispara o OAuth do Lichess (redireciona; volta na tela Importando).
+  onConnectLichess: (profile: LearnerProfile) => Promise<void>;
+  // Executa a importação awaitada e devolve quantas fraquezas foram detectadas.
+  onRunImport: () => Promise<{ weaknessCount: number }>;
+  // Roteia após a importação: com fraqueza → plano; sem → avaliação.
+  onImportDone: (weaknessCount: number) => void;
+  onApplyPlacement: (placement: PlacementApplication) => Promise<void>;
+  onSkipQuestions: () => void;
   onApprovePlan: () => Promise<void>;
   onRequestPlanRevision: (note: string) => Promise<void>;
 };
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
-const stepNumber: Record<OnboardingStep, number> = { welcome: 1, setup: 2, plan: 3 };
+
+// O caminho do funil tem comprimento variável (com/sem dados, com/sem conta),
+// então em vez de "Passo X de N" mostramos o nome da etapa atual.
+const stepLabel: Record<OnboardingStep, string> = {
+  welcome: 'Boas-vindas',
+  accounts: 'Suas contas',
+  importing: 'Importando',
+  questions: 'Avaliação de entrada',
+  plan: 'Seu plano',
+};
 
 // Funil de primeira vez: uma tela por vez, só a ação necessária. As abas
 // (Hoje/Progresso/Config) ficam escondidas até o aluno terminar e cair no Hoje.
 export function Onboarding(props: OnboardingProps) {
   return (
     <>
-      <p className="onboarding-step" aria-label={`Passo ${String(stepNumber[props.step])} de 3`}>
-        Passo {stepNumber[props.step]} de 3
-      </p>
+      <p className="onboarding-step">{stepLabel[props.step]}</p>
       {props.step === 'welcome' ? (
         <Welcome
           {...(props.notice === undefined ? {} : { notice: props.notice })}
           onStart={props.onQuickStart}
           onConfigure={props.onStartSetup}
         />
-      ) : props.step === 'setup' ? (
-        <EssentialSetup defaults={props.defaults} onBack={props.onBackToWelcome} onSave={props.onSaveProfile} />
+      ) : props.step === 'accounts' ? (
+        <AccountsStep
+          defaults={props.defaults}
+          onBack={props.onBackToWelcome}
+          onContinue={props.onContinueAccounts}
+          onConnectLichess={props.onConnectLichess}
+        />
+      ) : props.step === 'importing' ? (
+        <ImportingStep
+          profile={props.defaults}
+          onRunImport={props.onRunImport}
+          onImportDone={props.onImportDone}
+        />
+      ) : props.step === 'questions' ? (
+        <QuestionsStep
+          defaults={props.defaults}
+          onApplyPlacement={props.onApplyPlacement}
+          onSkip={props.onSkipQuestions}
+        />
       ) : (
         <PlanStep
           plan={props.plan}
@@ -67,61 +101,78 @@ export function Onboarding(props: OnboardingProps) {
   );
 }
 
-// Passo 2 — só o essencial: importar Lichess + Chess.com, faixa e tempo.
-// Campos já vêm preenchidos, então "Salvar" é um toque. (A conexão OAuth do
-// Lichess, backup e avaliação ficam na aba Config, depois do funil.)
-function EssentialSetup({
+// Passo 2 — contas + faixa + tempo. O usuário pode informar Lichess e/ou
+// Chess.com (ou nenhum), opcionalmente conectar o Lichess (OAuth, melhora
+// puzzles/Study) e seguir. Conectar e Continuar salvam o perfil antes.
+function AccountsStep({
   defaults,
   onBack,
-  onSave,
+  onContinue,
+  onConnectLichess,
 }: {
   defaults: LearnerProfile;
   onBack: () => void;
-  onSave: (profile: LearnerProfile) => Promise<void>;
+  onContinue: (profile: LearnerProfile) => Promise<void>;
+  onConnectLichess: (profile: LearnerProfile) => Promise<void>;
 }) {
   const [lichessUsername, setLichessUsername] = useState(defaults.lichessUsername ?? '');
   const [chesscomUsername, setChesscomUsername] = useState(defaults.chesscomUsername ?? '');
   const [band, setBand] = useState<LearnerBand>(defaults.band);
   const [defaultSessionMinutes, setDefaultSessionMinutes] = useState<SessionMinutes>(defaults.defaultSessionMinutes);
-  const [isSaving, setIsSaving] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  async function handleSubmit() {
-    setIsSaving(true);
+  function buildProfile(): LearnerProfile {
+    return {
+      lichessUsername: lichessUsername.trim() === '' ? undefined : lichessUsername.trim(),
+      chesscomUsername: chesscomUsername.trim() === '' ? undefined : chesscomUsername.trim(),
+      band,
+      defaultSessionMinutes,
+      goals: defaults.goals,
+      updatedAt: new Date().toISOString(),
+    };
+  }
 
+  async function handleContinue() {
+    setBusy(true);
     try {
-      await onSave({
-        lichessUsername: lichessUsername.trim() === '' ? undefined : lichessUsername.trim(),
-        chesscomUsername: chesscomUsername.trim() === '' ? undefined : chesscomUsername.trim(),
-        band,
-        defaultSessionMinutes,
-        goals: defaults.goals,
-        updatedAt: new Date().toISOString(),
-      });
+      await onContinue(buildProfile());
     } finally {
-      setIsSaving(false);
+      setBusy(false);
     }
   }
 
+  async function handleConnectLichess() {
+    setBusy(true);
+    try {
+      await onConnectLichess(buildProfile());
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const hasLichess = lichessUsername.trim() !== '';
+
   return (
-    <section className="panel" aria-labelledby="setup-title">
+    <section className="panel" aria-labelledby="accounts-title">
       <button type="button" className="link-button config-back" onClick={onBack}>
         Voltar
       </button>
-      <h1 id="setup-title">Vamos configurar</h1>
-      <p>Só o essencial para eu montar seu plano. Dá para ajustar depois na aba Config.</p>
+      <h1 id="accounts-title">Suas contas</h1>
+      <p>
+        Informe onde você joga para eu buscar suas partidas. Não joga online ainda? Deixe em branco e
+        continue — eu te faço algumas perguntas para calibrar.
+      </p>
 
       <form
         className="form-grid"
         onSubmit={(event) => {
           event.preventDefault();
-          void handleSubmit();
+          void handleContinue();
         }}
       >
         <label className="field">
           <span>Usuário Lichess</span>
-          <small className="field-hint">
-            Para criar o Study do dia e conferir puzzles, conecte o Lichess na aba Config depois de salvar.
-          </small>
+          <small className="field-hint">Buscamos suas partidas públicas. Conectar é opcional (melhora puzzles e Study).</small>
           <input
             autoComplete="username"
             value={lichessUsername}
@@ -130,6 +181,14 @@ function EssentialSetup({
             }}
           />
         </label>
+
+        {hasLichess ? (
+          <div className="button-row">
+            <button type="button" className="secondary-button" disabled={busy} onClick={() => void handleConnectLichess()}>
+              Conectar Lichess (opcional)
+            </button>
+          </div>
+        ) : null}
 
         <label className="field">
           <span>Usuário Chess.com</span>
@@ -145,7 +204,7 @@ function EssentialSetup({
 
         <label className="field">
           <span>Faixa atual</span>
-          <small className="field-hint">Organiza o curso — não é nota. Dá para refinar com a avaliação na Config.</small>
+          <small className="field-hint">Organiza o curso — não é nota. Dá para refinar com a avaliação.</small>
           <select
             value={band}
             onChange={(event) => {
@@ -177,8 +236,8 @@ function EssentialSetup({
         </label>
 
         <div className="button-row">
-          <button type="submit" disabled={isSaving}>
-            Salvar
+          <button type="submit" disabled={busy}>
+            Continuar
           </button>
         </div>
       </form>
@@ -186,7 +245,94 @@ function EssentialSetup({
   );
 }
 
-// Passo 3 — aprovar o plano em tela cheia. Ao aprovar, o funil termina e o
+// Passo 3 — importação real com loading. Ao montar, dispara a importação
+// awaitada (uma única vez, mesmo sob StrictMode) e, ao terminar, devolve a
+// contagem de fraquezas para o App decidir a próxima tela.
+function ImportingStep({
+  profile,
+  onRunImport,
+  onImportDone,
+}: {
+  profile: LearnerProfile;
+  onRunImport: () => Promise<{ weaknessCount: number }>;
+  onImportDone: (weaknessCount: number) => void;
+}) {
+  const startedRef = useRef(false);
+
+  useEffect(() => {
+    if (startedRef.current) {
+      return;
+    }
+    startedRef.current = true;
+
+    void (async () => {
+      const { weaknessCount } = await onRunImport();
+      onImportDone(weaknessCount);
+    })();
+  }, [onRunImport, onImportDone]);
+
+  const sources = [
+    (profile.lichessUsername ?? '').trim() === '' ? undefined : 'Lichess',
+    (profile.chesscomUsername ?? '').trim() === '' ? undefined : 'Chess.com',
+  ].filter((source): source is string => source !== undefined);
+
+  return (
+    <section className="panel loading-panel" aria-live="polite" aria-busy="true">
+      <img
+        src="/art/loading-lemos.webp"
+        alt=""
+        aria-hidden="true"
+        className="loading-art"
+        width={220}
+        height={220}
+      />
+      <h1>Buscando suas partidas…</h1>
+      <p>
+        {sources.length === 0
+          ? 'Organizando seu diagnóstico.'
+          : `Importando do ${sources.join(' e ')}. Isso pode levar alguns segundos.`}
+      </p>
+      <p className="config-hint">O professor está lendo seus jogos para montar o plano com dados reais.</p>
+    </section>
+  );
+}
+
+// Passo 4 (condicional) — avaliação de entrada. Aparece para quem não tem conta
+// ou cujo histórico ainda não deu sinal concentrado o bastante. Reusa o
+// PlacementCard já entrando nas perguntas.
+function QuestionsStep({
+  defaults,
+  onApplyPlacement,
+  onSkip,
+}: {
+  defaults: LearnerProfile;
+  onApplyPlacement: (placement: PlacementApplication) => Promise<void>;
+  onSkip: () => void;
+}) {
+  const hasAccount =
+    (defaults.lichessUsername ?? '').trim() !== '' || (defaults.chesscomUsername ?? '').trim() !== '';
+
+  return (
+    <section className="panel" aria-labelledby="questions-title">
+      <h1 id="questions-title">Vamos calibrar seu plano</h1>
+      <p>
+        {hasAccount
+          ? 'Seus jogos ainda não deram um sinal concentrado o bastante. Sem problema — três perguntas rápidas acham sua faixa.'
+          : 'Sem partidas para analisar ainda, três perguntas rápidas acham seu ponto de partida.'}
+      </p>
+
+      <PlacementCard hideHeading currentBand={defaults.band} initialStep="questions" onApplyBand={onApplyPlacement} />
+
+      <div className="button-row">
+        <button type="button" className="link-button" onClick={onSkip}>
+          Pular e usar a faixa {defaults.band}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// Passo final — aprovar o plano em tela cheia. Ao aprovar, o funil termina e o
 // app cai no Hoje (a conclusão do onboarding é marcada pelo App).
 function PlanStep({
   plan,

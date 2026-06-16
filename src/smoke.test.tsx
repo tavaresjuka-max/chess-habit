@@ -7,6 +7,11 @@ import { App } from './ui/App';
 
 beforeEach(async () => {
   await clearAll();
+  try {
+    sessionStorage.clear();
+  } catch {
+    // jsdom sempre tem sessionStorage; o guard é só por consistência.
+  }
 });
 
 afterEach(() => {
@@ -14,27 +19,27 @@ afterEach(() => {
 });
 
 describe('App onboarding funnel (primeira vez)', () => {
-  it('abre no Passo 1 — boas-vindas do professor, não um formulário', async () => {
+  it('abre nas boas-vindas do professor, não num formulário', async () => {
     render(<App />);
 
     expect(await screen.findByText('A aula pode começar.')).toBeTruthy();
-    expect(screen.getByText('Passo 1 de 3')).toBeTruthy();
+    expect(screen.getByText('Boas-vindas')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Vamos configurar' })).toBeTruthy();
     // Sem abas durante o funil.
     expect(screen.queryByRole('button', { name: 'Progresso' })).toBeNull();
   });
 
-  it('avança para o Passo 2 (configuração essencial) em "Vamos configurar"', async () => {
+  it('avança para "Suas contas" em "Vamos configurar"', async () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Vamos configurar' }));
 
-    expect(await screen.findByText('Passo 2 de 3')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Suas contas' })).toBeTruthy();
     expect(screen.getByText('Usuário Lichess')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Salvar' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeTruthy();
   });
 
-  it('volta do Passo 2 para as boas-vindas', async () => {
+  it('volta de "Suas contas" para as boas-vindas', async () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Vamos configurar' }));
@@ -43,7 +48,18 @@ describe('App onboarding funnel (primeira vez)', () => {
     expect(await screen.findByText('A aula pode começar.')).toBeTruthy();
   });
 
-  it('"Começar rápido" leva ao Passo 3 (aprovar plano) e aprovar cai no Hoje', async () => {
+  it('sem conta: continuar em branco leva à avaliação de entrada', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Vamos configurar' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Continuar' }));
+
+    // Sem usuário informado: cai direto nas perguntas de calibração (sem rede).
+    expect(await screen.findByText('Vamos calibrar seu plano')).toBeTruthy();
+    expect(screen.getByText('Qual é a sua experiência com xadrez?')).toBeTruthy();
+  });
+
+  it('"Começar rápido" leva ao plano e aprovar cai no Hoje', async () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Começar rápido' }));

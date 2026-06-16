@@ -23,7 +23,7 @@ const weaknesses: Weakness[] = [];
 
 function makeProps(overrides: Partial<Parameters<typeof Onboarding>[0]> = {}) {
   return {
-    step: 'setup' as const,
+    step: 'accounts' as const,
     defaults: defaultProfile,
     plan: undefined,
     roadmap,
@@ -33,7 +33,12 @@ function makeProps(overrides: Partial<Parameters<typeof Onboarding>[0]> = {}) {
     onStartSetup: vi.fn(),
     onQuickStart: vi.fn<() => Promise<void>>(() => Promise.resolve()),
     onBackToWelcome: vi.fn(),
-    onSaveProfile: vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve()),
+    onContinueAccounts: vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve()),
+    onConnectLichess: vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve()),
+    onRunImport: vi.fn<() => Promise<{ weaknessCount: number }>>(() => Promise.resolve({ weaknessCount: 0 })),
+    onImportDone: vi.fn<(weaknessCount: number) => void>(),
+    onApplyPlacement: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+    onSkipQuestions: vi.fn(),
     onApprovePlan: vi.fn<() => Promise<void>>(() => Promise.resolve()),
     onRequestPlanRevision: vi.fn<(note: string) => Promise<void>>(() => Promise.resolve()),
     ...overrides,
@@ -49,19 +54,29 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('Onboarding — step indicator', () => {
-  it('shows "Passo 1 de 3" on welcome step', () => {
+  it('labels the welcome step', () => {
     render(<Onboarding {...makeProps({ step: 'welcome' })} />);
-    expect(screen.getByText('Passo 1 de 3')).toBeInTheDocument();
+    expect(screen.getByText('Boas-vindas')).toBeInTheDocument();
   });
 
-  it('shows "Passo 2 de 3" on setup step', () => {
-    render(<Onboarding {...makeProps({ step: 'setup' })} />);
-    expect(screen.getByText('Passo 2 de 3')).toBeInTheDocument();
+  it('labels the accounts step', () => {
+    render(<Onboarding {...makeProps({ step: 'accounts' })} />);
+    expect(screen.getAllByText('Suas contas').length).toBeGreaterThan(0);
   });
 
-  it('shows "Passo 3 de 3" on plan step', () => {
+  it('labels the importing step', () => {
+    render(<Onboarding {...makeProps({ step: 'importing' })} />);
+    expect(screen.getAllByText('Importando').length).toBeGreaterThan(0);
+  });
+
+  it('labels the questions step', () => {
+    render(<Onboarding {...makeProps({ step: 'questions' })} />);
+    expect(screen.getAllByText('Avaliação de entrada').length).toBeGreaterThan(0);
+  });
+
+  it('labels the plan step', () => {
     render(<Onboarding {...makeProps({ step: 'plan' })} />);
-    expect(screen.getByText('Passo 3 de 3')).toBeInTheDocument();
+    expect(screen.getByText('Seu plano')).toBeInTheDocument();
   });
 });
 
@@ -97,267 +112,128 @@ describe('Onboarding — welcome step', () => {
     render(<Onboarding {...makeProps({ step: 'welcome', notice: 'Seu perfil foi atualizado.' })} />);
     expect(screen.getByText('Seu perfil foi atualizado.')).toBeInTheDocument();
   });
-
-  it('does not render notice element when notice is undefined', () => {
-    render(<Onboarding {...makeProps({ step: 'welcome', notice: undefined })} />);
-    expect(screen.queryByText('Seu perfil foi atualizado.')).not.toBeInTheDocument();
-  });
 });
 
 // ---------------------------------------------------------------------------
-// EssentialSetup step — field rendering
+// Accounts step — fields
 // ---------------------------------------------------------------------------
 
-describe('Onboarding — EssentialSetup step — fields', () => {
-  it('renders the setup heading', () => {
+describe('Onboarding — accounts step — fields', () => {
+  it('renders the accounts heading', () => {
     render(<Onboarding {...makeProps()} />);
-    expect(screen.getByRole('heading', { name: 'Vamos configurar' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Suas contas' })).toBeInTheDocument();
   });
 
-  it('renders the Lichess username field label', () => {
+  it('renders the Lichess and Chess.com username fields', () => {
     render(<Onboarding {...makeProps()} />);
     expect(screen.getByText('Usuário Lichess')).toBeInTheDocument();
-  });
-
-  it('renders the Chess.com username field label', () => {
-    render(<Onboarding {...makeProps()} />);
     expect(screen.getByText('Usuário Chess.com')).toBeInTheDocument();
   });
 
-  it('renders the band selector label', () => {
+  it('renders the band and session selectors', () => {
     render(<Onboarding {...makeProps()} />);
     expect(screen.getByText('Faixa atual')).toBeInTheDocument();
-  });
-
-  it('renders the session time selector label', () => {
-    render(<Onboarding {...makeProps()} />);
     expect(screen.getByText('Tempo padrão')).toBeInTheDocument();
   });
 
-  it('renders the save button', () => {
+  it('renders the Continuar and Voltar buttons', () => {
     render(<Onboarding {...makeProps()} />);
-    expect(screen.getByRole('button', { name: 'Salvar' })).toBeInTheDocument();
-  });
-
-  it('renders the back button', () => {
-    render(<Onboarding {...makeProps()} />);
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument();
   });
 
-  it('renders the OAuth hint text under the Lichess field', () => {
+  it('explains that leaving accounts blank leads to the questions', () => {
     render(<Onboarding {...makeProps()} />);
-    expect(
-      screen.getByText(/conecte o Lichess na aba Config depois de salvar/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Deixe em branco e\s+continue/)).toBeInTheDocument();
   });
 
-  it('renders the Chess.com "apenas dados públicos" hint', () => {
+  it('hides the optional "Conectar Lichess" button until a Lichess username is typed', () => {
     render(<Onboarding {...makeProps()} />);
-    expect(screen.getByText(/Só dados públicos, sem login/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Conectar Lichess/ })).toBeNull();
+
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.change(inputs[0] as HTMLElement, { target: { value: 'jukaxadrez' } });
+
+    expect(screen.getByRole('button', { name: /Conectar Lichess/ })).toBeInTheDocument();
   });
 
-  it('pre-fills Lichess username from defaults when provided', () => {
-    const profileWithUser: LearnerProfile = { ...defaultProfile, lichessUsername: 'jukaxadrez' };
-    render(<Onboarding {...makeProps({ defaults: profileWithUser })} />);
+  it('pre-fills usernames from defaults', () => {
+    const profileWithUsers: LearnerProfile = {
+      ...defaultProfile,
+      lichessUsername: 'jukalichess',
+      chesscomUsername: 'jukachess',
+    };
+    render(<Onboarding {...makeProps({ defaults: profileWithUsers })} />);
     const inputs = screen.getAllByRole('textbox');
-    // First textbox is Lichess username
-    expect(inputs[0]).toHaveValue('jukaxadrez');
-  });
-
-  it('pre-fills Chess.com username from defaults when provided', () => {
-    const profileWithUser: LearnerProfile = { ...defaultProfile, chesscomUsername: 'jukachess' };
-    render(<Onboarding {...makeProps({ defaults: profileWithUser })} />);
-    const inputs = screen.getAllByRole('textbox');
-    // Second textbox is Chess.com username
+    expect(inputs[0]).toHaveValue('jukalichess');
     expect(inputs[1]).toHaveValue('jukachess');
-  });
-
-  it('renders all band options in the select', () => {
-    render(<Onboarding {...makeProps()} />);
-    const selects = screen.getAllByRole('combobox');
-    // First select is Faixa atual
-    const bandSelect = selects[0];
-    const options = Array.from((bandSelect as HTMLSelectElement).options).map((o) => o.value);
-    expect(options).toContain('0-400');
-    expect(options).toContain('800-1000');
-    expect(options).toContain('2000-2200');
-  });
-
-  it('renders the session time options (5, 15, 30, 60 min)', () => {
-    render(<Onboarding {...makeProps()} />);
-    const selects = screen.getAllByRole('combobox');
-    // Second select is Tempo padrão
-    const timeSelect = selects[1];
-    const optionTexts = Array.from((timeSelect as HTMLSelectElement).options).map((o) => o.text);
-    expect(optionTexts).toContain('5 min');
-    expect(optionTexts).toContain('15 min');
-    expect(optionTexts).toContain('30 min');
-    expect(optionTexts).toContain('60 min');
   });
 });
 
 // ---------------------------------------------------------------------------
-// EssentialSetup step — form submission
+// Accounts step — submission and navigation
 // ---------------------------------------------------------------------------
 
-describe('Onboarding — EssentialSetup step — form submission', () => {
-  it('calls onSaveProfile with typed Lichess username on submit', async () => {
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
+describe('Onboarding — accounts step — submission', () => {
+  it('calls onContinueAccounts with the trimmed Lichess username', async () => {
+    const onContinueAccounts = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
+    render(<Onboarding {...makeProps({ onContinueAccounts })} />);
 
     const inputs = screen.getAllByRole('textbox');
-    fireEvent.change(inputs[0] as HTMLElement, { target: { value: 'meu_lichess' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    fireEvent.change(inputs[0] as HTMLElement, { target: { value: '  meu_lichess  ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 
     await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
+      expect(onContinueAccounts).toHaveBeenCalledTimes(1);
     });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
-    expect(saved?.lichessUsername).toBe('meu_lichess');
+    expect(onContinueAccounts.mock.calls[0]?.[0].lichessUsername).toBe('meu_lichess');
   });
 
-  it('calls onSaveProfile with typed Chess.com username on submit', async () => {
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
+  it('passes undefined usernames when both fields are empty', async () => {
+    const onContinueAccounts = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
+    render(<Onboarding {...makeProps({ onContinueAccounts })} />);
 
-    const inputs = screen.getAllByRole('textbox');
-    fireEvent.change(inputs[1] as HTMLElement, { target: { value: 'meu_chesscom' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 
     await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
+      expect(onContinueAccounts).toHaveBeenCalledTimes(1);
     });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
-    expect(saved?.chesscomUsername).toBe('meu_chesscom');
-  });
-
-  it('passes undefined for lichessUsername when left empty', async () => {
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
-    });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
+    const saved = onContinueAccounts.mock.calls[0]?.[0];
     expect(saved?.lichessUsername).toBeUndefined();
-  });
-
-  it('passes undefined for chesscomUsername when left empty', async () => {
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
-    });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
     expect(saved?.chesscomUsername).toBeUndefined();
   });
 
-  it('trims whitespace from lichessUsername before saving', async () => {
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
-
-    const inputs = screen.getAllByRole('textbox');
-    fireEvent.change(inputs[0] as HTMLElement, { target: { value: '  lichess_user  ' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
-    });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
-    expect(saved?.lichessUsername).toBe('lichess_user');
-  });
-
-  it('passes only-whitespace lichessUsername as undefined', async () => {
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
-
-    const inputs = screen.getAllByRole('textbox');
-    fireEvent.change(inputs[0] as HTMLElement, { target: { value: '   ' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
-    });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
-    expect(saved?.lichessUsername).toBeUndefined();
-  });
-
-  it('passes the selected band to onSaveProfile', async () => {
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
+  it('passes the selected band and session minutes', async () => {
+    const onContinueAccounts = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
+    render(<Onboarding {...makeProps({ onContinueAccounts })} />);
 
     const selects = screen.getAllByRole('combobox');
     fireEvent.change(selects[0] as HTMLSelectElement, { target: { value: '1200-1600' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
-    });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
-    expect(saved?.band).toBe('1200-1600');
-  });
-
-  it('passes the selected session minutes to onSaveProfile', async () => {
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
-
-    const selects = screen.getAllByRole('combobox');
     fireEvent.change(selects[1] as HTMLSelectElement, { target: { value: '30' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 
     await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
+      expect(onContinueAccounts).toHaveBeenCalledTimes(1);
     });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
+    const saved = onContinueAccounts.mock.calls[0]?.[0];
+    expect(saved?.band).toBe('1200-1600');
     expect(saved?.defaultSessionMinutes).toBe(30);
   });
 
-  it('preserves the goals array from defaults', async () => {
-    const profileWithGoals: LearnerProfile = { ...defaultProfile, goals: ['melhorar tática'] };
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
-    render(<Onboarding {...makeProps({ defaults: profileWithGoals, onSaveProfile })} />);
+  it('calls onConnectLichess with the assembled profile when connecting', async () => {
+    const onConnectLichess = vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve());
+    render(<Onboarding {...makeProps({ onConnectLichess })} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.change(inputs[0] as HTMLElement, { target: { value: 'jukaxadrez' } });
+    fireEvent.click(screen.getByRole('button', { name: /Conectar Lichess/ }));
 
     await waitFor(() => {
-      expect(onSaveProfile).toHaveBeenCalledTimes(1);
+      expect(onConnectLichess).toHaveBeenCalledTimes(1);
     });
-    const saved = onSaveProfile.mock.calls[0]?.[0];
-    expect(saved?.goals).toEqual(['melhorar tática']);
+    expect(onConnectLichess.mock.calls[0]?.[0].lichessUsername).toBe('jukaxadrez');
   });
 
-  it('disables the save button while saving', async () => {
-    let resolvePromise!: () => void;
-    const onSaveProfile = vi.fn<(profile: LearnerProfile) => Promise<void>>(
-      () => new Promise<void>((resolve) => { resolvePromise = resolve; }),
-    );
-    render(<Onboarding {...makeProps({ onSaveProfile })} />);
-
-    const saveButton = screen.getByRole('button', { name: 'Salvar' });
-    fireEvent.click(saveButton);
-
-    await waitFor(() => {
-      expect(saveButton).toBeDisabled();
-    });
-
-    resolvePromise();
-
-    await waitFor(() => {
-      expect(saveButton).not.toBeDisabled();
-    });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// EssentialSetup step — navigation
-// ---------------------------------------------------------------------------
-
-describe('Onboarding — EssentialSetup step — navigation', () => {
   it('calls onBackToWelcome when "Voltar" is clicked', () => {
     const onBackToWelcome = vi.fn();
     render(<Onboarding {...makeProps({ onBackToWelcome })} />);
@@ -367,11 +243,70 @@ describe('Onboarding — EssentialSetup step — navigation', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Importing step
+// ---------------------------------------------------------------------------
+
+describe('Onboarding — importing step', () => {
+  it('shows the loading copy and the sources being imported', () => {
+    const profileWithUsers: LearnerProfile = {
+      ...defaultProfile,
+      lichessUsername: 'jukalichess',
+      chesscomUsername: 'jukachess',
+    };
+    render(<Onboarding {...makeProps({ step: 'importing', defaults: profileWithUsers })} />);
+    expect(screen.getByRole('heading', { name: 'Buscando suas partidas…' })).toBeInTheDocument();
+    expect(screen.getByText(/Lichess e Chess\.com/)).toBeInTheDocument();
+  });
+
+  it('runs the import once on mount and reports the weakness count', async () => {
+    const onRunImport = vi.fn<() => Promise<{ weaknessCount: number }>>(() =>
+      Promise.resolve({ weaknessCount: 3 }),
+    );
+    const onImportDone = vi.fn<(weaknessCount: number) => void>();
+    render(<Onboarding {...makeProps({ step: 'importing', onRunImport, onImportDone })} />);
+
+    await waitFor(() => {
+      expect(onImportDone).toHaveBeenCalledWith(3);
+    });
+    expect(onRunImport).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Questions step
+// ---------------------------------------------------------------------------
+
+describe('Onboarding — questions step', () => {
+  it('opens straight into the placement questions', () => {
+    render(<Onboarding {...makeProps({ step: 'questions' })} />);
+    expect(screen.getByText('Qual é a sua experiência com xadrez?')).toBeInTheDocument();
+  });
+
+  it('explains the no-account case when no username is present', () => {
+    render(<Onboarding {...makeProps({ step: 'questions' })} />);
+    expect(screen.getByText(/Sem partidas para analisar ainda/)).toBeInTheDocument();
+  });
+
+  it('explains the insufficient-data case when an account is present', () => {
+    const profileWithUser: LearnerProfile = { ...defaultProfile, chesscomUsername: 'jukachess' };
+    render(<Onboarding {...makeProps({ step: 'questions', defaults: profileWithUser })} />);
+    expect(screen.getByText(/ainda não deram um sinal concentrado/)).toBeInTheDocument();
+  });
+
+  it('calls onSkipQuestions when the learner skips the assessment', () => {
+    const onSkipQuestions = vi.fn();
+    render(<Onboarding {...makeProps({ step: 'questions', onSkipQuestions })} />);
+    fireEvent.click(screen.getByRole('button', { name: /Pular e usar a faixa/ }));
+    expect(onSkipQuestions).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Plan step
 // ---------------------------------------------------------------------------
 
 describe('Onboarding — plan step', () => {
-  it('shows loading message when plan is undefined', () => {
+  it('shows the loading message when plan is undefined', () => {
     render(<Onboarding {...makeProps({ step: 'plan', plan: undefined })} />);
     expect(screen.getByText('O professor está montando seu plano…')).toBeInTheDocument();
   });

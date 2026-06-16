@@ -1,5 +1,5 @@
 import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
 import { createDefaultProfile, useAppState } from '../app/state';
@@ -7,6 +7,25 @@ import { LemosAvatar } from './art/LemosAvatar';
 import { Onboarding, type OnboardingStep } from './Onboarding';
 import { ReloadPrompt } from './ReloadPrompt';
 import { Today } from './Today';
+
+// Fase do funil de primeira vez. Fica em sessionStorage para sobreviver ao
+// redirect do OAuth do Lichess (que recarrega o app): ao voltar conectado,
+// retomamos direto na tela "Importando" em vez de reiniciar o funil.
+type FunnelPhase = 'welcome' | 'accounts' | 'importing' | 'questions' | 'plan';
+const ONBOARDING_PHASE_KEY = 'rotina:onboarding-phase';
+
+function readStoredFunnelPhase(): FunnelPhase | undefined {
+  try {
+    const stored = sessionStorage.getItem(ONBOARDING_PHASE_KEY);
+    if (stored === 'accounts' || stored === 'importing' || stored === 'questions' || stored === 'plan') {
+      return stored;
+    }
+  } catch {
+    // sessionStorage pode falhar (modo privado/iframe); o funil começa do início.
+  }
+
+  return undefined;
+}
 
 // Hoje é a tela padrão e fica no chunk principal; Config e Progresso chegam
 // sob demanda (code-split) para encurtar o carregamento inicial no celular.
@@ -40,23 +59,48 @@ function ViewFallback() {
 
 export function App() {
   const appState = useAppState();
-  // Funil de primeira vez: avança Boas-vindas → Configurar → Aprovar plano →
-  // Hoje. startedSetup distingue Boas-vindas de Configurar (não persiste).
-  const [startedSetup, setStartedSetup] = useState(false);
+  // Funil de primeira vez: Boas-vindas → Suas contas → Importando →
+  // (Avaliação?) → Aprovar plano → Hoje. A fase fica em sessionStorage para
+  // sobreviver ao redirect do OAuth do Lichess.
+  const [funnelPhase, setFunnelPhaseState] = useState<FunnelPhase>(() => readStoredFunnelPhase() ?? 'welcome');
   const funnelRef = useRef<HTMLElement>(null);
+
+  const setFunnelPhase = useCallback((phase: FunnelPhase) => {
+    try {
+      sessionStorage.setItem(ONBOARDING_PHASE_KEY, phase);
+    } catch {
+      // Sem sessionStorage o funil ainda funciona; só não resume após o OAuth.
+    }
+    setFunnelPhaseState(phase);
+  }, []);
 
   const onboardingDone = appState.onboardingCompletedAt !== undefined;
   const planApproved = appState.todayPlan?.learningPlanResponse?.status === 'approved';
   // App principal só com perfil presente; resolvido por flag persistida OU por
   // plano aprovado (cobre quem já usava antes do funil existir).
   const onboardingResolved = appState.profile !== undefined && (onboardingDone || planApproved);
+  // Sem perfil: só boas-vindas ou o formulário de contas. Com perfil: a fase
+  // guiada (importando/avaliação/plano); 'welcome' aqui é um usuário migrado
+  // sem fase salva — mostramos o plano para aprovar.
   const onboardingStep: OnboardingStep =
-    appState.profile === undefined ? (startedSetup ? 'setup' : 'welcome') : 'plan';
+    appState.profile === undefined
+      ? funnelPhase === 'accounts'
+        ? 'accounts'
+        : 'welcome'
+      : funnelPhase === 'welcome'
+        ? 'plan'
+        : funnelPhase;
 
   // Marca a conclusão quando perfil existe e o plano foi aprovado (fim do funil
-  // ou migração de usuário antigo). Persiste para reabrir direto no Hoje.
+  // ou migração de usuário antigo). Persiste para reabrir direto no Hoje e
+  // limpa a fase do funil para não vazar para uma sessão futura.
   useEffect(() => {
     if (!onboardingDone && appState.profile !== undefined && planApproved) {
+      try {
+        sessionStorage.removeItem(ONBOARDING_PHASE_KEY);
+      } catch {
+        // Ignorado: limpar a fase é só higiene, não muda o estado resolvido.
+      }
       void appState.completeOnboarding();
     }
   }, [onboardingDone, planApproved, appState.profile, appState.completeOnboarding]);
@@ -114,15 +158,51 @@ export function App() {
           weaknesses={appState.weaknesses}
           learningPlanResponse={appState.todayPlan?.learningPlanResponse}
           onStartSetup={() => {
-            setStartedSetup(true);
+            setFunnelPhase('accounts');
           }}
           onQuickStart={async () => {
             await appState.saveProfile(createDefaultProfile());
+            setFunnelPhase('plan');
           }}
           onBackToWelcome={() => {
-            setStartedSetup(false);
+            setFunnelPhase('welcome');
           }}
-          onSaveProfile={appState.saveProfile}
+          onContinueAccounts={async (nextProfile) => {
+            await appState.saveProfile(nextProfile, { autoSync: false });
+            const hasAccount =
+              (nextProfile.lichessUsername ?? '').trim() !== '' ||
+              (nextProfile.chesscomUsername ?? '').trim() !== '';
+            setFunnelPhase(hasAccount ? 'importing' : 'questions');
+          }}
+          onConnectLichess={async (nextProfile) => {
+            // Salva o usuário e fixa a fase ANTES do redirect: ao voltar do
+            // Lichess, o boot lê 'importing' do sessionStorage e retoma ali.
+            await appState.saveProfile(nextProfile, { autoSync: false });
+            setFunnelPhase('importing');
+            await appState.connectLichess();
+          }}
+          onRunImport={() => appState.runOnboardingImport(appState.profile ?? createDefaultProfile())}
+          onImportDone={(weaknessCount) => {
+            setFunnelPhase(weaknessCount > 0 ? 'plan' : 'questions');
+          }}
+          onApplyPlacement={async (placement) => {
+            await appState.savePlacementResult({
+              band: placement.band,
+              confidence: placement.confidence,
+              calibrated: placement.calibrated,
+              completedAt: new Date().toISOString(),
+            });
+            if (appState.profile !== undefined) {
+              await appState.saveProfile(
+                { ...appState.profile, band: placement.band, updatedAt: new Date().toISOString() },
+                { autoSync: false },
+              );
+            }
+            setFunnelPhase('plan');
+          }}
+          onSkipQuestions={() => {
+            setFunnelPhase('plan');
+          }}
           onApprovePlan={appState.approveLearningPlan}
           onRequestPlanRevision={appState.requestLearningPlanRevision}
         />

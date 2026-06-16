@@ -26,6 +26,9 @@ type PlacementCardProps = {
   onApplyBand: (placement: PlacementApplication) => Promise<void>;
   // Dentro de um Fold o título vem do summary da dobra — sem h2 duplicado.
   hideHeading?: boolean;
+  // No onboarding já entramos direto nas perguntas (sem a tela "Começar
+  // avaliação"). Na Config segue 'idle' para não abrir tudo de uma vez.
+  initialStep?: PlacementStep;
 };
 
 type PlacementStep = 'idle' | 'questions' | 'result';
@@ -59,11 +62,16 @@ const calibrationOptions: { value: PlacementCalibrationReport; label: string }[]
   { value: 'quase-nenhum', label: 'Acertei quase nenhum' },
 ];
 
-export function PlacementCard({ currentBand, onApplyBand, hideHeading = false }: PlacementCardProps) {
+export function PlacementCard({
+  currentBand,
+  onApplyBand,
+  hideHeading = false,
+  initialStep = 'idle',
+}: PlacementCardProps) {
   const sectionAria = hideHeading
     ? { 'aria-label': 'Avaliação de entrada' }
     : { 'aria-labelledby': 'placement-title' };
-  const [step, setStep] = useState<PlacementStep>('idle');
+  const [step, setStep] = useState<PlacementStep>(initialStep);
   const [experience, setExperience] = useState<PlacementExperience | undefined>(undefined);
   const [tactics, setTactics] = useState<PlacementTactics | undefined>(undefined);
   const [endgames, setEndgames] = useState<PlacementEndgames | undefined>(undefined);

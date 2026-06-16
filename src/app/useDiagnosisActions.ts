@@ -24,6 +24,7 @@ import {
   loadChesscomMonthCache,
   loadLichessOAuthToken,
   loadSignals,
+  loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
@@ -270,6 +271,36 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     [runDiagnosisSync, setLichessConnectionState, setLichessMessage],
   );
 
+  // Onboarding: importa as fontes do perfil e ESPERA terminar (await), ao
+  // contrário do auto-sync ao salvar, que é fire-and-forget. A tela "Importando"
+  // bloqueia no loading até isto resolver e então decide a rota: faixa de dados
+  // suficiente (alguma fraqueza detectada) → aprovar plano; senão → perguntas.
+  // Lê as fraquezas do storage (fonte da verdade) em vez do estado React, que
+  // ainda não terá propagado quando este await retorna.
+  const runOnboardingImport = useCallback(
+    async (targetProfile: LearnerProfile): Promise<{ weaknessCount: number }> => {
+      const wantsChesscom = (targetProfile.chesscomUsername ?? '').trim() !== '';
+      const wantsLichess = (targetProfile.lichessUsername ?? '').trim() !== '';
+
+      // Cada sync tem catch próprio (não lança); uma fonte lenta/com erro não
+      // cancela a outra. Sem maxAgeMs: puxa o histórico de propósito no onboarding.
+      const jobs: Promise<unknown>[] = [];
+      if (wantsChesscom) {
+        jobs.push(runChesscomSync(targetProfile));
+      }
+      if (wantsLichess) {
+        jobs.push(runLichessSync(targetProfile));
+      }
+
+      await Promise.allSettled(jobs);
+
+      const weaknesses = await loadWeaknesses();
+
+      return { weaknessCount: weaknesses.length };
+    },
+    [runChesscomSync, runLichessSync],
+  );
+
   const syncChesscomDiagnosis = useCallback(async () => {
     if (profile === undefined) {
       setActiveView('config');
@@ -415,6 +446,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     importKnownManualSignals,
     runChesscomSync,
     runLichessSync,
+    runOnboardingImport,
     syncChesscomDiagnosis,
     syncLichessDiagnosis,
   };

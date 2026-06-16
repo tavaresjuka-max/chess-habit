@@ -81,7 +81,11 @@ export type AppState = {
   readonly enableAutoBackup: () => Promise<void>;
   readonly disableAutoBackup: () => Promise<void>;
   readonly setActiveView: (view: AppView) => void;
-  readonly saveProfile: (profile: LearnerProfile) => Promise<void>;
+  // autoSync (padrão true): ao salvar perfil com usuários, dispara o sync de
+  // fundo (fire-and-forget). O onboarding passa false e roda runOnboardingImport
+  // de forma awaitada na tela "Importando", para mostrar o loading real.
+  readonly saveProfile: (profile: LearnerProfile, options?: { autoSync?: boolean }) => Promise<void>;
+  readonly runOnboardingImport: (profile: LearnerProfile) => Promise<{ weaknessCount: number }>;
   readonly savePlacementResult: (result: StoredPlacementResult) => Promise<void>;
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
   readonly createNextSession: (minutes: SessionMinutes) => Promise<void>;
@@ -175,6 +179,7 @@ export function useAppState(): AppState {
     importKnownManualSignals,
     runChesscomSync,
     runLichessSync,
+    runOnboardingImport,
     syncChesscomDiagnosis,
     syncLichessDiagnosis,
   } = useDiagnosisActions({
@@ -196,7 +201,7 @@ export function useAppState(): AppState {
     setLichessMessage,
   });
 
-  const saveProfile = useCallback(async (nextProfile: LearnerProfile) => {
+  const saveProfile = useCallback(async (nextProfile: LearnerProfile, options?: { autoSync?: boolean }) => {
     const date = getTodayDate();
     const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
     const plan = generatePlan(
@@ -224,7 +229,7 @@ export function useAppState(): AppState {
     const wantsChesscom = (nextProfile.chesscomUsername ?? '').trim() !== '';
     const wantsLichess = (nextProfile.lichessUsername ?? '').trim() !== '';
 
-    if (wantsChesscom || wantsLichess) {
+    if (options?.autoSync !== false && (wantsChesscom || wantsLichess)) {
       // Cada fonte tem catch proprio: um erro inesperado fica visivel por fonte
       // e nao cancela o outro sync (J3: falha auditavel).
       const syncJobs = [
@@ -403,6 +408,7 @@ export function useAppState(): AppState {
     disableAutoBackup,
     setActiveView,
     saveProfile,
+    runOnboardingImport,
     savePlacementResult,
     regeneratePlan,
     createNextSession,
