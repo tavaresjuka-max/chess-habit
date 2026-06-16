@@ -97,6 +97,7 @@ describe('validateBackupData', () => {
       logs: [{ id: 'l1', startedAt: '2026-06-01T10:00:00.000Z', elapsedSeconds: 30 }],
       signals: [{ id: 's1', kind: 'weakness' }],
       weaknesses: [{ id: 'w1', tag: 'fork' }],
+      pendingItems: [{ id: 'pending-1', status: 'open' }],
       achievements: [{ id: 'primeira-hora', unlockedAt: '2026-06-01T00:00:00.000Z', updatedAt: '2026-06-01T00:00:00.000Z' }],
       placementResults: [{ id: 'latest', band: '800-1000' }],
     };
@@ -147,6 +148,15 @@ describe('validateBackupData', () => {
     expect(error).not.toBeNull();
     expect(error).toContain('logs');
     expect(error).toContain('startedAt');
+  });
+
+  it('rejects pending items missing status', () => {
+    const data: BackupData = { ...createEmptyData(), pendingItems: [{ id: 'pending-1' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('pendingItems');
+    expect(error).toContain('status');
   });
 
   it('rejects achievements item missing unlockedAt', () => {

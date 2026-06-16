@@ -122,6 +122,10 @@ function isValidId(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
+function isPendingItemStatus(value: unknown): value is 'open' | 'done' | 'deferred' {
+  return value === 'open' || value === 'done' || value === 'deferred';
+}
+
 export function validateBackupData(data: BackupData): string | null {
   for (const [i, item] of data.profile.entries()) {
     if (!isObj(item) || typeof item.band !== 'string' || typeof item.updatedAt !== 'string') {
@@ -178,6 +182,9 @@ export function validateBackupData(data: BackupData): string | null {
   for (const [i, item] of data.pendingItems.entries()) {
     if (!isObj(item) || !isValidId(item.id)) {
       return entityError('pendingItems', i, 'id');
+    }
+    if (!isPendingItemStatus(item.status)) {
+      return entityError('pendingItems', i, 'status');
     }
   }
 
