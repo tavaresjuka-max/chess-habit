@@ -1,4 +1,5 @@
 import type { Signal } from '../../domain';
+import type { LearnerBand } from '../../domain/types';
 import type { ChesscomColor, ChesscomGame, ChesscomStatsResponse } from './types';
 
 type OpeningAggregate = {
@@ -77,11 +78,13 @@ export function extractSignalsFromChesscomGames(
   username: string,
   games: ChesscomGame[],
   observedAt: string,
+  band?: LearnerBand,
 ): Signal[] {
   const openings = new Map<string, OpeningAggregate>();
   const timeControls = new Map<string, TimeAggregate>();
   const colors = new Map<ChesscomColor, ColorAggregate>();
   const accuracies: AccuracyAggregate = { games: 0, lowAccuracyGames: 0 };
+  const lowAccuracyThreshold = getLowAccuracyThreshold(band);
 
   for (const game of games) {
     if (game.rules !== undefined && game.rules !== 'chess') {
@@ -104,7 +107,7 @@ export function extractSignalsFromChesscomGames(
     const didLose = isLossResult(result);
     addColor(colors, side, didLose, gameObservedAt);
     addTimeControl(timeControls, game.time_class ?? 'unknown', didLose, isTimeoutLoss(result), gameObservedAt);
-    addAccuracy(accuracies, game.accuracies?.[side], gameObservedAt);
+    addAccuracy(accuracies, game.accuracies?.[side], lowAccuracyThreshold, gameObservedAt);
 
     const opening = getOpeningFromGame(game);
 
@@ -189,13 +192,18 @@ function addColor(
   });
 }
 
-function addAccuracy(accuracies: AccuracyAggregate, accuracy: number | undefined, observedAt: string): void {
+function addAccuracy(
+  accuracies: AccuracyAggregate,
+  accuracy: number | undefined,
+  lowAccuracyThreshold: number,
+  observedAt: string,
+): void {
   if (accuracy === undefined) {
     return;
   }
 
   accuracies.games += 1;
-  accuracies.lowAccuracyGames += accuracy < 70 ? 1 : 0;
+  accuracies.lowAccuracyGames += accuracy < lowAccuracyThreshold ? 1 : 0;
   accuracies.observedAt =
     accuracies.observedAt === undefined ? observedAt : latestObservedAt(accuracies.observedAt, observedAt);
 }
@@ -318,6 +326,10 @@ function latestObservedAt(left: string, right: string): string {
   }
 
   return rightTime > leftTime ? right : left;
+}
+
+function getLowAccuracyThreshold(band: LearnerBand | undefined): number {
+  return band === '0-400' || band === '400-800' ? 65 : 70;
 }
 
 export function parsePgnTags(pgn: string): Record<string, string> {

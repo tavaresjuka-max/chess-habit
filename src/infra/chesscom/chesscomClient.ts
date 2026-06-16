@@ -1,4 +1,4 @@
-import type { Signal } from '../../domain';
+import type { LearnerBand, Signal } from '../../domain';
 import { chesscomFetch } from '../http/providerQueue';
 import { extractSignalsFromChesscomGames, extractSignalsFromChesscomStats } from './extractSignals';
 import type { ChesscomArchivesResponse, ChesscomMonthlyArchiveResponse, ChesscomStatsResponse } from './types';
@@ -21,6 +21,7 @@ export type ImportChesscomOptions = {
   fetcher?: typeof fetch;
   cache?: ChesscomSignalCache;
   observedAt?: string;
+  band?: LearnerBand;
 };
 
 const chesscomApiBaseUrl = 'https://api.chess.com';
@@ -58,7 +59,12 @@ export async function importChesscomSignals(username: string, options: ImportChe
 
     const month = await fetchJson<ChesscomMonthlyArchiveResponse>(archiveUrl, fetcher);
     const monthObservedAt = observedAtForArchive(archiveUrl, observedAt);
-    const monthSignals = extractSignalsFromChesscomGames(normalizedUsername, month.games ?? [], monthObservedAt);
+    const monthSignals = extractSignalsFromChesscomGames(
+      normalizedUsername,
+      month.games ?? [],
+      monthObservedAt,
+      options.band,
+    );
 
     signals.push(...monthSignals);
     await saveCachedSignals(options.cache, normalizedUsername, archiveUrl, monthSignals, observedAt);

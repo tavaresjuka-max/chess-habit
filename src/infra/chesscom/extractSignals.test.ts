@@ -86,4 +86,25 @@ describe('extractSignalsFromChesscomGames', () => {
     expect(serializedSignals).not.toContain('1. e4');
     expect(serializedSignals).not.toContain('[Event');
   });
+
+  it('calibrates low-accuracy threshold by learner band', () => {
+    const games: ChesscomGame[] = [
+      {
+        white: { username: 'jukatavares', result: 'resigned' },
+        black: { username: 'opponent', result: 'win' },
+        accuracies: { white: 67 },
+        rules: 'chess',
+      },
+    ];
+
+    const beginnerAccuracy = extractSignalsFromChesscomGames('jukatavares', games, observedAt, '400-800').find(
+      (signal) => signal.value.kind === 'accuracy',
+    );
+    const higherAccuracy = extractSignalsFromChesscomGames('jukatavares', games, observedAt, '1000-1200').find(
+      (signal) => signal.value.kind === 'accuracy',
+    );
+
+    expect(beginnerAccuracy?.value).toEqual({ kind: 'accuracy', lowAccuracyGames: 0, games: 1 });
+    expect(higherAccuracy?.value).toEqual({ kind: 'accuracy', lowAccuracyGames: 1, games: 1 });
+  });
 });

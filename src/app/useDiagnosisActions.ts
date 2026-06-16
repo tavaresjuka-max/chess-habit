@@ -167,6 +167,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
           },
           fetchSignals: () =>
             importChesscomSignals(targetProfile.chesscomUsername ?? '', {
+              band: targetProfile.band,
               cache: {
                 loadMonth: loadChesscomMonthCache,
                 saveMonth: saveChesscomMonthCache,
