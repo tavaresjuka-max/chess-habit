@@ -62,6 +62,16 @@ export async function savePlan(plan: DailyPlan): Promise<void> {
   await db.plans.put(plan);
 }
 
+export async function saveProfileAndPlan(profile: LearnerProfile, plan: DailyPlan): Promise<void> {
+  await db.transaction('rw', [db.profile, db.plans], async () => {
+    await db.profile.put({
+      ...profile,
+      id: defaultProfileId,
+    });
+    await db.plans.put(plan);
+  });
+}
+
 export async function getPlan(date: string): Promise<DailyPlan | undefined> {
   return db.plans.get(date);
 }

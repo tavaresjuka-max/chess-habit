@@ -25,9 +25,8 @@ import {
   type BackupImportResult,
   loadTrainingLogs,
   loadTrainingLogsForDate,
-  savePlan,
   type StoredPlacementResult,
-  saveProfile as saveStoredProfile,
+  saveProfileAndPlan,
 } from '../infra/storage/appData';
 import { type AutoBackupStatus } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
@@ -208,8 +207,7 @@ export function useAppState(): AppState {
       buildPlanContext({ previousPlan: todayPlan, recentThemeStats, trainingLogs, pendingItems, diplomaAttempts }),
     );
 
-    await saveStoredProfile(nextProfile);
-    await savePlan(plan);
+    await saveProfileAndPlan(nextProfile, plan);
 
     setProfile(nextProfile);
     setSessionMinutes(nextProfile.defaultSessionMinutes);

@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { generatePlan } from '../../domain';
 import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
 import type { LearnerProfile, Signal, Weakness } from '../../domain';
@@ -36,6 +36,7 @@ import {
   savePendingItem,
   savePlan,
   saveProfile,
+  saveProfileAndPlan,
   loadChesscomMonthCache,
   saveTrainingLog,
   updatePendingItemStatus,
@@ -68,6 +69,7 @@ const profile: LearnerProfile = {
 };
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   await clearAll();
 });
 
@@ -86,6 +88,16 @@ describe('appData storage', () => {
 
     await expect(loadProfile()).resolves.toEqual(profile);
     await expect(getPlan('2026-06-06')).resolves.toEqual(plan);
+  });
+
+  it('rolls back profile when saving profile and plan fails', async () => {
+    const plan = generatePlan(profile, [], 15, '2026-06-06');
+
+    vi.spyOn(db.plans, 'put').mockRejectedValueOnce(new Error('plan write failed'));
+
+    await expect(saveProfileAndPlan(profile, plan)).rejects.toThrow('plan write failed');
+    await expect(loadProfile()).resolves.toBeUndefined();
+    await expect(getPlan('2026-06-06')).resolves.toBeUndefined();
   });
 
   it('loads the latest plan before a new daily plan date', async () => {
