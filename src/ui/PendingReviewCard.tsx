@@ -10,7 +10,7 @@ type PendingReviewCardProps = {
 };
 
 export function PendingReviewCard({ pendingItems, onOpenItem, onDeferItem }: PendingReviewCardProps) {
-  const dueItems = pendingItems.filter(isDueToday);
+  const dueItems = pendingItems.filter((item) => isDueToday(item));
 
   // Aluno novo, sem nenhuma pendência: tela limpa, nada a mostrar.
   if (pendingItems.length === 0) {

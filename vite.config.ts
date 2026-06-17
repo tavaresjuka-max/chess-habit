@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { APP_DESCRIPTION, APP_MANIFEST_NAME, APP_NAME } from './src/config/appIdentity';
 
 declare const process: {
   env: {
@@ -15,6 +16,7 @@ export const pwaOptions = {
   registerType: 'prompt',
   workbox: {
     navigateFallback: 'index.html',
+    sourcemap: false,
     // Apenas o subset latino entra no precache offline; os demais subsets do
     // Inter chegam por unicode-range so se o browser pedir. As artes .webp
     // (Lemos, molduras, texturas) entram para o app abrir inteiro offline.
@@ -25,9 +27,9 @@ export const pwaOptions = {
     ],
   },
   manifest: {
-    name: 'Rotina de Treino Lichess',
-    short_name: 'Rotina',
-    description: 'Ferramenta pessoal local-first para organizar treino de xadrez no Lichess.',
+    name: APP_MANIFEST_NAME,
+    short_name: APP_NAME,
+    description: APP_DESCRIPTION,
     start_url: '/',
     scope: '/',
     lang: 'pt-BR',
@@ -64,9 +66,8 @@ export default defineConfig({
     VitePWA(pwaOptions),
   ],
   build: {
-    // Source maps de produção: erros no Vercel e no service worker chegam com
-    // stack rastreável (antes só apareciam minificados, sem origem).
-    sourcemap: true,
+    // Beta publico: nao publicar source maps no build estatico.
+    sourcemap: false,
     rollupOptions: {
       output: {
         // Isola dependências estáveis em chunks próprios: melhora o cache de

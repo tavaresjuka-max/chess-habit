@@ -14,6 +14,8 @@ const BLUNDER_RATE_DEFAULT = 0.5;
 // Acima de 800, basta uma maioria das partidas com precisão baixa.
 const ACCURACY_LOW_RATE_BEGINNER = 0.8;
 const ACCURACY_LOW_RATE_DEFAULT = 0.6;
+const CHESSCOM_OPENING_LOSS_RATE = 0.5;
+const DEFAULT_OPENING_LOSS_RATE = 0.6;
 
 const puzzleWeaknessTitle = {
   'hanging-piece': 'pecas penduradas',
@@ -200,7 +202,11 @@ function signalToCandidates(
       return [];
 
     case 'clock':
-      if (signal.value.games >= 10 && signal.value.timeoutLosses >= 2) {
+      if (
+        signal.source === 'chesscom'
+          ? signal.value.games >= 15 && signal.value.timeoutLosses >= 1
+          : signal.value.games >= 10 && signal.value.timeoutLosses >= 2
+      ) {
         return [
           {
             tag: 'time-trouble',
@@ -214,7 +220,10 @@ function signalToCandidates(
       return [];
 
     case 'opening':
-      if (signal.value.games >= 5 && signal.value.lossRate > 0.6) {
+      if (
+        signal.value.games >= 5 &&
+        signal.value.lossRate > (signal.source === 'chesscom' ? CHESSCOM_OPENING_LOSS_RATE : DEFAULT_OPENING_LOSS_RATE)
+      ) {
         return [
           {
             tag: 'opening-principles',

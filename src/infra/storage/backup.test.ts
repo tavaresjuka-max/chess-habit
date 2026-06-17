@@ -185,7 +185,9 @@ describe('validateBackupData', () => {
   it('aceita lichessStudies e appMeta válidos', () => {
     const data: BackupData = {
       ...createEmptyData(),
-      lichessStudies: [{ id: '2026-06-06', date: '2026-06-06', studyId: 'abc123' }],
+      lichessStudies: [
+        { id: '2026-06-06', date: '2026-06-06', studyId: 'abc123', url: 'https://lichess.org/study/abc123' },
+      ],
       appMeta: [{ id: 'app', updatedAt: '2026-06-06T00:00:00.000Z' }],
     };
 
@@ -202,6 +204,45 @@ describe('validateBackupData', () => {
     expect(error).not.toBeNull();
     expect(error).toContain('lichessStudies');
     expect(error).toContain('studyId');
+  });
+
+  it('rejeita lichessStudies com URL fora do Lichess', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      lichessStudies: [
+        { id: '2026-06-06', date: '2026-06-06', studyId: 'abc123', url: 'https://evil.example/study/abc123' },
+      ],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('lichessStudies');
+    expect(error).toContain('url');
+  });
+
+  it('rejeita destino de treino importado fora do Lichess', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      plans: [
+        {
+          date: '2026-06-01',
+          blocks: [
+            {
+              id: 'block-1',
+              destination: {
+                source: 'lichess',
+                label: 'Quebrado',
+                url: 'javascript:alert(1)',
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('destination.url');
   });
 
   it('passa para backup antigo sem lichessStudies/appMeta', () => {

@@ -1,3 +1,5 @@
+import { isAllowedLichessUrl } from '../lichess/urlPolicy';
+
 export const backupFormatName = 'lichess-tutor-backup' as const;
 export const backupFormatVersion = 1 as const;
 
@@ -143,6 +145,24 @@ export function validateBackupData(data: BackupData): string | null {
     if (!Array.isArray(item.blocks)) {
       return entityError('plans', i, 'blocks');
     }
+    for (const [blockIndex, block] of item.blocks.entries()) {
+      if (!isObj(block)) {
+        return entityError('plans', i, `blocks[${String(blockIndex)}]`);
+      }
+
+      const destination = block.destination;
+
+      if (destination !== undefined) {
+        if (!isObj(destination)) {
+          return entityError('plans', i, `blocks[${String(blockIndex)}].destination`);
+        }
+        if (destination.url !== undefined) {
+          if (typeof destination.url !== 'string' || !isAllowedLichessUrl(destination.url)) {
+            return entityError('plans', i, `blocks[${String(blockIndex)}].destination.url`);
+          }
+        }
+      }
+    }
   }
 
   // elapsedSeconds e completedAt sao opcionais em TrainingLog (sessao ativa nao tem ainda).
@@ -220,6 +240,9 @@ export function validateBackupData(data: BackupData): string | null {
       }
       if (typeof item.studyId !== 'string') {
         return entityError('lichessStudies', i, 'studyId');
+      }
+      if (typeof item.url !== 'string' || !isAllowedLichessUrl(item.url)) {
+        return entityError('lichessStudies', i, 'url');
       }
     }
   }

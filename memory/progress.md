@@ -303,7 +303,8 @@
 - [x] **Auditoria geral Codex + docs zerados (2026-06-13)**.
   - [x] Badges v1 aprovados pelo dono e spec atualizada em `docs/superpowers/specs/2026-06-10-badges-spec-draft.md`.
   - [x] Relatorio de notas por area e melhorias salvo em `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md`.
-  - [x] Arquitetura atual corrigida para PWA local-first sem backend em `docs/architecture/system.md`; P4/P5 seguem congeladas.
+  - [x] Arquitetura atual corrigida para PWA local-first em `docs/architecture/system.md`; em 2026-06-17,
+    reatualizada para P4/P5 descongeladas com backend apenas local-only ate provisionamento do dono.
   - [x] Fontes oficiais de API/PWA revalidadas e registradas em `docs/research/sources.md`.
   - [x] Lint breaker em `src/ui/Fold.tsx` corrigido sem alterar a experiencia do usuario.
   - [x] `.gitignore` atualizado para ignorar `output/imagegen/` (folhas de contato/previews locais pesados).
@@ -317,8 +318,10 @@
   - [x] Plano por cortes N95 criado em `docs/review/relatorio-codex-plano-nota-95-para-claude-2026-06-13.md`.
   - [x] Prompt operacional criado em `prompts/claude-analise-nota-95-2026-06-13.md`.
   - [x] `prompts/README.md` atualizado para listar a analise ativa.
-- [ ] **P4** CONGELADA por decisao do dono em 2026-06-06: Sync PC<->celular opt-in (merge por registro, D1) + "outro estudo" texto livre local.
-- [ ] **P5** CONGELADA por decisao do dono em 2026-06-06: Versao-comunidade, renomear, disclaimers, i18n, polish e revisao publica.
+- [ ] **P4** DESCONGELADA pelo dono em 2026-06-16: sync PC<->celular opt-in com Workers + D1,
+  E2EE por passphrase, merge por registro/tombstone, testes locais; sem deploy/provisionamento pelo agente.
+- [ ] **P5** DESCONGELADA pelo dono em 2026-06-16: versao-comunidade, `APP_NAME='Rotina'` ate nome final,
+  disclaimers, AGPL visivel, privacidade, i18n/polish e revisao publica.
 
 - [x] **Execucao Codex cortes M1-M5 para zerar pendencias (2026-06-16)**.
   - [x] Prompt `prompts/codex-cortes-M1-M5-zerar-pendencias-2026-06-15.md` executado.
@@ -338,3 +341,21 @@
   - [x] CI `smoke` agora roda tambem em `pull_request`.
   - [x] Fonte oficial Playwright/GitHub Actions registrada em `docs/research/sources.md`; suposicoes
     operacionais registradas em `DECISIONS.md` e `memory/decisions.md`.
+
+- [x] **Finalizacao Codex parcial ate estado verde (2026-06-17)**.
+  - [x] Prompt `prompts/codex-finalizar-app-2026-06-17.md` executado ate estado verde, sem deploy e sem
+    provisionamento de nuvem.
+  - [x] Bugs de Fase A corrigidos: feedback herdado entre blocos, corrida de diagnostico por fonte,
+    `clearAllData` contra escritas em voo, datas locais injetaveis e limiares Chess.com-aware.
+  - [x] Hardening aplicado: backup com limite antes da leitura, validacao de URLs Lichess, export sem token,
+    OAuth pendente corrompido recuperavel, Retry-After em 429, sourcemaps desativados e CSP com
+    `upgrade-insecure-requests`.
+  - [x] P5 parcial: `APP_NAME='Rotina'` centralizado, disclaimer/AGPL na UI e decisao registrada para
+    nao inventar URL de codigo-fonte antes do dono confirmar o link publico.
+  - [x] Fontes oficiais rechecadas e registradas em `docs/research/sources.md`.
+  - [x] Gate final verde: `npm run lint`, `npm test` (74 arquivos / 622 testes), `npm run build`,
+    `npm run coverage` 5x (85,85% statements / 80,17% branches / 90,07% funcs / 85,62% lines),
+    `npm run smoke:pwa` (26/26) e build sem `*.map`.
+  - [x] Relatorio final salvo em `docs/review/relatorio-final-app-2026-06-17.md`.
+  - [ ] Pendentes para beta publico amplo: P4 sync Workers/D1 + E2EE local, URL real de codigo-fonte,
+    docs publicas de privacidade/sync, axe formal e remocao de `style-src 'unsafe-inline'` se priorizada.

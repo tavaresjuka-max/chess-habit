@@ -114,9 +114,17 @@ function readPendingOAuthRequest(): StoredOAuthRequest | undefined {
     return undefined;
   }
 
-  const parsed = JSON.parse(raw) as unknown;
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(raw) as unknown;
+  } catch {
+    sessionStorage.removeItem(oauthSessionStorageKey);
+    return undefined;
+  }
 
   if (!isStoredOAuthRequest(parsed)) {
+    sessionStorage.removeItem(oauthSessionStorageKey);
     return undefined;
   }
 

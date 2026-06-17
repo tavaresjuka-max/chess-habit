@@ -336,6 +336,35 @@ describe('Config — "Restaurar backup" inline confirmation', () => {
     expect(typeof onImportBackup.mock.calls[0]?.[0]).toBe('string');
   });
 
+  it('rejects oversized backup files before importing', async () => {
+    const onImportBackup = vi.fn<(json: string) => Promise<BackupImportResult>>(() =>
+      Promise.resolve({ ok: true, recordCount: 1, exportedAt: '2026-06-15T00:00:00.000Z' }),
+    );
+    render(<Config {...makeProps({ onImportBackup })} />);
+    openFold('Dados locais');
+
+    const fileInput = document.querySelector(
+      'input[type="file"][aria-label="Selecionar arquivo de backup para restaurar"]',
+    ) as HTMLInputElement;
+    const file = new File(['{}'], 'backup-grande.json', { type: 'application/json' });
+    Object.defineProperty(file, 'size', {
+      value: 6 * 1024 * 1024,
+      configurable: true,
+    });
+    const textSpy = vi.spyOn(file, 'text');
+    Object.defineProperty(fileInput, 'files', {
+      value: [file],
+      configurable: true,
+    });
+
+    fireEvent.change(fileInput);
+    fireEvent.click(screen.getByRole('button', { name: 'Restaurar e recarregar' }));
+    await flushPromises();
+
+    expect(textSpy).not.toHaveBeenCalled();
+    expect(onImportBackup).not.toHaveBeenCalled();
+  });
+
   it('dismisses the confirm group when Cancelar is clicked (restore)', () => {
     render(<Config {...makeProps()} />);
     triggerFileInput();

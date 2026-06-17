@@ -8,7 +8,7 @@ export function buildPuzzleThemeStats(logs: TrainingLog[]): PuzzleThemeStats | u
   for (const log of logs) {
     const result = log.result;
 
-    if (result?.themeStats === undefined || result.themeStats.length === 0) {
+    if (result?.kind !== 'puzzle-activity' || result.themeStats === undefined || result.themeStats.length === 0) {
       continue;
     }
 

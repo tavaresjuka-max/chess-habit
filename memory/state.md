@@ -1,13 +1,17 @@
 # Estado Atual
 
-Data: 2026-06-13 (atualizado apos auditoria Codex geral, aprovacao dos badges v1 pelo dono e
-realinhamento da arquitetura atual local-first sem backend).
+Data: 2026-06-17 (atualizado apos execucao Codex de finalizacao parcial ate estado verde).
 
 Atualizacao 2026-06-17: por decisao do dono registrada em `AGENTS.md` e
 `docs/review/roadmap-beta-2026-06-16.md`, P4/P5 foram descongeladas para execucao ate beta publico,
 mantendo todas as regras de privacidade/seguranca. O prompt overnight beta comeca por M1. M1
 (harness E2E com prints) foi implementado com Playwright local/mocado, projetos desktop/mobile e
 screenshots em `e2e/__screenshots__/`; CI smoke passou a rodar em PR.
+
+Atualizacao final 2026-06-17: o prompt `prompts/codex-finalizar-app-2026-06-17.md` foi executado ate um
+estado verde. Bugs de confianca da Fase A e varios hardenings P2/P3/P5 foram corrigidos, com relatorio
+em `docs/review/relatorio-final-app-2026-06-17.md`. P4 sync completo e pacote publico final continuam
+pendentes para uma rodada dedicada.
 
 ## Status
 
@@ -60,7 +64,9 @@ screenshots em `e2e/__screenshots__/`; CI smoke passou a rodar em PR.
   Lazzarotto, Capablanca PT-BR e Movimento Forcado ficaram registrados com escopo limitado e lacunas
   remanescentes explicitas.
 - Análise dos PDFs Baixados + ONDA 3 (Gemini) concluída em 2026-06-10: 67 arquivos analisados e catalogados. O relatório provou cientificamente a importância da autorreflexão de erros locais ($r=0.29$) e da verbalização ($r=0.18$), propôs a inserção de marcos de progresso baseados em "Diplomas" (Peão, Torre, Rei) de Tirado & Silva (1999), e introduziu o drill de "Tratamento de Pendências" (Christofoletti 2007) para re-resolver puzzles falhados. Detalhes em [analise-pdfs-baixados-onda3-GEMINI.md](docs/research/analise-pdfs-baixados-onda3-GEMINI.md).
-- Backend/banco: congelado. P4/P5 nao devem ser implementadas ate nova decisao do dono.
+- P4/P5: descongeladas pelo dono em 2026-06-16. Sync deve ser construido/testado localmente com
+  Workers + D1 e E2EE por passphrase, sem deploy/provisionamento/secrets pelo agente. P5 usa
+  `APP_NAME='Rotina'` ate nome publico final, disclaimer e AGPL visiveis.
 - Specs vigentes: `docs/superpowers/specs/2026-06-08-professor-lemos-tutor-design.md` (tutor),
   `docs/superpowers/specs/2026-06-10-metodo-5-trilhas-design.md` (metodo 5 trilhas, as-built) e
   `docs/superpowers/specs/2026-06-10-badges-spec-draft.md` (badges v1 aprovados em 2026-06-13).
@@ -115,8 +121,8 @@ screenshots em `e2e/__screenshots__/`; CI smoke passou a rodar em PR.
 - **Auditoria Codex geral e estabilizacao documental em 2026-06-13**:
   - Relatorio salvo em `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md`.
   - Badge spec aprovada pelo dono e sincronizada com implementacao existente.
-  - `docs/architecture/system.md` corrigido para refletir a arquitetura ativa: PWA local-first sem
-    backend; Worker/D1/sync seguem congelados para P4.
+  - `docs/architecture/system.md` corrigido para refletir a arquitetura ativa: PWA local-first;
+    Worker/D1/sync seguem local-only ate provisionamento futuro pelo dono.
   - Lint vermelho em `src/ui/Fold.tsx` corrigido removendo comentario de regra inexistente.
   - Backlog tecnico registrado sem abrir fase nova: fila/cooldown central de API, smoke PWA
     producao/offline, ADR sobre `vite-plugin-pwa`, validacao profunda de backup, ledger de assets e
@@ -131,8 +137,10 @@ screenshots em `e2e/__screenshots__/`; CI smoke passou a rodar em PR.
   puzzles e `study:write` para criar/importar o Study do dia. Tokens ficam locais e fora do export.
 - Sem engine na ferramenta pessoal.
 - Adaptativo via dados publicos do Lichess + a analise que o Lichess ja fez (sem rodar engine).
-- Multi-fonte chegou ate P3. Sync (P4) e comunidade/renomeacao/disclaimers publicos (P5) estao congelados.
-- Renomeacao publica continua reservada para a versao-comunidade congelada; OAuth pessoal e opt-in e restrito a `puzzle:read`/`study:write`.
+- Multi-fonte chegou ate P3. Sync (P4) e comunidade/renomeacao/disclaimers publicos (P5) estao
+  descongelados para beta, mantendo local-first, E2EE e sem deploy pelo agente.
+- Renomeacao publica passa por `APP_NAME='Rotina'` ate o dono fornecer o nome final; OAuth pessoal e
+  opt-in e restrito a `puzzle:read`/`study:write`.
 - Tipos estritos, sync por registro, slugs por allowlist oficial/manual, erro/offline especificados, linguagem de hipotese.
 
 ## Historico Da Auditoria (insumo, ja absorvido)
@@ -163,9 +171,9 @@ screenshots em `e2e/__screenshots__/`; CI smoke passou a rodar em PR.
 
 P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08;
 Professor Lemos Etapa 1, Etapa 2A e Etapa 2B foram fechadas em 2026-06-08. A curadoria profunda de
-recursos Lichess e o Catalogo Premium Lichess tambem foram concluidos em 2026-06-08. P4 e P5 estao congeladas por decisao do dono. A
-proxima etapa valida e usar o app pessoalmente por sessoes reais e corrigir dores pequenas observadas
-no uso, sem criar backend/sync/comunidade. Diagnostico por tema agora usa resultados de puzzle
+recursos Lichess e o Catalogo Premium Lichess tambem foram concluidos em 2026-06-08. P4 e P5 foram
+descongeladas em 2026-06-16; a proxima etapa valida e estabilizar beta, preparar P4 local-only e
+corrigir dores pequenas observadas no uso, sem deploy/provisionamento pelo agente. Diagnostico por tema agora usa resultados de puzzle
 reconciliados quando houver `themeStats`; sem resultado real por tema, o tutor pergunta e permite
 registrar a resposta como sinal manual local.
 
@@ -334,4 +342,5 @@ antes desta retomada; tarefas 2-9 executadas pelo Codex nesta sessao. Dev server
 Estado em 2026-06-16: pacote Codex M1-M5 de zerar pendencias concluido em 21 commits atomicos
 (`093f051` a `7db99af`). Gate final verde: lint, teste 3x (72 arquivos/555 testes), build,
 coverage (83.8/77.34/89.97/83.56) e smoke PWA. Relatorio salvo em
-`docs/review/relatorio-codex-execucao-cortes-M1-M5-2026-06-15.md`. P4/P5 continuam congeladas.
+`docs/review/relatorio-codex-execucao-cortes-M1-M5-2026-06-15.md`. Em 2026-06-16 o dono
+descongelou P4/P5; regras de privacidade/seguranca permanecem intactas.

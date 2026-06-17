@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { APP_DESCRIPTION, APP_MANIFEST_NAME, APP_NAME } from './config/appIdentity';
 import viteConfig, { pwaOptions } from '../vite.config';
 
 describe('PWA config', () => {
@@ -11,7 +12,12 @@ describe('PWA config', () => {
     expect(pwaPlugin).toBeDefined();
     expect(pwaOptions.workbox.navigateFallback).toBe('index.html');
     // As artes .webp (Lemos, molduras, texturas) fazem parte do app-shell offline.
+    expect(viteConfig.build?.sourcemap).toBe(false);
+    expect(pwaOptions.workbox.sourcemap).toBe(false);
     expect(pwaOptions.workbox.globPatterns).toContain('**/*.{js,css,html,ico,png,svg,webp,webmanifest}');
+    expect(pwaOptions.manifest.name).toBe(APP_MANIFEST_NAME);
+    expect(pwaOptions.manifest.short_name).toBe(APP_NAME);
+    expect(pwaOptions.manifest.description).toBe(APP_DESCRIPTION);
     expect(pwaOptions.manifest.display).toBe('standalone');
     expect(pwaOptions.manifest.start_url).toBe('/');
     expect(pwaOptions.manifest.icons.map((icon) => icon.sizes)).toEqual(['192x192', '512x512', '512x512']);

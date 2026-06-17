@@ -54,6 +54,21 @@ Pesquisa executada para `docs/review/analise_completa_codex-gpt-5_2026-06-16.md`
 - [Chess.com Published-Data API](https://www.chess.com/news/view/published-data-api): revalidou endpoints publicos, cache, respostas 304/429, rate limit em requisicoes paralelas e restricoes de marca/IP.
 - [MDN: Making PWAs installable](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable): revalidou requisitos de manifest, icones 192/512, `start_url`, `display`, HTTPS/localhost/loopback e uso comum de service worker para experiencia offline.
 
+## Pesquisa Pontual Em 2026-06-17: Analise Completa Do Sistema
+
+Pesquisa executada para `docs/review/analise-completa-sistema-2026-06-17-{IA_NOME}.md`.
+
+- [Lichess API Tips](https://lichess.org/page/api-tips): revalidou regra operacional de uma requisicao por vez e espera minima de 1 minuto apos HTTP 429; usada para avaliar `providerQueue.ts` e riscos de `Retry-After`.
+- [Lichess API specification](https://github.com/lichess-org/api/blob/master/doc/specs/lichess-api.yaml): revalidou OAuth PKCE para clientes publicos, ausencia de refresh token, cuidado para nao expor tokens e existencia de escopos de jogo proibidos (`board:play`, `bot:play`) que nao devem entrar no app.
+- [Chess.com Help Center: What is the PubAPI and how do I use it?](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it): revalidou que a PubAPI e REST/JSON-LD, read-only, sem comandos de jogo nem dados privados como chat; usada para confirmar a moldura do importador Chess.com.
+- [Chess.com Published-Data API](https://www.chess.com/news/view/published-data-api): revalidou endpoints de `stats`, arquivos mensais de partidas e campos de resposta como `pgn`, `end_time`, `accuracies`; usada para confirmar que PGN deve continuar transiente.
+- [MDN: Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP): revalidou que CSP reduz riscos como XSS e clickjacking; usada para avaliar `vercel.json`.
+- [MDN: Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API): revalidou uso de service worker para cache offline, atualizacao de recursos e remocao de caches antigos; usada para avaliar PWA/offline e smoke.
+- [Cloudflare D1 local development](https://developers.cloudflare.com/d1/best-practices/local-development/): revalidou fluxo local com Wrangler/Miniflare e separacao entre dados locais e producao; usada para avaliar P4 sync local.
+- [Cloudflare Workers local development](https://developers.cloudflare.com/workers/local-development/): revalidou `wrangler dev`, simulacao local e Miniflare/workerd; usada para avaliar testabilidade local do backend P4.
+- [Vercel vercel.json](https://vercel.com/docs/project-configuration): revalidou suporte a `headers` no `vercel.json`; usada para avaliar anti-indexacao e hardening de headers.
+- [GNU AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html): revalidou obrigacao de disponibilizar codigo-fonte correspondente a usuarios via rede; usada para avaliar readiness P5 e exibicao publica da licenca.
+
 ## Pesquisa Pontual Em 2026-06-06: Lichess Puzzle Activity P2
 
 Pesquisa executada antes de preparar a reconciliacao de resultados de treino em puzzles.
@@ -826,3 +841,26 @@ prints + CI).
 - **[GitHub Actions: pull_request event](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request):**
   confirmou que workflows podem rodar em `pull_request`; por padrao, cobre `opened`, `synchronize`
   e `reopened`, suficiente para o smoke/E2E do PR.
+
+## Rechecagem Codex Finalizar App (2026-06-17)
+
+Pesquisa executada para `prompts/codex-finalizar-app-2026-06-17.md`, cobrindo API, PWA, CSP,
+privacidade e plano P4/P5 local-only.
+
+- **[Lichess API Tips](https://lichess.org/page/api-tips):** revalidou endpoints oficiais,
+  uma requisicao por vez e espera de pelo menos 1 minuto apos HTTP 429.
+- **[Lichess Puzzle Activity OpenAPI](https://github.com/lichess-org/api/blob/master/doc/specs/tags/puzzles/api-puzzle-activity.yaml):**
+  confirmou `application/x-ndjson`, escopo `puzzle:read` e parametros oficiais `max`/`before`;
+  o corte por `since` fica local, nao na query.
+- **[Chess.com PubAPI Help](https://support.chess.com/en/articles/9650547-what-is-the-pubapi-and-how-do-i-use-it):**
+  revalidou PubAPI read-only e orientacao de acesso serial para evitar rate limit.
+- **[Chess.com Published Data API](https://www.chess.com/news/view/published-data-api):**
+  revalidou arquivos mensais, cache condicional e uso read-only sem login.
+- **[Cloudflare Workers local development](https://developers.cloudflare.com/workers/local-development/):**
+  revalidou que Workers/D1 podem ser desenvolvidos e testados localmente sem provisionar producao.
+- **[Cloudflare D1 local development](https://developers.cloudflare.com/d1/best-practices/local-development/):**
+  revalidou ambiente local D1/Miniflare para futura P4, mantendo secrets/provisionamento fora do agente.
+- **[MDN Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP):**
+  revalidou CSP por header HTTP, `upgrade-insecure-requests` e reducao de superficie de XSS.
+- **[MDN Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API):**
+  revalidou o modelo offline/PWA usado nos smokes de service worker.

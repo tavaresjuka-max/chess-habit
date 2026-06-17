@@ -1,5 +1,6 @@
 import type { DailyPlan, LichessStudyLink, PlanBlock } from '../../domain';
 import { getMethodTrackTitle } from '../../domain/method/methodTracks';
+import { APP_NAME } from '../../config/appIdentity';
 import { lichessFetch } from '../http/providerQueue';
 import { LichessRateLimitError } from './puzzleActivity';
 
@@ -183,7 +184,7 @@ function buildBlockPgn(plan: DailyPlan, block: PlanBlock, round: number): string
     '[Site "https://lichess.org"]',
     `[Date "${date}"]`,
     `[Round "${String(round)}"]`,
-    '[White "Rotina"]',
+    `[White "${sanitizePgnTag(APP_NAME)}"]`,
     '[Black "Lichess"]',
     '[Result "*"]',
     '',

@@ -78,15 +78,22 @@ function getEvidenceLevel(primaryWeakness: Weakness | undefined): string {
     return 'Confiança: inicial. Ainda faltam sinais reais suficientes; o foco vem da faixa atual e será recalibrado com treino.';
   }
 
-  if (primaryWeakness.confidence === 'high' && primaryWeakness.score >= 0.7) {
-    return 'Confiança: forte para rotina. Há sinais consistentes o bastante para priorizar este tema, sem tratar isso como diagnóstico definitivo.';
-  }
+  switch (primaryWeakness.confidence) {
+    case 'high':
+      if (primaryWeakness.score >= 0.7) {
+        return 'Confiança: forte para rotina. Há sinais consistentes o bastante para priorizar este tema, sem tratar isso como diagnóstico definitivo.';
+      }
 
-  if (primaryWeakness.confidence === 'medium' || primaryWeakness.score >= 0.5) {
-    return 'Confiança: média. O tema aparece como hipótese prática; vamos confirmar pelo resultado dos próximos treinos.';
-  }
+      return 'Confiança: média. O tema aparece como hipótese prática; vamos confirmar pelo resultado dos próximos treinos.';
+    case 'medium':
+      return 'Confiança: média. O tema aparece como hipótese prática; vamos confirmar pelo resultado dos próximos treinos.';
+    case 'low':
+      if (primaryWeakness.score >= 0.5) {
+        return 'Confiança: média. O tema aparece como hipótese prática; vamos confirmar pelo resultado dos próximos treinos.';
+      }
 
-  return 'Confiança: baixa. O tema serve como teste curto, não como conclusão sobre seu xadrez.';
+      return 'Confiança: baixa. O tema serve como teste curto, não como conclusão sobre seu xadrez.';
+  }
 }
 
 function getIntro(weaknessCount: number): string {

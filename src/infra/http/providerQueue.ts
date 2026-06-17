@@ -1,5 +1,25 @@
 type Fetcher = typeof fetch;
 
+function getRetryAfterMs(response: Response, nowMs: number): number | undefined {
+  const value = response.headers.get('Retry-After');
+
+  if (value === null) {
+    return undefined;
+  }
+
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return seconds * 1000;
+  }
+
+  const retryAt = Date.parse(value);
+  if (Number.isNaN(retryAt)) {
+    return undefined;
+  }
+
+  return Math.max(0, retryAt - nowMs);
+}
+
 export function createSerialQueue(options?: {
   cooldownMs?: number;
   timeoutMs?: number;
@@ -28,7 +48,8 @@ export function createSerialQueue(options?: {
       try {
         const response = await (customFetcher ?? fetch)(input, { ...init, signal: controller.signal });
         if (response.status === 429) {
-          cooldownUntil = Date.now() + cooldownMs;
+          const now = Date.now();
+          cooldownUntil = now + Math.max(cooldownMs, getRetryAfterMs(response, now) ?? 0);
         }
         return response;
       } finally {

@@ -2,7 +2,8 @@
 
 ## Decisao Atual
 
-Construir a ferramenta pessoal atual como **PWA local-first sem backend**:
+Construir a ferramenta atual como **PWA local-first**; P4 foi descongelada pelo dono em 2026-06-16,
+mas o agente so constroi/testa backend localmente, sem deploy, contas ou secrets de producao:
 
 - Frontend: React + Vite + TypeScript.
 - PWA: instalavel em desktop e mobile.
@@ -10,8 +11,8 @@ Construir a ferramenta pessoal atual como **PWA local-first sem backend**:
   conquistas, backups e metadados locais.
 - Integracoes externas: Chess.com PubAPI publica read-only; Lichess via endpoints oficiais e OAuth
   PKCE opt-in somente para `puzzle:read` e `study:write`.
-- Backend/D1/Worker: **fora da fase atual**. Permanecem congelados para P4, se o dono decidir
-  descongelar sync PC<->celular.
+- Backend/D1/Worker: autorizado para P4 local-only com Cloudflare Workers + D1, E2EE por passphrase
+  e tokens OAuth sempre locais. Producao/provisionamento ficam com o dono.
 
 ## Principio
 
@@ -34,21 +35,21 @@ Frontend:
 - OAuth Lichess opt-in com token local fora do export.
 - PWA/offline shell.
 
-Sem backend na fase atual:
+Sem backend de producao na fase atual:
 
 - Sem sessao propria do app.
-- Sem sync multi-dispositivo.
+- Sem sync multi-dispositivo em producao ate o dono provisionar a nuvem.
 - Sem conta propria.
 - Sem proxy.
 - Sem log centralizado.
 
-Congelado para P4/P5:
+Autorizado para P4/P5, ainda pendente de implementacao completa:
 
 - Sync PC<->celular opt-in.
-- Worker/D1 ou alternativa equivalente.
+- Worker/D1 local-only.
 - Exclusao de conta/servidor, se houver conta futura.
 - Proxy apenas se uma fase futura justificar por privacidade/CORS/rate limit e o dono aprovar.
-- Versao-comunidade, renomeacao publica e disclaimers publicos.
+- Versao-comunidade, renomeacao publica via `APP_NAME`, disclaimers publicos, AGPL visivel e docs de privacidade.
 
 Fora da ferramenta pessoal atual:
 
@@ -81,10 +82,10 @@ Evitar por padrao:
 
 ## Sync
 
-Sync automatico esta congelado. O schema local ja carrega preparos de higiene para eventual merge por
-registro, mas nenhum agente deve implementar Worker, D1, proxy ou conta sem nova decisao explicita do
-dono. Atualizacao de dados Lichess/Chess.com continua local, manual/opt-in, por APIs oficiais e com
-minimo armazenamento.
+Sync P4 esta descongelado para desenvolvimento local: Workers + D1, login "Entrar com Lichess" apenas
+como identidade, blobs cifrados ponta-a-ponta por passphrase do dono, merge por `updatedAt`/tombstone e
+tokens OAuth nunca enviados ao servidor. Producao, secrets e provisionamento continuam fora do agente.
+Atualizacao de dados Lichess/Chess.com continua por APIs oficiais e com minimo armazenamento.
 
 ## Pendencias De Arquitetura Registradas Em 2026-06-13
 

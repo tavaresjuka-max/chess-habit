@@ -323,6 +323,7 @@ describe('appData storage', () => {
     const exported = await exportAllAsJson();
 
     expect(exported).not.toContain('lio_secret');
+    expect(exported).not.toContain('accessToken');
 
     await clearLichessOAuthToken();
     await expect(loadLichessOAuthToken()).resolves.toBeUndefined();
@@ -364,6 +365,7 @@ describe('appData storage', () => {
     expect(payload.data.pendingItems).toHaveLength(1);
     expect(payload.data.diplomaAttempts).toEqual([diplomaAttempt]);
     expect(exported).not.toContain('lio_method_secret');
+    expect(exported).not.toContain('accessToken');
   });
 
   it('clears method tracks, pending items and diploma attempts', async () => {

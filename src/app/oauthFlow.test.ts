@@ -27,6 +27,7 @@ const token: LichessOAuthToken = {
 };
 
 beforeEach(() => {
+  vi.clearAllMocks();
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-06-15T12:00:00.000Z'));
   sessionStorage.clear();
@@ -66,6 +67,20 @@ describe('completeLichessOAuthIfNeeded', () => {
     });
     expect(saveLichessOAuthToken).toHaveBeenCalledWith(token);
     expect(result).toEqual({ kind: 'connected', token });
+    expect(sessionStorage.getItem('lichess-tutor:oauth-pending')).toBeNull();
+    expect(window.location.search).toBe('');
+  });
+
+  it('treats corrupted pending OAuth storage as a recoverable cancellation', async () => {
+    sessionStorage.setItem('lichess-tutor:oauth-pending', '{broken json');
+
+    const result = await completeLichessOAuthIfNeeded();
+
+    expect(result).toEqual({
+      kind: 'cancelled',
+      message: 'O retorno do Lichess não confere com a solicitação local. Tente conectar de novo.',
+    });
+    expect(exchangeLichessOAuthCode).not.toHaveBeenCalled();
     expect(sessionStorage.getItem('lichess-tutor:oauth-pending')).toBeNull();
     expect(window.location.search).toBe('');
   });

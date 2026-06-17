@@ -100,6 +100,8 @@ describe('fetchPuzzleActivity', () => {
 
     expect(requested[0]?.url).toContain('https://lichess.org/api/puzzle/activity?');
     expect(requested[0]?.url).toContain('max=20');
+    expect(requested[0]?.url).toContain(`before=${String(Date.parse('2026-06-06T10:10:00.000Z'))}`);
+    expect(new URL(requested[0]?.url ?? '').searchParams.has('since')).toBe(false);
     expect(requested[0]?.authorization).toBe('Bearer secret-token');
     expect(activities).toHaveLength(1);
   });

@@ -25,6 +25,7 @@ import {
   type AutoBackupStatus,
 } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
+import { bumpOperationEpoch } from './operationEpoch';
 import type { AppView, DiagnosisState, LichessConnectionState } from './state';
 
 export type UseBackupActionsInput = {
@@ -113,6 +114,7 @@ export function useBackupActions(input: UseBackupActionsInput) {
   }, [setAutoBackupFileName, setAutoBackupStatus]);
 
   const clearAllData = useCallback(async () => {
+    bumpOperationEpoch();
     await clearAll();
     setBackupMeta(undefined);
     setAutoBackupFileName(undefined);

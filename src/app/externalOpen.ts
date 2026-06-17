@@ -1,3 +1,5 @@
+import { isAllowedLichessUrl } from '../infra/lichess/urlPolicy';
+
 const invalidExternalUrlMessage = 'Link inválido — só abrimos páginas do lichess.org.';
 
 export function openExternalUrl(url: string): string | undefined {
@@ -21,11 +23,5 @@ export function openExternalUrl(url: string): string | undefined {
 }
 
 export function isAllowedExternalUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-
-    return parsed.protocol === 'https:' && parsed.hostname === 'lichess.org';
-  } catch {
-    return false;
-  }
+  return isAllowedLichessUrl(url);
 }

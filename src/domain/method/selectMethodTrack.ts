@@ -16,7 +16,7 @@ const defenseWeaknessTags: readonly WeaknessTag[] = ['hanging-piece', 'blunder-r
 const calculationWeaknessTags: readonly WeaknessTag[] = ['fork', 'discovered', 'mate-in-2', 'conversion'];
 
 export function selectMethodTrack(input: TrackSelectionInput): MethodTrackId {
-  if (input.openPendingItems.some(isDueToday)) {
+  if (input.openPendingItems.some((item) => isDueToday(item))) {
     return 'pending-review';
   }
 

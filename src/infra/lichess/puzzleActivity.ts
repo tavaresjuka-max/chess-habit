@@ -122,7 +122,6 @@ function parseJsonLineOrUndefined(line: string): unknown {
 
 function puzzleActivityUrl(options: FetchPuzzleActivityOptions): string {
   const params = new URLSearchParams({
-    since: String(Date.parse(options.since)),
     before: String(Date.parse(options.until)),
   });
 

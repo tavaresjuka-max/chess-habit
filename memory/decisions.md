@@ -518,3 +518,13 @@ Na mesma passada, a auditoria Codex de 2026-06-13 realinhou documentacao e gate:
   corte, eles nao viram baseline de diff visual bloqueante porque ainda nao ha politica aprovada de
   tolerancia e ambiente.
 - O job `smoke` do GitHub Actions roda tambem em `pull_request`, atendendo ao roadmap beta M1.
+
+## 2026-06-17: Finalizar App - Identidade Publica E Fonte AGPL
+
+- `APP_NAME` fica centralizado em `src/config/appIdentity.ts` com placeholder `Rotina` ate o dono
+  fornecer o nome publico final; manifest, marca do app, titulo runtime e PGN transitorio de Study
+  passam pela constante.
+- Como o repositorio local nao tem `git remote`, a UI mostra "Codigo-fonte: URL publica pendente." em
+  vez de apontar para um GitHub presumido. A URL real deve ser preenchida em `SOURCE_CODE_URL` antes do
+  beta publico.
+- Motivo: link falso prejudicaria conformidade AGPL e confianca; a troca ficou em uma constante unica.

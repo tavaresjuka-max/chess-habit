@@ -86,7 +86,7 @@ export function generatePlan(
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const learningPlanResponse =
     options.previousPlan?.date === date ? options.previousPlan.learningPlanResponse : undefined;
-  const duePendingItems = (options.openPendingItems ?? []).filter(isDueToday);
+  const duePendingItems = (options.openPendingItems ?? []).filter((item) => isDueToday(item));
   const activeTrack = selectMethodTrack({
     openPendingItems: [...(options.openPendingItems ?? [])],
     primaryWeakness: primaryWeakness.tag,

@@ -1,6 +1,6 @@
 import { Check, ExternalLink, Feather, Flag, Lightbulb, Target } from 'lucide-react';
-import { useState, type MouseEvent } from 'react';
-import { openExternalUrl } from '../app/externalOpen';
+import { useEffect, useState, type MouseEvent } from 'react';
+import { isAllowedExternalUrl, openExternalUrl } from '../app/externalOpen';
 import {
   elapsedSecondsBetween,
   formatElapsedMinutes,
@@ -36,11 +36,22 @@ export function PlanBlockCard({
   const [openWarning, setOpenWarning] = useState<string | undefined>(undefined);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
+  const safeDestinationUrl =
+    block.destination.url !== undefined && isAllowedExternalUrl(block.destination.url)
+      ? block.destination.url
+      : undefined;
+
+  useEffect(() => {
+    setIsRating(false);
+    setIsOpening(false);
+    setIsSavingPending(false);
+    setOpenWarning(undefined);
+  }, [block.id]);
 
   async function openTrainingDestination(event: MouseEvent<HTMLAnchorElement>): Promise<void> {
     event.preventDefault();
 
-    if (block.destination.url === undefined || isOpening) {
+    if (safeDestinationUrl === undefined || isOpening) {
       return;
     }
 
@@ -49,7 +60,7 @@ export function PlanBlockCard({
 
     try {
       await onStartBlockTraining(block);
-      setOpenWarning(openExternalUrl(block.destination.url));
+      setOpenWarning(openExternalUrl(safeDestinationUrl));
     } finally {
       setIsOpening(false);
     }
@@ -113,14 +124,13 @@ export function PlanBlockCard({
               Guardar para revisar amanhã
             </button>
           ) : null}
-          {block.destination.url !== undefined ? (
+          {safeDestinationUrl !== undefined ? (
             <a
               className="button-link"
-              href={block.destination.url}
+              href={safeDestinationUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Abrir de novo: ${block.title}`}
-              aria-busy={isOpening}
+              aria-label={`Abrir de novo: ${block.title} (abre em nova aba)`}
               onClick={(event) => {
                 void openTrainingDestination(event);
               }}
@@ -174,14 +184,13 @@ export function PlanBlockCard({
         </div>
       ) : (
         <div className="button-row">
-          {block.destination.url !== undefined ? (
+          {safeDestinationUrl !== undefined ? (
             <a
               className="button-link"
-              href={block.destination.url}
+              href={safeDestinationUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Abrir no Lichess: ${block.title}`}
-              aria-busy={isOpening}
+              aria-label={`Abrir no Lichess: ${block.title} (abre em nova aba)`}
               onClick={(event) => {
                 void openTrainingDestination(event);
               }}

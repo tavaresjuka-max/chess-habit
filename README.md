@@ -1,10 +1,11 @@
-# Lichess Tutor (nome interno de trabalho)
+# Rotina
 
 Status: ferramenta pessoal funcional (P0-P3 concluídas + Método Professor Lemos implementado).
-P4 (sync) e P5 (versão-comunidade) congeladas por decisão do dono.
+P4 (sync) e P5 (versão-comunidade) foram descongeladas pelo dono em 2026-06-16; a versão pública
+usa `APP_NAME = 'Rotina'` como placeholder até o nome final.
 
-Lichess Tutor é uma PWA gratuita, local-first e open-source (AGPL-3.0) que ajuda o
-aluno a treinar melhor usando o Lichess. O app não substitui o Lichess nem cria outro tabuleiro:
+Rotina é uma PWA gratuita, local-first e open-source (AGPL-3.0) que ajuda o aluno a treinar melhor
+usando o Lichess. O app não substitui o Lichess nem cria outro tabuleiro:
 ele diagnostica fraquezas a partir do histórico real (Chess.com/Lichess), monta o plano do dia,
 abre o treino certo no Lichess, registra progresso e adapta as próximas sessões.
 
@@ -23,15 +24,14 @@ abre o treino certo no Lichess, registra progresso e adapta as próximas sessõe
 ## Posição do produto
 
 - Grátis para todos; sem anúncios, paywall, venda de dados ou benefício funcional pago.
-- Doação apenas por link externo, só na versão-comunidade (P5, congelada).
+- Doação apenas por link externo na versão-comunidade, sem vantagem funcional para apoiador.
 - Treino abre no Lichess; sem tabuleiro próprio, sem engine, sem ajuda em partida ao vivo.
 - Privacidade local-first: sem PGN completo persistido, sem tokens em export/logs.
 
 ## Aviso
 
-App não oficial. Não é afiliado, endossado ou mantido pelo Lichess. O nome interno será
-substituído antes de qualquer comunicação pública (P5), por causa da feature oficial
-`lichess.org/tutor`.
+App não oficial. Não é afiliado, endossado ou mantido pelo Lichess. `Rotina` ainda é placeholder:
+troque `APP_NAME` em `src/config/appIdentity.ts` quando o dono fornecer o nome público final.
 
 ## Leia primeiro
 

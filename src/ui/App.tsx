@@ -3,6 +3,7 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
 import { createDefaultProfile, useAppState } from '../app/state';
+import { APP_LEGAL_DISCLAIMER, APP_NAME, DONATION_URL, SOURCE_CODE_URL } from '../config/appIdentity';
 import { LemosAvatar } from './art/LemosAvatar';
 import { Onboarding, type OnboardingStep } from './Onboarding';
 import { ReloadPrompt } from './ReloadPrompt';
@@ -57,6 +58,32 @@ function ViewFallback() {
   );
 }
 
+function LegalFooter() {
+  return (
+    <footer className="legal-footer" aria-label={`Avisos legais de ${APP_NAME}`}>
+      <span>{APP_LEGAL_DISCLAIMER}</span>
+      <span>Software livre AGPL-3.0.</span>
+      {SOURCE_CODE_URL === undefined ? (
+        <span>Código-fonte: URL pública pendente.</span>
+      ) : (
+        <a
+          href={SOURCE_CODE_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Abrir código-fonte do app (abre em nova aba)"
+        >
+          Código-fonte
+        </a>
+      )}
+      {DONATION_URL === undefined ? null : (
+        <a href={DONATION_URL} target="_blank" rel="noreferrer" aria-label="Apoiar o projeto (abre em nova aba)">
+          Apoiar
+        </a>
+      )}
+    </footer>
+  );
+}
+
 export function App() {
   const appState = useAppState();
   // Funil de primeira vez: Boas-vindas → Suas contas → Importando →
@@ -64,6 +91,7 @@ export function App() {
   // sobreviver ao redirect do OAuth do Lichess.
   const [funnelPhase, setFunnelPhaseState] = useState<FunnelPhase>(() => readStoredFunnelPhase() ?? 'welcome');
   const funnelRef = useRef<HTMLElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
 
   const setFunnelPhase = useCallback((phase: FunnelPhase) => {
     try {
@@ -116,6 +144,12 @@ export function App() {
   const shouldShowConfig = activeView === 'config';
   const shouldShowProgress = activeView === 'progress';
 
+  useEffect(() => {
+    if (onboardingResolved && activeView !== 'today') {
+      viewRef.current?.focus();
+    }
+  }, [activeView, onboardingResolved]);
+
   if (appState.loadState === 'loading') {
     return (
       <main className="app-shell">
@@ -129,7 +163,7 @@ export function App() {
             height={220}
           />
           <span className="brand brand-loading" aria-hidden="true">
-            Rotina
+            {APP_NAME}
           </span>
           <p>O professor está arrumando o tabuleiro.</p>
         </section>
@@ -144,9 +178,9 @@ export function App() {
         <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
         <ReloadPrompt />
         {appState.errorMessage !== undefined ? (
-          <p className="app-error" role="alert">
+          <div className="app-error" role="alert">
             {appState.errorMessage}
-          </p>
+          </div>
         ) : null}
         <Onboarding
           step={onboardingStep}
@@ -206,6 +240,7 @@ export function App() {
           onApprovePlan={appState.approveLearningPlan}
           onRequestPlanRevision={appState.requestLearningPlanRevision}
         />
+        <LegalFooter />
       </main>
     );
   }
@@ -214,10 +249,13 @@ export function App() {
     <main className="app-shell">
       <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
       <ReloadPrompt />
+      <a className="skip-link" href="#main-content">
+        Pular para o conteúdo
+      </a>
       <nav className="top-nav" aria-label="Navegação principal">
         <span className="brand" aria-hidden="true">
           <LemosAvatar size={26} className="brand-avatar" />
-          <span>Rotina</span>
+          <span>{APP_NAME}</span>
         </span>
         <button
           className={activeView === 'today' ? 'nav-button nav-button-active' : 'nav-button'}
@@ -255,7 +293,7 @@ export function App() {
       </nav>
 
       {appState.errorMessage !== undefined ? (
-        <p className="app-error" role="alert">
+        <div className="app-error" role="alert">
           {appState.errorMessage}
           {appState.loadState === 'error' ? (
             <button
@@ -268,80 +306,84 @@ export function App() {
               Recarregar
             </button>
           ) : null}
-        </p>
+        </div>
       ) : null}
 
-      {shouldShowConfig ? (
-        <Suspense fallback={<ViewFallback />}>
-          <Config
-            profile={appState.profile}
-            lichessToken={appState.lichessToken}
-            lichessConnectionState={appState.lichessConnectionState}
-            lichessMessage={appState.lichessMessage}
-            storagePersistence={appState.storagePersistence}
-            backupMeta={appState.backupMeta}
-            autoBackupStatus={appState.autoBackupStatus}
-            autoBackupFileName={appState.autoBackupFileName}
-            onEnableAutoBackup={appState.enableAutoBackup}
-            onDisableAutoBackup={appState.disableAutoBackup}
-            onSave={appState.saveProfile}
-            onSavePlacementResult={appState.savePlacementResult}
-            onConnectLichess={appState.connectLichess}
-            onDisconnectLichess={appState.disconnectLichess}
-            onImportKnownManualSignals={appState.importKnownManualSignals}
-            onExport={appState.exportBackup}
-            onImportBackup={appState.importBackup}
-            onClear={appState.clearAllData}
-          />
-        </Suspense>
-      ) : shouldShowProgress ? (
-        <Suspense fallback={<ViewFallback />}>
-          <Progress
-            today={appState.todayPlan?.date ?? getTodayDate()}
+      <div id="main-content" className="view-content" ref={viewRef} tabIndex={-1}>
+        {shouldShowConfig ? (
+          <Suspense fallback={<ViewFallback />}>
+            <Config
+              profile={appState.profile}
+              lichessToken={appState.lichessToken}
+              lichessConnectionState={appState.lichessConnectionState}
+              lichessMessage={appState.lichessMessage}
+              storagePersistence={appState.storagePersistence}
+              backupMeta={appState.backupMeta}
+              autoBackupStatus={appState.autoBackupStatus}
+              autoBackupFileName={appState.autoBackupFileName}
+              onEnableAutoBackup={appState.enableAutoBackup}
+              onDisableAutoBackup={appState.disableAutoBackup}
+              onSave={appState.saveProfile}
+              onSavePlacementResult={appState.savePlacementResult}
+              onConnectLichess={appState.connectLichess}
+              onDisconnectLichess={appState.disconnectLichess}
+              onImportKnownManualSignals={appState.importKnownManualSignals}
+              onExport={appState.exportBackup}
+              onImportBackup={appState.importBackup}
+              onClear={appState.clearAllData}
+            />
+          </Suspense>
+        ) : shouldShowProgress ? (
+          <Suspense fallback={<ViewFallback />}>
+            <Progress
+              today={appState.todayPlan?.date ?? getTodayDate()}
+              allTrainingLogs={appState.allTrainingLogs}
+              diplomaAttempts={appState.diplomaAttempts}
+              achievements={appState.achievements}
+              weaknesses={appState.weaknesses}
+              signals={appState.signals}
+            />
+          </Suspense>
+        ) : (
+          <Today
+            plan={appState.todayPlan}
+            roadmap={appState.roadmap}
+            sessionMinutes={appState.sessionMinutes}
+            learnerBand={appState.profile.band}
+            trainingLogs={appState.trainingLogs}
             allTrainingLogs={appState.allTrainingLogs}
+            pendingItems={appState.pendingItems}
             diplomaAttempts={appState.diplomaAttempts}
             achievements={appState.achievements}
             weaknesses={appState.weaknesses}
-            signals={appState.signals}
+            diagnosisState={appState.diagnosisState}
+            diagnosisMessage={appState.diagnosisMessage}
+            lichessConnectionState={appState.lichessConnectionState}
+            lichessConnected={appState.lichessToken !== undefined}
+            lichessMessage={appState.lichessMessage}
+            lichessStudyLink={appState.lichessStudyLink}
+            onSessionMinutesChange={appState.regeneratePlan}
+            onCreateNextSession={appState.createNextSession}
+            onAnswerTutorQuestion={appState.answerTutorQuestion}
+            onImportFreeActivity={appState.importFreeActivity}
+            onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
+            onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
+            onReconcileLichessResults={appState.reconcileLichessResults}
+            onCreateLichessStudy={appState.createLichessStudy}
+            onConnectLichess={appState.connectLichess}
+            onApproveLearningPlan={appState.approveLearningPlan}
+            onRequestLearningPlanRevision={appState.requestLearningPlanRevision}
+            onOpenPendingItem={appState.openPendingItem}
+            onDeferPendingItem={appState.deferPendingItem}
+            onSavePendingFromHardFeedback={appState.savePendingFromHardFeedback}
+            onStartBlockTraining={appState.startBlockTraining}
+            onCompleteBlockTraining={appState.completeBlockTraining}
+            onSkipBlockTraining={appState.skipBlockTraining}
           />
-        </Suspense>
-      ) : (
-        <Today
-          plan={appState.todayPlan}
-          roadmap={appState.roadmap}
-          sessionMinutes={appState.sessionMinutes}
-          learnerBand={appState.profile.band}
-          trainingLogs={appState.trainingLogs}
-          allTrainingLogs={appState.allTrainingLogs}
-          pendingItems={appState.pendingItems}
-          diplomaAttempts={appState.diplomaAttempts}
-          achievements={appState.achievements}
-          weaknesses={appState.weaknesses}
-          diagnosisState={appState.diagnosisState}
-          diagnosisMessage={appState.diagnosisMessage}
-          lichessConnectionState={appState.lichessConnectionState}
-          lichessConnected={appState.lichessToken !== undefined}
-          lichessMessage={appState.lichessMessage}
-          lichessStudyLink={appState.lichessStudyLink}
-          onSessionMinutesChange={appState.regeneratePlan}
-          onCreateNextSession={appState.createNextSession}
-          onAnswerTutorQuestion={appState.answerTutorQuestion}
-          onImportFreeActivity={appState.importFreeActivity}
-          onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
-          onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
-          onReconcileLichessResults={appState.reconcileLichessResults}
-          onCreateLichessStudy={appState.createLichessStudy}
-          onConnectLichess={appState.connectLichess}
-          onApproveLearningPlan={appState.approveLearningPlan}
-          onRequestLearningPlanRevision={appState.requestLearningPlanRevision}
-          onOpenPendingItem={appState.openPendingItem}
-          onDeferPendingItem={appState.deferPendingItem}
-          onSavePendingFromHardFeedback={appState.savePendingFromHardFeedback}
-          onStartBlockTraining={appState.startBlockTraining}
-          onCompleteBlockTraining={appState.completeBlockTraining}
-          onSkipBlockTraining={appState.skipBlockTraining}
-        />
-      )}
+        )}
+      </div>
+
+      <LegalFooter />
     </main>
   );
 }

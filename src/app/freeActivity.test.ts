@@ -76,11 +76,13 @@ describe('importFreeActivity', () => {
   });
 
   it('continues from the last import instead of re-importing the same window', async () => {
-    const requestedUrls: string[] = [];
-    const fetcher = ((url: string) => {
-      requestedUrls.push(url);
-      return Promise.resolve(createNdjsonResponse([]));
-    }) as unknown as typeof fetch;
+    const fetcher = (() =>
+      Promise.resolve(
+        createNdjsonResponse([
+          { date: Date.parse('2026-06-10T10:30:00.000Z'), win: false, puzzle: { id: 'old', rating: 900, themes: ['pin'] } },
+          { date: Date.parse('2026-06-10T11:30:00.000Z'), win: true, puzzle: { id: 'new', rating: 930, themes: ['fork'] } },
+        ]),
+      )) as unknown as typeof fetch;
 
     const previousImport = createBlockLog({
       id: '2026-06-10:atividade-livre-x',
@@ -99,7 +101,7 @@ describe('importFreeActivity', () => {
       },
     });
 
-    await importFreeActivity({
+    const outcome = await importFreeActivity({
       token: 'lio_test',
       existingLogs: [previousImport],
       today: '2026-06-10',
@@ -107,8 +109,9 @@ describe('importFreeActivity', () => {
       fetcher,
     });
 
-    const sinceParam = new URL(requestedUrls[0] ?? '').searchParams.get('since');
-
-    expect(sinceParam).toBe(String(Date.parse('2026-06-10T11:00:00.000Z')));
+    expect(outcome.log?.result?.puzzles).toBe(1);
+    expect(outcome.log?.result?.wins).toBe(1);
+    expect(outcome.log?.result?.losses).toBe(0);
+    expect(outcome.log?.result?.since).toBe('2026-06-10T11:00:00.000Z');
   });
 });

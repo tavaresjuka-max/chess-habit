@@ -5,17 +5,60 @@ import type { MethodTrackId, PendingTrainingItem } from './types';
 
 const SPACING_DAYS = [1, 3, 7, 14] as const;
 
-function addDays(isoDate: string, days: number): string {
-  const date = new Date(isoDate);
-  date.setDate(date.getDate() + days);
+type StudyDateOptions = {
+  nowFn?: () => Date;
+  timeZone?: string;
+};
 
-  return date.toISOString().split('T')[0] ?? isoDate.slice(0, 10);
+function toDateKey(date: Date, timeZone?: string): string {
+  if (timeZone !== undefined) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(date);
+    const year = parts.find((part) => part.type === 'year')?.value;
+    const month = parts.find((part) => part.type === 'month')?.value;
+    const day = parts.find((part) => part.type === 'day')?.value;
+
+    if (year !== undefined && month !== undefined && day !== undefined) {
+      return `${year}-${month}-${day}`;
+    }
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${String(year)}-${month}-${day}`;
 }
 
-export function getNextDueDate(attempts: number): string {
-  const days = SPACING_DAYS[Math.min(attempts, SPACING_DAYS.length - 1)] ?? 14;
+function addDays(dateKey: string, days: number): string {
+  const [year, month, day] = dateKey.split('-').map(Number);
 
-  return addDays(new Date().toISOString(), days);
+  if (
+    year === undefined ||
+    month === undefined ||
+    day === undefined ||
+    Number.isNaN(year) ||
+    Number.isNaN(month) ||
+    Number.isNaN(day)
+  ) {
+    return dateKey;
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+
+  return date.toISOString().split('T')[0] ?? dateKey;
+}
+
+export function getNextDueDate(attempts: number, options: StudyDateOptions = {}): string {
+  const days = SPACING_DAYS[Math.min(attempts, SPACING_DAYS.length - 1)] ?? 14;
+  const today = toDateKey((options.nowFn ?? (() => new Date()))(), options.timeZone);
+
+  return addDays(today, days);
 }
 
 function clampSpacingAttempts(attempts: number): number {
@@ -116,12 +159,12 @@ export function advancePendingItem(
   };
 }
 
-export function isDueToday(item: PendingTrainingItem): boolean {
+export function isDueToday(item: PendingTrainingItem, options: StudyDateOptions = {}): boolean {
   if (item.status !== 'open') {
     return false;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = toDateKey((options.nowFn ?? (() => new Date()))(), options.timeZone);
 
   return item.dueAt <= today;
 }

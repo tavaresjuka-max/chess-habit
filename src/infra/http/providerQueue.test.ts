@@ -5,6 +5,10 @@ function ok(status = 200): Response {
   return new Response('', { status });
 }
 
+function response(status: number, headers?: HeadersInit): Response {
+  return new Response('', { status, headers });
+}
+
 function labelOf(input: RequestInfo | URL): string {
   if (typeof input === 'string') return input;
   if (input instanceof URL) return input.href;
@@ -45,6 +49,23 @@ describe('createSerialQueue', () => {
 
     expect(calls).toBe(2);
     expect(Date.now() - t0).toBeGreaterThanOrEqual(cooldownMs);
+  });
+
+  it('respects Retry-After when it is longer than the default cooldown', async () => {
+    const cooldownMs = 10;
+    let calls = 0;
+
+    const mock = (): Promise<Response> => {
+      calls += 1;
+      return Promise.resolve(calls === 1 ? response(429, { 'Retry-After': '0.05' }) : ok());
+    };
+
+    const queue = createSerialQueue({ cooldownMs, fetcher: mock });
+
+    const t0 = Date.now();
+    await Promise.all([queue('https://a'), queue('https://b')]);
+
+    expect(Date.now() - t0).toBeGreaterThanOrEqual(50);
   });
 
   it('continues processing after a network error', async () => {

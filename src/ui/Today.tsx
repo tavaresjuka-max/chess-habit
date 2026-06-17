@@ -278,6 +278,7 @@ export function Today({
             {activeBlock !== undefined ? 'Treinando agora' : 'Próximo passo'}
           </h2>
           <PlanBlockCard
+            key={heroBlock.id}
             block={heroBlock}
             nowIso={nowIso}
             trainingLog={trainingLogs.find((log) => log.blockId === heroBlock.id)}
@@ -613,6 +614,7 @@ export function Today({
                   href={lichessStudyLink.url}
                   target="_blank"
                   rel="noreferrer"
+                  aria-label="Abrir Study do dia no Lichess (abre em nova aba)"
                 >
                   Abrir Study do dia
                 </a>

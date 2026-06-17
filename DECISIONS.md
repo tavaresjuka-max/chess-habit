@@ -18,3 +18,12 @@
 - **Por que:** M1 pede que smoke+E2E rode em PR; a suite nova usa mocks locais, build Vite isolado,
   projetos desktop/mobile e `workers: 1`, entao o custo e aceitavel para proteger fluxos principais
   antes do merge.
+
+## 2026-06-17 - P5 - URL publica de codigo-fonte ainda pendente
+
+- **Decisao:** centralizar `APP_NAME`, disclaimer, doacao e URL de codigo-fonte em
+  `src/config/appIdentity.ts`; enquanto nao houver remote/URL publica configurada, a UI mostra
+  "Codigo-fonte: URL publica pendente." em vez de apontar para um link inventado.
+- **Alternativa:** preencher uma URL de GitHub presumida.
+- **Por que:** o repositorio local nao tem `git remote`; um link falso pioraria a conformidade AGPL e a
+  confianca do beta. A troca ficou em uma constante unica para o dono preencher antes do beta publico.

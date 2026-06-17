@@ -26,7 +26,7 @@ export function Fold({ concept, title, meta, defaultOpen = false, children }: Fo
     >
       <summary className="fold-summary">
         <ConceptSeal concept={concept} size={26} />
-        <h2 className="fold-title">{title}</h2>
+        <span className="fold-title">{title}</span>
         {meta !== undefined ? <span className="fold-meta">{meta}</span> : null}
       </summary>
       <div className="fold-body">{children}</div>

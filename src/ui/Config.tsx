@@ -39,6 +39,7 @@ type ConfigProps = {
 };
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
+const maxBackupImportBytes = 5 * 1024 * 1024;
 
 export function Config({
   profile,
@@ -105,6 +106,12 @@ export function Config({
 
   async function confirmRestore() {
     if (pendingRestoreFile === null) {
+      return;
+    }
+
+    if (pendingRestoreFile.size > maxBackupImportBytes) {
+      setPendingRestoreFile(null);
+      toast.error('Backup muito grande para restaurar no navegador.');
       return;
     }
 

@@ -73,7 +73,7 @@ describe('detectWeaknesses', () => {
   it('keeps the plan conservative when thresholds do not fire', () => {
     const signals: Signal[] = [
       {
-        source: 'chesscom',
+        source: 'lichess',
         confidence: 'medium',
         observedAt,
         value: { kind: 'clock', timeoutLosses: 1, games: 20 },
@@ -81,6 +81,42 @@ describe('detectWeaknesses', () => {
     ];
 
     expect(detectWeaknesses(signals)).toEqual([]);
+  });
+
+  it('uses Chess.com-aware opening thresholds for shallow high-volume history', () => {
+    const signals: Signal[] = [
+      ...Array.from({ length: 293 }, (_, index) => ({
+        source: 'chesscom' as const,
+        confidence: 'low' as const,
+        observedAt,
+        value: { kind: 'rating' as const, perf: 'rapid' as const, rating: 900 + index },
+      })),
+      {
+        source: 'chesscom',
+        confidence: 'medium',
+        observedAt,
+        value: { kind: 'opening', eco: 'C20', name: 'King Pawn Game', games: 24, lossRate: 0.54 },
+      },
+    ];
+
+    expect(detectWeaknesses(signals, '800-1000')).toEqual([
+      expect.objectContaining({ tag: 'opening-principles', confidence: 'medium' }),
+    ]);
+  });
+
+  it('treats one Chess.com timeout in 15 games as a clock weakness', () => {
+    const signals: Signal[] = [
+      {
+        source: 'chesscom',
+        confidence: 'medium',
+        observedAt,
+        value: { kind: 'clock', timeoutLosses: 1, games: 15 },
+      },
+    ];
+
+    expect(detectWeaknesses(signals, '800-1000')).toEqual([
+      expect.objectContaining({ tag: 'time-trouble', confidence: 'medium' }),
+    ]);
   });
 
   it('turns manual signals into medium-confidence hypotheses', () => {

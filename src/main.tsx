@@ -3,8 +3,11 @@ import '@fontsource-variable/inter/index.css';
 import '@fontsource-variable/fraunces/wght.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { APP_NAME } from './config/appIdentity';
 import { App } from './ui/App';
 import './index.css';
+
+document.title = `${APP_NAME} - treino de xadrez`;
 
 const rootElement = document.getElementById('root');
 

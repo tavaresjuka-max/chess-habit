@@ -165,7 +165,7 @@ describe('training flow', () => {
   it('updates accumulated phase milestones after completing a block', async () => {
     render(<App />);
 
-    expect(await screen.findByRole('heading', { name: 'Metas da fase' })).toBeTruthy();
+    expect(await screen.findByText('Metas da fase')).toBeTruthy();
 
     fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
@@ -513,9 +513,9 @@ describe('training flow', () => {
     });
     const fetchMock = vi.fn<typeof fetch>((input) => {
       const url = requestUrl(input);
-      const since = Number(new URL(url).searchParams.get('since') ?? Date.now());
+      const before = Number(new URL(url).searchParams.get('before') ?? Date.now());
       const activities = [0, 1, 2].map((index) => ({
-        date: since,
+        date: before,
         win: true,
         puzzle: { id: `discarded-${String(index)}`, rating: 1000, themes: ['fork'] },
       }));

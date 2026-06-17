@@ -33,6 +33,7 @@ import {
 import type { AppView, DiagnosisState, LichessConnectionState } from './state';
 import { getTodayDate } from './date';
 import { toDiagnosisErrorMessage, toLichessErrorMessage } from './errorMessages';
+import { getOperationEpoch, isCurrentOperationEpoch } from './operationEpoch';
 import { buildPlanContext } from './stateHelpers';
 
 // Decisão 4 do dono (aprovada): o auto-sync (ao salvar) puxa só as partidas
@@ -50,6 +51,18 @@ type DiagnosisSyncResult = {
 type LatestPlanRef = {
   current: DailyPlan | undefined;
 };
+
+let diagnosisWriteQueue: Promise<void> = Promise.resolve();
+
+function runExclusiveDiagnosisWrite<T>(task: () => Promise<T>): Promise<T> {
+  const run = diagnosisWriteQueue.then(task, task);
+  diagnosisWriteQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+
+  return run;
+}
 
 export type UseDiagnosisActionsInput = {
   profile: LearnerProfile | undefined;
@@ -123,9 +136,23 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
 
       args.onStart();
 
+      const operationEpoch = getOperationEpoch();
       const signals = await args.fetchSignals();
 
-      await replaceSignalsForSource(args.source, signals);
+      if (!isCurrentOperationEpoch(operationEpoch)) {
+        return undefined;
+      }
+
+      return runExclusiveDiagnosisWrite(async () => {
+        if (!isCurrentOperationEpoch(operationEpoch)) {
+          return undefined;
+        }
+
+        await replaceSignalsForSource(args.source, signals);
+
+        if (!isCurrentOperationEpoch(operationEpoch)) {
+          return undefined;
+        }
 
       const allSignals = await loadSignals();
       setSignals(allSignals);
@@ -158,14 +185,24 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
           ? { ...plan, learningPlanResponse: latestPlan.learningPlanResponse }
           : plan;
 
+      if (!isCurrentOperationEpoch(operationEpoch)) {
+        return undefined;
+      }
+
       await replaceWeaknesses(nextWeaknesses);
+
+      if (!isCurrentOperationEpoch(operationEpoch)) {
+        return undefined;
+      }
+
       await savePlan(mergedPlan);
 
       setWeaknesses(nextWeaknesses);
       setTodayPlan(mergedPlan);
       latestPlanRef.current = mergedPlan;
 
-      return { signals, weaknesses: nextWeaknesses };
+        return { signals, weaknesses: nextWeaknesses };
+      });
     },
     [
       diplomaAttempts,

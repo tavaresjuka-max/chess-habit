@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { MethodTrackId, PendingTrainingItem } from './types';
 import {
   advancePendingItem,
   buildGuidingPrompt,
   createPendingItemFromFeedback,
+  getNextDueDate,
   isDueToday,
 } from './pendingItems';
 
@@ -26,6 +27,10 @@ const baseLog = {
   feedback: 'hard',
   updatedAt: '2026-06-10T10:05:00.000Z',
 } as const;
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe('pending training items', () => {
   it('creates an open pending item from hard feedback due tomorrow', () => {
@@ -50,6 +55,25 @@ describe('pending training items', () => {
 
   it('does not treat done items as due', () => {
     expect(isDueToday(createItem({ dueAt: today, status: 'done' }))).toBe(false);
+  });
+
+  it('uses the local study date between 21h and 23h in Sao Paulo', () => {
+    const nightCases = [
+      '2026-06-18T00:30:00.000Z', // 2026-06-17 21:30 -03
+      '2026-06-18T01:30:00.000Z', // 2026-06-17 22:30 -03
+      '2026-06-18T02:30:00.000Z', // 2026-06-17 23:30 -03
+    ];
+
+    for (const iso of nightCases) {
+      vi.setSystemTime(new Date(iso));
+
+      expect(
+        getNextDueDate(0, {
+          nowFn: () => new Date(iso),
+          timeZone: 'America/Sao_Paulo',
+        }),
+      ).toBe('2026-06-18');
+    }
   });
 
   it('marks an item done after four advances', () => {
