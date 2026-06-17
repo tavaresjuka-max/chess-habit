@@ -3,6 +3,12 @@
 Data: 2026-06-13 (atualizado apos auditoria Codex geral, aprovacao dos badges v1 pelo dono e
 realinhamento da arquitetura atual local-first sem backend).
 
+Atualizacao 2026-06-17: por decisao do dono registrada em `AGENTS.md` e
+`docs/review/roadmap-beta-2026-06-16.md`, P4/P5 foram descongeladas para execucao ate beta publico,
+mantendo todas as regras de privacidade/seguranca. O prompt overnight beta comeca por M1. M1
+(harness E2E com prints) foi implementado com Playwright local/mocado, projetos desktop/mobile e
+screenshots em `e2e/__screenshots__/`; CI smoke passou a rodar em PR.
+
 ## Status
 
 - Moldura: **pessoal primeiro, comunidade depois** (decidida pelo dono).

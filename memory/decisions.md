@@ -509,3 +509,12 @@ Na mesma passada, a auditoria Codex de 2026-06-13 realinhou documentacao e gate:
   o discriminante e logs ativos antigos sao enriquecidos no fechamento do bloco.
 - CI passa a exigir coverage com thresholds e smoke PWA; pre-commit local usa Husky/lint-staged com
   ESLint e `tsc -b --noEmit`.
+
+## 2026-06-17: Overnight Beta M1 - Harness E2E Com Prints
+
+- M1 usa Playwright como harness E2E local-first: mocks de Chess.com/Lichess cobrem contratos oficiais
+  sem rede real, scraping, Board/Bot/Challenge API, PGN persistido ou token em logs.
+- Prints ficam em `e2e/__screenshots__/` como evidencia gerada por etapa em desktop e mobile. Neste
+  corte, eles nao viram baseline de diff visual bloqueante porque ainda nao ha politica aprovada de
+  tolerancia e ambiente.
+- O job `smoke` do GitHub Actions roda tambem em `pull_request`, atendendo ao roadmap beta M1.

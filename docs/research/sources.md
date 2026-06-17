@@ -812,3 +812,17 @@ os itens M2.1, M4.1 e M4.3 do pacote de pendencias.
 - **[Lichess OpenAPI spec](https://github.com/lichess-org/api/blob/master/doc/specs/lichess-api.yaml):**
   revalidou os endpoints oficiais usados pelo app para Puzzle Activity, Dashboard, Replay e Studies;
   sem scraping, sem Board/Bot/Challenge API.
+
+## Rechecagem Codex Overnight Beta M1 (2026-06-17)
+
+Pesquisa executada para `prompts/codex-overnight-beta-2026-06-16.md`, milestone M1 (harness E2E
+prints + CI).
+
+- **[Playwright Screenshots](https://playwright.dev/docs/screenshots):** confirmou o uso de
+  `page.screenshot({ path, fullPage: true })` para gerar evidencias visuais em arquivo por etapa.
+- **[Playwright Continuous Integration](https://playwright.dev/docs/ci):** confirmou a pratica de
+  rodar Playwright em CI com `npm ci`, `npx playwright install --with-deps` e execucao sequencial
+  (`workers: 1`) para estabilidade.
+- **[GitHub Actions: pull_request event](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request):**
+  confirmou que workflows podem rodar em `pull_request`; por padrao, cobre `opened`, `synchronize`
+  e `reopened`, suficiente para o smoke/E2E do PR.

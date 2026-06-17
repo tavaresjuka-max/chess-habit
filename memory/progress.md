@@ -328,3 +328,13 @@
     hard sem avanco de estagio, cobertura/CI/pre-commit e classificacao estrutural `logKind`.
   - [x] Gate final verde: lint, testes 3x, build, coverage e smoke PWA.
   - [x] Relatorio salvo em `docs/review/relatorio-codex-execucao-cortes-M1-M5-2026-06-15.md`.
+
+- [x] **Overnight beta M1 - Harness E2E com prints (2026-06-17)**.
+  - [x] Helpers Playwright criados para mocks oficiais de Chess.com/Lichess, bloqueio de navegacao externa
+    e screenshots por etapa em `e2e/__screenshots__/`.
+  - [x] Suite E2E desktop/mobile ampliada para onboarding (7 perfis), Hoje (timer/feedback/log),
+    reconciliacao de puzzles, Config (backup/export/import/clear), Progresso, callbacks OAuth e
+    offline/PWA.
+  - [x] CI `smoke` agora roda tambem em `pull_request`.
+  - [x] Fonte oficial Playwright/GitHub Actions registrada em `docs/research/sources.md`; suposicoes
+    operacionais registradas em `DECISIONS.md` e `memory/decisions.md`.
