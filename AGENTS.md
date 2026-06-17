@@ -21,6 +21,26 @@ Specs anteriores (2026-06-06, 2026-06-07) estao executados e valem como historic
 Roadmap vigente: plano consolidado de cortes 0-8 em
 `docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md` (aprovado pelo dono em 2026-06-10).
 
+## Autorizacao P4 + P5 (dono, 2026-06-16)
+
+O dono, **autoridade final**, DESCONGELOU P4 (sync multi-dispositivo) e P5 (versao-comunidade) e
+autorizou implementar TODAS as features ate um beta publico. Decisoes travadas:
+
+- **Sync (P4):** backend **Cloudflare Workers + D1**. Login = **Entrar com Lichess** (identidade via
+  OAuth, sem escopo de jogo). Dados sobem **cifrados ponta-a-ponta** (chave derivada do login, NUNCA
+  enviada ao servidor); tokens OAuth continuam **so no aparelho**. Provisionamento da nuvem fica com o
+  dono — o agente **constroi + testa local** (wrangler/miniflare), nao cria conta nem mexe em secrets
+  de producao.
+- **Comunidade (P5):** rename publico obrigatorio via **constante unica `APP_NAME`** (placeholder
+  `'Rotina'` ate o dono fornecer o nome final), disclaimers de nao-afiliacao, AGPL a mostra, doacao =
+  link externo.
+- Roadmap detalhado: `docs/review/roadmap-beta-2026-06-16.md`. Execucao autonoma:
+  `prompts/codex-overnight-beta-2026-06-16.md`.
+
+TODAS as outras Regras Inquebraveis abaixo permanecem (clean-room, sem scraping, sem tabuleiro, tokens
+locais, sem PGN/PII, AGPL, sem promessa de rating, etc.). Descongelar fase **NAO afrouxa nenhuma regra
+de privacidade/seguranca**.
+
 ## Regras Inquebraveis
 
 - Construir como **clean-room**: app novo do zero em `lichess-tutor`. **Proibido** copiar arquivos,
@@ -67,7 +87,8 @@ Roadmap vigente: plano consolidado de cortes 0-8 em
 - Nenhuma decisao de qualquer IA pode violar as Regras Inquebraveis.
 - Codex implementa exatamente o spec vigente; diante de ambiguidade ou contrato de API divergente,
   PARA e pergunta, nunca adivinha.
-- Ordem de fases obrigatoria: P0 -> P1 -> P2 -> P3 -> P4 -> P5. Nao adiantar fases.
+- Ordem de fases obrigatoria: P0 -> P1 -> P2 -> P3 -> P4 -> P5. Nao adiantar fases. **EXCECAO
+  autorizada pelo dono em 2026-06-16:** P4 e P5 DESCONGELADAS (ver "Autorizacao P4 + P5" acima).
 
 ## Pesquisa
 
@@ -119,7 +140,9 @@ completo em `memory/plano-nota-95-estado.md`. Refutados por codigo:
 - **Purge de signals** (`replaceSignalsForSource`, cutoff 90d) e GC global intencional, nao bug por fonte.
 - **`hard` -> `explain`** (nao avanca o estagio) e intencional: dificuldade pede mais suporte.
 - **Deps de `useCallback`** com setters do React sao estaveis; lint passa em `--max-warnings=0`.
-- **`addDays`/datas locais**: o dono nao tem DST (Brasil desde 2019); nao tratar como off-by-one.
+- **`addDays`**: o de `planSessions.ts` usa UTC (ok). ATENCAO: `pendingItems.ts` tem um `addDays`
+  PARALELO com `setDate` (hora local) — a auditoria de 2026-06-16 aponta off-by-one em GMT-3 (nao so
+  DST). NAO refutar: investigar com teste que reproduz GMT-3 antes de concluir; corrigir se confirmado.
 - **"Suite quebrada"/"sem dark mode"**: falso — suite verde; dark em `index.css`.
 
 ## Resposta Final Dos Agentes
