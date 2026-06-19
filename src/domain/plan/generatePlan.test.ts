@@ -151,7 +151,7 @@ describe('generatePlan', () => {
   });
 
   it('promove à trilha de diplomas após diploma recente (decisão 3)', () => {
-    const recentDiploma = ['coordenadas', 'valor-pecas', 'mates-basicos'].map((sectionId) => ({
+    const recentDiploma = ['valor-pecas', 'mates-basicos'].map((sectionId) => ({
       id: `a-${sectionId}`,
       diplomaId: 'peao' as const,
       sectionId,

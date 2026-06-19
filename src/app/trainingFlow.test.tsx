@@ -620,7 +620,7 @@ function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrai
 }
 
 function createPassedPeaoDiplomaAttempts(date: string): DiplomaAttempt[] {
-  return ['coordenadas', 'valor-pecas', 'mates-basicos'].map((sectionId) => ({
+  return ['valor-pecas', 'mates-basicos'].map((sectionId) => ({
     id: `attempt-${sectionId}`,
     diplomaId: 'peao',
     sectionId,

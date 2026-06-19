@@ -1,11 +1,27 @@
 import { DIPLOMA_THRESHOLDS } from './mastery';
 import type { DiplomaAttempt, DiplomaId } from './types';
 
+// Open Decision #1 (2026-06-19): o diploma é conquistado automaticamente pela
+// acurácia por tema do Lichess. Cada seção mensurável exige acurácia mínima sobre
+// um piso de volume; o avaliador (evaluateDiplomas.ts) grava o DiplomaAttempt e a
+// promoção de banda (bandProgression.ts) destrava sozinha.
+export const SECTION_ACCURACY_TARGET = 80;
+export const SECTION_MIN_ATTEMPTS = 30;
+
 export type DiplomaSection = {
   id: string;
   title: string;
   description: string;
   lichessDestination: string;
+  // 'accuracy': fecha por acurácia de tema (puzzles). 'practice': reservado para
+  // seções não mensuráveis por puzzle (não usado no catálogo atual — coordenadas
+  // saiu do gate e vive só no currículo como aquecimento).
+  kind: 'accuracy' | 'practice';
+  // Chaves camelCase de tema do Lichess (ex.: 'hangingPiece'); somadas (pool)
+  // antes de calcular acurácia e piso. Só para kind 'accuracy'.
+  lichessThemes?: string[];
+  accuracyTarget?: number;
+  minAttempts?: number;
 };
 
 export type DiplomaDefinition = {
@@ -29,86 +45,87 @@ export type DiplomaProgress = {
   overallPassed: boolean;
 };
 
+function accuracySection(
+  id: string,
+  title: string,
+  description: string,
+  lichessThemes: string[],
+): DiplomaSection {
+  const [primaryTheme] = lichessThemes;
+
+  return {
+    id,
+    title,
+    description,
+    lichessDestination: `https://lichess.org/training/${primaryTheme ?? ''}`,
+    kind: 'accuracy',
+    lichessThemes,
+    accuracyTarget: SECTION_ACCURACY_TARGET,
+    minAttempts: SECTION_MIN_ATTEMPTS,
+  };
+}
+
 export const DIPLOMAS: DiplomaDefinition[] = [
   {
     id: 'peao',
     title: 'Diploma do Peão',
     band: '0-600',
-    description: 'Fundamentos sólidos: regras, coordenadas, valor de peças e mates básicos.',
+    description: 'Fundamentos sólidos: valor das peças e mates em um lance.',
     threshold: DIPLOMA_THRESHOLDS.peao ?? 90,
     sections: [
-      {
-        id: 'coordenadas',
-        title: 'Coordenadas do Tabuleiro',
-        description: 'Nomear casas rapidamente.',
-        lichessDestination: 'https://lichess.org/training/coordinate',
-      },
-      {
-        id: 'valor-pecas',
-        title: 'Valor das Peças',
-        description: 'Identificar trocas favoráveis e desfavoráveis.',
-        lichessDestination: 'https://lichess.org/training/hangingPiece',
-      },
-      {
-        id: 'mates-basicos',
-        title: 'Mates Básicos',
-        description: 'Mate com dama, mate com torre, mate do pastor.',
-        lichessDestination: 'https://lichess.org/practice/checkmates',
-      },
+      accuracySection(
+        'valor-pecas',
+        'Valor das Peças',
+        'Capturar peça pendurada e evitar trocas ruins.',
+        ['hangingPiece'],
+      ),
+      accuracySection('mates-basicos', 'Mates em 1', 'Encontrar o xeque-mate em um lance.', ['mateIn1']),
     ],
   },
   {
     id: 'torre',
     title: 'Diploma da Torre',
     band: '600-1000',
-    description: 'Tática básica rotulada, segurança material e finais simples de peão.',
+    description: 'Tática rotulada, segurança material e finais de peão.',
     threshold: DIPLOMA_THRESHOLDS.torre ?? 80,
     sections: [
-      {
-        id: 'tatica-rotulada',
-        title: 'Tática Rotulada',
-        description: 'Garfo, cravada, espeto e ataque descoberto com tema visível.',
-        lichessDestination: 'https://lichess.org/training/fork',
-      },
-      {
-        id: 'seguranca-material',
-        title: 'Segurança Material',
-        description: 'Identificar peças penduradas antes de mover.',
-        lichessDestination: 'https://lichess.org/training/hangingPiece',
-      },
-      {
-        id: 'finais-peao',
-        title: 'Finais de Peão',
-        description: 'Regra do quadrado e oposição.',
-        lichessDestination: 'https://lichess.org/practice/pawn-endgames',
-      },
+      accuracySection(
+        'tatica-rotulada',
+        'Tática Rotulada',
+        'Garfo, cravada e espeto com tema visível.',
+        ['fork', 'pin', 'skewer'],
+      ),
+      accuracySection(
+        'seguranca-material',
+        'Segurança Material',
+        'Identificar peças penduradas antes de mover.',
+        ['hangingPiece'],
+      ),
+      accuracySection('finais-peao', 'Finais de Peão', 'Regra do quadrado e oposição.', ['pawnEndgame']),
     ],
   },
   {
     id: 'rei',
     title: 'Diploma do Rei',
     band: '1000-1200',
-    description: 'Cálculo curto, abertura por princípios e revisão de partida terminada.',
+    description: 'Cálculo curto, abertura por princípios e finais básicos.',
     threshold: DIPLOMA_THRESHOLDS.rei ?? 75,
     sections: [
-      {
-        id: 'calculo-curto',
-        title: 'Cálculo de 2-3 Lances',
-        description: 'Listar candidatos e prever resposta adversária.',
-        lichessDestination: 'https://lichess.org/training/mateIn2',
-      },
-      {
-        id: 'abertura-principios',
-        title: 'Princípios de Abertura',
-        description: 'Centro, desenvolvimento e segurança do rei nos 10 primeiros lances.',
-        lichessDestination: 'https://lichess.org/training/opening',
-      },
-      {
-        id: 'finais-basicos',
-        title: 'Finais Básicos',
-        description: 'Rei e peão contra rei; torre contra peão.',
-        lichessDestination: 'https://lichess.org/practice/rook-endgames',
-      },
+      accuracySection(
+        'calculo-curto',
+        'Cálculo de 2-3 Lances',
+        'Listar candidatos e prever a resposta adversária.',
+        ['mateIn2'],
+      ),
+      accuracySection(
+        'abertura-principios',
+        'Princípios de Abertura',
+        'Centro, desenvolvimento e segurança do rei.',
+        ['opening'],
+      ),
+      accuracySection('finais-basicos', 'Finais Básicos', 'Rei e peão contra rei; torre contra peão.', [
+        'rookEndgame',
+      ]),
     ],
   },
 ];
@@ -127,7 +144,8 @@ export function isDiplomaPassed(attempts: DiplomaAttempt[], diplomaId: DiplomaId
   return definition.sections.every((section) => {
     const latest = getLatestSectionAttempt(attempts, diplomaId, section.id);
 
-    return latest !== undefined && latest.scorePercent >= definition.threshold;
+    // Gate pela flag passed (o avaliador já considerou acurácia E piso de volume).
+    return latest !== undefined && latest.passed;
   });
 }
 
@@ -147,7 +165,7 @@ export function getDiplomaProgress(attempts: DiplomaAttempt[], diplomaId: Diplom
       return {
         ...section,
         scorePercent,
-        passed: scorePercent >= definition.threshold,
+        passed: latest?.passed ?? false,
         attempted: latest !== undefined,
       };
     }),

@@ -175,17 +175,6 @@ describe('Progress', () => {
   it('exibe "Conquistado" quando diploma foi aprovado', () => {
     const attempts: DiplomaAttempt[] = [
       {
-        id: 'attempt-coordenadas',
-        diplomaId: 'peao',
-        sectionId: 'coordenadas',
-        scorePercent: 95,
-        totalItems: 10,
-        passed: true,
-        source: 'lichess',
-        createdAt: '2026-06-15T09:00:00.000Z',
-        updatedAt: '2026-06-15T09:00:00.000Z',
-      },
-      {
         id: 'attempt-valor',
         diplomaId: 'peao',
         sectionId: 'valor-pecas',
