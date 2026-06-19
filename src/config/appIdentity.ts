@@ -14,3 +14,14 @@ export const SOURCE_CODE_URL: string | undefined = undefined;
 
 // Doacao fica externa e opcional; apoiador nao recebe vantagem funcional.
 export const DONATION_URL: string | undefined = undefined;
+
+// Resumo de privacidade exibido na UI (transparencia local-first). Texto curto e honesto.
+export const PRIVACY_SUMMARY = [
+  'Seus dados ficam localmente so neste aparelho (IndexedDB). Nao ha servidor nosso recebendo seu historico.',
+  'Tokens de login (Lichess) ficam apenas no aparelho e nunca entram no backup exportado.',
+  'Buscamos seus jogos publicos no Lichess e no Chess.com so para montar seu diagnostico; nao guardamos PGN completo.',
+  'Voce pode exportar um backup e apagar tudo a qualquer momento na tela de Configuracao.',
+] as const;
+
+// TODO(beta-publico): preencher quando o dono definir o canal (e-mail, formulario ou issue tracker).
+export const FEEDBACK_URL: string | undefined = undefined;
