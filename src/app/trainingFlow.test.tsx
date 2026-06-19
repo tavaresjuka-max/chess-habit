@@ -176,7 +176,9 @@ describe('training flow', () => {
 
     await completeFirstBlockWithFeedback('Bom');
 
-    expect(await screen.findByText(/Treinou por menos de 1 min/i, {}, { timeout: 5000 })).toBeTruthy();
+    // Sem reconciliação (sem token), o bloco concluído mostra só "Concluído." —
+    // métrica honesta, sem inventar tempo de relógio.
+    expect(await screen.findByText('Concluído.', {}, { timeout: 5000 })).toBeTruthy();
 
     const log = await getFirstBlockLog();
 

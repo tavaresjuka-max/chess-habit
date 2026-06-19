@@ -61,6 +61,45 @@ export async function fetchPuzzleActivity(options: FetchPuzzleActivityOptions): 
   });
 }
 
+/**
+ * Estima o tempo ATIVO de treino a partir dos timestamps (ms) dos puzzles.
+ * O Lichess não expõe tempo por puzzle, então somamos só os intervalos curtos
+ * entre puzzles consecutivos (pausas longas = distração/fora do app não contam),
+ * com um piso por puzzle e um teto. Estimativa honesta, não relógio de parede.
+ */
+export function estimateActiveSeconds(
+  timestampsMs: readonly number[],
+  options: { maxGapSeconds?: number; perPuzzleFloorSeconds?: number; capSeconds?: number } = {},
+): number {
+  const maxGapMs = (options.maxGapSeconds ?? 180) * 1000;
+  const floorPerPuzzle = options.perPuzzleFloorSeconds ?? 8;
+  const cap = options.capSeconds;
+
+  const sorted = timestampsMs.filter((value) => Number.isFinite(value)).sort((left, right) => left - right);
+
+  if (sorted.length === 0) {
+    return 0;
+  }
+
+  let activeMs = 0;
+  for (let index = 1; index < sorted.length; index += 1) {
+    const previous = sorted[index - 1];
+    const current = sorted[index];
+
+    if (previous === undefined || current === undefined) {
+      continue;
+    }
+
+    const gap = current - previous;
+    if (gap > 0 && gap <= maxGapMs) {
+      activeMs += gap;
+    }
+  }
+
+  const seconds = Math.round(Math.max(activeMs / 1000, sorted.length * floorPerPuzzle));
+  return cap === undefined ? seconds : Math.min(seconds, cap);
+}
+
 export function summarizePuzzleActivity(input: {
   activities: LichessPuzzleActivity[];
   fetchedAt: string;
@@ -81,6 +120,10 @@ export function summarizePuzzleActivity(input: {
     losses: input.activities.length - wins,
     themes,
     themeStats: summarizeThemeStats(input.activities),
+    activeSeconds: estimateActiveSeconds(
+      input.activities.map((activity) => activity.date),
+      { capSeconds: 3600 },
+    ),
   };
 }
 

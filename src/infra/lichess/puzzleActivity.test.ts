@@ -1,10 +1,37 @@
 import { describe, expect, it } from 'vitest';
 import {
+  estimateActiveSeconds,
   fetchPuzzleActivity,
   LichessRateLimitError,
   parsePuzzleActivityNdjson,
   summarizePuzzleActivity,
 } from './puzzleActivity';
+
+describe('estimateActiveSeconds', () => {
+  const min = (n: number): number => n * 60_000;
+
+  it('sem puzzles devolve 0', () => {
+    expect(estimateActiveSeconds([])).toBe(0);
+  });
+
+  it('um puzzle usa o piso por puzzle (não zero)', () => {
+    expect(estimateActiveSeconds([min(0)])).toBe(8);
+  });
+
+  it('soma os intervalos curtos entre puzzles consecutivos', () => {
+    // 3 puzzles, 60s entre cada → 120s ativos.
+    expect(estimateActiveSeconds([0, 60_000, 120_000])).toBe(120);
+  });
+
+  it('ignora pausas longas (distração) e cai no piso', () => {
+    // 2 puzzles a 10 min de distância (> 180s) → não conta o gap; piso 2×8 = 16s.
+    expect(estimateActiveSeconds([0, min(10)])).toBe(16);
+  });
+
+  it('respeita o teto', () => {
+    expect(estimateActiveSeconds([0, 60_000, 120_000], { capSeconds: 60 })).toBe(60);
+  });
+});
 
 describe('parsePuzzleActivityNdjson', () => {
   it('parses valid puzzle activity lines and ignores malformed shapes', () => {
@@ -65,6 +92,8 @@ describe('summarizePuzzleActivity', () => {
         { theme: 'fork', attempts: 2, losses: 1 },
         { theme: 'mate', attempts: 1, losses: 1 },
       ],
+      // dois puzzles → piso 2×8s domina o gap de 1ms.
+      activeSeconds: 16,
     });
   });
 });

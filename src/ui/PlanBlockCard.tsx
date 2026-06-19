@@ -243,9 +243,24 @@ function formatTimerStatus(
   const elapsedSeconds = log.status === 'active' ? elapsedSecondsBetween(log.startedAt, nowIso) : (log.elapsedSeconds ?? 0);
 
   if (log.status === 'done') {
+    // Métrica honesta: nº de exercícios feitos (real, do Lichess) em vez do
+    // relógio de parede. Tempo, quando há, é a estimativa por timestamp.
+    const result = log.result;
+
+    if (result !== undefined && result.puzzles > 0) {
+      const plural = result.puzzles === 1 ? '' : 's';
+      const seconds = result.kind === 'puzzle-activity' ? (result.activeSeconds ?? 0) : 0;
+      const time = seconds > 0 ? ` · ~${formatElapsedMinutes(seconds)}` : '';
+
+      return {
+        kind: 'timer-done',
+        label: `${String(result.puzzles)} exercício${plural} feito${plural}${time}.`,
+      };
+    }
+
     return {
       kind: 'timer-done',
-      label: `Treinou por ${formatElapsedMinutes(elapsedSeconds)}.`,
+      label: 'Concluído.',
     };
   }
 

@@ -183,6 +183,9 @@ export type PuzzleActivityTrainingResult = {
   losses: number;
   themes: string[];
   themeStats?: PuzzleThemeStat[];
+  // Tempo ATIVO estimado pelos timestamps do Lichess (a API não dá tempo por
+  // puzzle). Honesto: ignora pausas longas. Métrica principal é `puzzles`.
+  activeSeconds?: number;
 };
 
 export type PuzzleDashboardTrainingResult = {
