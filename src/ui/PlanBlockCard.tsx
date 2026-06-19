@@ -1,6 +1,7 @@
 import { Check, ExternalLink, Feather, Flag, Lightbulb, Target } from 'lucide-react';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { isAllowedExternalUrl, openExternalUrl } from '../app/externalOpen';
+import { TacticDiagram } from './art/TacticDiagram';
 import {
   elapsedSecondsBetween,
   formatElapsedMinutes,
@@ -75,6 +76,8 @@ export function PlanBlockCard({
         <h3 id={`block-title-${block.id}`}>{block.title}</h3>
         <span className={`status-pill status-${block.status}`}>{formatStatus(block.status)}</span>
       </div>
+      {/* Diagrama do conceito tático: imagem vale mais que texto para memorizar. */}
+      {block.weaknessTag !== undefined ? <TacticDiagram tag={block.weaknessTag} /> : null}
       <p className="block-meta">
         {block.estimatedMinutes} min - {formatResourceStage(block.resourceStage)} - {block.destination.label}
       </p>

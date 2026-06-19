@@ -41,6 +41,18 @@ describe('PlanBlockCard', () => {
     expect(screen.queryByRole('link', { name: /Abrir no Lichess/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Iniciar bloco' })).toBeInTheDocument();
   });
+
+  it('mostra o diagrama do conceito quando o bloco tem weaknessTag', () => {
+    renderPlanBlockCard(makeBlock({ id: 'fork-block', weaknessTag: 'fork' }));
+
+    expect(screen.getByRole('img', { name: /garfo/i })).toBeInTheDocument();
+  });
+
+  it('não mostra diagrama quando o bloco não tem weaknessTag', () => {
+    renderPlanBlockCard(makeBlock({ id: 'no-tag' }));
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
 });
 
 function renderPlanBlockCard(block: PlanBlock) {
