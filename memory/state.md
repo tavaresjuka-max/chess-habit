@@ -1,6 +1,6 @@
 # Estado Atual
 
-Data: 2026-06-17 (atualizado apos execucao Codex de finalizacao parcial ate estado verde).
+Data: 2026-06-19 (atualizado apos finalizacao beta local-first).
 
 Atualizacao 2026-06-17: por decisao do dono registrada em `AGENTS.md` e
 `docs/review/roadmap-beta-2026-06-16.md`, P4/P5 foram descongeladas para execucao ate beta publico,
@@ -12,6 +12,13 @@ Atualizacao final 2026-06-17: o prompt `prompts/codex-finalizar-app-2026-06-17.m
 estado verde. Bugs de confianca da Fase A e varios hardenings P2/P3/P5 foram corrigidos, com relatorio
 em `docs/review/relatorio-final-app-2026-06-17.md`. P4 sync completo e pacote publico final continuam
 pendentes para uma rodada dedicada.
+
+Atualizacao 2026-06-19: o prompt `prompts/codex-finalizar-beta-local-first-2026-06-19.md` foi executado
+como fechamento de beta local-first, sem deploy/push. Entraram auditoria axe automatizada, smoke de CSP,
+privacidade visivel na UI, contrato E2EE P4 documentado, runbook de backend do dono e gates finais verdes
+(`npm test` 76 arquivos/627 testes, coverage 5x com functions 90,02%, smoke PWA 34/34, build sem
+sourcemaps). Relatorio salvo em
+`docs/review/relatorio-finalizacao-beta-local-first-2026-06-19.md`.
 
 ## Status
 
@@ -67,6 +74,9 @@ pendentes para uma rodada dedicada.
 - P4/P5: descongeladas pelo dono em 2026-06-16. Sync deve ser construido/testado localmente com
   Workers + D1 e E2EE por passphrase, sem deploy/provisionamento/secrets pelo agente. P5 usa
   `APP_NAME='Rotina'` ate nome publico final, disclaimer e AGPL visiveis.
+- Beta local-first finalizado em 2026-06-19: axe, CSP smoke, privacidade in-app, contrato E2EE doc,
+  runbook P4 e gates finais verdes. `style-src 'unsafe-inline'` permanece apenas por limite do `sonner`;
+  runtime/prod audit esta limpo com `npm audit --omit=dev --audit-level=high`.
 - Specs vigentes: `docs/superpowers/specs/2026-06-08-professor-lemos-tutor-design.md` (tutor),
   `docs/superpowers/specs/2026-06-10-metodo-5-trilhas-design.md` (metodo 5 trilhas, as-built) e
   `docs/superpowers/specs/2026-06-10-badges-spec-draft.md` (badges v1 aprovados em 2026-06-13).

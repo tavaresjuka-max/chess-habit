@@ -528,3 +528,15 @@ Na mesma passada, a auditoria Codex de 2026-06-13 realinhou documentacao e gate:
   vez de apontar para um GitHub presumido. A URL real deve ser preenchida em `SOURCE_CODE_URL` antes do
   beta publico.
 - Motivo: link falso prejudicaria conformidade AGPL e confianca; a troca ficou em uma constante unica.
+
+## 2026-06-19: Beta Local-First E CSP Com Limite Do Sonner
+
+- O escopo "pronto" desta rodada e beta publico **local-first**, sem backend/sync implementado. P4
+  segue como fase seguinte, documentada por contrato E2EE e runbook, sem deploy/provisionamento pelo agente.
+- A CSP strict sem `style-src 'unsafe-inline'` foi tentada e testada via smoke. O app proprio teve os
+  estilos inline auditados removidos, mas `sonner` injeta estilo runtime e bloqueia a remocao completa.
+  Decisao: manter `style-src 'self' 'unsafe-inline'` por enquanto, com follow-up explicito para
+  substituir `sonner` ou carregar seus estilos estaticamente.
+- Transparencia P5 local-first entra na UI: resumo de privacidade visivel, AGPL/disclaimer mantidos,
+  `FEEDBACK_URL` opcional e `SOURCE_CODE_URL` ainda pendente ate o dono fornecer URL real.
+- Nome publico segue como `APP_NAME='Rotina'` placeholder centralizado; nenhuma URL/nome foi inventado.

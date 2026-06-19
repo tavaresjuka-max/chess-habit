@@ -359,3 +359,15 @@
   - [x] Relatorio final salvo em `docs/review/relatorio-final-app-2026-06-17.md`.
   - [ ] Pendentes para beta publico amplo: P4 sync Workers/D1 + E2EE local, URL real de codigo-fonte,
     docs publicas de privacidade/sync, axe formal e remocao de `style-src 'unsafe-inline'` se priorizada.
+
+- [x] **Finalizacao beta local-first (2026-06-19)**.
+  - [x] Prompt `prompts/codex-finalizar-beta-local-first-2026-06-19.md` executado sem deploy/push.
+  - [x] Axe automatizado criado para Welcome, Hoje, Config, Progresso e onboarding "Suas contas".
+  - [x] Inline styles proprios auditados/limpos; CSP smoke adicionado; `style-src 'unsafe-inline'`
+    mantido apenas por limite real do `sonner`, documentado em `DECISIONS.md`.
+  - [x] Privacidade local-first exibida no footer; `FEEDBACK_URL` preparado como constante opcional.
+  - [x] Contrato P4 E2EE por passphrase independente documentado em `docs/architecture/sync.md` e
+    runbook do dono criado em `DEPLOY-BACKEND.md`.
+  - [x] Gate final verde: lint, `npm test` (76 arquivos/627 testes), coverage 5x (functions 90,02%),
+    build, smoke PWA 34/34 e build sem sourcemaps.
+  - [x] Relatorio salvo em `docs/review/relatorio-finalizacao-beta-local-first-2026-06-19.md`.
