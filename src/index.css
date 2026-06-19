@@ -285,6 +285,12 @@ h3 {
   box-shadow: 0 0 0 1.5px var(--gold-300);
 }
 
+.lemos-avatar-img {
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
 .loading-panel {
   display: grid;
   gap: 10px;

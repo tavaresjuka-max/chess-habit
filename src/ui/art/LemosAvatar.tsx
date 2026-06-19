@@ -10,8 +10,7 @@ export function LemosAvatar({ size = 44, className }: LemosAvatarProps) {
       width={size}
       height={size}
       alt="Professor Lemos"
-      className={className}
-      style={{ borderRadius: '50%', objectFit: 'cover', display: 'block' }}
+      className={`lemos-avatar-img${className ? ` ${className}` : ''}`}
     />
   );
 }
