@@ -69,9 +69,11 @@ export const tacticDiagrams: Partial<Record<WeaknessTag, TacticDiagramSpec>> = {
   },
   discovered: {
     size: 5,
+    // O bispo recua para uma casa segura (1,3), longe do rei: ao sair da fileira 2,
+    // descobre o xeque da torre. Em (3,1) o rei capturaria o bispo ao fugir do xeque.
     pieces: [white(WR, sq(0, 2)), white(WB, sq(2, 2)), black(BK, sq(4, 2))],
     arrows: [
-      { from: sq(2, 2), to: sq(3, 1) },
+      { from: sq(2, 2), to: sq(1, 3) },
       { from: sq(0, 2), to: sq(4, 2) },
     ],
     label: 'Ataque descoberto: o bispo sai da frente e revela o ataque da torre ao rei.',
@@ -91,12 +93,10 @@ export const tacticDiagrams: Partial<Record<WeaknessTag, TacticDiagramSpec>> = {
   },
   'mate-in-2': {
     size: 5,
-    pieces: [black(BK, sq(4, 0)), white(WQ, sq(2, 2)), white(WR, sq(0, 1))],
-    arrows: [
-      { from: sq(2, 2), to: sq(2, 0) },
-      { from: sq(0, 1), to: sq(0, 0) },
-    ],
-    label: 'Mate em 2: forçar o rei com um lance e dar o mate no lance seguinte.',
+    // Uma seta só (lance-chave da dama à última fileira); a torre fica de apoio no canto.
+    pieces: [black(BK, sq(4, 0)), white(WQ, sq(2, 2)), white(WR, sq(0, 0))],
+    arrows: [{ from: sq(2, 2), to: sq(2, 0) }],
+    label: 'Mate em 2: um lance força o rei e o mate vem no lance seguinte.',
   },
   'back-rank': {
     size: 5,
