@@ -49,3 +49,11 @@ test('a11y: Hoje, Config e Progresso sem violações sérias', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Progresso' })).toBeVisible({ timeout: 30_000 });
   await expectNoSeriousViolations(page, 'Progresso');
 });
+
+test('a11y: passo "Suas contas" do onboarding sem violações sérias', async ({ page }) => {
+  await prepareBrowser(page, { lichess: { joaninha: 'many' } });
+  await openApp(page);
+  await page.getByRole('button', { name: 'Vamos configurar' }).click();
+  await expect(page.getByRole('heading', { name: 'Suas contas' })).toBeVisible();
+  await expectNoSeriousViolations(page, 'Onboarding · Suas contas');
+});
