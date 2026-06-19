@@ -820,6 +820,7 @@ textarea {
 }
 
 .day-progress-fill {
+  width: var(--bar-fill, 0%);
   height: 100%;
   border-radius: var(--radius-pill);
   background: linear-gradient(90deg, var(--gold-300), var(--gold-600));
@@ -1443,6 +1444,7 @@ textarea {
 }
 
 .skill-map-bar-fill {
+  width: var(--bar-fill, 0%);
   background: linear-gradient(90deg, var(--green-600), var(--green-700));
   border-radius: var(--radius-pill);
   height: 100%;

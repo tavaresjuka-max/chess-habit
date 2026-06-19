@@ -38,6 +38,7 @@ import { PlanBlockCard } from './PlanBlockCard';
 import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
 import { TutorCard } from './TutorCard';
 import { formatWeaknessTag } from './formatWeakness';
+import { useBarFill } from './useBarFill';
 
 type TodayProps = {
   plan: DailyPlan | undefined;
@@ -242,11 +243,8 @@ export function Today({
             : `${String(doneBlockCount)} de ${String(allBlocksOrdered.length)} blocos`
         }
       >
-        <div
-          className="day-progress-fill"
-          style={{
-            width: `${String(allBlocksOrdered.length === 0 ? 0 : Math.round((doneBlockCount / allBlocksOrdered.length) * 100))}%`,
-          }}
+        <DayProgressFill
+          percent={allBlocksOrdered.length === 0 ? 0 : Math.round((doneBlockCount / allBlocksOrdered.length) * 100)}
         />
       </div>
 
@@ -648,6 +646,10 @@ function formatFriendlyDate(date: string): string {
   });
 
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
+function DayProgressFill({ percent }: { percent: number }) {
+  return <div className="day-progress-fill" ref={useBarFill(percent)} />;
 }
 
 function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefined }) {
