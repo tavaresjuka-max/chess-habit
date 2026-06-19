@@ -9,6 +9,7 @@ export default mergeConfig(
       // Só os testes unitários de src. Isola o e2e/*.spec.ts do Playwright, que
       // o include default do vitest (.spec) pegaria por engano.
       include: ['src/**/*.test.{ts,tsx}'],
+      setupFiles: ['./src/test/setup.ts'],
       testTimeout: 10_000,
       alias: {
         // O módulo virtual do vite-plugin-pwa não existe no vitest/jsdom.
