@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import {
   createTrainingLog,
   generatePlan,
@@ -137,8 +137,7 @@ describe('training flow', () => {
   it('hides destructive completion controls after a block is already done', async () => {
     render(<App />);
 
-    await clickFirstButton('Concluir');
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
 
     expect(await screen.findByText('Feito', {}, { timeout: 5000 })).toBeTruthy();
 
@@ -153,8 +152,7 @@ describe('training flow', () => {
   it('shows a day completion summary after the final planned block is done', async () => {
     render(<App />);
 
-    await clickFirstButton('Concluir');
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
 
     expect(await screen.findByRole('heading', { name: 'Dia concluído. Bom trabalho.' })).toBeTruthy();
     expect(screen.getByText('1/1 bloco feito')).toBeTruthy();
@@ -167,8 +165,7 @@ describe('training flow', () => {
 
     expect(await screen.findByText('Metas da fase')).toBeTruthy();
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
 
     expect(await screen.findByText('0h de 6h - 1 de 72 sessões previstas.', {}, { timeout: 5000 })).toBeTruthy();
     expect(screen.getByText('sessão')).toBeTruthy();
@@ -177,8 +174,7 @@ describe('training flow', () => {
   it('records zero elapsed seconds honestly when completing without starting first', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
 
     expect(await screen.findByText(/Treinou por menos de 1 min/i, {}, { timeout: 5000 })).toBeTruthy();
 
@@ -197,8 +193,7 @@ describe('training flow', () => {
     async (buttonName, expectedFeedback, expectedStage, expectedUrl) => {
       render(<App />);
 
-      fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
-      fireEvent.click(await screen.findByRole('button', { name: buttonName }));
+      await completeFirstBlockWithFeedback(buttonName);
 
       await waitFor(async () => {
         expect((await getFirstBlockLog())?.feedback).toBe(expectedFeedback);
@@ -334,8 +329,7 @@ describe('training flow', () => {
   it('reopens a done block without recreating an active log', async () => {
     render(<App />);
 
-    await clickFirstButton('Concluir');
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
 
     expect(await screen.findByText('Feito', {}, { timeout: 5000 })).toBeTruthy();
 
@@ -360,8 +354,7 @@ describe('training flow', () => {
   it('registers Professor Lemos question answer as a manual signal for the next session', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
 
     fireEvent.click(await screen.findByRole('button', { name: 'Peça solta' }));
 
@@ -384,10 +377,10 @@ describe('training flow', () => {
   it('cancels completion with Voltar without finishing the block', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
-    expect(await screen.findByText('Como foi o treino?')).toBeTruthy();
+    const ratingGroup = await openFirstCompletionRating();
+    expect(within(ratingGroup).getByText('Como foi o treino?')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+    fireEvent.click(within(ratingGroup).getByRole('button', { name: 'Voltar' }));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Concluir' })).toBeTruthy();
@@ -472,8 +465,7 @@ describe('training flow', () => {
     vi.stubGlobal('fetch', fetchMock);
     render(<App />);
 
-    await clickFirstButton('Concluir');
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
     await saveLichessOAuthToken({
       accessToken: 'secret-token',
       tokenType: 'Bearer',
@@ -527,8 +519,7 @@ describe('training flow', () => {
     render(<App />);
 
     expect((await screen.findAllByText('Revisar tema: fork')).length).toBeGreaterThan(0);
-    await clickFirstButton('Concluir');
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
 
     await waitFor(async () => {
       const donePendingItems = await loadDonePendingItems();
@@ -585,14 +576,24 @@ function requestUrl(input: RequestInfo | URL): string {
   return input.url;
 }
 
-async function clickFirstButton(name: string): Promise<void> {
-  const [button] = await screen.findAllByRole('button', { name });
+async function openFirstCompletionRating(): Promise<HTMLElement> {
+  const [button] = await screen.findAllByRole('button', { name: 'Concluir' });
 
   if (button === undefined) {
-    throw new Error(`Expected at least one button named ${name}.`);
+    throw new Error('Expected at least one completion button.');
   }
 
   fireEvent.click(button);
+
+  const ratingGroup = await screen.findByRole('group', { name: 'Como foi o treino?' });
+
+  return ratingGroup;
+}
+
+async function completeFirstBlockWithFeedback(feedbackButtonName: string): Promise<void> {
+  const ratingGroup = await openFirstCompletionRating();
+
+  fireEvent.click(within(ratingGroup).getByRole('button', { name: feedbackButtonName }));
 }
 
 function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {

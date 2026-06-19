@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from '../ui/App';
 import { clearAll, markOnboardingCompleted, saveProfile } from '../infra/storage/appData';
 
@@ -30,8 +30,7 @@ describe('preserve progress across regeneration', () => {
   it('keeps a completed block done after the plan is regenerated', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Concluir' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Bom' }));
+    await completeFirstBlockWithFeedback('Bom');
 
     await waitFor(
       () => {
@@ -57,3 +56,17 @@ describe('preserve progress across regeneration', () => {
     // maior dá folga sem afrouxar as asserções.
   }, 15000);
 });
+
+async function completeFirstBlockWithFeedback(feedbackButtonName: string): Promise<void> {
+  const [button] = await screen.findAllByRole('button', { name: 'Concluir' });
+
+  if (button === undefined) {
+    throw new Error('Expected at least one completion button.');
+  }
+
+  fireEvent.click(button);
+
+  const ratingGroup = await screen.findByRole('group', { name: 'Como foi o treino?' });
+
+  fireEvent.click(within(ratingGroup).getByRole('button', { name: feedbackButtonName }));
+}

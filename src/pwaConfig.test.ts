@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { APP_DESCRIPTION, APP_MANIFEST_NAME, APP_NAME } from './config/appIdentity';
-import viteConfig, { pwaOptions } from '../vite.config';
+import viteConfig, { CONTENT_SECURITY_POLICY, pwaOptions } from '../vite.config';
 
 describe('PWA config', () => {
   it('keeps an offline app-shell configuration in the Vite PWA plugin', () => {
@@ -22,6 +22,24 @@ describe('PWA config', () => {
     expect(pwaOptions.manifest.start_url).toBe('/');
     expect(pwaOptions.manifest.icons.map((icon) => icon.sizes)).toEqual(['192x192', '512x512', '512x512']);
     expect(pwaOptions.manifest.icons.at(-1)?.purpose).toBe('maskable');
+  });
+
+  it('injects the build-only CSP meta used by preview smoke tests', () => {
+    const cspPlugin = findPluginByName(viteConfig.plugins, 'rotina-build-csp-meta') as
+      | { transformIndexHtml?: () => unknown }
+      | undefined;
+
+    expect(cspPlugin).toBeDefined();
+    expect(cspPlugin?.transformIndexHtml?.()).toEqual([
+      {
+        tag: 'meta',
+        attrs: {
+          'http-equiv': 'Content-Security-Policy',
+          content: CONTENT_SECURITY_POLICY,
+        },
+        injectTo: 'head',
+      },
+    ]);
   });
 });
 
