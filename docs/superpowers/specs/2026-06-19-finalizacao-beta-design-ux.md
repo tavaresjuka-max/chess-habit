@@ -10,10 +10,11 @@
 
 1. **Direção de design aprovada:** menos livro, mais app de xadrez, **por etapas**.
 2. **Plano do dia = modo foco com carrossel swipe**, que **convive** com um "ver lista completa" (não substitui).
-3. **Imagens didáticas = diagrama de tabuleiro (estilo A)**; camada premium "Gabinete" (gouache) como capa/recompensa, **gerada via GPT-5.5**.
+3. **Sistema de imagens AMPLO** — imagens em todo lugar (não só táticas): diagrama de tabuleiro (estilo A) para conceitos + Professor parabenizando metas, reações por contexto, marcos, conquistas, estados vazios, ícone/splash. Eu construo os encaixes (SVG/placeholder); dono gera a arte premium **via GPT-5.5** (estética Gabinete) e eu integro.
 4. **Métricas honestas — pivô:** o **número de exercícios** (real, puxado do Lichess) é a métrica principal; **tempo de relógio NÃO é prioridade**. Tempo, quando útil, é **estimado pelos timestamps do Lichess**, não pelo wall-clock do "abrir→concluir".
 5. **Progressão de nível: implementar COMPLETO agora** — promover de banda por desempenho/diploma + ativar `computeMastery` no plano. (Maior e mais arriscada mudança; recebe os testes mais fortes.)
 6. **Lógica de estágio: suavizar** — "fácil" avança 1 estágio (não pula tudo); "difícil" explica mas reavalia após N acertos.
+7. **Offline (estudar no metrô): ADIADO** — Lichess externo não roda offline; o caminho real (cachear puzzles do dia + tabuleiro in-app) é feature grande → milestone próprio depois, fora desta finalização.
 
 ---
 
@@ -39,12 +40,23 @@ Risco geral apontado: MEDIUM → LOW com estas correções, todas aceitas:
 
 ---
 
-## 3. Frente A — Sistema de imagens didáticas
+## 3. Frente A — Sistema de imagens (amplo: em todo lugar)
 
-- **`TacticDiagram` (SVG, `src/ui/art/`)**: mini-tabuleiro real (cores Lichess #f0d9b5/#b58863) com peças + setas mostrando o golpe. Sem texto na imagem. `role="img"` + `aria-label` descritivo. Tema escuro por tokens.
-- **Lazy mount** via IntersectionObserver (council H3): o SVG só monta quando o card entra no carrossel.
+**Decisão do dono:** o app deve ser bastante visual — imagens em todo lugar, não só nos conceitos táticos.
+
+**A1 — Conceitos táticos (SVG, eu faço agora):**
+- **`TacticDiagram` (SVG, `src/ui/art/`)**: mini-tabuleiro real (cores Lichess #f0d9b5/#b58863) com peças + setas. Sem texto na imagem. `role="img"` + `aria-label`. Tema escuro por tokens. Lazy mount via IntersectionObserver (council H3).
 - **Inventário (~12):** `hanging-piece`, `fork`, `pin`, `skewer`, `discovered`, `mate-in-1`, `mate-in-2`, `opening-principles`, `endgame-pawn`, `endgame-rook`, `conversion`, `blunder-rate`. Cada posição **validada contra o recurso canônico** (council L3).
-- **Premium (depois):** capa/recompensa estética Gabinete, gerada via GPT-5.5 (`prompts/geracao-imagens-gabinete-2026-06-11.md`).
+
+**A2 — Encaixes (slots) de imagem em todo o app** (eu construo os slots com SVG/placeholder; dono gera premium via GPT-5.5 e eu integro):
+- **Boas-vindas/onboarding:** Professor recebendo; ícone por etapa do placement.
+- **Plano do dia:** diagrama do tema por bloco; Professor reagindo por contexto; cena do gabinete.
+- **Conclusão de bloco/dia:** Professor parabenizando metas ("treinou 6h"); imagem de marco; selo de bloco + contagem de exercícios.
+- **Progresso:** diplomas como pergaminhos; cena de subida de banda; ícones por tema; conquistas.
+- **Feedback do exercício:** Professor reagindo a acerto/erro.
+- **Estados vazios/erros:** Professor pose neutra; ilustração "sem dados/conexão".
+- **PWA:** ícone/splash do Lemos; imagem social.
+- **Integração premium:** WebP, pares claro/escuro, poses ligadas aos tipos de mensagem do coach; arte dos 41 prompts (`prompts/geracao-imagens-gabinete-2026-06-11.md`).
 
 ---
 
@@ -118,6 +130,7 @@ Risco geral apontado: MEDIUM → LOW com estas correções, todas aceitas:
 - Localização do catálogo Lichess (EN→PT).
 - Nome público final e URL do código-fonte (dependem do dono; centralizados).
 - Geração raster premium (Gabinete) — preparar, geração é etapa à parte via GPT-5.5.
+- **Treino offline in-app (estudar no metrô)** — milestone próprio depois: cachear puzzles do dia + tabuleiro interativo in-app + sincronizar; verificar licença do banco de puzzles (clean-room).
 
 ---
 
