@@ -1,150 +1,139 @@
-# Spec — Finalização do beta: design, UX, imagens didáticas, pedagogia e timer honesto
+# Spec — Finalização do beta: design, UX, imagens didáticas, pedagogia e métricas honestas
 
-**Data:** 2026-06-19
-**Status:** direção visual **aprovada pelo dono**; demais frentes são **recomendações fundamentadas em auditoria**, marcadas para revisão do council.
-**Antecedente:** o beta local-first já foi fechado (a11y axe, CSP, privacidade in-app, doc E2EE, gates verdes — ver `prompts/codex-finalizar-beta-local-first-2026-06-19.md` e `docs/review/relatorio-finalizacao-beta-local-first-2026-06-19.md`). Esta fase é a **finalização de produto**: deixar o app com cara de **app de xadrez, não de livro**, impecável no mobile, com aprendizado que não enjoa.
-
----
-
-## 1. Princípios de design (APROVADOS pelo dono)
-
-1. **Menos livro, mais app de xadrez.** Trocar paredões de texto por hierarquia visual, chips e imagens.
-2. **Por etapas (progressive disclosure).** Mostrar uma coisa por vez em vez de tudo na mesma rolagem.
-3. **Plano do dia = modo foco com swipe horizontal.** Um bloco grande por vez num carrossel; arrasta pro lado pra ver os próximos passos; pontinhos de progresso (●●○○○). Cada bloco traz o **tabuleiro ilustrando o que será estudado** e **uma ação clara** (ex.: "Abrir no Lichess →").
-4. **Imagens didáticas = diagrama de tabuleiro (estilo A).** Cada conceito tático (garfo, cravada, espeto, descoberto…) ganha um mini-tabuleiro real com peças + setas mostrando o golpe. Precisão pedagógica primeiro.
-5. **Camada premium artística = "Gabinete do Professor Lemos" (gouache quente), gerada via GPT-5.5.** Entra como capa/recompensa, não em cada conceito. Reaproveita os 41 prompts já escritos (`prompts/geracao-imagens-gabinete-2026-06-11.md`) e o pipeline de imagem existente (`output/imagegen/`, `public/art`).
+**Data:** 2026-06-19 (revisado após council + decisões do dono)
+**Status:** direção visual e decisões de produto **travadas pelo dono**; correções técnicas do **council (DeepSeek-V4-Pro)** incorporadas. Pronto para `writing-plans`.
+**Antecedente:** o beta local-first já foi fechado (a11y axe, CSP, privacidade in-app, doc E2EE — ver `docs/review/relatorio-finalizacao-beta-local-first-2026-06-19.md`). Esta fase é a **finalização de produto**: app com cara de **app de xadrez, não de livro**, impecável no mobile, com aprendizado que não enjoa e métricas honestas.
 
 ---
 
-## 2. Frente A — Sistema de imagens didáticas
+## 0. Decisões do dono (TRAVADAS 2026-06-19 — não reabrir)
 
-**Objetivo:** reduzir texto e ajudar a memorizar via imagem.
-
-- **Componente novo `TacticDiagram`** (SVG, em `src/ui/art/`): recebe um conceito (tag de fraqueza / tema Lichess) e renderiza um mini-tabuleiro com as peças e setas do golpe. Cores estilo Lichess (#f0d9b5 / #b58863) para reforçar "xadrez de verdade". Sem texto dentro da imagem (regra de assets já registrada).
-- **Inventário de conceitos a ilustrar** (derivado de `resourceCatalog.ts:852` e das tags de fraqueza): `hanging-piece`, `fork`, `pin`, `skewer`, `discovered`, `mate-in-1`, `mate-in-2`, `opening-principles`, `endgame-pawn`, `endgame-rook`, `conversion`, `blunder-rate`. ~12 diagramas.
-- **Onde aparece:** no card de bloco do modo foco (Frente B), no card de tema do dia, e como reforço nos pontos onde hoje há só texto explicando a tática.
-- **Tema escuro:** SVG adapta via tokens; sem pares raster.
-- **Camada premium (depois):** capa de tela/recompensa com a estética Gabinete, gerada via GPT-5.5. Não bloqueia esta fase.
-
-**Acessibilidade:** cada diagrama precisa de `role="img"` + `aria-label` descrevendo o golpe ("Cavalo ataca rei e dama ao mesmo tempo — garfo").
+1. **Direção de design aprovada:** menos livro, mais app de xadrez, **por etapas**.
+2. **Plano do dia = modo foco com carrossel swipe**, que **convive** com um "ver lista completa" (não substitui).
+3. **Imagens didáticas = diagrama de tabuleiro (estilo A)**; camada premium "Gabinete" (gouache) como capa/recompensa, **gerada via GPT-5.5**.
+4. **Métricas honestas — pivô:** o **número de exercícios** (real, puxado do Lichess) é a métrica principal; **tempo de relógio NÃO é prioridade**. Tempo, quando útil, é **estimado pelos timestamps do Lichess**, não pelo wall-clock do "abrir→concluir".
+5. **Progressão de nível: implementar COMPLETO agora** — promover de banda por desempenho/diploma + ativar `computeMastery` no plano. (Maior e mais arriscada mudança; recebe os testes mais fortes.)
+6. **Lógica de estágio: suavizar** — "fácil" avança 1 estágio (não pula tudo); "difícil" explica mas reavalia após N acertos.
 
 ---
 
-## 3. Frente B — Modo foco / "por etapas"
+## 1. Council incorporado (DeepSeek-V4-Pro, 2026-06-19; GPT-5.5-Pro sem crédito)
 
-**Objetivo:** o app deixa de ser uma lista-livro para rolar e passa a guiar uma etapa por vez.
+Risco geral apontado: MEDIUM → LOW com estas correções, todas aceitas:
 
-- **Plano do dia (Today) → carrossel de blocos (swipe horizontal).** Um `PlanBlockCard` grande por vez; swipe/arrasto e/ou setas para navegar; indicador "Bloco N de M" + pontinhos. Mantém acessível por teclado (setas) e por toque. **Decisão de fallback:** um link "ver lista completa" para quem prefere a visão geral (mitiga risco de esconder informação).
-- **`PlanBlockCard` enxuto:** ação e título sempre visíveis + tabuleiro do tema; "por que isto", "nota do coach" e "quando parar" viram conteúdo **recolhível** (não somem — ficam a um toque). Ref.: `PlanBlockCard.tsx:82-98`.
-- **Placement uma pergunta por vez:** os 3 fieldsets (experiência, tática, finais) viram passos com indicador "1/3, 2/3, 3/3". Ref.: `PlacementCard.tsx:144-236`.
-- **Aprovação do plano em passos:** estratégia → como foi montado → como medimos → aprovar, revelados um a um em vez de tudo na mesma rolagem. Ref.: `LearningPlanProposalCard.tsx:147-244`.
-- **Config "Dados locais" em sub-cartões:** status (read-only) · backup/restaurar · zona de perigo (limpar tudo). Ref.: `Config.tsx:288-397`.
-- **Marcos da sessão como linha do tempo visual** em vez de lista de stats. Ref.: `SessionMilestonesCard.tsx:42-57`.
-
----
-
-## 4. Frente C — Mobile impecável
-
-**Objetivo:** zero quebra feia, zero estouro, tudo legível e tocável em 375px.
-
-- **Quebras órfãs:** balancear linhas (ex.: `text-wrap: balance`/`pretty` ou `&nbsp;` em pares como "no Lichess", "só executa") para palavras viúvas não caírem sozinhas. Confirmadas na tela de boas-vindas; varrer todas.
-- **Acentuação faltando (correção objetiva):**
-  - `src/config/appIdentity.ts:10` (rodapé): "Rotina **e** um app **nao** oficial, **nao** afiliado…" → "é", "não".
-  - `src/config/appIdentity.ts:19-24` (`PRIVACY_SUMMARY`, adicionado na rodada anterior): `so→só`, `Nao→Não`, `ha→há`, `historico→histórico`, `publicos→públicos`, `diagnostico→diagnóstico`, `Voce→Você`, `Configuracao→Configuração`.
-- **7 riscos de mobile a VERIFICAR no CSS real** (o agente não leu o CSS; **eu confirmo no app rodando** antes de corrigir, para não inventar bug): reflow de `today-columns`/`today-aside` em 1 coluna; `form-grid` em 1 coluna no celular; texto de botão estourando; truncamento do `fold-summary`; `skill-map-row` com `flex-wrap`; placeholder gigante em `LearningPlanProposalCard.tsx:205`; confirmações inline de "restaurar/limpar" virarem modal real.
-- **Alvos de toque ≥ 44px** (já parcialmente feito) — reverificar nos novos componentes.
+- **H1 (verificado):** `LearningPlanProposalCard` **já** é chunked com `<Fold>` ([`:161`,`:170`](../../../src/ui/LearningPlanProposalCard.tsx)). Frente B **rebaixa** essa tela (no máximo um indicador de passo) e foca esforço no carrossel + placement.
+- **H2 → resolvido pelo pivô:** a lacuna do timer em background some, porque **não dependemos mais do wall-clock** (decisão 4).
+- **H3 + M1:** carrossel e SVGs precisam de build-vs-buy + budget. **Carrossel = Embla** (4KB, a11y, drag+keyboard); diagramas com **lazy mount** (IntersectionObserver) e `will-change: transform` nos cards.
+- **M2:** fallback de dedup definido → quando só há 1 fraqueza, o bloco de transferência vira **replay do recurso de menor acerto** (não repete o tema).
+- **M3:** verificação mobile **automatizada** — teste Playwright em 375×812 com `toHaveScreenshot()` (threshold ~1%) + axe no mesmo viewport.
+- **M4:** **gate de a11y por fase** (após TacticDiagram e após o carrossel), não só no fim.
+- **M5:** cooldown de tema com **exceção por erro recente** — não repetir tema em dias seguidos, **a menos que** houve erro de peça nesse tema nos últimos N jogos.
+- **L2 (verificado):** `Config` não tem "zona de perigo" separada ([`:384`](../../../src/ui/Config.tsx)) — a separação Status/Backup/Perigo é trabalho novo (correto).
+- **L3:** validar cada diagrama contra o recurso canônico do Lichess já mapeado em `resourceCatalog.ts:852` (ex.: garfo → `practice:fundamental-tactics:the-fork`).
 
 ---
 
-## 5. Frente D — Auditoria completa (com gates objetivos)
+## 2. Princípios de design
 
-Substitui checkpoints humanos por gates verdes:
-
-- `npm run lint` → exit 0
-- `npm test` → exit 0
-- `npm run coverage` → 5× verde (suíte flaky sob ordem; 5× é o gate de estabilidade) — não regredir thresholds
-- `npm run build` → exit 0 (`tsc -b && vite build` estrito)
-- `npm run smoke:pwa` → verde (inclui `a11y.spec.ts` e `csp.spec.ts`)
-- **Verificação visual real:** rodar o app em 375px e inspeçar os pontos do item 4 com `preview_inspect`/`preview_snapshot` (screenshot está instável neste ambiente — usar inspeção de estilos, que é mais precisa para cor/espaçamento).
+1. Menos livro, mais app de xadrez. 2. Por etapas (progressive disclosure). 3. Plano do dia = modo foco (carrossel) + "ver lista". 4. Conceitos táticos viram diagrama de tabuleiro. 5. Premium "Gabinete" como camada de capa via GPT-5.5.
 
 ---
 
-## 6. Frente E — Timer honesto
+## 3. Frente A — Sistema de imagens didáticas
 
-**Problema confirmado no código:** não existe cronômetro. O "tempo treinado" é `completedAt − startedAt` puro (`trainingSession.ts:80`, `elapsedSecondsBetween`). Abrir → distrair → voltar 2h → "concluir" registra 2h. Sem pausa, sem idle, sem teto. Para **estudos** (não-puzzle) nem há reconciliação.
-
-**Insight decisivo:** o treino real acontece **no Lichess** (aba/app externo). Logo, "pausar quando a aba fica oculta" estaria errado — ocultar é justamente quando a pessoa está treinando lá. O app **não tem como saber** se você está no Lichess ou distraído.
-
-**Recomendação (a validar no council):**
-1. **Crédito honesto por padrão = tempo planejado**, não relógio de parede, quando o relógio de parede for absurdo. Se `wall-clock ≤ ~1.5× planned`, confiar no relógio; acima disso, creditar o planejado.
-2. **Pergunta só na anomalia:** ao concluir um bloco aberto há muito tempo (ex.: > 2× planejado), um toque rápido — "Ficou Xh com este bloco aberto. Quanto você realmente treinou?" → [o planejado] [metade] [tudo] — em vez de inventar.
-3. **Teto absoluto por bloco** (ex.: 90 min) como rede de segurança.
-4. Para **puzzles**, aproveitar que já há reconciliação com a atividade Lichess para estimar tempo ativo a partir dos timestamps dos puzzles.
-
-Métricas afetadas (consistência, tempo total, progresso) passam a refletir esforço real — crítico para um perfil TDAH, em que a distração é a regra, não a exceção.
+- **`TacticDiagram` (SVG, `src/ui/art/`)**: mini-tabuleiro real (cores Lichess #f0d9b5/#b58863) com peças + setas mostrando o golpe. Sem texto na imagem. `role="img"` + `aria-label` descritivo. Tema escuro por tokens.
+- **Lazy mount** via IntersectionObserver (council H3): o SVG só monta quando o card entra no carrossel.
+- **Inventário (~12):** `hanging-piece`, `fork`, `pin`, `skewer`, `discovered`, `mate-in-1`, `mate-in-2`, `opening-principles`, `endgame-pawn`, `endgame-rook`, `conversion`, `blunder-rate`. Cada posição **validada contra o recurso canônico** (council L3).
+- **Premium (depois):** capa/recompensa estética Gabinete, gerada via GPT-5.5 (`prompts/geracao-imagens-gabinete-2026-06-11.md`).
 
 ---
 
-## 7. Frente F — Testes de game (ponta a ponta + pedagogia)
+## 4. Frente B — Modo foco / "por etapas"
 
-**Parte 1 — jogar o app inteiro como usuário:** onboarding → placement → aprovar plano → abrir lição/estudo no Lichess → concluir → ver progresso/diploma. Caçar travas, confusões e textos que confundem. Registrar com evidência.
-
-**Parte 2 — auditoria pedagógica (achados já levantados, com evidência):**
-- **Lições batem com o nível?** Sim — `resourceSelector` filtra recursos por banda do aprendiz. ✓
-- **Repetição/tédio — RISCOS REAIS:**
-  - Sessão de 30 min com **uma só fraqueza detectada**: o bloco "transferência" repete o **mesmo tema** do principal (`generatePlan.ts:313, 577-581`).
-  - **Sem cooldown** para fraquezas vindas de jogos — o mesmo tema pode voltar em dias seguidos.
-  - **Replay duplicado:** tema com erros recentes pode ser escolhido para replay em sessões consecutivas (`resourceSelector.ts:136-185`).
-- **Progressão de nível não existe de fato:** as 7 bandas são organização interna; **nada promove o aprendiz de banda** ao melhorar; diplomas são visíveis mas não "passam de fase". Dificuldade pode estagnar e enjoar.
-- **`computeMastery` é código morto** no plano (`mastery.ts` definido, nunca chamado em `generatePlan`). Avanço é só por feedback, não por acerto. **Isto foi decisão prévia de adiar**, não bug acidental.
-- **Lógica de estágio dura:** feedback "fácil" pula direto pra `retrieval` (pula consolidação); "difícil" trava em `explain` sem timeout (`generatePlan.ts:419-449`).
-- **Rótulo de confiança:** `low` + score≥0.5 é exibido como "média" ao aprendiz (`learningPlanProposal.ts:76-96`).
-- **Catálogo 100% em inglês** embora a UI seja PT (`resourceCatalog.ts`) — lacuna de localização, não erro pedagógico.
-
-**O que proponho CORRIGIR nesta fase (baixo risco, serve direto ao "não enjoar"):**
-- Dedup secundária = primária (não repetir o mesmo tema no bloco de transferência quando só há 1 fraqueza).
-- Cooldown/spacing mínimo para repetir o mesmo tema em dias seguidos.
-- Dedup de replay em sessões consecutivas.
-- Corrigir o rótulo de confiança.
+- **Plano do dia → carrossel (Embla):** um `PlanBlockCard` grande por vez; swipe/drag + setas + teclado; "Bloco N de M" + pontinhos; **link "ver lista completa"** sempre disponível (decisão 2). a11y: `role="region"` + `aria-roledescription="carousel"`.
+- **`PlanBlockCard` enxuto:** ação + título + `TacticDiagram` sempre visíveis; "por que / nota do coach / quando parar" recolhíveis.
+- **Placement uma pergunta por vez:** 3 fieldsets viram passos com indicador 1/3, 2/3, 3/3 (`PlacementCard.tsx:144`).
+- **Aprovação do plano:** já é colapsável (H1) — só adicionar indicador de passo se a revisão pedir; **não recriar colapso**.
+- **Config "Dados locais" → 3 sub-cartões:** Status (read-only) · Backup (export/restaurar) · **Zona de Perigo** (apagar tudo, com cor de alerta e separador) — trabalho novo (L2).
+- **Marcos da sessão → linha do tempo visual** (`SessionMilestonesCard.tsx:42`).
 
 ---
 
-## 8. Decisões ABERTAS para o council (o dono delegou o "como")
+## 5. Frente C — Mobile impecável
 
-1. **Quão "modo foco"?** Carrossel swipe substitui a lista, ou convivem (foco + "ver lista")? (Recomendo conviver.)
-2. **Timer honesto:** a abordagem da Frente E (crédito planejado + pergunta na anomalia + teto) é a certa, ou outra?
-3. **Progressão de banda:** implementar promoção de banda por desempenho/diploma agora, ou manter fora de escopo (é feature grande, havia decisão de adiar)?
-4. **Ativar `computeMastery` no plano** ou manter adiado?
-5. **Lógica de estágio** ("fácil" pular, "difícil" travar) — ajustar para algo mais gradual?
-
----
-
-## 9. Fora de escopo (não fazer; registrar como follow-up)
-
-- **P4 sync / backend Cloudflare** (só doc de contrato, já feito).
-- **Currículo avançado 1200–2200** (scaffold; depende de validação futura).
-- **Trocar `sonner`** (só se provar bloqueio de CSP).
-- **Nome público final e URL do código-fonte** (dependem do dono; já centralizados).
-- Camada premium raster completa (Gabinete) — preparar, mas geração é etapa à parte via GPT-5.5.
+- **Quebras órfãs:** `text-wrap: balance/pretty` e/ou `&nbsp;` em pares ("no Lichess", "só executa").
+- **Acentuação (correção objetiva):** rodapé `appIdentity.ts:10` ("e"→"é", "nao"→"não") e `PRIVACY_SUMMARY` `appIdentity.ts:19-24` (`so→só`, `Nao→Não`, `ha→há`, `historico→histórico`, `publicos→públicos`, `diagnostico→diagnóstico`, `Voce→Você`, `Configuracao→Configuração`).
+- **7 riscos de CSS — confirmar no app real (375px) antes de corrigir:** reflow `today-columns`/`aside`; `form-grid` 1 coluna; texto de botão estourando; `fold-summary` truncando; `skill-map-row` `flex-wrap`; placeholder gigante `LearningPlanProposalCard.tsx:205`; confirmações inline → modal.
+- **Alvos ≥ 44px** nos componentes novos.
 
 ---
 
-## 10. Plano de execução (fases longas e autônomas)
+## 6. Frente D — Auditoria + gates
 
-Cada fase termina em gates verdes; um relatório único no fim.
+- Gates: `lint` 0 · `test` 0 · `coverage` **5× verde** · `build` 0 (`tsc -b && vite build`) · `smoke:pwa` verde.
+- **Teste mobile automatizado** (council M3): Playwright 375×812 + `toHaveScreenshot()` + axe.
+- **a11y por fase** (council M4), não só no fim.
+- Verificação visual real via `preview_inspect`/`preview_snapshot` (screenshot instável neste ambiente).
 
-- **Fase 0 — Verificação mobile real:** rodar o app em 375px, confirmar/derrubar os 7 riscos de CSS; produzir lista de bugs reais com evidência.
-- **Fase 1 — Correções objetivas:** acentuação (rodapé + PRIVACY_SUMMARY), quebras órfãs, riscos de mobile confirmados. (TDD onde houver lógica; CSS guiado por inspeção.)
-- **Fase 2 — `TacticDiagram` + inventário de 12 diagramas** (estilo A), com a11y.
-- **Fase 3 — Modo foco (carrossel swipe) + chunking** das telas paredão (placement em passos, aprovação em passos, Config em sub-cartões, marcos em timeline).
-- **Fase 4 — Timer honesto** (conforme decisão do council).
-- **Fase 5 — Correções de pedagogia de baixo risco** (dedup transferência, cooldown, dedup replay, rótulo de confiança).
-- **Fase 6 — Testes de game ponta a ponta + gates finais + relatório único.**
+---
 
-Decisões de produto do council (seção 8) entram antes da fase correspondente.
+## 7. Frente E — Métricas honestas (substitui "timer")
+
+**Pivô do dono (decisão 4):** o **tempo de relógio sai de cena como fonte de verdade.**
+
+- **Métrica principal = exercícios feitos**, real, já puxada do Lichess (`summarizePuzzleActivity.puzzles`). Destacar contagem/acertos no progresso e no fechamento de bloco.
+- **Tempo (secundário) = estimado pelos timestamps do Lichess:** somar intervalos entre puzzles consecutivos, **descartando pausas longas** (ex.: gap > 5 min não conta) e com **teto por bloco**. Para blocos sem atividade Lichess (estudos/lições), **não exibir tempo** — só "concluído".
+- **Remover a dependência de `elapsedSeconds` wall-clock** como verdade: `trainingSession.ts:80` deixa de definir métrica; passa a marcar "concluído" e, quando houver, anexar o tempo estimado. Manter `timeLimitReached` só como sinal opcional.
+- Resultado: consistência/progresso refletem **esforço real** (exercícios), não tempo de aba aberta — crítico para perfil TDAH.
+
+---
+
+## 8. Frente F — Pedagogia (a mais pesada; TDD obrigatório)
+
+**8.1 Progressão de banda COMPLETA (decisão 5) — maior risco:**
+- **Promover `profile.band`** quando: (a) o diploma da banda atual é conquistado (diplomas já gatekeeping bandas '0-600'/'600-1000'/'1000-1200', `diplomas.ts:32`), e/ou (b) `computeMastery` sustenta `'advance'` numa janela.
+- **Ativar `computeMastery` no plano:** `generatePlan` deixa de usar `masteryTarget` hardcoded `'review'` e passa a derivar de `computeMastery` (hoje código morto, `mastery.ts:19`).
+- **UI:** feedback sóbrio de subida de faixa; sem promessa de rating (regra `bands.ts:3`).
+- **Risco/gate:** muda o núcleo do plano → testes primeiro, `coverage` 5× verde, sem regressão de thresholds.
+
+**8.2 Suavizar lógica de estágio (decisão 6):** "fácil" → avança 1 estágio (não pula consolidação); "difícil" → `explain` mas **reavalia após N acertos** (sem trava permanente) (`generatePlan.ts:419-449`).
+
+**8.3 Anti-repetição (serve direto ao "não enjoar"):**
+- Dedup transferência: quando só há 1 fraqueza, transferência = **replay do recurso de menor acerto** (council M2), não o mesmo tema (`generatePlan.ts:313,577`).
+- **Cooldown** de tema entre dias, **com exceção por erro recente** (council M5).
+- Dedup de replay em sessões consecutivas (`resourceSelector.ts:136`).
+- **Corrigir rótulo de confiança:** não exibir `low`+score≥0.5 como "média" (`learningPlanProposal.ts:76`).
+
+**8.4 Testes de game (ponta a ponta):** jogar onboarding → placement → aprovar plano → abrir lição → concluir → progresso/diploma/subida de banda; registrar travas com evidência.
+
+*(Catálogo 100% em inglês com UI PT = follow-up de localização, não bloqueia beta.)*
+
+---
+
+## 9. Fora de escopo (follow-up no relatório)
+
+- P4 sync / backend Cloudflare (só doc, feito).
+- Currículo avançado 1200–2200.
+- Trocar `sonner` (só se provar bloqueio de CSP).
+- Localização do catálogo Lichess (EN→PT).
+- Nome público final e URL do código-fonte (dependem do dono; centralizados).
+- Geração raster premium (Gabinete) — preparar, geração é etapa à parte via GPT-5.5.
+
+---
+
+## 10. Plano de execução (fases longas e autônomas; gates verdes encerram cada fase)
+
+- **Fase 0 — Verificação mobile real:** rodar em 375px, confirmar/derrubar os 7 riscos de CSS; lista de bugs reais com evidência. Criar o teste Playwright 375px.
+- **Fase 1 — Correções objetivas:** acentuação, quebras órfãs, riscos de mobile confirmados.
+- **Fase 2 — `TacticDiagram`** + 12 diagramas (validados contra recurso canônico) + lazy mount + gate a11y.
+- **Fase 3 — Métricas honestas (Frente E):** contagem de exercícios como métrica principal; tempo estimado por timestamp; remover wall-clock como verdade.
+- **Fase 4 — Modo foco (Embla) + chunking** (carrossel + "ver lista", placement em passos, Config zona de perigo, marcos em timeline) + gate a11y.
+- **Fase 5 — Anti-repetição + estágio suave + rótulo de confiança** (8.2, 8.3) — TDD.
+- **Fase 6 — Progressão de banda + `computeMastery` (8.1)** — a mais arriscada, isolada e com os testes mais fortes; coverage 5×.
+- **Fase 7 — Testes de game ponta a ponta + gates finais + relatório único.**
 
 ---
 
 ## 11. Gate de revisão
 
-Este spec vai ao **council** (`./council.ps1 docs/superpowers/specs/2026-06-19-finalizacao-beta-design-ux.md`) para revisão independente (GPT-5.5-Pro + DeepSeek-V4-Pro). As respostas HIGH/MEDIUM são incorporadas antes do `writing-plans`.
+Council já rodou sobre a v1 deste spec (`docs/review/REVIEWS-finalizacao-design-ux-20260619.md`) e foi incorporado. Próximo passo: `writing-plans` para detalhar as fases em tarefas executáveis com testes.
