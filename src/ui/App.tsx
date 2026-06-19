@@ -3,7 +3,14 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
 import { createDefaultProfile, useAppState } from '../app/state';
-import { APP_LEGAL_DISCLAIMER, APP_NAME, DONATION_URL, SOURCE_CODE_URL } from '../config/appIdentity';
+import {
+  APP_LEGAL_DISCLAIMER,
+  APP_NAME,
+  DONATION_URL,
+  FEEDBACK_URL,
+  PRIVACY_SUMMARY,
+  SOURCE_CODE_URL,
+} from '../config/appIdentity';
 import { LemosAvatar } from './art/LemosAvatar';
 import { Onboarding, type OnboardingStep } from './Onboarding';
 import { ReloadPrompt } from './ReloadPrompt';
@@ -58,7 +65,7 @@ function ViewFallback() {
   );
 }
 
-function LegalFooter() {
+export function LegalFooter() {
   return (
     <footer className="legal-footer" aria-label={`Avisos legais de ${APP_NAME}`}>
       <span>{APP_LEGAL_DISCLAIMER}</span>
@@ -73,6 +80,24 @@ function LegalFooter() {
           aria-label="Abrir código-fonte do app (abre em nova aba)"
         >
           Código-fonte
+        </a>
+      )}
+      <details className="privacy-disclosure">
+        <summary>Privacidade e seus dados</summary>
+        <ul>
+          {PRIVACY_SUMMARY.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </details>
+      {FEEDBACK_URL === undefined ? null : (
+        <a
+          href={FEEDBACK_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Enviar feedback (abre em nova aba)"
+        >
+          Enviar feedback
         </a>
       )}
       {DONATION_URL === undefined ? null : (
