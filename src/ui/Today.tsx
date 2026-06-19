@@ -32,6 +32,7 @@ import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../doma
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
+import { BlockCarousel } from './BlockCarousel';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 import { PendingReviewCard } from './PendingReviewCard';
 import { PlanBlockCard } from './PlanBlockCard';
@@ -269,28 +270,44 @@ export function Today({
       {/* Ação primeiro: o próximo passo (ou "treinando agora") fica logo abaixo
           das métricas do dia, acima do contexto do professor. Decisão de UX
           (Corte D1): reduzir fricção no mobile — o dono abre o app e age. */}
-      {heroBlock !== undefined ? (
+      {allBlocksOrdered.length > 0 ? (
         <section className="hero-now" aria-labelledby="hero-now-title">
           <h2 id="hero-now-title" className="hero-now-label">
-            {activeBlock !== undefined ? 'Treinando agora' : 'Próximo passo'}
+            {activeBlock !== undefined ? 'Treinando agora' : isDayComplete ? 'Plano do dia' : 'Próximo passo'}
           </h2>
-          <PlanBlockCard
-            key={heroBlock.id}
-            block={heroBlock}
-            nowIso={nowIso}
-            trainingLog={trainingLogs.find((log) => log.blockId === heroBlock.id)}
-            hasSavedPending={pendingItems.some(
-              (item) =>
-                item.id === heroBlock.pendingItemId ||
-                item.sourceLogId === trainingLogs.find((log) => log.blockId === heroBlock.id)?.id,
+          {/* Modo foco: um bloco grande por vez, arraste para o lado para ver os
+              próximos passos. Começa no próximo pendente; com o dia completo, abre no último. */}
+          <BlockCarousel
+            blocks={allBlocksOrdered}
+            ariaLabel="Plano do dia"
+            initialIndex={Math.max(
+              0,
+              heroBlock === undefined
+                ? allBlocksOrdered.length - 1
+                : allBlocksOrdered.findIndex((block) => block.id === heroBlock.id),
             )}
-            onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
-            onStartBlockTraining={onStartBlockTraining}
-            onCompleteBlockTraining={onCompleteBlockTraining}
-            onSkipBlockTraining={onSkipBlockTraining}
+            renderBlock={(block) => {
+              const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
+
+              return (
+                <PlanBlockCard
+                  block={block}
+                  nowIso={nowIso}
+                  trainingLog={trainingLog}
+                  hasSavedPending={pendingItems.some(
+                    (item) => item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id,
+                  )}
+                  onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
+                  onStartBlockTraining={onStartBlockTraining}
+                  onCompleteBlockTraining={onCompleteBlockTraining}
+                  onSkipBlockTraining={onSkipBlockTraining}
+                />
+              );
+            }}
           />
         </section>
-      ) : (
+      ) : null}
+      {isDayComplete ? (
         <section className="hero-now" aria-labelledby="hero-done-title">
           <h2 id="hero-done-title" className="hero-now-label">
             Dia completo
@@ -309,7 +326,7 @@ export function Today({
             </button>
           </div>
         </section>
-      )}
+      ) : null}
 
       <TutorCard
         plan={plan}
@@ -370,52 +387,10 @@ export function Today({
               compact
             />
           ) : null}
-          {allBlocksOrdered.some((block) => block.id !== heroBlock?.id) ? (
-            <div className="block-list">
-              {activeTrackId !== undefined ? (
-                <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
-              ) : null}
-              {sessionSummaries.map((session) => {
-                const remainingBlocks = session.blocks.filter((block) => block.id !== heroBlock?.id);
-
-                if (remainingBlocks.length === 0) {
-                  return null;
-                }
-
-                return (
-                  <section
-                    className="session-group"
-                    key={session.sessionNumber}
-                    aria-labelledby={`session-${String(session.sessionNumber)}`}
-                  >
-                    <div className="session-heading">
-                      <h3 id={`session-${String(session.sessionNumber)}`}>Sessão {session.sessionNumber}</h3>
-                      <span>{session.minutes} min</span>
-                    </div>
-                    {remainingBlocks.map((block) => {
-                      const trainingLog = trainingLogs.find((log) => log.blockId === block.id);
-                      const hasSavedPending = pendingItems.some((item) => {
-                        return item.id === block.pendingItemId || item.sourceLogId === trainingLog?.id;
-                      });
-
-                      return (
-                        <PlanBlockCard
-                          block={block}
-                          key={block.id}
-                          nowIso={nowIso}
-                          trainingLog={trainingLog}
-                          hasSavedPending={hasSavedPending}
-                          onSavePendingFromHardFeedback={onSavePendingFromHardFeedback}
-                          onStartBlockTraining={onStartBlockTraining}
-                          onCompleteBlockTraining={onCompleteBlockTraining}
-                          onSkipBlockTraining={onSkipBlockTraining}
-                        />
-                      );
-                    })}
-                  </section>
-                );
-              })}
-            </div>
+          {/* A lista de blocos virou o carrossel (modo foco) acima; aqui resta só
+              a trilha do método. "Ver lista completa" fica dentro do carrossel. */}
+          {activeTrackId !== undefined ? (
+            <p className="active-track-line">Trilha: {getMethodTrackTitle(activeTrackId)}</p>
           ) : null}
         </Fold>
       ) : null}

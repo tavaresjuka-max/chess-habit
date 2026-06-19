@@ -7,6 +7,8 @@ type BlockCarouselProps = {
   blocks: PlanBlock[];
   renderBlock: (block: PlanBlock, index: number) => ReactNode;
   ariaLabel?: string;
+  /** Slide inicial (ex.: o próximo bloco pendente do dia). */
+  initialIndex?: number;
 };
 
 /**
@@ -14,10 +16,20 @@ type BlockCarouselProps = {
  * ("arrastar para o lado e ver os próximos passos"). Convive com um modo lista
  * ("ver lista completa") para quem prefere o panorama do dia (decisão do dono).
  */
-export function BlockCarousel({ blocks, renderBlock, ariaLabel = 'Blocos do dia' }: BlockCarouselProps) {
+export function BlockCarousel({
+  blocks,
+  renderBlock,
+  ariaLabel = 'Blocos do dia',
+  initialIndex = 0,
+}: BlockCarouselProps) {
   const [showList, setShowList] = useState(false);
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'center', containScroll: 'trimSnaps' });
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: false,
+    align: 'center',
+    containScroll: 'trimSnaps',
+    startIndex: initialIndex,
+  });
+  const [selectedIndex, setSelectedIndex] = useState(initialIndex);
 
   useEffect(() => {
     if (emblaApi === undefined) {
