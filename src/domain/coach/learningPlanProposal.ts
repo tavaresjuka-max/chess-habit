@@ -89,7 +89,9 @@ function getEvidenceLevel(primaryWeakness: Weakness | undefined): string {
       return 'Confiança: média. O tema aparece como hipótese prática; vamos confirmar pelo resultado dos próximos treinos.';
     case 'low':
       if (primaryWeakness.score >= 0.5) {
-        return 'Confiança: média. O tema aparece como hipótese prática; vamos confirmar pelo resultado dos próximos treinos.';
+        // Score é tamanho do efeito; confiança é a confiabilidade do sinal.
+        // Sinal de peso mas pouca evidência continua sendo confiança BAIXA — não "média".
+        return 'Confiança: baixa, mas o sinal tem peso suficiente para virar foco de teste; confirmamos pelo resultado dos próximos treinos.';
       }
 
       return 'Confiança: baixa. O tema serve como teste curto, não como conclusão sobre seu xadrez.';

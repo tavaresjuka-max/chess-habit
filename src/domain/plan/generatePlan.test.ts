@@ -718,6 +718,33 @@ describe('generatePlan', () => {
     expect(themeBlock?.resourceStage).toBe('guided');
   });
 
+  it('avança só um estágio com feedback fácil a partir de explain (não pula para retrieval)', () => {
+    const prevPlan = generatePlan(
+      baseProfile,
+      [{ tag: 'fork', score: 0.8, confidence: 'high', evidence: 'Erros em garfos.' }],
+      15,
+      '2026-06-05',
+    );
+
+    const prevBlocks = prevPlan.blocks.map((b) =>
+      b.weaknessTag === 'fork'
+        ? { ...b, status: 'done' as const, feedback: 'easy' as const, resourceStage: 'explain' as const }
+        : b,
+    );
+
+    const plan = generatePlan(
+      baseProfile,
+      [{ tag: 'fork', score: 0.8, confidence: 'high', evidence: 'Erros em garfos.' }],
+      15,
+      '2026-06-06',
+      { previousPlan: { ...prevPlan, blocks: prevBlocks } },
+    );
+
+    const themeBlock = plan.blocks.find((b) => b.weaknessTag === 'fork');
+
+    expect(themeBlock?.resourceStage).toBe('guided');
+  });
+
   it('skips done blocks with unrecognized URLs when computing completed resource ids', () => {
     const prevPlan = generatePlan(baseProfile, [], 15, '2026-06-05');
     const firstBlock = prevPlan.blocks[0];

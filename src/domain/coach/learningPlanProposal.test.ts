@@ -74,4 +74,20 @@ describe('buildLearningPlanProposal', () => {
     expect(proposal.estimate).toContain('120 sessões de 15 min');
     expect(proposal.caveat).not.toContain('vai subir');
   });
+
+  it('rotula confiança baixa honestamente mesmo com sinal de peso (não chama de "média")', () => {
+    const lowButStrong: Weakness[] = [
+      { tag: 'fork', score: 0.6, confidence: 'low', evidence: 'Sinal de garfo com peso, mas pouca evidência.' },
+    ];
+    const plan = generatePlan(profile, lowButStrong, 30, '2026-06-09');
+    const proposal = buildLearningPlanProposal({
+      plan,
+      roadmap: [],
+      sessionMinutes: 30,
+      weaknesses: lowButStrong,
+    });
+
+    expect(proposal.evidenceLevel).not.toContain('Confiança: média');
+    expect(proposal.evidenceLevel).toContain('Confiança: baixa');
+  });
 });

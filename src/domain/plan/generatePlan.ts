@@ -416,6 +416,25 @@ function getResourceStage(kind: PlanBlockKind, latestThemeSignal: LatestThemeSig
   }
 }
 
+// Progressão de dificuldade do tema, do mais apoiado ao mais autônomo.
+const THEME_STAGE_ORDER: readonly PlanResourceStage[] = ['explain', 'guided', 'retrieval', 'transfer'];
+
+/**
+ * Avança UM estágio a partir do anterior, sem ultrapassar o teto. Sem estágio
+ * anterior registrado, fica em 'guided' (não dá para avançar do que não se sabe).
+ */
+function advanceThemeStage(previous: PlanResourceStage | undefined, cap: PlanResourceStage): PlanResourceStage {
+  if (previous === undefined) {
+    return 'guided';
+  }
+
+  const rawStart = THEME_STAGE_ORDER.indexOf(previous);
+  const start = rawStart < 0 ? THEME_STAGE_ORDER.indexOf('guided') : rawStart;
+  const capIndex = THEME_STAGE_ORDER.indexOf(cap);
+  const nextIndex = Math.min(start + 1, capIndex);
+  return THEME_STAGE_ORDER[nextIndex] ?? 'guided';
+}
+
 function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined): PlanResourceStage {
   if (latestThemeSignal?.source === 'prior-guided') {
     return 'retrieval';
@@ -423,26 +442,14 @@ function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined)
 
   switch (latestThemeSignal?.feedback) {
     case 'hard':
-      // hard nunca avanca o estagio: dificuldade pede mais suporte, nao mais desafio.
+      // 'difícil' pede mais suporte, não mais desafio: recua para explicação.
       return 'explain';
     case 'good':
-      return getNextGoodResourceStage(latestThemeSignal.resourceStage);
+      // Avança um estágio sem pular consolidação; teto em 'retrieval'.
+      return advanceThemeStage(latestThemeSignal.resourceStage, 'retrieval');
     case 'easy':
-      return 'retrieval';
-    case undefined:
-      return 'guided';
-  }
-}
-
-function getNextGoodResourceStage(previousStage: PlanResourceStage | undefined): PlanResourceStage {
-  switch (previousStage) {
-    case 'explain':
-      return 'guided';
-    case 'guided':
-    case 'retrieval':
-    case 'transfer':
-    case 'review':
-      return 'retrieval';
+      // 'fácil' avança um estágio (não pula direto para 'retrieval') e pode chegar a 'transfer'.
+      return advanceThemeStage(latestThemeSignal.resourceStage, 'transfer');
     case undefined:
       return 'guided';
   }
