@@ -14,13 +14,15 @@ export type SkillMapEntry = {
 export type TrackEffortEntry = {
   trackId: string;
   title: string;
-  minutes: number;
+  exercises: number;
   blocks: number;
 };
 
 export type ProgressTrend = {
-  thisWeekMinutes: number;
-  previousWeekMinutes: number;
+  thisWeekExercises: number;
+  previousWeekExercises: number;
+  thisWeekBlocks: number;
+  previousWeekBlocks: number;
   line: string;
 };
 
@@ -82,7 +84,7 @@ export function buildSkillMap(allLogs: TrainingLog[]): SkillMapEntry[] {
 }
 
 export function buildTrackEffort(allLogs: TrainingLog[]): TrackEffortEntry[] {
-  const byTrack = new Map<string, { minutes: number; blocks: number }>();
+  const byTrack = new Map<string, { exercises: number; blocks: number }>();
 
   for (const log of allLogs) {
     if (log.status !== 'done' || log.plannedSeconds <= 0) {
@@ -90,9 +92,10 @@ export function buildTrackEffort(allLogs: TrainingLog[]): TrackEffortEntry[] {
     }
 
     const trackId = log.methodTrackId ?? 'sem-trilha';
-    const entry = byTrack.get(trackId) ?? { minutes: 0, blocks: 0 };
+    const entry = byTrack.get(trackId) ?? { exercises: 0, blocks: 0 };
 
-    entry.minutes += Math.round((log.elapsedSeconds ?? 0) / 60);
+    // Métrica honesta: exercícios feitos (reais do Lichess), não relógio de parede.
+    entry.exercises += log.result?.puzzles ?? 0;
     entry.blocks += 1;
     byTrack.set(trackId, entry);
   }
@@ -101,43 +104,46 @@ export function buildTrackEffort(allLogs: TrainingLog[]): TrackEffortEntry[] {
     .map(([trackId, entry]) => ({
       trackId,
       title: trackId === 'sem-trilha' ? 'Treinos anteriores ao método' : getMethodTrackTitle(trackId),
-      minutes: entry.minutes,
+      exercises: entry.exercises,
       blocks: entry.blocks,
     }))
-    .sort((left, right) => right.minutes - left.minutes);
+    .sort((left, right) => right.blocks - left.blocks);
 }
 
 export function buildProgressTrend(allLogs: TrainingLog[], today: string): ProgressTrend | undefined {
   const todayIdx = dayIndex(today);
   const doneLogs = allLogs.filter((log) => log.status === 'done' && log.plannedSeconds > 0);
 
-  const minutesIn = (fromIdx: number, toIdx: number): number =>
-    Math.round(
-      doneLogs
-        .filter((log) => {
-          const idx = dayIndex(log.date);
+  const inRange = (fromIdx: number, toIdx: number): TrainingLog[] =>
+    doneLogs.filter((log) => {
+      const idx = dayIndex(log.date);
 
-          return idx >= fromIdx && idx <= toIdx;
-        })
-        .reduce((sum, log) => sum + (log.elapsedSeconds ?? 0), 0) / 60,
-    );
+      return idx >= fromIdx && idx <= toIdx;
+    });
 
-  const thisWeekMinutes = minutesIn(todayIdx - 6, todayIdx);
-  const previousWeekMinutes = minutesIn(todayIdx - 13, todayIdx - 7);
+  const countExercises = (logs: TrainingLog[]): number =>
+    logs.reduce((sum, log) => sum + (log.result?.puzzles ?? 0), 0);
 
-  if (thisWeekMinutes === 0 && previousWeekMinutes === 0) {
+  const thisWeek = inRange(todayIdx - 6, todayIdx);
+  const previousWeek = inRange(todayIdx - 13, todayIdx - 7);
+  const thisWeekExercises = countExercises(thisWeek);
+  const previousWeekExercises = countExercises(previousWeek);
+  const thisWeekBlocks = thisWeek.length;
+  const previousWeekBlocks = previousWeek.length;
+
+  if (thisWeekBlocks === 0 && previousWeekBlocks === 0) {
     return undefined;
   }
 
   let line: string;
 
-  if (previousWeekMinutes === 0) {
-    line = `Você treinou ${String(thisWeekMinutes)} min nesta semana. Semana anterior sem registro — toda constância começa assim.`;
-  } else if (thisWeekMinutes >= previousWeekMinutes) {
-    line = `Você treinou ${String(thisWeekMinutes)} min nesta semana, contra ${String(previousWeekMinutes)} min na anterior. Ritmo mantido.`;
+  if (previousWeekBlocks === 0) {
+    line = `Você fez ${String(thisWeekBlocks)} bloco${thisWeekBlocks === 1 ? '' : 's'} (${String(thisWeekExercises)} exercícios) nesta semana. Semana anterior sem registro — toda constância começa assim.`;
+  } else if (thisWeekExercises >= previousWeekExercises) {
+    line = `Você resolveu ${String(thisWeekExercises)} exercícios nesta semana, contra ${String(previousWeekExercises)} na anterior. Ritmo mantido.`;
   } else {
-    line = `Você treinou ${String(thisWeekMinutes)} min nesta semana, contra ${String(previousWeekMinutes)} min na anterior. Sessões curtas contam — 5 minutos já mantêm o fio.`;
+    line = `Você resolveu ${String(thisWeekExercises)} exercícios nesta semana, contra ${String(previousWeekExercises)} na anterior. Sessões curtas contam — alguns puzzles já mantêm o fio.`;
   }
 
-  return { thisWeekMinutes, previousWeekMinutes, line };
+  return { thisWeekExercises, previousWeekExercises, thisWeekBlocks, previousWeekBlocks, line };
 }

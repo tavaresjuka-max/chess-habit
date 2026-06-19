@@ -101,8 +101,8 @@ describe('Progress', () => {
       />,
     );
 
-    // deve exibir min desta semana em chip de métrica
-    expect(screen.getByText(/min esta semana/)).toBeInTheDocument();
+    // deve exibir exercícios desta semana em chip de métrica (métrica honesta)
+    expect(screen.getByText(/exercícios esta semana/)).toBeInTheDocument();
   });
 
   it('exibe estado vazio de habilidades quando não há treinos', () => {

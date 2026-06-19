@@ -70,13 +70,13 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
         concept="ritmo"
         title="Ritmo"
         defaultOpen
-        {...(trend !== undefined ? { meta: `${String(trend.thisWeekMinutes)} min` } : {})}
+        {...(trend !== undefined ? { meta: `${String(trend.thisWeekExercises)} exercícios` } : {})}
       >
         {trend !== undefined ? (
           <>
             <div className="weekly-report-metrics">
-              <span className="metric-chip">{trend.thisWeekMinutes} min esta semana</span>
-              <span className="metric-chip">{trend.previousWeekMinutes} min na anterior</span>
+              <span className="metric-chip">{trend.thisWeekExercises} exercícios esta semana</span>
+              <span className="metric-chip">{trend.previousWeekExercises} na anterior</span>
               {weeklyDigest !== undefined
                 ? weeklyDigest.metrics.map((metric) => (
                     <span key={metric} className="metric-chip">
@@ -138,12 +138,12 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
         {...(trackEffort.length > 0 ? { meta: `${String(trackEffort.length)} trilhas` } : {})}
       >
         {trackEffort.length > 0 ? (
-          <ul className="track-effort" aria-label="Minutos de treino por trilha do método">
+          <ul className="track-effort" aria-label="Exercícios por trilha do método">
             {trackEffort.map((entry) => (
               <li key={entry.trackId}>
                 <span className="skill-map-theme">{entry.title}</span>
                 <span className="skill-map-score">
-                  {entry.minutes} min em {entry.blocks} {entry.blocks === 1 ? 'bloco' : 'blocos'}
+                  {entry.blocks} {entry.blocks === 1 ? 'bloco' : 'blocos'} · {entry.exercises} exercícios
                 </span>
               </li>
             ))}
