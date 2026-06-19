@@ -147,6 +147,15 @@ h1,
 h2,
 h3 {
   letter-spacing: 0;
+  /* Equilibra títulos para nenhuma palavra cair sozinha na última linha (viúva). */
+  text-wrap: balance;
+}
+
+/* Corpo de texto: evita palavra órfã na última linha, especialmente no mobile.
+   Enhancement progressivo — navegadores sem suporte simplesmente ignoram. */
+p,
+li {
+  text-wrap: pretty;
 }
 
 /* Títulos com a serif do gabinete; rótulos funcionais seguem em Inter. */
