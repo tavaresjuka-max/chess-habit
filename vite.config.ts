@@ -9,6 +9,9 @@ declare const process: {
   };
 };
 
+export const CONTENT_SECURITY_POLICY =
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://lichess.org https://api.chess.com; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests";
+
 export const pwaOptions = {
   injectRegister: 'auto',
   // 'prompt': o ReloadPrompt avisa que ha versao nova e aplica na hora,
@@ -57,11 +60,31 @@ export const pwaOptions = {
   },
 } satisfies Parameters<typeof VitePWA>[0];
 
+function buildCspMetaPlugin() {
+  return {
+    name: 'rotina-build-csp-meta',
+    apply: 'build' as const,
+    transformIndexHtml() {
+      return [
+        {
+          tag: 'meta',
+          attrs: {
+            'http-equiv': 'Content-Security-Policy',
+            content: CONTENT_SECURITY_POLICY,
+          },
+          injectTo: 'head' as const,
+        },
+      ];
+    },
+  };
+}
+
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.0.0'),
   },
   plugins: [
+    buildCspMetaPlugin(),
     react(),
     VitePWA(pwaOptions),
   ],

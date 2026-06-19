@@ -16,7 +16,6 @@ import { DiplomaSeal } from './art/DiplomaSeal';
 import { formatWeaknessTag } from './formatWeakness';
 import { MedalhaIcon } from './art/MedalhaIcon';
 import { Fold } from './Fold';
-import { useBarFill } from './useBarFill';
 
 type ProgressProps = {
   today: string;
@@ -40,7 +39,11 @@ function formatAchievementDate(unlockedAt: string): string {
 const maxSkillRows = 12;
 
 function SkillMapBar({ percent }: { percent: number }) {
-  return <div className="skill-map-bar-fill" ref={useBarFill(percent)} />;
+  return <progress aria-hidden="true" className="skill-map-bar-fill" max={100} value={clampPercent(percent)} />;
+}
+
+function clampPercent(percent: number): number {
+  return Math.max(0, Math.min(100, percent));
 }
 
 export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements, weaknesses, signals }: ProgressProps) {

@@ -27,3 +27,13 @@
 - **Alternativa:** preencher uma URL de GitHub presumida.
 - **Por que:** o repositorio local nao tem `git remote`; um link falso pioraria a conformidade AGPL e a
   confianca do beta. A troca ficou em uma constante unica para o dono preencher antes do beta publico.
+
+## 2026-06-19 - CSP style-src e limite do sonner
+
+- **Decisao:** manter `style-src 'self' 'unsafe-inline'` por enquanto porque `sonner` injeta `<style>` e
+  usa estilos/variaveis inline em runtime. O smoke CSP sem `unsafe-inline` bloqueou esses estilos nos
+  projetos desktop e mobile.
+- **Alternativa:** remover `unsafe-inline` imediatamente.
+- **Por que:** todo estilo inline de autoria propria foi removido/evitado; as barras de progresso usam
+  `<progress value>` estilizado por CSS, e o avatar usa classe CSS. Fechar a CSP exige trocar o `sonner`
+  ou carregar seus estilos estaticamente sem runtime inline.

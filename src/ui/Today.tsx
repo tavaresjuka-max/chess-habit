@@ -38,7 +38,6 @@ import { PlanBlockCard } from './PlanBlockCard';
 import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
 import { TutorCard } from './TutorCard';
 import { formatWeaknessTag } from './formatWeakness';
-import { useBarFill } from './useBarFill';
 
 type TodayProps = {
   plan: DailyPlan | undefined;
@@ -649,7 +648,11 @@ function formatFriendlyDate(date: string): string {
 }
 
 function DayProgressFill({ percent }: { percent: number }) {
-  return <div className="day-progress-fill" ref={useBarFill(percent)} />;
+  return <progress aria-hidden="true" className="day-progress-fill" max={100} value={clampPercent(percent)} />;
+}
+
+function clampPercent(percent: number): number {
+  return Math.max(0, Math.min(100, percent));
 }
 
 function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefined }) {
