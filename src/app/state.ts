@@ -17,6 +17,7 @@ import {
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
+import { promoteBandForDiplomas } from '../domain/method/bandProgression';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import {
   exportAllAsJson,
@@ -201,7 +202,14 @@ export function useAppState(): AppState {
     setLichessMessage,
   });
 
-  const saveProfile = useCallback(async (nextProfile: LearnerProfile, options?: { autoSync?: boolean }) => {
+  const saveProfile = useCallback(async (rawProfile: LearnerProfile, options?: { autoSync?: boolean }) => {
+    // Promoção de banda (council 2026-06-19): se o diploma da banda atual foi
+    // conquistado, sobe a banda antes de montar o plano (vale do próximo em diante;
+    // sobe, nunca desce). No-op até existirem tentativas de diploma gravadas.
+    const promotedBand = promoteBandForDiplomas(rawProfile.band, diplomaAttempts);
+    const nextProfile =
+      promotedBand === rawProfile.band ? rawProfile : { ...rawProfile, band: promotedBand };
+
     const date = getTodayDate();
     const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
     const plan = generatePlan(
