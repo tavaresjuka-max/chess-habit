@@ -1,8 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import type { PendingTrainingItem } from '../method/types';
 import type { LearnerProfile, SessionMinutes } from '../types';
-import { generatePlan, getReviewRatioForPendingCount } from './generatePlan';
+import { advanceThemeStage, generatePlan, getReviewRatioForPendingCount } from './generatePlan';
 import { getTimeBudget } from './timeBudget';
+
+describe('advanceThemeStage', () => {
+  it('sem estágio anterior fica em guided (não dá para avançar do que não se sabe)', () => {
+    expect(advanceThemeStage(undefined, 'retrieval')).toBe('guided');
+    expect(advanceThemeStage(undefined, 'transfer')).toBe('guided');
+  });
+
+  it('com "bom" avança um estágio sem pular consolidação (teto retrieval)', () => {
+    expect(advanceThemeStage('explain', 'retrieval')).toBe('guided');
+    expect(advanceThemeStage('guided', 'retrieval')).toBe('retrieval');
+    expect(advanceThemeStage('retrieval', 'retrieval')).toBe('retrieval');
+  });
+
+  it('com "fácil" avança um estágio e pode chegar a transfer', () => {
+    expect(advanceThemeStage('explain', 'transfer')).toBe('guided');
+    expect(advanceThemeStage('guided', 'transfer')).toBe('retrieval');
+    expect(advanceThemeStage('retrieval', 'transfer')).toBe('transfer');
+    expect(advanceThemeStage('transfer', 'transfer')).toBe('transfer');
+  });
+});
 
 const baseProfile: LearnerProfile = {
   lichessUsername: 'jukasparov',

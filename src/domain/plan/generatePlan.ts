@@ -422,8 +422,9 @@ const THEME_STAGE_ORDER: readonly PlanResourceStage[] = ['explain', 'guided', 'r
 /**
  * Avança UM estágio a partir do anterior, sem ultrapassar o teto. Sem estágio
  * anterior registrado, fica em 'guided' (não dá para avançar do que não se sabe).
+ * Exportada para teste de regressão (council 2026-06-19, M2).
  */
-function advanceThemeStage(previous: PlanResourceStage | undefined, cap: PlanResourceStage): PlanResourceStage {
+export function advanceThemeStage(previous: PlanResourceStage | undefined, cap: PlanResourceStage): PlanResourceStage {
   if (previous === undefined) {
     return 'guided';
   }
