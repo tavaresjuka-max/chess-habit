@@ -111,7 +111,7 @@ export class TutorDatabase extends Dexie {
   placementResults!: Table<PlacementResultRecord, string>;
   appMeta!: Table<AppMetaRecord, string>;
 
-  constructor(name = storageDatabaseName) {
+  constructor(name: string = storageDatabaseName) {
     super(name);
 
     this.version(1).stores({
