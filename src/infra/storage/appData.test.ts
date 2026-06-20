@@ -415,6 +415,20 @@ describe('appData storage', () => {
     await expect(loadDiplomaAttempts()).resolves.toEqual([diplomaAttempt]);
   });
 
+  it('atualiza backupMeta para o backup importado, sem deixar o meta antigo (DATA-2)', async () => {
+    await saveProfile(profile);
+    const fileV1 = await exportAllAsJson('2026-06-01T12:00:00.000Z');
+    // Um export mais novo deixa o meta apontando para D2.
+    await exportAllAsJson('2026-06-10T12:00:00.000Z');
+    await expect(loadBackupMeta()).resolves.toMatchObject({ exportedAt: '2026-06-10T12:00:00.000Z' });
+
+    const result = await importBackupFromJson(fileV1);
+
+    expect(result).toMatchObject({ ok: true });
+    // Apos restaurar o backup de D1, o meta reflete D1 (o que foi restaurado), nao D2.
+    await expect(loadBackupMeta()).resolves.toMatchObject({ exportedAt: '2026-06-01T12:00:00.000Z' });
+  });
+
   it('restaura sinais reais no roundtrip (guarda contra validacao de signals quebrada — DATA-1)', async () => {
     // Regressao: validateBackupData checava item.kind no topo, que sinais reais
     // (value.kind) nunca tem, fazendo o import rejeitar qualquer backup com sinais.

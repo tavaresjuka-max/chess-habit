@@ -445,6 +445,7 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
         db.placementResults,
         db.lichessStudies,
         db.appMeta,
+        db.backupMeta,
       ],
       async () => {
         await db.profile.clear();
@@ -472,6 +473,16 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
         await db.lichessStudies.bulkPut((data.lichessStudies ?? []) as LichessStudyLinkRecord[]);
         await db.appMeta.clear();
         await db.appMeta.bulkPut((data.appMeta ?? []) as AppMetaRecord[]);
+        // Os dados restaurados SAO o backup importado: o meta passa a refletir
+        // esse arquivo, senao o lembrete de backup no Hoje mostra a data antiga
+        // (de outro export/aparelho). autoBackup nao e tocado de proposito: e
+        // config local do aparelho, nao faz parte do arquivo de backup.
+        await db.backupMeta.put({
+          id: 'last-export',
+          exportedAt: parsed.file.exportedAt,
+          checksum: parsed.file.checksum,
+          recordCount: countBackupRecords(data),
+        });
       },
     );
   } catch (err) {
