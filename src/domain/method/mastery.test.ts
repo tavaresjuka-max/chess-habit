@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeMastery, masteryTargetFromCompletedLog } from './mastery';
+import { computeMastery, masteryTargetFromCompletedLog, themeAccuracyFromCompletedLog } from './mastery';
 
 describe('computeMastery', () => {
   it('advances when accuracy is at least 80, volume is enough and recent feedback is not hard', () => {
@@ -96,5 +96,28 @@ describe('computeMastery', () => {
         attempts: 1,
       }),
     ).toBe('review');
+  });
+});
+
+describe('themeAccuracyFromCompletedLog', () => {
+  it('retorna a fração de acerto do tema quando há pelo menos 3 tentativas', () => {
+    expect(
+      themeAccuracyFromCompletedLog({
+        lichessTheme: 'fork',
+        themeStats: [{ theme: 'fork', attempts: 10, losses: 3 }],
+        attempts: 4,
+      }),
+    ).toBeCloseTo(0.7);
+  });
+
+  it('retorna undefined sem tema, sem stats ou com amostra pequena (< 3)', () => {
+    expect(themeAccuracyFromCompletedLog({ attempts: 4 })).toBeUndefined();
+    expect(
+      themeAccuracyFromCompletedLog({
+        lichessTheme: 'fork',
+        themeStats: [{ theme: 'fork', attempts: 2, losses: 0 }],
+        attempts: 4,
+      }),
+    ).toBeUndefined();
   });
 });

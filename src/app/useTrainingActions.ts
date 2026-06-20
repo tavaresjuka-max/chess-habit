@@ -14,7 +14,11 @@ import {
   type TrainingLog,
   type Weakness,
 } from '../domain';
-import { advancePendingItem, masteryTargetFromCompletedLog } from '../domain/method';
+import {
+  advancePendingItem,
+  masteryTargetFromCompletedLog,
+  themeAccuracyFromCompletedLog,
+} from '../domain/method';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import {
   getTrainingLog,
@@ -141,14 +145,21 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
             const pendingItem = pendingItems.find((item) => item.id === block.pendingItemId);
 
             if (pendingItem !== undefined) {
-              const masteryTarget = masteryTargetFromCompletedLog({
+              const masteryInput = {
                 lichessTheme: pendingItem.lichessTheme,
                 themeStats: reconcileOutcome.log.result?.themeStats,
                 lastFeedback: pendingItem.lastFeedback,
                 currentFeedback: feedback,
                 attempts: pendingItem.attempts,
-              });
-              const advancedPendingItem = advancePendingItem(pendingItem, feedback, masteryTarget);
+              };
+              const masteryTarget = masteryTargetFromCompletedLog(masteryInput);
+              const themeAccuracy = themeAccuracyFromCompletedLog(masteryInput);
+              const advancedPendingItem = advancePendingItem(
+                pendingItem,
+                feedback,
+                masteryTarget,
+                themeAccuracy,
+              );
 
               await savePendingItem(advancedPendingItem);
 

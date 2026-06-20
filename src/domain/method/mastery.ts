@@ -58,6 +58,22 @@ export function masteryTargetFromCompletedLog(input: CompletedLogMasteryInput): 
   });
 }
 
+// Acurácia (fração 0-1) do tema do item de revisão, quando há dados de puzzle
+// suficientes (>=3 tentativas). undefined = sem medição -> a graduação cai no
+// critério por volume. Espelha a busca de themeStat de masteryTargetFromCompletedLog.
+export function themeAccuracyFromCompletedLog(input: CompletedLogMasteryInput): number | undefined {
+  const themeStat =
+    input.lichessTheme === undefined
+      ? undefined
+      : input.themeStats?.find((stat) => stat.theme === input.lichessTheme);
+
+  if (themeStat === undefined || themeStat.attempts < 3) {
+    return undefined;
+  }
+
+  return (themeStat.attempts - themeStat.losses) / themeStat.attempts;
+}
+
 export const DIPLOMA_THRESHOLDS: Record<string, number> = {
   peao: 90,
   torre: 80,

@@ -123,6 +123,11 @@ export function createPendingItemFromTheme(
 
 const GRADUATION_ATTEMPTS = SPACING_DAYS.length;
 
+// Só "forma" (gradua) um item se a acurácia do tema for >= 60% (decisão 2026-06-20):
+// evita formar um tema que o aluno ainda erra. Sem dados de acurácia (undefined),
+// a graduação cai no critério por volume (attempts).
+const GRADUATION_MIN_ACCURACY = 0.6;
+
 // Espaçamento fixo: o feedback do aluno move o item em vez de avançar sempre
 // um nível. 'easy' pula um nível extra, 'hard' recua; 'good'/sem feedback avança.
 function nextSpacingAttempts(attempts: number, feedback?: PlanBlockFeedback): number {
@@ -135,6 +140,7 @@ export function advancePendingItem(
   item: PendingTrainingItem,
   feedback?: PlanBlockFeedback,
   masteryTarget?: MasteryResult,
+  themeAccuracy?: number,
 ): PendingTrainingItem {
   const feedbackAttempts = nextSpacingAttempts(item.attempts, feedback);
   const attempts = masteryTarget === 'advance' ? clampSpacingAttempts(feedbackAttempts + 1) : feedbackAttempts;
@@ -154,7 +160,12 @@ export function advancePendingItem(
     attempts: masteryTarget === 'regress' ? 0 : attempts,
     dueAt,
     ...(feedback === undefined ? {} : { lastFeedback: feedback }),
-    status: masteryTarget !== 'regress' && attempts >= GRADUATION_ATTEMPTS ? 'done' : 'open',
+    status:
+      masteryTarget !== 'regress' &&
+      attempts >= GRADUATION_ATTEMPTS &&
+      (themeAccuracy === undefined || themeAccuracy >= GRADUATION_MIN_ACCURACY)
+        ? 'done'
+        : 'open',
     updatedAt: new Date().toISOString(),
   };
 }

@@ -94,6 +94,24 @@ describe('pending training items', () => {
     });
   });
 
+  it('não gradua com 4 revisões se a acurácia do tema < 60% (gate de acurácia)', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, 0.5);
+
+    expect(advanced).toMatchObject({ attempts: 4, status: 'open' });
+  });
+
+  it('gradua com 4 revisões quando a acurácia do tema >= 60%', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, 0.7);
+
+    expect(advanced).toMatchObject({ attempts: 4, status: 'done' });
+  });
+
+  it('gradua por volume quando não há medição de acurácia do tema', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, undefined);
+
+    expect(advanced).toMatchObject({ attempts: 4, status: 'done' });
+  });
+
   it('pula dois níveis de espaçamento no feedback easy', () => {
     const advanced = advancePendingItem(createItem({ attempts: 1 }), 'easy');
 
