@@ -123,10 +123,20 @@ export function createPendingItemFromTheme(
 
 const GRADUATION_ATTEMPTS = SPACING_DAYS.length;
 
-// Só "forma" (gradua) um item se a acurácia do tema for >= 60% (decisão 2026-06-20):
-// evita formar um tema que o aluno ainda erra. Sem dados de acurácia (undefined),
-// a graduação cai no critério por volume (attempts).
-const GRADUATION_MIN_ACCURACY = 0.6;
+// Só "forma" (gradua) um item se a acurácia CUMULATIVA do tema (todo o histórico de
+// puzzles, via buildSkillMap) for >= 75% (decisão 2026-06-20). Válvula de segurança:
+// só BLOQUEIA a formatura com amostra suficiente (>= 10 tentativas). Com pouco dado
+// (ou nenhum), a graduação cai no critério por volume — dados ralos nunca travam.
+const GRADUATION_MIN_ACCURACY_PERCENT = 75;
+const GRADUATION_MIN_ATTEMPTS = 10;
+
+function graduationBlockedByAccuracy(themeMastery?: { accuracyPercent: number; attempts: number }): boolean {
+  return (
+    themeMastery !== undefined &&
+    themeMastery.attempts >= GRADUATION_MIN_ATTEMPTS &&
+    themeMastery.accuracyPercent < GRADUATION_MIN_ACCURACY_PERCENT
+  );
+}
 
 // Espaçamento fixo: o feedback do aluno move o item em vez de avançar sempre
 // um nível. 'easy' pula um nível extra, 'hard' recua; 'good'/sem feedback avança.
@@ -140,7 +150,7 @@ export function advancePendingItem(
   item: PendingTrainingItem,
   feedback?: PlanBlockFeedback,
   masteryTarget?: MasteryResult,
-  themeAccuracy?: number,
+  themeMastery?: { accuracyPercent: number; attempts: number },
 ): PendingTrainingItem {
   const feedbackAttempts = nextSpacingAttempts(item.attempts, feedback);
   const attempts = masteryTarget === 'advance' ? clampSpacingAttempts(feedbackAttempts + 1) : feedbackAttempts;
@@ -163,7 +173,7 @@ export function advancePendingItem(
     status:
       masteryTarget !== 'regress' &&
       attempts >= GRADUATION_ATTEMPTS &&
-      (themeAccuracy === undefined || themeAccuracy >= GRADUATION_MIN_ACCURACY)
+      !graduationBlockedByAccuracy(themeMastery)
         ? 'done'
         : 'open',
     updatedAt: new Date().toISOString(),

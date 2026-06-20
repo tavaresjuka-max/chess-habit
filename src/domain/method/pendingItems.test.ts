@@ -94,19 +94,34 @@ describe('pending training items', () => {
     });
   });
 
-  it('não gradua com 4 revisões se a acurácia do tema < 60% (gate de acurácia)', () => {
-    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, 0.5);
+  it('não gradua com 4 revisões se a acurácia cumulativa do tema < 75% (amostra suficiente)', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, {
+      accuracyPercent: 50,
+      attempts: 12,
+    });
 
     expect(advanced).toMatchObject({ attempts: 4, status: 'open' });
   });
 
-  it('gradua com 4 revisões quando a acurácia do tema >= 60%', () => {
-    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, 0.7);
+  it('gradua com 4 revisões quando a acurácia cumulativa do tema >= 75%', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, {
+      accuracyPercent: 80,
+      attempts: 12,
+    });
 
     expect(advanced).toMatchObject({ attempts: 4, status: 'done' });
   });
 
-  it('gradua por volume quando não há medição de acurácia do tema', () => {
+  it('gradua por volume com pouca amostra do tema (válvula: dados ralos não travam)', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, {
+      accuracyPercent: 40,
+      attempts: 5,
+    });
+
+    expect(advanced).toMatchObject({ attempts: 4, status: 'done' });
+  });
+
+  it('gradua por volume quando não há medição cumulativa do tema', () => {
     const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, undefined);
 
     expect(advanced).toMatchObject({ attempts: 4, status: 'done' });

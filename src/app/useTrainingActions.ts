@@ -1,6 +1,7 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
   buildPuzzleThemeStats,
+  buildSkillMap,
   completeTrainingLog,
   createTrainingLog,
   ensureTrainingLogKind,
@@ -14,11 +15,7 @@ import {
   type TrainingLog,
   type Weakness,
 } from '../domain';
-import {
-  advancePendingItem,
-  masteryTargetFromCompletedLog,
-  themeAccuracyFromCompletedLog,
-} from '../domain/method';
+import { advancePendingItem, masteryTargetFromCompletedLog } from '../domain/method';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import {
   getTrainingLog,
@@ -153,12 +150,19 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
                 attempts: pendingItem.attempts,
               };
               const masteryTarget = masteryTargetFromCompletedLog(masteryInput);
-              const themeAccuracy = themeAccuracyFromCompletedLog(masteryInput);
+              // Gate de graduação usa acurácia CUMULATIVA do tema (todo o histórico),
+              // não a da sessão — mesma fonte do diploma (buildSkillMap).
+              const themeMastery =
+                pendingItem.lichessTheme === undefined
+                  ? undefined
+                  : buildSkillMap(nextAllTrainingLogs).find(
+                      (entry) => entry.theme === pendingItem.lichessTheme,
+                    );
               const advancedPendingItem = advancePendingItem(
                 pendingItem,
                 feedback,
                 masteryTarget,
-                themeAccuracy,
+                themeMastery,
               );
 
               await savePendingItem(advancedPendingItem);
