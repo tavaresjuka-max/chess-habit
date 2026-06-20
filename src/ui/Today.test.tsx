@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 afterEach(cleanup);
@@ -59,16 +59,20 @@ function renderToday({
   achievements = [],
   lichessConnected = false,
   backupMeta = recentBackupMeta,
+  emptyState = false,
+  onCreateNextSession = noop,
 }: {
   blocks: PlanBlock[];
   trainingLogs?: TrainingLog[];
   achievements?: Achievement[];
   lichessConnected?: boolean;
   backupMeta?: BackupMeta | null;
+  emptyState?: boolean;
+  onCreateNextSession?: typeof noop;
 }) {
   return render(
     <Today
-      plan={makePlan(blocks)}
+      plan={emptyState ? undefined : makePlan(blocks)}
       roadmap={[]}
       sessionMinutes={15}
       learnerBand="0-400"
@@ -86,7 +90,7 @@ function renderToday({
       lichessStudyLink={undefined}
       backupMeta={backupMeta ?? undefined}
       onSessionMinutesChange={noop}
-      onCreateNextSession={noop}
+      onCreateNextSession={onCreateNextSession}
       onAnswerTutorQuestion={noop}
       onImportFreeActivity={noop}
       onSyncChesscomDiagnosis={noop}
@@ -169,6 +173,17 @@ describe('Today — hero "Agora"', () => {
     });
 
     expect(screen.queryByRole('region', { name: /próximo passo/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('Today — empty-state', () => {
+  it('mostra um CTA para montar o plano quando não há plano (não "Configure o app")', () => {
+    const onCreateNextSession = vi.fn(() => Promise.resolve());
+    renderToday({ blocks: [], emptyState: true, onCreateNextSession });
+
+    expect(screen.queryByText(/Configure o app/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Montar meu plano de hoje/i }));
+    expect(onCreateNextSession).toHaveBeenCalledWith(15);
   });
 });
 

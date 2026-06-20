@@ -117,6 +117,7 @@ export function Today({
   onSkipBlockTraining,
 }: TodayProps) {
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
+  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
   const alertedLogs = useRef<Set<string>>(new Set());
   const hasActiveTraining = trainingLogs.some((log) => log.status === 'active');
 
@@ -159,7 +160,19 @@ export function Today({
           height={160}
         />
         <h1 id="today-title">Hoje</h1>
-        <p>Configure o app para gerar seu plano.</p>
+        <p>Ainda não há um plano para hoje. Posso montar um agora com base no seu perfil.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setIsCreatingPlan(true);
+            void onCreateNextSession(sessionMinutes).finally(() => {
+              setIsCreatingPlan(false);
+            });
+          }}
+          disabled={isCreatingPlan}
+        >
+          {isCreatingPlan ? 'Montando seu plano…' : 'Montar meu plano de hoje'}
+        </button>
       </section>
     );
   }

@@ -1,10 +1,10 @@
-# Rotina
+# Chess Habit
 
 Status: ferramenta pessoal funcional (P0-P3 concluídas + Método Professor Lemos implementado).
-P4 (sync) e P5 (versão-comunidade) foram descongeladas pelo dono em 2026-06-16; a versão pública
-usa `APP_NAME = 'Rotina'` como placeholder até o nome final.
+P4 (sync) e P5 (versão-comunidade) foram descongeladas pelo dono em 2026-06-16. Nome público
+definido: `APP_NAME = 'Chess Habit'` (decidido pelo dono em 2026-06-19, em `src/config/appIdentity.ts`).
 
-Rotina é uma PWA gratuita, local-first e open-source (AGPL-3.0) que ajuda o aluno a treinar melhor
+Chess Habit é uma PWA gratuita, local-first e open-source (AGPL-3.0) que ajuda o aluno a treinar melhor
 usando o Lichess. O app não substitui o Lichess nem cria outro tabuleiro:
 ele diagnostica fraquezas a partir do histórico real (Chess.com/Lichess), monta o plano do dia,
 abre o treino certo no Lichess, registra progresso e adapta as próximas sessões.
@@ -30,8 +30,8 @@ abre o treino certo no Lichess, registra progresso e adapta as próximas sessõe
 
 ## Aviso
 
-App não oficial. Não é afiliado, endossado ou mantido pelo Lichess. `Rotina` ainda é placeholder:
-troque `APP_NAME` em `src/config/appIdentity.ts` quando o dono fornecer o nome público final.
+App não oficial. Não é afiliado, endossado ou mantido pelo Lichess. O nome público é
+`Chess Habit` (`APP_NAME` em `src/config/appIdentity.ts`).
 
 ## Leia primeiro
 
