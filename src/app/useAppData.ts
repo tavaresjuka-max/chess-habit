@@ -17,6 +17,7 @@ import {
   getReturnSessionMinutes,
   normalizePlanDestinations,
 } from '../domain';
+import { promoteBandForDiplomas } from '../domain/method/bandProgression';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import {
   exportAllAsJson,
@@ -35,6 +36,7 @@ import {
   loadTrainingLogsForDate,
   loadWeaknesses,
   savePlan,
+  saveProfile,
 } from '../infra/storage/appData';
 import {
   isAutoBackupSupported,
@@ -167,6 +169,18 @@ export function useAppData() {
         const storedStudyLink = await getLichessStudyLink(date);
         const storedPendingItems = await loadOpenPendingItems();
         const storedDiplomaAttempts = await loadDiplomaAttempts();
+        // Promoção de banda no boot (Decisão #3): se os diplomas conquistados em
+        // sessões anteriores já justificam uma banda maior, sobe ao abrir o app —
+        // sem depender do botão "Conferir puzzles". Monotônico e idempotente:
+        // no-op (mesma referência, sem escrita) quando a banda já está correta.
+        const promotedBand = promoteBandForDiplomas(storedProfile.band, storedDiplomaAttempts);
+        const effectiveProfile =
+          promotedBand === storedProfile.band ? storedProfile : { ...storedProfile, band: promotedBand };
+
+        if (effectiveProfile !== storedProfile) {
+          await saveProfile(effectiveProfile);
+        }
+
         const storedAchievements = await syncAchievements(storedAllTrainingLogs);
         const recentThemeStats = buildPuzzleThemeStats(storedTrainingLogs);
         const normalizedStoredPlan = storedPlan === undefined ? undefined : normalizePlanDestinations(storedPlan);
@@ -180,7 +194,7 @@ export function useAppData() {
         const plan =
           normalizedStoredPlan === undefined
             ? generatePlan(
-                storedProfile,
+                effectiveProfile,
                 storedWeaknesses,
                 returnMinutes,
                 date,
@@ -193,9 +207,9 @@ export function useAppData() {
                 }),
               )
             : generatePlan(
-                storedProfile,
+                effectiveProfile,
                 storedWeaknesses,
-                toSessionMinutes(normalizedStoredPlan.sessionMinutes, storedProfile.defaultSessionMinutes),
+                toSessionMinutes(normalizedStoredPlan.sessionMinutes, effectiveProfile.defaultSessionMinutes),
                 date,
                 buildPlanContext({
                   previousPlan: combinePlanHistory(normalizedStoredPlan, normalizedPreviousPlan),
@@ -210,8 +224,8 @@ export function useAppData() {
           await savePlan(plan);
         }
 
-        setProfile(storedProfile);
-        setSessionMinutes(toSessionMinutes(plan.sessionMinutes, storedProfile.defaultSessionMinutes));
+        setProfile(effectiveProfile);
+        setSessionMinutes(toSessionMinutes(plan.sessionMinutes, effectiveProfile.defaultSessionMinutes));
         setTrainingLogs(storedTrainingLogs);
         setAllTrainingLogs(storedAllTrainingLogs);
         setPendingItems(storedPendingItems);
