@@ -565,6 +565,19 @@ button[aria-disabled='true'] {
   cursor: wait;
 }
 
+.rating-spinner {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 4px;
+  animation: rating-spin 0.8s linear infinite;
+}
+
+@keyframes rating-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--green-700);
   outline-offset: 2px;

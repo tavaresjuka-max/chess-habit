@@ -1,4 +1,4 @@
-import { Check, ExternalLink, Feather, Flag, Lightbulb, Target } from 'lucide-react';
+import { Check, ExternalLink, Feather, Flag, Lightbulb, Loader2, Target } from 'lucide-react';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { isAllowedExternalUrl, openExternalUrl } from '../app/externalOpen';
 import { TacticDiagram } from './art/TacticDiagram';
@@ -34,9 +34,11 @@ export function PlanBlockCard({
   const [isRating, setIsRating] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [isSavingPending, setIsSavingPending] = useState(false);
+  const [submittingFeedback, setSubmittingFeedback] = useState<PlanBlockFeedback | undefined>(undefined);
   const [openWarning, setOpenWarning] = useState<string | undefined>(undefined);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
+  const isSubmittingFeedback = submittingFeedback !== undefined;
   const safeDestinationUrl =
     block.destination.url !== undefined && isAllowedExternalUrl(block.destination.url)
       ? block.destination.url
@@ -46,6 +48,7 @@ export function PlanBlockCard({
     setIsRating(false);
     setIsOpening(false);
     setIsSavingPending(false);
+    setSubmittingFeedback(undefined);
     setOpenWarning(undefined);
   }, [block.id]);
 
@@ -65,6 +68,19 @@ export function PlanBlockCard({
     } finally {
       setIsOpening(false);
     }
+  }
+
+  // O registro do feedback espera a reconciliação com o Lichess (rede), que leva
+  // alguns segundos. Sem estado de "anotando", o clique parecia não funcionar.
+  function submitFeedback(feedback: PlanBlockFeedback): void {
+    if (isSubmittingFeedback) {
+      return;
+    }
+
+    setSubmittingFeedback(feedback);
+    void onCompleteBlockTraining(block.id, feedback).finally(() => {
+      setSubmittingFeedback(undefined);
+    });
   }
 
   return (
@@ -145,13 +161,22 @@ export function PlanBlockCard({
         </div>
       ) : isRating ? (
         <div className="rating-row" role="group" aria-label="Como foi o treino?">
-          <p className="rating-prompt">Como foi o treino?</p>
-          <div className="button-row">
+          <p className="rating-prompt" role="status" aria-live="polite">
+            {isSubmittingFeedback ? (
+              <>
+                <Loader2 className="rating-spinner" aria-hidden="true" size={15} /> Anotando seu resultado…
+              </>
+            ) : (
+              'Como foi o treino?'
+            )}
+          </p>
+          <div className="button-row" aria-busy={isSubmittingFeedback}>
             <button
               type="button"
               className="secondary-button"
+              disabled={isSubmittingFeedback}
               onClick={() => {
-                void onCompleteBlockTraining(block.id, 'easy');
+                submitFeedback('easy');
               }}
             >
               Fácil
@@ -159,8 +184,9 @@ export function PlanBlockCard({
             <button
               type="button"
               className="secondary-button"
+              disabled={isSubmittingFeedback}
               onClick={() => {
-                void onCompleteBlockTraining(block.id, 'good');
+                submitFeedback('good');
               }}
             >
               Bom
@@ -168,8 +194,9 @@ export function PlanBlockCard({
             <button
               type="button"
               className="secondary-button"
+              disabled={isSubmittingFeedback}
               onClick={() => {
-                void onCompleteBlockTraining(block.id, 'hard');
+                submitFeedback('hard');
               }}
             >
               Difícil
@@ -180,6 +207,7 @@ export function PlanBlockCard({
                 setIsRating(false);
               }}
               className="link-button"
+              disabled={isSubmittingFeedback}
             >
               Voltar
             </button>
