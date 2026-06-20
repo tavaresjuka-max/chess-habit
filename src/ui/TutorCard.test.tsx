@@ -64,7 +64,7 @@ describe('TutorCard', () => {
         onReconcileLichessResults={reconcileLichessResults}
       />,
     );
-    expect(screen.getByText('Professor Lemos')).toBeInTheDocument();
+    expect(screen.getByText('Professor Tavarez')).toBeInTheDocument();
     expect(screen.getByText(weakness.evidence)).toBeInTheDocument();
   });
 

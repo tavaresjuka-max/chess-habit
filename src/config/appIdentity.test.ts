@@ -12,7 +12,7 @@ import {
 
 describe('app identity', () => {
   it('keeps the public app name behind one constant', () => {
-    expect(APP_NAME).toBe('Rotina');
+    expect(APP_NAME).toBe('Chess Habit');
     expect(APP_MANIFEST_NAME).toBe(APP_NAME);
   });
 

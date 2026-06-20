@@ -1,5 +1,5 @@
-// TODO(beta-publico): trocar APP_NAME pelo nome publico final aprovado pelo dono.
-export const APP_NAME = 'Rotina' as const;
+// Nome publico do app (decidido pelo dono em 2026-06-19).
+export const APP_NAME = 'Chess Habit' as const;
 
 export const APP_DESCRIPTION =
   'Ferramenta local-first para organizar treino de xadrez no Lichess, sem tabuleiro próprio.';
