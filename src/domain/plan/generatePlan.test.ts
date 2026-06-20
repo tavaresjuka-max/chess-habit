@@ -32,7 +32,12 @@ const baseProfile: LearnerProfile = {
   updatedAt: '2026-06-06T00:00:00.000Z',
 };
 
-const today = new Date().toISOString().slice(0, 10);
+// Data LOCAL (igual a toDateKey/getTodayDate da app); UTC divergia na virada de
+// meia-noite UTC e deixava o teste flaky.
+const toLocalDateKey = (date: Date): string =>
+  `${String(date.getFullYear())}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const today = toLocalDateKey(new Date());
 
 describe('getTimeBudget', () => {
   it.each([

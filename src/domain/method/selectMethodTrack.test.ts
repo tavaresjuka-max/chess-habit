@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import type { PendingTrainingItem } from './types';
 import { selectMethodTrack } from './selectMethodTrack';
 
-const today = new Date().toISOString().split('T')[0] ?? '2026-06-10';
+// Data LOCAL (igual a toDateKey/getTodayDate da app); UTC divergia na virada de
+// meia-noite UTC e deixava o teste flaky.
+const toLocalDateKey = (date: Date): string =>
+  `${String(date.getFullYear())}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const today = toLocalDateKey(new Date());
 
 describe('selectMethodTrack', () => {
   it('prioritizes pending-review when a due item exists', () => {

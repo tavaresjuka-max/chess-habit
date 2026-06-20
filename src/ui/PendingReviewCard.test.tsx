@@ -5,7 +5,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PendingTrainingItem } from '../domain/method/types';
 import { PendingReviewCard } from './PendingReviewCard';
 
-const today = new Date().toISOString().slice(0, 10);
+// Data LOCAL (igual a toDateKey/getTodayDate da app); UTC divergia na virada de
+// meia-noite UTC e deixava os testes flaky.
+const toLocalDateKey = (date: Date): string =>
+  `${String(date.getFullYear())}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const today = toLocalDateKey(new Date());
 
 afterEach(() => {
   cleanup();

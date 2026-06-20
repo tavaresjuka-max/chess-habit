@@ -8,7 +8,12 @@ import {
   isDueToday,
 } from './pendingItems';
 
-const today = new Date().toISOString().split('T')[0] ?? '2026-06-10';
+// Data LOCAL (igual a toDateKey/getTodayDate da app). Usar UTC (toISOString)
+// divergia do dominio na virada de meia-noite UTC e deixava os testes flaky.
+const toLocalDateKey = (date: Date): string =>
+  `${String(date.getFullYear())}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const today = toLocalDateKey(new Date());
 const tomorrow = addDays(today, 1);
 
 const baseLog = {
