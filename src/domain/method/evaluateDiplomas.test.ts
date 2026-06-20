@@ -63,6 +63,29 @@ describe('evaluateDiplomaSections', () => {
     expect(evaluated.find((attempt) => attempt.sectionId === 'mates-basicos')).toBeUndefined();
   });
 
+  it('não regride uma seção já conquistada quando a janela do dashboard piora', () => {
+    const existing: DiplomaAttempt[] = [
+      {
+        id: 'peao:valor-pecas',
+        diplomaId: 'peao',
+        sectionId: 'valor-pecas',
+        scorePercent: 90,
+        totalItems: 30,
+        passed: true,
+        source: 'lichess',
+        createdAt: '2026-06-01T00:00:00.000Z',
+        updatedAt: '2026-06-01T00:00:00.000Z',
+      },
+    ];
+
+    // Janela rola e mostra acurácia/volume piores; a seção conquistada é pulada
+    // (não re-emitida) e segue passed via mergeDiplomaAttempts.
+    const evaluated = evaluateDiplomaSections([entry('hangingPiece', 30, 10)], existing, NOW);
+
+    expect(evaluated.find((item) => item.id === 'peao:valor-pecas')).toBeUndefined();
+    expect(mergeDiplomaAttempts(existing, evaluated).find((item) => item.id === 'peao:valor-pecas')?.passed).toBe(true);
+  });
+
   it('preserva createdAt de attempt existente e atualiza updatedAt', () => {
     const existing: DiplomaAttempt[] = [
       {

@@ -23,6 +23,17 @@ export function evaluateDiplomaSections(
         continue;
       }
 
+      const id = `${diploma.id}:${section.id}`;
+      const prior = existing.find((attempt) => attempt.id === id);
+
+      // Diploma conquistado não regride (igual à promoção de banda): uma vez
+      // passed, a seção permanece earned mesmo que a janela de 30 dias do
+      // dashboard piore. Pulamos a reavaliação; mergeDiplomaAttempts mantém o
+      // attempt anterior.
+      if (prior?.passed === true) {
+        continue;
+      }
+
       let attempts = 0;
       let wins = 0;
 
@@ -42,8 +53,6 @@ export function evaluateDiplomaSections(
 
       const scorePercent = Math.round((wins / attempts) * 100);
       const passed = attempts >= (section.minAttempts ?? 0) && scorePercent >= (section.accuracyTarget ?? 0);
-      const id = `${diploma.id}:${section.id}`;
-      const prior = existing.find((attempt) => attempt.id === id);
 
       evaluated.push({
         id,
