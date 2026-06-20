@@ -132,6 +132,14 @@ export function App() {
   // App principal só com perfil presente; resolvido por flag persistida OU por
   // plano aprovado (cobre quem já usava antes do funil existir).
   const onboardingResolved = appState.profile !== undefined && (onboardingDone || planApproved);
+  // PROD-3: convite de calibração para quem entrou sem contas e ainda não calibrou
+  // (sem dado para auto-diagnóstico). Some ao calibrar (achievement 'calibrado') ou ao
+  // conectar uma conta. A banda sobe sozinha depois; este é só um atalho opcional.
+  const showCalibrationInvite =
+    appState.profile !== undefined &&
+    (appState.profile.lichessUsername ?? '').trim() === '' &&
+    (appState.profile.chesscomUsername ?? '').trim() === '' &&
+    !appState.achievements.some((achievement) => achievement.id === 'calibrado');
   // Sem perfil: só boas-vindas ou o formulário de contas. Com perfil: a fase
   // guiada (importando/avaliação/plano); 'welcome' aqui é um usuário migrado
   // sem fase salva — mostramos o plano para aprovar.
@@ -418,6 +426,10 @@ export function App() {
             onStartBlockTraining={appState.startBlockTraining}
             onCompleteBlockTraining={appState.completeBlockTraining}
             onSkipBlockTraining={appState.skipBlockTraining}
+            showCalibrationInvite={showCalibrationInvite}
+            onStartCalibration={() => {
+              appState.setActiveView('config');
+            }}
           />
         )}
       </div>

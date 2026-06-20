@@ -61,6 +61,8 @@ function renderToday({
   backupMeta = recentBackupMeta,
   emptyState = false,
   onCreateNextSession = noop,
+  showCalibrationInvite = false,
+  onStartCalibration = () => undefined,
 }: {
   blocks: PlanBlock[];
   trainingLogs?: TrainingLog[];
@@ -69,6 +71,8 @@ function renderToday({
   backupMeta?: BackupMeta | null;
   emptyState?: boolean;
   onCreateNextSession?: typeof noop;
+  showCalibrationInvite?: boolean;
+  onStartCalibration?: () => void;
 }) {
   return render(
     <Today
@@ -106,6 +110,8 @@ function renderToday({
       onStartBlockTraining={noop}
       onCompleteBlockTraining={noop}
       onSkipBlockTraining={noop}
+      showCalibrationInvite={showCalibrationInvite}
+      onStartCalibration={onStartCalibration}
     />,
   );
 }
@@ -184,6 +190,25 @@ describe('Today — empty-state', () => {
     expect(screen.queryByText(/Configure o app/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Montar meu plano de hoje/i }));
     expect(onCreateNextSession).toHaveBeenCalledWith(15);
+  });
+});
+
+describe('Today — convite de calibração', () => {
+  it('mostra o convite, navega ao calibrar e some ao dispensar', () => {
+    const onStartCalibration = vi.fn();
+    renderToday({ blocks: [makeBlock({ id: 'b1' })], showCalibrationInvite: true, onStartCalibration });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar meu nível' }));
+    expect(onStartCalibration).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Agora não' }));
+    expect(screen.queryByText(/Quer ajustar seu nível/)).not.toBeInTheDocument();
+  });
+
+  it('não mostra o convite por padrão', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })] });
+
+    expect(screen.queryByText(/Quer ajustar seu nível/)).not.toBeInTheDocument();
   });
 });
 

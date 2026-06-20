@@ -82,6 +82,9 @@ type TodayProps = {
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
   onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
+  // PROD-3: convite não-bloqueante para calibrar (usuário sem contas e sem calibração).
+  showCalibrationInvite?: boolean;
+  onStartCalibration?: () => void;
 };
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
@@ -130,9 +133,12 @@ export function Today({
   onStartBlockTraining,
   onCompleteBlockTraining,
   onSkipBlockTraining,
+  showCalibrationInvite = false,
+  onStartCalibration,
 }: TodayProps) {
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
+  const [calibrationInviteDismissed, setCalibrationInviteDismissed] = useState(false);
   const alertedLogs = useRef<Set<string>>(new Set());
   const hasActiveTraining = trainingLogs.some((log) => log.status === 'active');
 
@@ -283,6 +289,31 @@ export function Today({
           ) : null}
         </div>
       </div>
+
+      {showCalibrationInvite && !calibrationInviteDismissed ? (
+        <div className="calibration-invite" role="note" aria-label="Convite para calibrar o nível">
+          <p>Quer ajustar seu nível? Uma calibração rápida (≈2 min) deixa o plano no ponto certo.</p>
+          <div className="calibration-invite-actions">
+            <button
+              type="button"
+              onClick={() => {
+                onStartCalibration?.();
+              }}
+            >
+              Ajustar meu nível
+            </button>
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => {
+                setCalibrationInviteDismissed(true);
+              }}
+            >
+              Agora não
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div
         className="day-progress"
