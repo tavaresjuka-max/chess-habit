@@ -1,7 +1,9 @@
 import { isBeginnerBand } from '../bands';
 import { assertNever } from '../assertNever';
+import { confidenceRank } from '../confidence';
 import { weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
 import type { Confidence, LearnerBand, PuzzleThemeStats, Signal, Weakness, WeaknessTag } from '../types';
+import { weaknessTitleByTag } from './weaknessTitles';
 
 // Iniciantes (0-800) recebem um limiar de blunder mais baixo: anti-blunder é a
 // alavanca nº1 nessa fase, então o sinal dispara mais cedo. Acima de 800, só
@@ -20,23 +22,6 @@ const CHESSCOM_RAPID_FALLBACK_RATING = 1000;
 const CHESSCOM_TIME_CONTROL_LOSS_RATE = 0.6;
 const DEFAULT_OPENING_LOSS_RATE = 0.6;
 
-const puzzleWeaknessTitle = {
-  'hanging-piece': 'pecas penduradas',
-  fork: 'garfos',
-  pin: 'cravadas',
-  skewer: 'espetos',
-  discovered: 'ataques descobertos',
-  'mate-in-1': 'mate em 1',
-  'mate-in-2': 'mate em 2',
-  'back-rank': 'mate na ultima fileira',
-  'opening-principles': 'principios de abertura',
-  'time-trouble': 'gestao de tempo',
-  'endgame-pawn': 'finais de peoes',
-  'endgame-rook': 'finais de torres',
-  conversion: 'conversao',
-  'blunder-rate': 'seguranca anti-blunder',
-} satisfies Record<WeaknessTag, string>;
-
 type WeaknessCandidate = {
   tag: WeaknessTag;
   contribution: number;
@@ -49,12 +34,6 @@ const confidenceScore = {
   low: 0.3,
   medium: 0.6,
   high: 0.9,
-} satisfies Record<Confidence, number>;
-
-const confidenceRank = {
-  low: 0,
-  medium: 1,
-  high: 2,
 } satisfies Record<Confidence, number>;
 
 // Politica de decaimento (Corte 5, achado Gemini): sinais com mais de 90 dias
@@ -128,7 +107,7 @@ export function createWeaknessFromPuzzleStats(
       tag,
       score,
       confidence,
-      evidence: `Sinal duravel dos puzzles conferidos no Lichess: ${puzzleWeaknessTitle[tag]} concentrou ${String(theme.losses)} erro(s) em ${String(theme.attempts)} tentativa(s).`,
+      evidence: `Sinal duravel dos puzzles conferidos no Lichess: ${weaknessTitleByTag[tag]} concentrou ${String(theme.losses)} erro(s) em ${String(theme.attempts)} tentativa(s).`,
     };
   }
 

@@ -22,6 +22,7 @@ import type {
   WeeklyFocus,
 } from '../types';
 import { getTimeBudget, type PlanBlockKind } from './timeBudget';
+import { weaknessTitleByTag } from '../weakness/weaknessTitles';
 
 type BlockCopy = {
   title: string;
@@ -629,23 +630,6 @@ function selectPrimaryWeakness(
     evidence: 'Tema conservador da faixa atual enquanto ainda faltam sinais suficientes do histórico real.',
   };
 }
-
-const weaknessTitleByTag = {
-  'hanging-piece': 'peças penduradas',
-  fork: 'garfos',
-  pin: 'cravadas',
-  skewer: 'espetos',
-  discovered: 'ataques descobertos',
-  'mate-in-1': 'mate em 1',
-  'mate-in-2': 'mate em 2',
-  'back-rank': 'mate na última fileira',
-  'opening-principles': 'princípios de abertura',
-  'time-trouble': 'gestão de tempo',
-  'endgame-pawn': 'finais de peões',
-  'endgame-rook': 'finais de torres',
-  conversion: 'conversão',
-  'blunder-rate': 'segurança anti-blunder',
-} satisfies Record<WeaknessTag, string>;
 
 function getThemeTask(tag: WeaknessTag, stage: PlanResourceStage): string {
   if (stage === 'retrieval') {

@@ -16,6 +16,7 @@ import {
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
+import { confidenceRank } from '../domain/confidence';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
 import { importLichessSignals } from '../infra/lichess/games';
@@ -488,12 +489,6 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     syncLichessDiagnosis,
   };
 }
-
-const confidenceRank = {
-  low: 0,
-  medium: 1,
-  high: 2,
-} satisfies Record<Weakness['confidence'], number>;
 
 // Sinais Chess.com derivam observedAt do end_time real do jogo, então o corte de
 // 90 dias os descartaria cedo demais (achado nº1: 294 sinais -> 0 fraquezas). Mas

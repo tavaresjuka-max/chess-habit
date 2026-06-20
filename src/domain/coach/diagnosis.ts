@@ -1,4 +1,5 @@
-import type { Confidence, Diagnosis, PuzzleThemeStat, PuzzleThemeStats, Weakness, WeaknessTag } from '../types';
+import type { Diagnosis, PuzzleThemeStat, PuzzleThemeStats, Weakness, WeaknessTag } from '../types';
+import { confidenceRank } from '../confidence';
 import { weaknessTagFromPuzzleTheme } from './puzzleThemeStats';
 
 type PuzzleThemeCandidate = {
@@ -7,7 +8,6 @@ type PuzzleThemeCandidate = {
   lossRate: number;
 };
 
-const confidenceRank: Record<Confidence, number> = { low: 0, medium: 1, high: 2 };
 const MIN_SCORE = 0.5;
 const MIN_PUZZLE_THEME_ATTEMPTS = 3;
 const MIN_PUZZLE_THEME_LOSSES = 2;
