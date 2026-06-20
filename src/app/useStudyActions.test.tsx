@@ -7,6 +7,7 @@ import {
   loadLichessOAuthToken,
   saveProfile,
   saveTrainingLog,
+  saveTrainingLogsAndPlan,
 } from '../infra/storage/appData';
 import { syncAchievements } from './achievementsSync';
 import {
@@ -96,6 +97,26 @@ describe('useStudyActions', () => {
     expect(vi.mocked(saveProfile)).toHaveBeenCalledWith(expect.objectContaining({ band: '800-1000' }));
     expect(input.setProfile).toHaveBeenCalledWith(expect.objectContaining({ band: '800-1000' }));
     expect(input.setLichessMessage).toHaveBeenLastCalledWith(expect.stringContaining('800-1000'));
+  });
+
+  it('não regenera nem sobrescreve o plano quando não há resultado novo (anti-race do boot)', async () => {
+    vi.mocked(reconcileLichessPuzzleDiagnostics).mockResolvedValueOnce([]);
+    const profile: LearnerProfile = {
+      lichessUsername: 'jukasparov',
+      band: '400-800',
+      defaultSessionMinutes: 15,
+      goals: [],
+      updatedAt: '2026-06-06T00:00:00.000Z',
+    };
+    const input = createInput({ profile, todayPlan: generatePlan(profile, [], 15, '2026-06-19') });
+    const { result } = renderHook(() => useStudyActions(input));
+
+    await act(async () => {
+      await result.current.reconcileLichessResults();
+    });
+
+    expect(saveTrainingLogsAndPlan).not.toHaveBeenCalled();
+    expect(input.setTodayPlan).not.toHaveBeenCalled();
   });
 });
 

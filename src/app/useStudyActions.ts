@@ -96,6 +96,18 @@ export function useStudyActions(input: UseStudyActionsInput) {
     try {
       const reconciledLogs = await reconcileLichessPuzzleDiagnostics(trainingLogs, token.accessToken);
 
+      // Sem resultado novo: não regenera nem sobrescreve o plano/perfil. Mata a race
+      // do auto-fetch silencioso de boot, que sobrescrevia uma conclusão de bloco feita
+      // durante o fetch (achado ALTA do council). Promoção de banda por diplomas já
+      // conquistados é coberta no boot/saveProfile (promoteBandForDiplomas, idempotente).
+      if (reconciledLogs.length === 0) {
+        if (!silent) {
+          setLichessConnectionState('connected');
+          setLichessMessage('Nenhum resultado novo de puzzle encontrado.');
+        }
+        return;
+      }
+
       const nextTrainingLogs = mergeTrainingLogs(trainingLogs, reconciledLogs);
       const nextAllTrainingLogs = mergeTrainingLogs(allTrainingLogs, reconciledLogs);
 
