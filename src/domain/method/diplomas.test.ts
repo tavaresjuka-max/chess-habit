@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { DiplomaAttempt } from './types';
-import { DIPLOMAS, getDiploma, getDiplomaProgress, getRecentlyEarnedDiploma, isDiplomaPassed } from './diplomas';
+import {
+  DIPLOMAS,
+  findDiplomaSectionForTheme,
+  getDiploma,
+  getDiplomaProgress,
+  getRecentlyEarnedDiploma,
+  isDiplomaPassed,
+} from './diplomas';
 
 describe('diplomas', () => {
   it('defines the three local checkpoints', () => {
@@ -9,6 +16,15 @@ describe('diplomas', () => {
 
   it('uses 90 percent as the Peão threshold', () => {
     expect(getDiploma('peao')?.threshold).toBe(90);
+  });
+
+  it('liga um tema de puzzle à seção de diploma (findDiplomaSectionForTheme)', () => {
+    const fork = findDiplomaSectionForTheme('fork');
+    expect(fork?.diploma.id).toBe('torre');
+    expect(fork?.section.id).toBe('tatica-rotulada');
+
+    expect(findDiplomaSectionForTheme('mateIn1')?.section.id).toBe('mates-basicos');
+    expect(findDiplomaSectionForTheme('tema-inexistente')).toBeUndefined();
   });
 
   it('mede o Peão por duas seções de acurácia (coordenadas saiu do gate)', () => {

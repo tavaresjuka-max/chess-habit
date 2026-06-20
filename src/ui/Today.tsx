@@ -26,7 +26,13 @@ import {
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
-import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
+import {
+  DIPLOMAS,
+  findDiplomaSectionForTheme,
+  getDiplomaProgress,
+  SECTION_MIN_ATTEMPTS,
+} from '../domain/method/diplomas';
+import { buildSkillMap } from '../domain/metrics/progressOverview';
 import { getMethodTrackTitle } from '../domain/method/methodTracks';
 import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import type { BackupMeta } from '../app/backupStatus';
@@ -79,6 +85,15 @@ type TodayProps = {
 };
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
+
+// Extrai o tema do puzzle (ex.: 'fork') do destino /training/<tema> do bloco.
+function themeFromTrainingUrl(url: string | undefined): string | undefined {
+  if (url === undefined) {
+    return undefined;
+  }
+
+  return /\/training\/([^/?#]+)/.exec(url)?.[1];
+}
 
 export function Today({
   plan,
@@ -220,6 +235,28 @@ export function Today({
   const sessionMilestoneSummary = buildSessionMilestoneSummary({ logs: allTrainingLogs, sessionMinutes });
   const activeTrackId = getActiveTrackId(plan);
   const nextDiploma = getNextDiplomaSummary(diplomaAttempts);
+  // PROD-5: progresso do tema do bloco rumo ao diploma (números visíveis no treino).
+  const skillMap = buildSkillMap(allTrainingLogs);
+  const diplomaChipForBlock = (
+    block: PlanBlock,
+  ): { label: string; attempts: number; target: number } | undefined => {
+    const theme = themeFromTrainingUrl(block.destination.url);
+    if (theme === undefined) {
+      return undefined;
+    }
+
+    const found = findDiplomaSectionForTheme(theme);
+    if (found === undefined) {
+      return undefined;
+    }
+
+    const attempts = (found.section.lichessThemes ?? []).reduce(
+      (sum, sectionTheme) => sum + (skillMap.find((entry) => entry.theme === sectionTheme)?.attempts ?? 0),
+      0,
+    );
+
+    return { label: found.section.title, attempts, target: SECTION_MIN_ATTEMPTS };
+  };
   const learningPlanProposal = buildLearningPlanProposal({
     plan,
     roadmap,
@@ -336,6 +373,7 @@ export function Today({
                   onStartBlockTraining={onStartBlockTraining}
                   onCompleteBlockTraining={onCompleteBlockTraining}
                   onSkipBlockTraining={onSkipBlockTraining}
+                  diplomaProgress={diplomaChipForBlock(block)}
                 />
               );
             }}

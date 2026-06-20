@@ -73,6 +73,24 @@ describe('PlanBlockCard', () => {
     expect(screen.getByRole('button', { name: 'Pular' })).toHaveFocus();
   });
 
+  it('mostra o chip de progresso do diploma quando informado (PROD-5)', () => {
+    render(
+      <PlanBlockCard {...makeProps({ diplomaProgress: { label: 'Tática Rotulada', attempts: 18, target: 30 } })} />,
+    );
+
+    expect(screen.getByText(/Tática Rotulada: 18\/30/)).toBeInTheDocument();
+  });
+
+  it('limita o numerador do chip ao alvo e some sem progresso', () => {
+    const { rerender } = render(
+      <PlanBlockCard {...makeProps({ diplomaProgress: { label: 'Tática Rotulada', attempts: 42, target: 30 } })} />,
+    );
+    expect(screen.getByText(/Tática Rotulada: 30\/30/)).toBeInTheDocument();
+
+    rerender(<PlanBlockCard {...makeProps()} />);
+    expect(screen.queryByText(/🏅/)).not.toBeInTheDocument();
+  });
+
   it('não mostra diagrama quando o bloco não tem weaknessTag', () => {
     renderPlanBlockCard(makeBlock({ id: 'no-tag' }));
 

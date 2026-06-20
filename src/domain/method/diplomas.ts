@@ -134,6 +134,22 @@ export function getDiploma(id: DiplomaId): DiplomaDefinition | undefined {
   return DIPLOMAS.find((diploma) => diploma.id === id);
 }
 
+// Liga um tema de puzzle do Lichess (ex.: 'fork') à seção de diploma que o exige.
+// Usado para mostrar, no bloco do dia, o progresso rumo ao diploma (PROD-5).
+export function findDiplomaSectionForTheme(
+  theme: string,
+): { diploma: DiplomaDefinition; section: DiplomaSection } | undefined {
+  for (const diploma of DIPLOMAS) {
+    for (const section of diploma.sections) {
+      if (section.lichessThemes?.includes(theme) === true) {
+        return { diploma, section };
+      }
+    }
+  }
+
+  return undefined;
+}
+
 export function isDiplomaPassed(attempts: DiplomaAttempt[], diplomaId: DiplomaId): boolean {
   const definition = getDiploma(diplomaId);
 

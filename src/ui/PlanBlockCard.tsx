@@ -19,6 +19,8 @@ type PlanBlockCardProps = {
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
   onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
+  // Progresso do tema do bloco rumo ao diploma (PROD-5); ausente = bloco sem tema mensurável.
+  diplomaProgress?: { label: string; attempts: number; target: number };
 };
 
 export function PlanBlockCard({
@@ -30,6 +32,7 @@ export function PlanBlockCard({
   onSavePendingFromHardFeedback,
   onCompleteBlockTraining,
   onSkipBlockTraining,
+  diplomaProgress,
 }: PlanBlockCardProps) {
   const [isRating, setIsRating] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
@@ -113,6 +116,18 @@ export function PlanBlockCard({
       <p className="block-meta">
         {block.estimatedMinutes} min - {formatResourceStage(block.resourceStage)} - {block.destination.label}
       </p>
+      {/* PROD-5: liga o treino do dia à meta — progresso do tema rumo ao diploma. */}
+      {diplomaProgress !== undefined ? (
+        <p className="block-diploma">
+          <span
+            className="metric-chip"
+            aria-label={`Rumo ao diploma — ${diplomaProgress.label}: ${String(Math.min(diplomaProgress.attempts, diplomaProgress.target))} de ${String(diplomaProgress.target)} puzzles do tema`}
+          >
+            🏅 {diplomaProgress.label}: {Math.min(diplomaProgress.attempts, diplomaProgress.target)}/
+            {diplomaProgress.target}
+          </span>
+        </p>
+      ) : null}
       {/* Cada linha com seu ícone: porquê, tarefa, dica do professor e regra
           de parada — escaneável sem ler tudo. */}
       <p className="block-line block-reason">
