@@ -1,6 +1,7 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
   buildPuzzleThemeStats,
+  buildSkillMap,
   generatePlan,
   type Achievement,
   type DailyPlan,
@@ -9,12 +10,15 @@ import {
   type TrainingLog,
   type Weakness,
 } from '../domain';
+import { applyDiplomaProgress } from '../domain/method/evaluateDiplomas';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import { createDailyStudy } from '../infra/lichess/study';
 import {
   getLichessStudyLink,
   loadLichessOAuthToken,
+  saveDiplomaAttempt,
   saveLichessStudyLink,
+  saveProfile,
   saveTrainingLog,
   saveTrainingLogsAndPlan,
 } from '../infra/storage/appData';
@@ -41,9 +45,11 @@ export type UseStudyActionsInput = {
   weaknesses: Weakness[];
   setAchievements: Dispatch<SetStateAction<Achievement[]>>;
   setAllTrainingLogs: Dispatch<SetStateAction<TrainingLog[]>>;
+  setDiplomaAttempts: Dispatch<SetStateAction<DiplomaAttempt[]>>;
   setLichessConnectionState: Dispatch<SetStateAction<LichessConnectionState>>;
   setLichessMessage: Dispatch<SetStateAction<string | undefined>>;
   setLichessStudyLink: Dispatch<SetStateAction<LichessStudyLink | undefined>>;
+  setProfile: Dispatch<SetStateAction<LearnerProfile | undefined>>;
   setTodayPlan: Dispatch<SetStateAction<DailyPlan | undefined>>;
   setTrainingLogs: Dispatch<SetStateAction<TrainingLog[]>>;
 };
@@ -59,9 +65,11 @@ export function useStudyActions(input: UseStudyActionsInput) {
     weaknesses,
     setAchievements,
     setAllTrainingLogs,
+    setDiplomaAttempts,
     setLichessConnectionState,
     setLichessMessage,
     setLichessStudyLink,
+    setProfile,
     setTodayPlan,
     setTrainingLogs,
   } = input;
@@ -84,24 +92,51 @@ export function useStudyActions(input: UseStudyActionsInput) {
       const nextTrainingLogs = mergeTrainingLogs(trainingLogs, reconciledLogs);
       const nextAllTrainingLogs = mergeTrainingLogs(allTrainingLogs, reconciledLogs);
 
+      let promotionMessage: string | undefined;
+
       if (profile !== undefined && todayPlan !== undefined) {
+        // Diplomas automáticos + promoção de banda (Open Decision #1): a partir da
+        // acurácia por tema (buildSkillMap), avalia os DiplomaAttempt e sobe a banda
+        // (monotônico). applyDiplomaProgress é puro; persistimos os logs/plano
+        // ANTES de gravar diplomas/perfil para não atrasar a durabilidade do sync.
+        const nowIso = new Date().toISOString();
+        const skillMap = buildSkillMap(nextAllTrainingLogs);
+        const { evaluated, nextAttempts, promotedBand, bandChanged } = applyDiplomaProgress(
+          skillMap,
+          diplomaAttempts,
+          profile.band,
+          nowIso,
+        );
+
+        const effectiveProfile = bandChanged ? { ...profile, band: promotedBand } : profile;
         const recentThemeStats = buildPuzzleThemeStats(nextTrainingLogs);
         const nextPlan = generatePlan(
-          profile,
+          effectiveProfile,
           weaknesses,
-          toSessionMinutes(todayPlan.sessionMinutes, profile.defaultSessionMinutes),
+          toSessionMinutes(todayPlan.sessionMinutes, effectiveProfile.defaultSessionMinutes),
           todayPlan.date,
           buildPlanContext({
             previousPlan: todayPlan,
             recentThemeStats,
             trainingLogs: nextTrainingLogs,
             pendingItems,
-            diplomaAttempts,
+            diplomaAttempts: nextAttempts,
           }),
         );
 
         await saveTrainingLogsAndPlan(reconciledLogs, nextPlan);
         setTodayPlan(nextPlan);
+
+        for (const attempt of evaluated) {
+          await saveDiplomaAttempt(attempt);
+        }
+        setDiplomaAttempts(nextAttempts);
+
+        if (bandChanged) {
+          await saveProfile(effectiveProfile);
+          setProfile(effectiveProfile);
+          promotionMessage = `Diploma conquistado! Sua banda subiu para ${promotedBand}. O plano foi recalibrado.`;
+        }
       } else {
         for (const log of reconciledLogs) {
           await saveTrainingLog(log);
@@ -112,9 +147,10 @@ export function useStudyActions(input: UseStudyActionsInput) {
       setAllTrainingLogs(nextAllTrainingLogs);
       setLichessConnectionState('connected');
       setLichessMessage(
-        reconciledLogs.length === 0
-          ? 'Nenhum resultado novo de puzzle encontrado.'
-          : `${String(reconciledLogs.length)} bloco(s) e sinais agregados de puzzle atualizados.`,
+        promotionMessage ??
+          (reconciledLogs.length === 0
+            ? 'Nenhum resultado novo de puzzle encontrado.'
+            : `${String(reconciledLogs.length)} bloco(s) e sinais agregados de puzzle atualizados.`),
       );
     } catch (error) {
       setLichessConnectionState('error');

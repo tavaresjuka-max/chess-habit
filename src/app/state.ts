@@ -315,9 +315,11 @@ export function useAppState(): AppState {
     weaknesses,
     setAchievements,
     setAllTrainingLogs,
+    setDiplomaAttempts,
     setLichessConnectionState,
     setLichessMessage,
     setLichessStudyLink,
+    setProfile,
     setTodayPlan,
     setTrainingLogs,
   });
