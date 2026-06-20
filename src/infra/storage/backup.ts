@@ -179,8 +179,13 @@ export function validateBackupData(data: BackupData): string | null {
     if (!isObj(item) || !isValidId(item.id)) {
       return entityError('signals', i, 'id');
     }
-    if (typeof item.kind !== 'string' || item.kind.length === 0) {
-      return entityError('signals', i, 'kind');
+    if (typeof item.observedAt !== 'string') {
+      return entityError('signals', i, 'observedAt');
+    }
+    // O discriminador do Signal vive em value.kind (Signal = { source, value:{kind}, ... });
+    // não há "kind" no topo. Validar o caminho real evita rejeitar um backup legítimo.
+    if (!isObj(item.value) || typeof item.value.kind !== 'string' || item.value.kind.length === 0) {
+      return entityError('signals', i, 'value.kind');
     }
   }
 

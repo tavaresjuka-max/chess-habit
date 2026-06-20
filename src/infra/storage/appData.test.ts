@@ -415,6 +415,29 @@ describe('appData storage', () => {
     await expect(loadDiplomaAttempts()).resolves.toEqual([diplomaAttempt]);
   });
 
+  it('restaura sinais reais no roundtrip (guarda contra validacao de signals quebrada — DATA-1)', async () => {
+    // Regressao: validateBackupData checava item.kind no topo, que sinais reais
+    // (value.kind) nunca tem, fazendo o import rejeitar qualquer backup com sinais.
+    const signal: Signal = {
+      source: 'chesscom',
+      confidence: 'medium',
+      observedAt: '2026-06-06T00:00:00.000Z',
+      value: { kind: 'accuracy', lowAccuracyGames: 6, games: 8 },
+    };
+    await saveProfile(profile);
+    await replaceSignalsForSource('chesscom', [signal]);
+
+    const exported = await exportAllAsJson('2026-06-10T12:00:00.000Z');
+
+    await clearAll();
+    await expect(loadSignals()).resolves.toEqual([]);
+
+    const result = await importBackupFromJson(exported);
+
+    expect(result).toMatchObject({ ok: true });
+    await expect(loadSignals()).resolves.toEqual([signal]);
+  });
+
   it('restaura lichessStudies e estado de onboarding no roundtrip (Corte F)', async () => {
     await saveProfile(profile);
     await markOnboardingCompleted('2026-06-09T08:00:00.000Z');

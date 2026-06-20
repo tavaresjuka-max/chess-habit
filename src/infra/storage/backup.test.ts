@@ -95,7 +95,15 @@ describe('validateBackupData', () => {
       profile: [{ id: 'default', band: '800-1000', updatedAt: '2026-06-01T00:00:00.000Z' }],
       plans: [{ id: 'p1', date: '2026-06-01', blocks: [] }],
       logs: [{ id: 'l1', startedAt: '2026-06-01T10:00:00.000Z', elapsedSeconds: 30 }],
-      signals: [{ id: 's1', kind: 'weakness' }],
+      signals: [
+        {
+          id: 's1',
+          source: 'lichess',
+          observedAt: '2026-06-01T00:00:00.000Z',
+          confidence: 'medium',
+          value: { kind: 'judgment', blunders: 4, mistakes: 0, inaccuracies: 0, games: 6 },
+        },
+      ],
       weaknesses: [{ id: 'w1', tag: 'fork' }],
       pendingItems: [{ id: 'pending-1', status: 'open' }],
       achievements: [{ id: 'primeira-hora', unlockedAt: '2026-06-01T00:00:00.000Z', updatedAt: '2026-06-01T00:00:00.000Z' }],
@@ -123,13 +131,48 @@ describe('validateBackupData', () => {
     expect(error).toContain('date');
   });
 
-  it('rejects signals item where kind is not a string', () => {
-    const data: BackupData = { ...createEmptyData(), signals: [{ id: 's1', kind: 42 }] };
+  it('aceita um signal no formato real exportado (value.kind, sem kind no topo)', () => {
+    // Espelha exatamente o que exportAllAsJson grava (db.signals.toArray()):
+    // SignalRecord = Signal & { id, updatedAt }, com o discriminador em value.kind
+    // e NUNCA um campo kind no topo. Restaurar um backup real precisa passar aqui.
+    const data: BackupData = {
+      ...createEmptyData(),
+      signals: [
+        {
+          id: 's1',
+          source: 'lichess',
+          observedAt: '2026-06-01T00:00:00.000Z',
+          confidence: 'medium',
+          updatedAt: '2026-06-01T00:00:00.000Z',
+          value: { kind: 'accuracy', lowAccuracyGames: 6, games: 8 },
+        },
+      ],
+    };
+
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  it('rejects signals item where value.kind is not a string', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      signals: [{ id: 's1', source: 'lichess', observedAt: '2026-06-01T00:00:00.000Z', value: { kind: 42 } }],
+    };
     const error = validateBackupData(data);
 
     expect(error).not.toBeNull();
     expect(error).toContain('signals');
     expect(error).toContain('kind');
+  });
+
+  it('rejects signals item without a value object', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      signals: [{ id: 's1', source: 'lichess', observedAt: '2026-06-01T00:00:00.000Z' }],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('signals');
   });
 
   it('rejects an item whose id is an empty string (corrupting PK)', () => {
