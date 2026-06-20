@@ -47,6 +47,9 @@ export async function loadProfile(): Promise<LearnerProfile | undefined> {
     band: record.band,
     defaultSessionMinutes: record.defaultSessionMinutes,
     goals: record.goals,
+    // themeStages (PED-3) precisa voltar do storage, senão o estagio por tema
+    // persistido se perde no reload e o plano cai sempre em 'guided'.
+    ...(record.themeStages === undefined ? {} : { themeStages: record.themeStages }),
     updatedAt: record.updatedAt,
   };
 }

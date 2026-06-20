@@ -416,6 +416,14 @@ describe('appData storage', () => {
     await expect(loadDiplomaAttempts()).resolves.toEqual([diplomaAttempt]);
   });
 
+  it('preserva themeStages no round-trip de perfil (loadProfile — PED-3)', async () => {
+    await saveProfile({ ...profile, themeStages: { fork: 'retrieval' } });
+
+    const loaded = await loadProfile();
+
+    expect(loaded?.themeStages).toEqual({ fork: 'retrieval' });
+  });
+
   it('saveDiplomaAttempts grava varias tentativas de uma vez (LOG-5)', async () => {
     const a1: DiplomaAttempt = { ...diplomaAttempt, id: 'attempt-1' };
     const a2: DiplomaAttempt = { ...diplomaAttempt, id: 'attempt-2', diplomaId: 'torre' };
