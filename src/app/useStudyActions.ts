@@ -16,7 +16,7 @@ import { createDailyStudy } from '../infra/lichess/study';
 import {
   getLichessStudyLink,
   loadLichessOAuthToken,
-  saveDiplomaAttempt,
+  saveDiplomaAttempts,
   saveLichessStudyLink,
   saveProfile,
   saveTrainingLog,
@@ -127,9 +127,7 @@ export function useStudyActions(input: UseStudyActionsInput) {
         await saveTrainingLogsAndPlan(reconciledLogs, nextPlan);
         setTodayPlan(nextPlan);
 
-        for (const attempt of evaluated) {
-          await saveDiplomaAttempt(attempt);
-        }
+        await saveDiplomaAttempts(evaluated);
         setDiplomaAttempts(nextAttempts);
 
         if (bandChanged) {
@@ -145,6 +143,7 @@ export function useStudyActions(input: UseStudyActionsInput) {
 
       setTrainingLogs(nextTrainingLogs);
       setAllTrainingLogs(nextAllTrainingLogs);
+      setAchievements(await syncAchievements(nextAllTrainingLogs));
       setLichessConnectionState('connected');
       setLichessMessage(
         promotionMessage ??

@@ -327,6 +327,19 @@ export async function saveDiplomaAttempt(attempt: DiplomaAttempt): Promise<void>
   await db.diplomaAttempts.put(attempt);
 }
 
+// Grava varias tentativas de uma vez, de forma atomica: na promocao de banda o
+// app avalia varios diplomas juntos; um put() por vez podia deixar o IndexedDB
+// com diplomas parciais se o app fechasse no meio, causando re-avaliacao errada.
+export async function saveDiplomaAttempts(attempts: DiplomaAttempt[]): Promise<void> {
+  if (attempts.length === 0) {
+    return;
+  }
+
+  await db.transaction('rw', db.diplomaAttempts, async () => {
+    await db.diplomaAttempts.bulkPut(attempts);
+  });
+}
+
 export async function exportAllAsJson(nowIso = new Date().toISOString()): Promise<string> {
   // Snapshot consistente: ler todas as tabelas dentro de uma transação 'r' evita
   // um export inconsistente se um sync de fundo escrever no meio da leitura.

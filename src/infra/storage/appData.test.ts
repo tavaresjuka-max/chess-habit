@@ -33,6 +33,7 @@ import {
   saveLichessOAuthToken,
   saveLichessStudyLink,
   saveDiplomaAttempt,
+  saveDiplomaAttempts,
   saveMethodTrack,
   savePendingItem,
   savePlan,
@@ -413,6 +414,21 @@ describe('appData storage', () => {
     await expect(loadMethodTracks()).resolves.toEqual([methodTrack]);
     await expect(loadOpenPendingItems()).resolves.toHaveLength(1);
     await expect(loadDiplomaAttempts()).resolves.toEqual([diplomaAttempt]);
+  });
+
+  it('saveDiplomaAttempts grava varias tentativas de uma vez (LOG-5)', async () => {
+    const a1: DiplomaAttempt = { ...diplomaAttempt, id: 'attempt-1' };
+    const a2: DiplomaAttempt = { ...diplomaAttempt, id: 'attempt-2', diplomaId: 'torre' };
+
+    await saveDiplomaAttempts([a1, a2]);
+
+    await expect(loadDiplomaAttempts()).resolves.toEqual(expect.arrayContaining([a1, a2]));
+  });
+
+  it('saveDiplomaAttempts com lista vazia nao grava nada', async () => {
+    await saveDiplomaAttempts([]);
+
+    await expect(loadDiplomaAttempts()).resolves.toEqual([]);
   });
 
   it('atualiza backupMeta para o backup importado, sem deixar o meta antigo (DATA-2)', async () => {
