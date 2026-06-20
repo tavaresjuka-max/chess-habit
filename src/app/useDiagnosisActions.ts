@@ -503,9 +503,21 @@ function filterSignalsForDiagnosis(signals: Signal[], nowIso: string): Signal[] 
     filterFreshSignals(signals, nowIso, CHESSCOM_SIGNAL_MAX_AGE_DAYS),
   );
 
-  return signals.filter((signal) =>
-    signal.source === 'chesscom' ? chesscomFreshSignals.has(signal) : freshSignals.has(signal),
-  );
+  return signals.filter((signal) => {
+    if (signal.source !== 'chesscom') {
+      return freshSignals.has(signal);
+    }
+
+    // Rating é um retrato do momento: rating antigo (ex.: <1000 de meses atrás) não
+    // reflete o jogador de hoje e gerava fraqueza-fantasma de anti-blunder. Rating
+    // expira em 90 dias (janela padrão); os demais sinais chesscom (accuracy/opening
+    // derivados de jogos) seguem com a janela maior de 365 dias.
+    if (signal.value.kind === 'rating') {
+      return freshSignals.has(signal);
+    }
+
+    return chesscomFreshSignals.has(signal);
+  });
 }
 
 function mergePuzzleWeakness(weaknesses: Weakness[], puzzleWeakness: Weakness | undefined): Weakness[] {

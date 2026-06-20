@@ -214,7 +214,7 @@ export function Today({
     weaknesses,
   });
   const planApproved = plan.learningPlanResponse?.status === 'approved';
-  const backupReminder = getBackupReminder(backupMeta, plan.date);
+  const backupReminder = getBackupReminder(backupMeta, plan.date, allTrainingLogs.length > 0);
 
   return (
     <section aria-labelledby="today-title" className="panel today-panel">
@@ -642,9 +642,15 @@ function clampPercent(percent: number): number {
   return Math.max(0, Math.min(100, percent));
 }
 
-function getBackupReminder(meta: BackupMeta | undefined, today: string): string | undefined {
+function getBackupReminder(
+  meta: BackupMeta | undefined,
+  today: string,
+  hasData: boolean,
+): string | undefined {
   if (meta === undefined) {
-    return 'Backup local: ainda não há export JSON registrado para este aparelho.';
+    // Sem dado a perder ainda (usuário no dia 1, antes de treinar): não cobra backup —
+    // é ruído administrativo. O lembrete só aparece quando há progresso real.
+    return hasData ? 'Backup local: ainda não há export JSON registrado para este aparelho.' : undefined;
   }
 
   const todayDate = new Date(`${today}T12:00:00.000Z`);

@@ -213,10 +213,20 @@ describe('Today — convite para conectar o Lichess', () => {
 });
 
 describe('Today — lembrete de backup', () => {
-  it('mostra aviso quando ainda nao existe backup exportado', () => {
-    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], backupMeta: null });
+  it('mostra aviso quando ainda nao existe backup exportado (com treino feito)', () => {
+    renderToday({
+      blocks: [makeBlock({ id: 'bloco-1' })],
+      trainingLogs: [makeDoneLog('bloco-1', 540)],
+      backupMeta: null,
+    });
 
     expect(screen.getByText(/Backup local: ainda não há export JSON/i)).toBeInTheDocument();
+  });
+
+  it('nao mostra aviso de backup no dia 1, antes de qualquer treino', () => {
+    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], backupMeta: null });
+
+    expect(screen.queryByText(/Backup local: ainda não há export/i)).not.toBeInTheDocument();
   });
 
   it('mostra aviso quando o backup local esta atrasado', () => {
