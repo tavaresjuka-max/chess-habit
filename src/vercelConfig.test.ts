@@ -21,10 +21,15 @@ describe('vercel security headers', () => {
     expect(headerMap.get('X-Content-Type-Options')).toBe('nosniff');
     expect(headerMap.get('X-Frame-Options')).toBe('DENY');
     expect(headerMap.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
-    expect(headerMap.get('Permissions-Policy')).toBe('camera=(), microphone=(), geolocation=()');
+    expect(headerMap.get('Permissions-Policy')).toBe(
+      'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+    );
     expect(headerMap.get('Content-Security-Policy')).toBe(
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://lichess.org https://api.chess.com; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests",
+      "default-src 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://lichess.org https://api.chess.com; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests",
     );
     expect(headerMap.get('Content-Security-Policy')).not.toContain('unsafe-eval');
+    // object-src 'none' bloqueia plugins (Flash/applets) explicitamente, sem depender
+    // da heranca de default-src.
+    expect(headerMap.get('Content-Security-Policy')).toContain("object-src 'none'");
   });
 });
