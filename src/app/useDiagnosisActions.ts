@@ -83,9 +83,9 @@ export type UseDiagnosisActionsInput = {
   setLichessMessage: Dispatch<SetStateAction<string | undefined>>;
 };
 
-// Quando foi o último diagnóstico bem-sucedido de uma fonte: derivado do
-// observedAt mais recente dos sinais salvos daquela fonte (cada sync grava
-// observedAt = agora). undefined se a fonte nunca sincronizou.
+// Sinal mais recente salvo por fonte. Em Chess.com, observedAt preserva a data
+// da evidencia mensal quando existe; maxAgeMs e um atalho best-effort, nao uma
+// garantia exata de "ultimo sync".
 async function latestSignalObservedAt(source: Signal['source']): Promise<string | undefined> {
   const all = await loadSignals();
   let latest: string | undefined;
@@ -160,7 +160,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       const date = getTodayDate();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const nextWeaknesses = mergePuzzleWeakness(
-        detectWeaknesses(filterFreshSignals(allSignals, nowIso), args.targetProfile.band),
+        detectWeaknesses(filterSignalsForDiagnosis(allSignals, nowIso), args.targetProfile.band),
         createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
       );
       const plan = generatePlan(
@@ -380,7 +380,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     const nowIso = new Date().toISOString();
     const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
     const nextWeaknesses = mergePuzzleWeakness(
-      detectWeaknesses(filterFreshSignals(allSignals, nowIso), profile?.band),
+      detectWeaknesses(filterSignalsForDiagnosis(allSignals, nowIso), profile?.band),
       createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
     );
 
@@ -431,7 +431,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       const nowIso = new Date().toISOString();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
       const nextWeaknesses = mergePuzzleWeakness(
-        detectWeaknesses(filterFreshSignals(allSignals, nowIso), profile?.band),
+        detectWeaknesses(filterSignalsForDiagnosis(allSignals, nowIso), profile?.band),
         createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
       );
 
@@ -494,6 +494,12 @@ const confidenceRank = {
   medium: 1,
   high: 2,
 } satisfies Record<Weakness['confidence'], number>;
+
+function filterSignalsForDiagnosis(signals: Signal[], nowIso: string): Signal[] {
+  const freshSignals = new Set(filterFreshSignals(signals, nowIso));
+
+  return signals.filter((signal) => signal.source === 'chesscom' || freshSignals.has(signal));
+}
 
 function mergePuzzleWeakness(weaknesses: Weakness[], puzzleWeakness: Weakness | undefined): Weakness[] {
   if (puzzleWeakness === undefined) {

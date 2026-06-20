@@ -77,6 +77,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -108,6 +109,32 @@ describe('useDiagnosisActions', () => {
     expect(savedPlan?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(input.setDiagnosisState).toHaveBeenLastCalledWith('success');
     expect(input.setErrorMessage).toHaveBeenCalledWith(undefined);
+  });
+
+  it('keeps historic Chess.com signals in diagnosis even when generic freshness would decay them', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-15T12:00:00.000Z'));
+
+    const staleChesscomOpeningSignal: Signal = {
+      source: 'chesscom',
+      confidence: 'medium',
+      observedAt: '2026-01-01T00:00:00.000Z',
+      value: { kind: 'opening', eco: 'C20', name: 'King Pawn Game', games: 12, lossRate: 0.67 },
+    };
+
+    vi.mocked(importChesscomSignals).mockResolvedValue([staleChesscomOpeningSignal]);
+    vi.mocked(loadSignals).mockResolvedValue([staleChesscomOpeningSignal]);
+
+    const input = createInput();
+    const { result } = renderHook(() => useDiagnosisActions(input));
+
+    await act(async () => {
+      await result.current.syncChesscomDiagnosis();
+    });
+
+    expect(replaceWeaknesses).toHaveBeenCalledWith([
+      expect.objectContaining({ tag: 'opening-principles', confidence: 'medium' }),
+    ]);
   });
 
   it('preserves the union of weaknesses when onboarding imports Chess.com and Lichess in parallel', async () => {

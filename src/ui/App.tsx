@@ -387,6 +387,7 @@ export function App() {
             lichessConnected={appState.lichessToken !== undefined}
             lichessMessage={appState.lichessMessage}
             lichessStudyLink={appState.lichessStudyLink}
+            backupMeta={appState.backupMeta}
             onSessionMinutesChange={appState.regeneratePlan}
             onCreateNextSession={appState.createNextSession}
             onAnswerTutorQuestion={appState.answerTutorQuestion}

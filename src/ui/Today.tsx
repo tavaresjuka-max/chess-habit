@@ -29,6 +29,7 @@ import {
 import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
 import { getMethodTrackTitle } from '../domain/method/methodTracks';
 import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../domain/method/types';
+import type { BackupMeta } from '../app/backupStatus';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
@@ -57,6 +58,7 @@ type TodayProps = {
   lichessConnected: boolean;
   lichessMessage: string | undefined;
   lichessStudyLink: LichessStudyLink | undefined;
+  backupMeta?: BackupMeta;
   onSessionMinutesChange: (minutes: SessionMinutes) => Promise<void>;
   onCreateNextSession: (minutes: SessionMinutes) => Promise<void>;
   onAnswerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
@@ -95,6 +97,7 @@ export function Today({
   lichessConnected,
   lichessMessage,
   lichessStudyLink,
+  backupMeta,
   onSessionMinutesChange,
   onCreateNextSession,
   onAnswerTutorQuestion,
@@ -211,6 +214,7 @@ export function Today({
     weaknesses,
   });
   const planApproved = plan.learningPlanResponse?.status === 'approved';
+  const backupReminder = getBackupReminder(backupMeta, plan.date);
 
   return (
     <section aria-labelledby="today-title" className="panel today-panel">
@@ -266,6 +270,12 @@ export function Today({
           </li>
         ) : null}
       </ul>
+
+      {backupReminder !== undefined ? (
+        <p className="backup-reminder" role="status">
+          {backupReminder}
+        </p>
+      ) : null}
 
       {/* Contexto primeiro (feedback do dono 2026-06-19, invertendo o action-first
           do Corte D1): o professor enquadra o dia — mentalidade, foco e o que falta
@@ -630,6 +640,27 @@ function DayProgressFill({ percent }: { percent: number }) {
 
 function clampPercent(percent: number): number {
   return Math.max(0, Math.min(100, percent));
+}
+
+function getBackupReminder(meta: BackupMeta | undefined, today: string): string | undefined {
+  if (meta === undefined) {
+    return 'Backup local: ainda nao ha export JSON registrado para este aparelho.';
+  }
+
+  const todayDate = new Date(`${today}T12:00:00.000Z`);
+  const exportedAt = new Date(meta.exportedAt);
+
+  if (Number.isNaN(todayDate.getTime()) || Number.isNaN(exportedAt.getTime())) {
+    return 'Backup local: a data do ultimo export nao pode ser lida.';
+  }
+
+  const daysSinceBackup = Math.floor((todayDate.getTime() - exportedAt.getTime()) / 86_400_000);
+
+  if (daysSinceBackup < 7) {
+    return undefined;
+  }
+
+  return `Backup local: ultimo export ha ${String(daysSinceBackup)} dias.`;
 }
 
 function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefined }) {

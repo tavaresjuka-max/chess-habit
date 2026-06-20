@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import { type ReactElement } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -52,6 +53,15 @@ describe('BlockCarousel', () => {
 
     fireEvent.click(within(container).getByRole('button', { name: /Modo foco/ }));
     expect(within(container).getByRole('region')).toBeTruthy();
+  });
+
+  it('desabilita a seta anterior no primeiro bloco', () => {
+    const { container } = render(<BlockCarousel blocks={blocks} renderBlock={renderBlock} />);
+
+    const previousButton = within(container).getByRole('button', { name: 'Bloco anterior' });
+
+    expect(previousButton).toBeDisabled();
+    expect(previousButton.getAttribute('aria-disabled')).toBe('true');
   });
 
   it('não renderiza nada sem blocos', () => {

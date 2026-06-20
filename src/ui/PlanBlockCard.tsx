@@ -36,6 +36,7 @@ export function PlanBlockCard({
   const [isSavingPending, setIsSavingPending] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState<PlanBlockFeedback | undefined>(undefined);
   const [openWarning, setOpenWarning] = useState<string | undefined>(undefined);
+  const [isConfirmingSkip, setIsConfirmingSkip] = useState(false);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
   const isSubmittingFeedback = submittingFeedback !== undefined;
@@ -50,6 +51,7 @@ export function PlanBlockCard({
     setIsSavingPending(false);
     setSubmittingFeedback(undefined);
     setOpenWarning(undefined);
+    setIsConfirmingSkip(false);
   }, [block.id]);
 
   async function openTrainingDestination(event: MouseEvent<HTMLAnchorElement>): Promise<void> {
@@ -77,6 +79,7 @@ export function PlanBlockCard({
       return;
     }
 
+    setIsConfirmingSkip(false);
     setSubmittingFeedback(feedback);
     void onCompleteBlockTraining(block.id, feedback).finally(() => {
       setSubmittingFeedback(undefined);
@@ -249,15 +252,40 @@ export function PlanBlockCard({
             <Check aria-hidden="true" size={16} />
             Concluir
           </button>
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => {
-              void onSkipBlockTraining(block.id);
-            }}
-          >
-            Pular
-          </button>
+          {isConfirmingSkip ? (
+            <div className="button-row" role="group" aria-label="Confirmar pular bloco">
+              <span className="rating-prompt">Pular este bloco?</span>
+              <button
+                type="button"
+                className="danger-button"
+                onClick={() => {
+                  setIsConfirmingSkip(false);
+                  void onSkipBlockTraining(block.id);
+                }}
+              >
+                Pular mesmo
+              </button>
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => {
+                  setIsConfirmingSkip(false);
+                }}
+              >
+                Voltar
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => {
+                setIsConfirmingSkip(true);
+              }}
+            >
+              Pular
+            </button>
+          )}
         </div>
       )}
     </article>

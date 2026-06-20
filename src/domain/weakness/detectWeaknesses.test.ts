@@ -99,8 +99,41 @@ describe('detectWeaknesses', () => {
       },
     ];
 
+    const weaknesses = detectWeaknesses(signals, '800-1000');
+
+    expect(weaknesses[0]).toMatchObject({ tag: 'opening-principles', confidence: 'medium' });
+    expect(weaknesses).toEqual(
+      expect.arrayContaining([expect.objectContaining({ tag: 'opening-principles', confidence: 'medium' })]),
+    );
+  });
+
+  it('uses low Chess.com rapid rating as a conservative diagnosis floor', () => {
+    const signals: Signal[] = [
+      {
+        source: 'chesscom',
+        confidence: 'medium',
+        observedAt,
+        value: { kind: 'rating', perf: 'rapid', rating: 940 },
+      },
+    ];
+
     expect(detectWeaknesses(signals, '800-1000')).toEqual([
-      expect.objectContaining({ tag: 'opening-principles', confidence: 'medium' }),
+      expect.objectContaining({ tag: 'blunder-rate', confidence: 'low' }),
+    ]);
+  });
+
+  it('uses high Chess.com loss rate by time control as a conservative anti-blunder signal', () => {
+    const signals: Signal[] = [
+      {
+        source: 'chesscom',
+        confidence: 'low',
+        observedAt,
+        value: { kind: 'time-control', speed: 'rapid', games: 12, lossRate: 0.67 },
+      },
+    ];
+
+    expect(detectWeaknesses(signals, '800-1000')).toEqual([
+      expect.objectContaining({ tag: 'blunder-rate', confidence: 'low' }),
     ]);
   });
 

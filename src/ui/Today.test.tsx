@@ -4,6 +4,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 afterEach(cleanup);
+import type { BackupMeta } from '../app/backupStatus';
 import type { Achievement, DailyPlan, PlanBlock, TrainingLog } from '../domain';
 import { Today } from './Today';
 
@@ -57,11 +58,13 @@ function renderToday({
   trainingLogs = [],
   achievements = [],
   lichessConnected = false,
+  backupMeta = recentBackupMeta,
 }: {
   blocks: PlanBlock[];
   trainingLogs?: TrainingLog[];
   achievements?: Achievement[];
   lichessConnected?: boolean;
+  backupMeta?: BackupMeta | null;
 }) {
   return render(
     <Today
@@ -81,6 +84,7 @@ function renderToday({
       lichessConnected={lichessConnected}
       lichessMessage={undefined}
       lichessStudyLink={undefined}
+      backupMeta={backupMeta ?? undefined}
       onSessionMinutesChange={noop}
       onCreateNextSession={noop}
       onAnswerTutorQuestion={noop}
@@ -101,6 +105,12 @@ function renderToday({
     />,
   );
 }
+
+const recentBackupMeta: BackupMeta = {
+  checksum: 'recent',
+  exportedAt: '2026-06-12T10:00:00.000Z',
+  recordCount: 12,
+};
 
 describe('Today — hero "Agora"', () => {
   it('mostra o primeiro bloco pendente como Próximo passo', () => {
@@ -199,6 +209,33 @@ describe('Today — convite para conectar o Lichess', () => {
     renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], lichessConnected: true });
 
     expect(screen.queryByRole('button', { name: /Conectar Lichess/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('Today — lembrete de backup', () => {
+  it('mostra aviso quando ainda nao existe backup exportado', () => {
+    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], backupMeta: null });
+
+    expect(screen.getByText(/Backup local: ainda nao ha export JSON/i)).toBeInTheDocument();
+  });
+
+  it('mostra aviso quando o backup local esta atrasado', () => {
+    renderToday({
+      blocks: [makeBlock({ id: 'bloco-1' })],
+      backupMeta: {
+        checksum: 'old',
+        exportedAt: '2026-06-01T10:00:00.000Z',
+        recordCount: 12,
+      },
+    });
+
+    expect(screen.getByText('Backup local: ultimo export ha 11 dias.')).toBeInTheDocument();
+  });
+
+  it('nao mostra aviso quando o backup e recente', () => {
+    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })] });
+
+    expect(screen.queryByText(/Backup local:/i)).not.toBeInTheDocument();
   });
 });
 

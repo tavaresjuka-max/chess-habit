@@ -31,6 +31,8 @@ export function BlockCarousel({
   });
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [viewportHeight, setViewportHeight] = useState<number | undefined>(undefined);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(blocks.length > 1);
 
   // Ajusta a altura do viewport ao slide atual: sem isso o carrossel fica tão alto
   // quanto o maior bloco e sobra um vão grande abaixo dos blocos curtos (feedback
@@ -56,6 +58,8 @@ export function BlockCarousel({
 
     const onSelect = (): void => {
       setSelectedIndex(emblaApi.selectedScrollSnap());
+      setCanScrollPrev(emblaApi.canScrollPrev());
+      setCanScrollNext(emblaApi.canScrollNext());
       syncHeight();
     };
 
@@ -146,7 +150,13 @@ export function BlockCarousel({
           type="button"
           className="block-carousel-arrow"
           aria-label="Bloco anterior"
-          onClick={() => scrollPrev()}
+          aria-disabled={!canScrollPrev}
+          disabled={!canScrollPrev}
+          onClick={() => {
+            if (canScrollPrev) {
+              scrollPrev();
+            }
+          }}
         >
           <ChevronLeft aria-hidden="true" size={18} />
         </button>
@@ -173,7 +183,13 @@ export function BlockCarousel({
           type="button"
           className="block-carousel-arrow"
           aria-label="Próximo bloco"
-          onClick={() => scrollNext()}
+          aria-disabled={!canScrollNext}
+          disabled={!canScrollNext}
+          onClick={() => {
+            if (canScrollNext) {
+              scrollNext();
+            }
+          }}
         >
           <ChevronRight aria-hidden="true" size={18} />
         </button>

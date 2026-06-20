@@ -48,6 +48,21 @@ describe('PlanBlockCard', () => {
     expect(screen.getByRole('img', { name: /garfo/i })).toBeInTheDocument();
   });
 
+  it('asks for confirmation before skipping a block', () => {
+    const onSkipBlockTraining = vi.fn(() => Promise.resolve());
+
+    render(<PlanBlockCard {...makeProps({ onSkipBlockTraining })} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pular' }));
+
+    expect(onSkipBlockTraining).not.toHaveBeenCalled();
+    expect(screen.getByRole('group', { name: 'Confirmar pular bloco' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pular mesmo' }));
+
+    expect(onSkipBlockTraining).toHaveBeenCalledWith('block-1');
+  });
+
   it('não mostra diagrama quando o bloco não tem weaknessTag', () => {
     renderPlanBlockCard(makeBlock({ id: 'no-tag' }));
 

@@ -15,6 +15,8 @@ const BLUNDER_RATE_DEFAULT = 0.5;
 const ACCURACY_LOW_RATE_BEGINNER = 0.8;
 const ACCURACY_LOW_RATE_DEFAULT = 0.6;
 const CHESSCOM_OPENING_LOSS_RATE = 0.5;
+const CHESSCOM_RAPID_FALLBACK_RATING = 1000;
+const CHESSCOM_TIME_CONTROL_LOSS_RATE = 0.6;
 const DEFAULT_OPENING_LOSS_RATE = 0.6;
 
 const puzzleWeaknessTitle = {
@@ -236,6 +238,43 @@ function signalToCandidates(
       }
       return [];
 
+    case 'rating':
+      if (
+        signal.source === 'chesscom' &&
+        signal.value.perf === 'rapid' &&
+        signal.value.rating < CHESSCOM_RAPID_FALLBACK_RATING
+      ) {
+        return [
+          {
+            tag: 'blunder-rate',
+            contribution: 1,
+            minContribution: 1,
+            confidence: 'low',
+            evidence:
+              'O rating rapid atual no Chess.com ainda esta na faixa de iniciante; uso isso como hipotese conservadora para testar uma rotina anti-blunder.',
+          },
+        ];
+      }
+      return [];
+
+    case 'time-control':
+      if (
+        signal.source === 'chesscom' &&
+        signal.value.games >= 10 &&
+        signal.value.lossRate >= CHESSCOM_TIME_CONTROL_LOSS_RATE
+      ) {
+        return [
+          {
+            tag: 'blunder-rate',
+            contribution: signal.value.games,
+            minContribution: 10,
+            confidence: 'low',
+            evidence: `No Chess.com, partidas ${signal.value.speed} tiveram uma taxa alta de derrotas; trato isso como hipotese conservadora de seguranca anti-blunder.`,
+          },
+        ];
+      }
+      return [];
+
     case 'manual':
       return [
         {
@@ -250,8 +289,6 @@ function signalToCandidates(
       ];
 
     case 'color':
-    case 'rating':
-    case 'time-control':
       return [];
     default:
       return assertNever(signal.value);

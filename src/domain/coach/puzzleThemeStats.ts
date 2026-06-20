@@ -1,6 +1,16 @@
 import type { PuzzleThemeStats, TrainingLog, WeaknessTag } from '../types';
 
 export function buildPuzzleThemeStats(logs: TrainingLog[]): PuzzleThemeStats | undefined {
+  const activityStats = buildPuzzleActivityThemeStats(logs);
+
+  if (activityStats !== undefined) {
+    return activityStats;
+  }
+
+  return buildLatestPuzzleDashboardThemeStats(logs);
+}
+
+function buildPuzzleActivityThemeStats(logs: TrainingLog[]): PuzzleThemeStats | undefined {
   const byTheme = new Map<string, { theme: string; attempts: number; losses: number }>();
   let since: string | undefined;
   let until: string | undefined;
@@ -37,6 +47,40 @@ export function buildPuzzleThemeStats(logs: TrainingLog[]): PuzzleThemeStats | u
       (left, right) =>
         right.losses - left.losses || right.attempts - left.attempts || left.theme.localeCompare(right.theme),
     ),
+  };
+}
+
+function buildLatestPuzzleDashboardThemeStats(logs: TrainingLog[]): PuzzleThemeStats | undefined {
+  const dashboardResults = logs
+    .flatMap((log) => {
+      const result = log.result;
+
+      if (result?.kind !== 'puzzle-dashboard' || result.themeStats.length === 0) {
+        return [];
+      }
+
+      return [result];
+    })
+    .sort((left, right) => right.until.localeCompare(left.until));
+  const latestDashboard = dashboardResults[0];
+
+  if (latestDashboard === undefined) {
+    return undefined;
+  }
+
+  return {
+    since: latestDashboard.since,
+    until: latestDashboard.until,
+    themes: latestDashboard.themeStats
+      .map((theme) => ({
+        theme: theme.theme,
+        attempts: theme.attempts,
+        losses: theme.losses,
+      }))
+      .sort(
+        (left, right) =>
+          right.losses - left.losses || right.attempts - left.attempts || left.theme.localeCompare(right.theme),
+      ),
   };
 }
 

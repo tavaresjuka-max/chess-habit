@@ -1508,6 +1508,16 @@ textarea {
   padding: 12px 14px;
 }
 
+.backup-reminder {
+  border: 1px solid var(--gold-300);
+  border-left: 4px solid var(--gold-700);
+  border-radius: var(--radius-sm);
+  background: var(--gold-050);
+  color: var(--ink-700);
+  margin: 0 0 14px;
+  padding: 12px 14px;
+}
+
 .weekly-report {
   border: 1px solid var(--line-soft);
   border-radius: var(--radius-md);
