@@ -86,7 +86,9 @@ export type AppState = {
   // fundo (fire-and-forget). O onboarding passa false e roda runOnboardingImport
   // de forma awaitada na tela "Importando", para mostrar o loading real.
   readonly saveProfile: (profile: LearnerProfile, options?: { autoSync?: boolean }) => Promise<void>;
-  readonly runOnboardingImport: (profile: LearnerProfile) => Promise<{ weaknessCount: number }>;
+  readonly runOnboardingImport: (
+    profile: LearnerProfile,
+  ) => Promise<{ weaknessCount: number; confidentWeaknessCount: number }>;
   readonly savePlacementResult: (result: StoredPlacementResult) => Promise<void>;
   readonly regeneratePlan: (minutes: SessionMinutes) => Promise<void>;
   readonly createNextSession: (minutes: SessionMinutes) => Promise<void>;

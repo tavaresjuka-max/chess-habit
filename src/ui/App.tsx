@@ -252,8 +252,10 @@ export function App() {
             await appState.connectLichess();
           }}
           onRunImport={() => appState.runOnboardingImport(appState.profile ?? createDefaultProfile())}
-          onImportDone={(weaknessCount) => {
-            setFunnelPhase(weaknessCount > 0 ? 'plan' : 'questions');
+          onImportDone={({ confidentWeaknessCount }) => {
+            // Só pula a calibração quando há fraqueza CONFIÁVEL (amostra suficiente).
+            // Poucos jogos geram só sinais de baixa confiança → vai para a calibração.
+            setFunnelPhase(confidentWeaknessCount > 0 ? 'plan' : 'questions');
           }}
           onApplyPlacement={async (placement) => {
             await appState.savePlacementResult({

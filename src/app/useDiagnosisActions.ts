@@ -316,7 +316,9 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
   // Lê as fraquezas do storage (fonte da verdade) em vez do estado React, que
   // ainda não terá propagado quando este await retorna.
   const runOnboardingImport = useCallback(
-    async (targetProfile: LearnerProfile): Promise<{ weaknessCount: number }> => {
+    async (
+      targetProfile: LearnerProfile,
+    ): Promise<{ weaknessCount: number; confidentWeaknessCount: number }> => {
       const wantsChesscom = (targetProfile.chesscomUsername ?? '').trim() !== '';
       const wantsLichess = (targetProfile.lichessUsername ?? '').trim() !== '';
 
@@ -334,7 +336,12 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
 
       const weaknesses = await loadWeaknesses();
 
-      return { weaknessCount: weaknesses.length };
+      // Roteamento do onboarding: só pula a calibração se houver fraqueza CONFIÁVEL
+      // (confidence != 'low'). Poucos jogos só geram sinais de baixa confiança — sem
+      // amostra para confiar no diagnóstico, o aluno vai para a calibração por puzzles.
+      const confidentWeaknessCount = weaknesses.filter((weakness) => weakness.confidence !== 'low').length;
+
+      return { weaknessCount: weaknesses.length, confidentWeaknessCount };
     },
     [runChesscomSync, runLichessSync],
   );

@@ -168,6 +168,25 @@ describe('useDiagnosisActions', () => {
     expect(completedWrites.at(-1)).toEqual(expect.arrayContaining(['blunder-rate', 'fork']));
   });
 
+  it('conta só fraquezas confiáveis (confidence != low) para rotear o onboarding', async () => {
+    vi.mocked(loadWeaknesses).mockResolvedValue([
+      { tag: 'blunder-rate', score: 0.3, confidence: 'low', evidence: 'pouca amostra' },
+      { tag: 'fork', score: 0.6, confidence: 'medium', evidence: 'amostra ok' },
+      { tag: 'opening-principles', score: 0.9, confidence: 'high', evidence: 'amostra forte' },
+    ]);
+
+    const input = createInput({ profile });
+    const { result } = renderHook(() => useDiagnosisActions(input));
+
+    let imported: { weaknessCount: number; confidentWeaknessCount: number } | undefined;
+    await act(async () => {
+      imported = await result.current.runOnboardingImport(input.profile as LearnerProfile);
+    });
+
+    // 3 fraquezas, mas só 2 confiáveis: poucos jogos (só 'low') iriam para a calibração.
+    expect(imported).toEqual({ weaknessCount: 3, confidentWeaknessCount: 2 });
+  });
+
   it('does not write an in-flight diagnosis after local data is cleared', async () => {
     let resolveSignals: ((signals: Signal[]) => void) | undefined;
     vi.mocked(importChesscomSignals).mockReturnValue(

@@ -33,10 +33,10 @@ type OnboardingProps = {
   onContinueAccounts: (profile: LearnerProfile) => Promise<void>;
   // Salva o perfil e dispara o OAuth do Lichess (redireciona; volta na tela Importando).
   onConnectLichess: (profile: LearnerProfile) => Promise<void>;
-  // Executa a importação awaitada e devolve quantas fraquezas foram detectadas.
-  onRunImport: () => Promise<{ weaknessCount: number }>;
-  // Roteia após a importação: com fraqueza → plano; sem → avaliação.
-  onImportDone: (weaknessCount: number) => void;
+  // Executa a importação awaitada e devolve a contagem de fraquezas (total e confiáveis).
+  onRunImport: () => Promise<{ weaknessCount: number; confidentWeaknessCount: number }>;
+  // Roteia após a importação: com fraqueza CONFIÁVEL → plano; sem → avaliação.
+  onImportDone: (result: { weaknessCount: number; confidentWeaknessCount: number }) => void;
   onApplyPlacement: (placement: PlacementApplication) => Promise<void>;
   onSkipQuestions: () => void;
   onApprovePlan: () => Promise<void>;
@@ -254,8 +254,8 @@ function ImportingStep({
   onImportDone,
 }: {
   profile: LearnerProfile;
-  onRunImport: () => Promise<{ weaknessCount: number }>;
-  onImportDone: (weaknessCount: number) => void;
+  onRunImport: () => Promise<{ weaknessCount: number; confidentWeaknessCount: number }>;
+  onImportDone: (result: { weaknessCount: number; confidentWeaknessCount: number }) => void;
 }) {
   const startedRef = useRef(false);
 
@@ -266,8 +266,8 @@ function ImportingStep({
     startedRef.current = true;
 
     void (async () => {
-      const { weaknessCount } = await onRunImport();
-      onImportDone(weaknessCount);
+      const result = await onRunImport();
+      onImportDone(result);
     })();
   }, [onRunImport, onImportDone]);
 

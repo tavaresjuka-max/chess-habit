@@ -35,8 +35,10 @@ function makeProps(overrides: Partial<Parameters<typeof Onboarding>[0]> = {}) {
     onBackToWelcome: vi.fn(),
     onContinueAccounts: vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve()),
     onConnectLichess: vi.fn<(profile: LearnerProfile) => Promise<void>>(() => Promise.resolve()),
-    onRunImport: vi.fn<() => Promise<{ weaknessCount: number }>>(() => Promise.resolve({ weaknessCount: 0 })),
-    onImportDone: vi.fn<(weaknessCount: number) => void>(),
+    onRunImport: vi.fn<() => Promise<{ weaknessCount: number; confidentWeaknessCount: number }>>(() =>
+      Promise.resolve({ weaknessCount: 0, confidentWeaknessCount: 0 }),
+    ),
+    onImportDone: vi.fn<(result: { weaknessCount: number; confidentWeaknessCount: number }) => void>(),
     onApplyPlacement: vi.fn<() => Promise<void>>(() => Promise.resolve()),
     onSkipQuestions: vi.fn(),
     onApprovePlan: vi.fn<() => Promise<void>>(() => Promise.resolve()),
@@ -258,15 +260,15 @@ describe('Onboarding — importing step', () => {
     expect(screen.getByText(/Lichess e Chess\.com/)).toBeInTheDocument();
   });
 
-  it('runs the import once on mount and reports the weakness count', async () => {
-    const onRunImport = vi.fn<() => Promise<{ weaknessCount: number }>>(() =>
-      Promise.resolve({ weaknessCount: 3 }),
+  it('runs the import once on mount and reports the weakness counts', async () => {
+    const onRunImport = vi.fn<() => Promise<{ weaknessCount: number; confidentWeaknessCount: number }>>(() =>
+      Promise.resolve({ weaknessCount: 3, confidentWeaknessCount: 2 }),
     );
-    const onImportDone = vi.fn<(weaknessCount: number) => void>();
+    const onImportDone = vi.fn<(result: { weaknessCount: number; confidentWeaknessCount: number }) => void>();
     render(<Onboarding {...makeProps({ step: 'importing', onRunImport, onImportDone })} />);
 
     await waitFor(() => {
-      expect(onImportDone).toHaveBeenCalledWith(3);
+      expect(onImportDone).toHaveBeenCalledWith({ weaknessCount: 3, confidentWeaknessCount: 2 });
     });
     expect(onRunImport).toHaveBeenCalledTimes(1);
   });
