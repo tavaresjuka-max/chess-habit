@@ -83,6 +83,9 @@ export function generatePlan(
     sessionNumber,
     options.openedBlockIds,
   );
+  // Fallback persistido (PED-3): sem sinal do plano anterior, retoma o estágio
+  // alcançado por tema em vez de cair sempre no 'guided'.
+  const persistedThemeStage = profile.themeStages?.[primaryWeakness.tag];
   const completedResourceIds = getCompletedResourceIds(options.previousPlan, options.completedResourceIds);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const learningPlanResponse =
@@ -119,6 +122,7 @@ export function generatePlan(
             primaryWeakness,
             secondaryWeakness,
             latestThemeSignal,
+            persistedThemeStage,
             recentThemeStats: options.recentThemeStats,
             completedResourceIds,
             updatedAt,
@@ -148,12 +152,13 @@ function createPlanBlock(input: {
   primaryWeakness: Weakness;
   secondaryWeakness?: Weakness;
   latestThemeSignal: LatestThemeSignal | undefined;
+  persistedThemeStage?: PlanResourceStage;
   recentThemeStats?: PuzzleThemeStats;
   completedResourceIds: readonly string[];
   updatedAt: string;
   activeTrack: MethodTrackId;
 }): PlanBlock {
-  const resourceStage = getResourceStage(input.kind, input.latestThemeSignal);
+  const resourceStage = getResourceStage(input.kind, input.latestThemeSignal, input.persistedThemeStage);
   const copy = getBlockCopy(
     input.kind,
     input.primaryWeakness,
@@ -400,12 +405,16 @@ function getFinalBlockCopy(theme: FinalWeaknessTag): BlockCopy {
   }
 }
 
-function getResourceStage(kind: PlanBlockKind, latestThemeSignal: LatestThemeSignal | undefined): PlanResourceStage {
+function getResourceStage(
+  kind: PlanBlockKind,
+  latestThemeSignal: LatestThemeSignal | undefined,
+  fallbackStage?: PlanResourceStage,
+): PlanResourceStage {
   switch (kind) {
     case 'aquecimento':
       return 'retrieval';
     case 'tema':
-      return getThemeResourceStage(latestThemeSignal);
+      return getThemeResourceStage(latestThemeSignal, fallbackStage);
     case 'revisao':
       return 'review';
     case 'transferencia':
@@ -437,7 +446,10 @@ export function advanceThemeStage(previous: PlanResourceStage | undefined, cap: 
   return THEME_STAGE_ORDER[nextIndex] ?? 'guided';
 }
 
-function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined): PlanResourceStage {
+function getThemeResourceStage(
+  latestThemeSignal: LatestThemeSignal | undefined,
+  fallbackStage: PlanResourceStage = 'guided',
+): PlanResourceStage {
   if (latestThemeSignal?.source === 'prior-guided') {
     return 'retrieval';
   }
@@ -453,7 +465,8 @@ function getThemeResourceStage(latestThemeSignal: LatestThemeSignal | undefined)
       // 'fácil' avança um estágio (não pula direto para 'retrieval') e pode chegar a 'transfer'.
       return advanceThemeStage(latestThemeSignal.resourceStage, 'transfer');
     case undefined:
-      return 'guided';
+      // Sem sinal recente: retoma o estágio persistido do tema (PED-3); 'guided' por padrão.
+      return fallbackStage;
   }
 }
 

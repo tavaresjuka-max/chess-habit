@@ -145,6 +145,28 @@ describe('generatePlan', () => {
     expect(transferencia?.weaknessTag).toBe('pin');
   });
 
+  it('sem plano anterior, retoma o estágio persistido do tema em vez de guided (PED-3)', () => {
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      band: '1000-1200',
+      themeStages: { fork: 'retrieval' },
+    };
+    const plan = generatePlan(profile, [], 15, '2026-06-06');
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(tema?.weaknessTag).toBe('fork');
+    expect(tema?.resourceStage).toBe('retrieval');
+  });
+
+  it('sem estágio persistido nem plano anterior, o tema fica em guided (padrão)', () => {
+    const profile: LearnerProfile = { ...baseProfile, band: '1000-1200' };
+    const plan = generatePlan(profile, [], 15, '2026-06-06');
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(tema?.weaknessTag).toBe('fork');
+    expect(tema?.resourceStage).toBe('guided');
+  });
+
   it('volta à fraqueza primária na transferência quando não há secundária distinta', () => {
     const weaknesses = [
       { tag: 'fork' as const, score: 0.8, confidence: 'medium' as const, evidence: 'Garfos frequentes.' },

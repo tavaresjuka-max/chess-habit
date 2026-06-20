@@ -136,6 +136,10 @@ export type LearnerProfile = {
   band: LearnerBand;
   defaultSessionMinutes: SessionMinutes;
   goals: string[];
+  // Estágio (guided→retrieval→transfer) alcançado por tema, persistido para o
+  // aluno intermitente (perfil TDAH) retomar de onde parou em vez de recomeçar
+  // no 'guided' quando não há plano recente. Opcional e retrocompatível.
+  themeStages?: Partial<Record<WeaknessTag, PlanResourceStage>>;
   updatedAt: string;
 };
 
