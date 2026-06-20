@@ -17,6 +17,9 @@ import { createDailyStudy } from '../infra/lichess/study';
 import {
   getLichessStudyLink,
   loadLichessOAuthToken,
+  loadProfile,
+  loadTrainingLogs,
+  loadTrainingLogsForDate,
   saveDiplomaAttempts,
   saveLichessStudyLink,
   saveProfile,
@@ -42,6 +45,10 @@ export type UseStudyActionsInput = {
   pendingItems: PendingTrainingItem[];
   profile: LearnerProfile | undefined;
   todayPlan: DailyPlan | undefined;
+  // Ref sempre com o plano mais recente (state.ts a mantém em sync). Usada no
+  // reconcile para não sobrescrever, com a closure obsoleta, uma mudança feita
+  // durante o fetch (anti-race, achado do council).
+  latestPlanRef: { current: DailyPlan | undefined };
   trainingLogs: TrainingLog[];
   weaknesses: Weakness[];
   setAchievements: Dispatch<SetStateAction<Achievement[]>>;
@@ -62,6 +69,7 @@ export function useStudyActions(input: UseStudyActionsInput) {
     pendingItems,
     profile,
     todayPlan,
+    latestPlanRef,
     trainingLogs,
     weaknesses,
     setAchievements,
@@ -109,12 +117,19 @@ export function useStudyActions(input: UseStudyActionsInput) {
         return;
       }
 
-      const nextTrainingLogs = mergeTrainingLogs(trainingLogs, reconciledLogs);
-      const nextAllTrainingLogs = mergeTrainingLogs(allTrainingLogs, reconciledLogs);
+      // Anti-race (council): a busca leva 1-3s; relê o estado MAIS RECENTE (plano via
+      // latestPlanRef; perfil e logs do storage) em vez das closures, para não
+      // sobrescrever uma conclusão de bloco / promoção de banda feita durante o fetch.
+      const currentPlan = latestPlanRef.current ?? todayPlan;
+      const currentProfile = (await loadProfile()) ?? profile;
+      const currentDayLogs =
+        currentPlan === undefined ? trainingLogs : await loadTrainingLogsForDate(currentPlan.date);
+      const nextTrainingLogs = mergeTrainingLogs(currentDayLogs, reconciledLogs);
+      const nextAllTrainingLogs = mergeTrainingLogs(await loadTrainingLogs(), reconciledLogs);
 
       let promotionMessage: string | undefined;
 
-      if (profile !== undefined && todayPlan !== undefined) {
+      if (currentProfile !== undefined && currentPlan !== undefined) {
         // Diplomas automáticos + promoção de banda (Open Decision #1): a partir da
         // acurácia por tema (buildSkillMap), avalia os DiplomaAttempt e sobe a banda
         // (monotônico). applyDiplomaProgress é puro; persistimos os logs/plano
@@ -124,19 +139,19 @@ export function useStudyActions(input: UseStudyActionsInput) {
         const { evaluated, nextAttempts, promotedBand, bandChanged } = applyDiplomaProgress(
           skillMap,
           diplomaAttempts,
-          profile.band,
+          currentProfile.band,
           nowIso,
         );
 
-        const effectiveProfile = bandChanged ? { ...profile, band: promotedBand } : profile;
+        const effectiveProfile = bandChanged ? { ...currentProfile, band: promotedBand } : currentProfile;
         const recentThemeStats = buildPuzzleThemeStats(nextTrainingLogs);
         const nextPlan = generatePlan(
           effectiveProfile,
           weaknesses,
-          toSessionMinutes(todayPlan.sessionMinutes, effectiveProfile.defaultSessionMinutes),
-          todayPlan.date,
+          toSessionMinutes(currentPlan.sessionMinutes, effectiveProfile.defaultSessionMinutes),
+          currentPlan.date,
           buildPlanContext({
-            previousPlan: todayPlan,
+            previousPlan: currentPlan,
             recentThemeStats,
             trainingLogs: nextTrainingLogs,
             pendingItems,
@@ -146,6 +161,7 @@ export function useStudyActions(input: UseStudyActionsInput) {
 
         await saveTrainingLogsAndPlan(reconciledLogs, nextPlan);
         setTodayPlan(nextPlan);
+        latestPlanRef.current = nextPlan;
 
         await saveDiplomaAttempts(evaluated);
         setDiplomaAttempts(nextAttempts);

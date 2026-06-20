@@ -487,10 +487,15 @@ describe('training flow', () => {
       });
     });
 
-    const dashboardLog = await getTrainingLog(`${getTodayDateForTest()}:lichess-puzzle-dashboard`);
+    // O log do dashboard é gravado junto com o plano no mesmo saveTrainingLogsAndPlan;
+    // esperar por ele explicitamente evita ler o DB antes do save (corrida latente do
+    // teste, exposta pelas leituras frescas anti-race do reconcile).
+    await waitFor(async () => {
+      const log = await getTrainingLog(`${getTodayDateForTest()}:lichess-puzzle-dashboard`);
+      expect(log?.result?.kind).toBe('puzzle-dashboard');
+    });
     const replayLog = await getTrainingLog(`${getTodayDateForTest()}:lichess-puzzle-replay-fork`);
 
-    expect(dashboardLog?.result?.kind).toBe('puzzle-dashboard');
     expect(replayLog?.result?.kind).toBe('puzzle-replay-summary');
     expect(JSON.stringify(replayLog?.result)).not.toContain('abc12');
   });

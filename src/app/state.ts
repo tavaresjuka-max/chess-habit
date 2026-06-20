@@ -312,6 +312,7 @@ export function useAppState(): AppState {
     pendingItems,
     profile,
     todayPlan,
+    latestPlanRef,
     trainingLogs,
     weaknesses,
     setAchievements,

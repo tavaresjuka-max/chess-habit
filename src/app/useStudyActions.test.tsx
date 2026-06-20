@@ -5,6 +5,9 @@ import { generatePlan, type Achievement, type LearnerProfile, type TrainingLog }
 import type { DiplomaAttempt } from '../domain/method/types';
 import {
   loadLichessOAuthToken,
+  loadProfile,
+  loadTrainingLogs,
+  loadTrainingLogsForDate,
   saveProfile,
   saveTrainingLog,
   saveTrainingLogsAndPlan,
@@ -19,6 +22,9 @@ import { useStudyActions, type UseStudyActionsInput } from './useStudyActions';
 vi.mock('../infra/storage/appData', () => ({
   getLichessStudyLink: vi.fn(),
   loadLichessOAuthToken: vi.fn(),
+  loadProfile: vi.fn(),
+  loadTrainingLogs: vi.fn(),
+  loadTrainingLogsForDate: vi.fn(),
   saveDiplomaAttempt: vi.fn(),
   saveDiplomaAttempts: vi.fn(),
   saveLichessStudyLink: vi.fn(),
@@ -48,6 +54,11 @@ beforeEach(() => {
     expiresAt: '2099-01-01T00:00:00.000Z',
   });
   vi.mocked(saveTrainingLog).mockResolvedValue(undefined);
+  vi.mocked(loadProfile).mockResolvedValue(undefined);
+  // Releitura fresca do reconcile (anti-race): espelha o estado que a closure padrão
+  // assume (allTrainingLogs = [existingLog]); o dia começa vazio.
+  vi.mocked(loadTrainingLogs).mockResolvedValue([existingLog]);
+  vi.mocked(loadTrainingLogsForDate).mockResolvedValue([]);
   vi.mocked(reconcileLichessPuzzleDiagnostics).mockResolvedValue([reconciledLog]);
   vi.mocked(syncAchievements).mockResolvedValue([unlockedAchievement]);
 });
@@ -118,6 +129,32 @@ describe('useStudyActions', () => {
     expect(saveTrainingLogsAndPlan).not.toHaveBeenCalled();
     expect(input.setTodayPlan).not.toHaveBeenCalled();
   });
+
+  it('usa o plano mais recente (latestPlanRef), não a closure, ao reconciliar com resultado novo (anti-race)', async () => {
+    const profile: LearnerProfile = {
+      lichessUsername: 'jukasparov',
+      band: '400-800',
+      defaultSessionMinutes: 15,
+      goals: [],
+      updatedAt: '2026-06-06T00:00:00.000Z',
+    };
+    // Closure obsoleta aponta para o plano de ontem; latestPlanRef tem o de hoje (o
+    // usuário avançou durante o fetch). O reconcile não pode reverter para a closure.
+    const stalePlan = generatePlan(profile, [], 15, '2026-06-18');
+    const freshPlan = generatePlan(profile, [], 15, '2026-06-19');
+    const input = createInput({ profile, todayPlan: stalePlan, latestPlanRef: { current: freshPlan } });
+    const { result } = renderHook(() => useStudyActions(input));
+
+    await act(async () => {
+      await result.current.reconcileLichessResults();
+    });
+
+    expect(saveTrainingLogsAndPlan).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ date: '2026-06-19' }),
+    );
+    expect(input.setTodayPlan).toHaveBeenCalledWith(expect.objectContaining({ date: '2026-06-19' }));
+  });
 });
 
 const existingLog = doneLog('existing-log', '2026-06-18');
@@ -134,6 +171,7 @@ function createInput(overrides: Partial<UseStudyActionsInput> = {}): UseStudyAct
     pendingItems: [],
     profile: undefined,
     todayPlan: undefined,
+    latestPlanRef: { current: undefined },
     trainingLogs: [],
     weaknesses: [],
     setAchievements: vi.fn(),
