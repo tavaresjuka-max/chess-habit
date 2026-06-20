@@ -267,9 +267,21 @@ export function Today({
         ) : null}
       </ul>
 
-      {/* Ação primeiro: o próximo passo (ou "treinando agora") fica logo abaixo
-          das métricas do dia, acima do contexto do professor. Decisão de UX
-          (Corte D1): reduzir fricção no mobile — o dono abre o app e age. */}
+      {/* Contexto primeiro (feedback do dono 2026-06-19, invertendo o action-first
+          do Corte D1): o professor enquadra o dia — mentalidade, foco e o que falta
+          calibrar — ANTES da ação, para o aluno ler a orientação antes de abrir o
+          primeiro bloco. */}
+      <TutorCard
+        plan={plan}
+        weaknesses={weaknesses}
+        trainingLogs={trainingLogs}
+        allTrainingLogs={allTrainingLogs}
+        today={plan.date}
+        onAnswerTutorQuestion={onAnswerTutorQuestion}
+        onReconcileLichessResults={onReconcileLichessResults}
+      />
+
+      {/* A ação (próximo passo / "treinando agora") vem logo após o enquadramento. */}
       {allBlocksOrdered.length > 0 ? (
         <section className="hero-now" aria-labelledby="hero-now-title">
           <h2 id="hero-now-title" className="hero-now-label">
@@ -327,16 +339,6 @@ export function Today({
           </div>
         </section>
       ) : null}
-
-      <TutorCard
-        plan={plan}
-        weaknesses={weaknesses}
-        trainingLogs={trainingLogs}
-        allTrainingLogs={allTrainingLogs}
-        today={plan.date}
-        onAnswerTutorQuestion={onAnswerTutorQuestion}
-        onReconcileLichessResults={onReconcileLichessResults}
-      />
 
       {returnNote !== undefined ? (
         <p className="return-note" aria-live="polite">
