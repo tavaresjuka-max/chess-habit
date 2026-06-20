@@ -1,4 +1,5 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
+import { toast } from 'sonner';
 import {
   buildPuzzleThemeStats,
   buildSkillMap,
@@ -172,6 +173,10 @@ export function useStudyActions(input: UseStudyActionsInput) {
               ? 'Nenhum resultado novo de puzzle encontrado.'
               : `${String(reconciledLogs.length)} bloco(s) e sinais agregados de puzzle atualizados.`),
         );
+      } else if (promotionMessage !== undefined) {
+        // Auto-fetch silencioso: não polui a tela no rotineiro, mas COMEMORA a
+        // promoção de banda/diploma com um toast discreto (decisão do dono).
+        toast.success(promotionMessage);
       }
     } catch (error) {
       if (!silent) {

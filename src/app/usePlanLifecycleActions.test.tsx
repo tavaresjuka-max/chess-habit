@@ -3,6 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DailyPlan, LearnerProfile, TrainingLog } from '../domain';
 import {
+  loadProfile,
   loadTrainingLogs,
   loadTrainingLogsForDate,
   markOnboardingCompleted,
@@ -14,6 +15,7 @@ import { syncAchievements } from './achievementsSync';
 import { usePlanLifecycleActions, type UsePlanLifecycleActionsInput } from './usePlanLifecycleActions';
 
 vi.mock('../infra/storage/appData', () => ({
+  loadProfile: vi.fn(),
   loadTrainingLogs: vi.fn(),
   loadTrainingLogsForDate: vi.fn(),
   markOnboardingCompleted: vi.fn(),
@@ -41,6 +43,7 @@ const profile: LearnerProfile = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(loadProfile).mockResolvedValue(undefined);
   vi.mocked(savePlan).mockResolvedValue(undefined);
   vi.mocked(saveProfile).mockResolvedValue(undefined);
   vi.mocked(savePlacementResult).mockResolvedValue(undefined);

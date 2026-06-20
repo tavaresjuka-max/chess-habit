@@ -15,6 +15,7 @@ import {
 } from '../domain';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import {
+  loadProfile,
   loadTrainingLogs,
   loadTrainingLogsForDate,
   markOnboardingCompleted,
@@ -76,14 +77,18 @@ export function usePlanLifecycleActions(input: UsePlanLifecycleActionsInput) {
         return;
       }
 
-      const merged = { ...profile.themeStages, ...extractThemeStages(plan) };
+      // Relê o perfil mais recente do storage como base do merge: assim uma promoção
+      // de banda concorrente (reconcile/boot) não é sobrescrita por uma closure de
+      // perfil obsoleta (achado do council).
+      const base = (await loadProfile()) ?? profile;
+      const merged = { ...base.themeStages, ...extractThemeStages(plan) };
 
-      if (JSON.stringify(merged) === JSON.stringify(profile.themeStages ?? {})) {
+      if (JSON.stringify(merged) === JSON.stringify(base.themeStages ?? {})) {
         return;
       }
 
       const nextProfile: LearnerProfile = {
-        ...profile,
+        ...base,
         themeStages: merged,
         updatedAt: new Date().toISOString(),
       };
