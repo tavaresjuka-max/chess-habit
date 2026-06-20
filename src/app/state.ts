@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   buildPuzzleThemeStats,
   createTrainingRoadmap,
@@ -96,7 +96,7 @@ export type AppState = {
   readonly connectLichess: () => Promise<void>;
   readonly disconnectLichess: () => Promise<void>;
   readonly syncLichessDiagnosis: () => Promise<void>;
-  readonly reconcileLichessResults: () => Promise<void>;
+  readonly reconcileLichessResults: (options?: { silent?: boolean }) => Promise<void>;
   readonly importFreeActivity: () => Promise<void>;
   readonly createLichessStudy: () => Promise<void>;
   readonly approveLearningPlan: () => Promise<void>;
@@ -323,6 +323,25 @@ export function useAppState(): AppState {
     setTodayPlan,
     setTrainingLogs,
   });
+
+  // Auto-fetch SILENCIOSO de puzzles no boot (Decisão #3): o usuário recorrente,
+  // que já passou do onboarding e abre o app com o Lichess conectado, confere os
+  // puzzles UMA vez em segundo plano (sem mensagens de UI, erro engolido) para a
+  // banda refletir o progresso recente sem o botão "Conferir puzzles". O gate em
+  // onboardingCompletedAt exclui o funil de primeira vez e o callback de OAuth,
+  // que rodam antes de o onboarding ser concluído — assim não interrompe o funil.
+  const didBootReconcileRef = useRef(false);
+  useEffect(() => {
+    if (didBootReconcileRef.current || loadState !== 'ready') {
+      return;
+    }
+
+    didBootReconcileRef.current = true;
+
+    if (lichessConnectionState === 'connected' && onboardingCompletedAt !== undefined) {
+      void reconcileLichessResults({ silent: true });
+    }
+  }, [loadState, lichessConnectionState, onboardingCompletedAt, reconcileLichessResults]);
 
   const { openPendingItem, deferPendingItem, savePendingFromHardFeedback } = usePendingActions({
     pendingItems,

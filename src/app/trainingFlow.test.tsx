@@ -533,7 +533,9 @@ describe('training flow', () => {
         lastFeedback: 'good',
       });
     });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // 2 fetches: o auto-fetch SILENCIOSO de puzzles no boot (Decisão #3 — token
+    // salvo + onboarding concluído) + o fetch do próprio fluxo de conclusão.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it('asks for Lichess connection before creating a Study', async () => {

@@ -74,17 +74,24 @@ export function useStudyActions(input: UseStudyActionsInput) {
     setTrainingLogs,
   } = input;
 
-  const reconcileLichessResults = useCallback(async () => {
+  const reconcileLichessResults = useCallback(async (options?: { silent?: boolean }) => {
+    // silent: usado pelo auto-fetch de boot — sem mensagens de UI nem estado de
+    // erro; só promove a banda em segundo plano se houver diploma novo.
+    const silent = options?.silent === true;
     const token = await loadLichessOAuthToken();
 
     if (token === undefined) {
-      setLichessConnectionState('error');
-      setLichessMessage('Conecte o Lichess para buscar resultado real dos puzzles.');
+      if (!silent) {
+        setLichessConnectionState('error');
+        setLichessMessage('Conecte o Lichess para buscar resultado real dos puzzles.');
+      }
       return;
     }
 
-    setLichessConnectionState('syncing');
-    setLichessMessage('Buscando resultados de puzzles no Lichess.');
+    if (!silent) {
+      setLichessConnectionState('syncing');
+      setLichessMessage('Buscando resultados de puzzles no Lichess.');
+    }
 
     try {
       const reconciledLogs = await reconcileLichessPuzzleDiagnostics(trainingLogs, token.accessToken);
@@ -144,16 +151,21 @@ export function useStudyActions(input: UseStudyActionsInput) {
       setTrainingLogs(nextTrainingLogs);
       setAllTrainingLogs(nextAllTrainingLogs);
       setAchievements(await syncAchievements(nextAllTrainingLogs));
-      setLichessConnectionState('connected');
-      setLichessMessage(
-        promotionMessage ??
-          (reconciledLogs.length === 0
-            ? 'Nenhum resultado novo de puzzle encontrado.'
-            : `${String(reconciledLogs.length)} bloco(s) e sinais agregados de puzzle atualizados.`),
-      );
+
+      if (!silent) {
+        setLichessConnectionState('connected');
+        setLichessMessage(
+          promotionMessage ??
+            (reconciledLogs.length === 0
+              ? 'Nenhum resultado novo de puzzle encontrado.'
+              : `${String(reconciledLogs.length)} bloco(s) e sinais agregados de puzzle atualizados.`),
+        );
+      }
     } catch (error) {
-      setLichessConnectionState('error');
-      setLichessMessage(toLichessErrorMessage(error));
+      if (!silent) {
+        setLichessConnectionState('error');
+        setLichessMessage(toLichessErrorMessage(error));
+      }
     }
   }, [allTrainingLogs, diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses]);
 
