@@ -1,5 +1,5 @@
 import { Check, ExternalLink, Feather, Flag, Lightbulb, Loader2, Target } from 'lucide-react';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { isAllowedExternalUrl, openExternalUrl } from '../app/externalOpen';
 import { TacticDiagram } from './art/TacticDiagram';
 import {
@@ -37,6 +37,19 @@ export function PlanBlockCard({
   const [submittingFeedback, setSubmittingFeedback] = useState<PlanBlockFeedback | undefined>(undefined);
   const [openWarning, setOpenWarning] = useState<string | undefined>(undefined);
   const [isConfirmingSkip, setIsConfirmingSkip] = useState(false);
+  const skipTriggerRef = useRef<HTMLButtonElement>(null);
+  const skipCancelRef = useRef<HTMLButtonElement>(null);
+  const prevConfirmingSkipRef = useRef(false);
+  // a11y: ao abrir a confirmação de pular, move o foco para a opção SEGURA (Voltar),
+  // nunca a destrutiva; ao cancelar, devolve o foco ao gatilho "Pular".
+  useEffect(() => {
+    if (isConfirmingSkip && !prevConfirmingSkipRef.current) {
+      skipCancelRef.current?.focus();
+    } else if (!isConfirmingSkip && prevConfirmingSkipRef.current) {
+      skipTriggerRef.current?.focus();
+    }
+    prevConfirmingSkipRef.current = isConfirmingSkip;
+  }, [isConfirmingSkip]);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
   const isSubmittingFeedback = submittingFeedback !== undefined;
@@ -266,6 +279,7 @@ export function PlanBlockCard({
                 Pular mesmo
               </button>
               <button
+                ref={skipCancelRef}
                 type="button"
                 className="link-button"
                 onClick={() => {
@@ -277,6 +291,7 @@ export function PlanBlockCard({
             </div>
           ) : (
             <button
+              ref={skipTriggerRef}
               type="button"
               className="link-button"
               onClick={() => {

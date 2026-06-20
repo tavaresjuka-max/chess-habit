@@ -63,6 +63,16 @@ describe('PlanBlockCard', () => {
     expect(onSkipBlockTraining).toHaveBeenCalledWith('block-1');
   });
 
+  it('move o foco para Voltar ao confirmar e o devolve ao Pular ao cancelar (a11y)', () => {
+    render(<PlanBlockCard {...makeProps()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pular' }));
+    expect(screen.getByRole('button', { name: 'Voltar' })).toHaveFocus();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+    expect(screen.getByRole('button', { name: 'Pular' })).toHaveFocus();
+  });
+
   it('não mostra diagrama quando o bloco não tem weaknessTag', () => {
     renderPlanBlockCard(makeBlock({ id: 'no-tag' }));
 
