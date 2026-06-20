@@ -44,6 +44,10 @@ export function buildSkillMap(allLogs: TrainingLog[]): SkillMapEntry[] {
   // O dashboard de 30 dias e a fonte mais completa e ja cobre os puzzles dos
   // blocos no periodo; usar dashboard + atividade somaria o mesmo puzzle duas
   // vezes. Regra: dashboard mais recente quando existir, senao atividade real.
+  // O trade-off 30d-vs-recente foi revisado pelo council (U2, 2026-06-20) e MANTIDO
+  // pelo dono: estabilidade > responsividade (o diploma e avaliado com dado fresco
+  // no sync; o escape valve do gate cobre o caso "travado baixo"). Nao trocar por
+  // "priorizar atividade recente" sem nova decisao do dono.
   const latestDashboard = allLogs
     .map((log) => log.result)
     .filter(
