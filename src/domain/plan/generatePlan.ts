@@ -142,6 +142,21 @@ export function generatePlan(
   };
 }
 
+// Extrai o estágio alcançado por tema dos blocos de tema do plano (id terminando
+// em '-tema'), para persistir em profile.themeStages (PED-3). Bloco mais recente
+// vence — em planos com várias sessões, a última sessão reflete o estágio atual.
+export function extractThemeStages(plan: DailyPlan): Partial<Record<WeaknessTag, PlanResourceStage>> {
+  const stages: Partial<Record<WeaknessTag, PlanResourceStage>> = {};
+
+  for (const block of plan.blocks) {
+    if (block.id.endsWith('-tema') && block.weaknessTag !== undefined && block.resourceStage !== undefined) {
+      stages[block.weaknessTag] = block.resourceStage;
+    }
+  }
+
+  return stages;
+}
+
 function createPlanBlock(input: {
   profile: LearnerProfile;
   date: string;

@@ -8,6 +8,7 @@ import {
   markOnboardingCompleted,
   savePlacementResult,
   savePlan,
+  saveProfile,
 } from '../infra/storage/appData';
 import { syncAchievements } from './achievementsSync';
 import { usePlanLifecycleActions, type UsePlanLifecycleActionsInput } from './usePlanLifecycleActions';
@@ -18,6 +19,7 @@ vi.mock('../infra/storage/appData', () => ({
   markOnboardingCompleted: vi.fn(),
   savePlacementResult: vi.fn(),
   savePlan: vi.fn(),
+  saveProfile: vi.fn(),
 }));
 
 vi.mock('./achievementsSync', () => ({
@@ -40,6 +42,7 @@ const profile: LearnerProfile = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(savePlan).mockResolvedValue(undefined);
+  vi.mocked(saveProfile).mockResolvedValue(undefined);
   vi.mocked(savePlacementResult).mockResolvedValue(undefined);
   vi.mocked(markOnboardingCompleted).mockResolvedValue(undefined);
   vi.mocked(loadTrainingLogs).mockResolvedValue([]);
@@ -179,6 +182,22 @@ describe('usePlanLifecycleActions', () => {
       expect(input.setOnboardingCompletedAt).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/));
     });
   });
+
+  describe('persistência de estágio por tema (PED-3)', () => {
+    it('grava themeStages no perfil ao criar a próxima sessão', async () => {
+      const input = createInput({ profile });
+      const { result } = renderHook(() => usePlanLifecycleActions(input));
+
+      await act(async () => {
+        await result.current.createNextSession(15);
+      });
+
+      const savedProfile = vi.mocked(saveProfile).mock.calls[0]?.[0];
+      expect(savedProfile?.themeStages).toBeDefined();
+      expect(Object.keys(savedProfile?.themeStages ?? {}).length).toBeGreaterThan(0);
+      expect(input.setProfile).toHaveBeenCalled();
+    });
+  });
 });
 
 function createInput(
@@ -197,6 +216,7 @@ function createInput(
     setAllTrainingLogs: vi.fn(),
     setErrorMessage: vi.fn(),
     setOnboardingCompletedAt: vi.fn(),
+    setProfile: vi.fn(),
     setSessionMinutes: vi.fn(),
     setTodayPlan: vi.fn(),
     setTrainingLogs: vi.fn(),

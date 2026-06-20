@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PendingTrainingItem } from '../method/types';
 import type { LearnerProfile, SessionMinutes } from '../types';
-import { advanceThemeStage, generatePlan, getReviewRatioForPendingCount } from './generatePlan';
+import { advanceThemeStage, extractThemeStages, generatePlan, getReviewRatioForPendingCount } from './generatePlan';
 import { getTimeBudget } from './timeBudget';
 
 describe('advanceThemeStage', () => {
@@ -165,6 +165,13 @@ describe('generatePlan', () => {
 
     expect(tema?.weaknessTag).toBe('fork');
     expect(tema?.resourceStage).toBe('guided');
+  });
+
+  it('extractThemeStages lê o estágio do bloco de tema do plano (PED-3)', () => {
+    const profile: LearnerProfile = { ...baseProfile, band: '1000-1200' };
+    const plan = generatePlan(profile, [], 15, '2026-06-06');
+
+    expect(extractThemeStages(plan).fork).toBe('guided');
   });
 
   it('volta à fraqueza primária na transferência quando não há secundária distinta', () => {

@@ -293,6 +293,7 @@ export function useAppState(): AppState {
     setAllTrainingLogs,
     setErrorMessage,
     setOnboardingCompletedAt,
+    setProfile,
     setSessionMinutes,
     setTodayPlan,
     setTrainingLogs,

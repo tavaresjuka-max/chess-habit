@@ -2,6 +2,7 @@ import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
   appendPlanSession,
   buildPuzzleThemeStats,
+  extractThemeStages,
   generatePlan,
   getNextPlanSessionNumber,
   type Achievement,
@@ -17,6 +18,7 @@ import {
   loadTrainingLogs,
   loadTrainingLogsForDate,
   markOnboardingCompleted,
+  saveProfile,
   savePlacementResult as savePlacementResultRecord,
   savePlan,
   type StoredPlacementResult,
@@ -39,6 +41,7 @@ export type UsePlanLifecycleActionsInput = {
   setAllTrainingLogs: Dispatch<SetStateAction<TrainingLog[]>>;
   setErrorMessage: Dispatch<SetStateAction<string | undefined>>;
   setOnboardingCompletedAt: Dispatch<SetStateAction<string | undefined>>;
+  setProfile: Dispatch<SetStateAction<LearnerProfile | undefined>>;
   setSessionMinutes: Dispatch<SetStateAction<SessionMinutes>>;
   setTodayPlan: Dispatch<SetStateAction<DailyPlan | undefined>>;
   setTrainingLogs: Dispatch<SetStateAction<TrainingLog[]>>;
@@ -58,10 +61,38 @@ export function usePlanLifecycleActions(input: UsePlanLifecycleActionsInput) {
     setAllTrainingLogs,
     setErrorMessage,
     setOnboardingCompletedAt,
+    setProfile,
     setSessionMinutes,
     setTodayPlan,
     setTrainingLogs,
   } = input;
+
+  // Persiste o estágio alcançado por tema (PED-3): após gerar um plano com o
+  // estágio (possivelmente avançado pelo feedback), grava em profile.themeStages
+  // para o aluno intermitente retomar de onde parou. No-op quando nada mudou.
+  const persistThemeStages = useCallback(
+    async (plan: DailyPlan) => {
+      if (profile === undefined) {
+        return;
+      }
+
+      const merged = { ...profile.themeStages, ...extractThemeStages(plan) };
+
+      if (JSON.stringify(merged) === JSON.stringify(profile.themeStages ?? {})) {
+        return;
+      }
+
+      const nextProfile: LearnerProfile = {
+        ...profile,
+        themeStages: merged,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveProfile(nextProfile);
+      setProfile(nextProfile);
+    },
+    [profile, setProfile],
+  );
 
   const savePlacementResult = useCallback(
     async (result: StoredPlacementResult) => {
@@ -89,11 +120,12 @@ export function usePlanLifecycleActions(input: UsePlanLifecycleActionsInput) {
       );
 
       await savePlan(plan);
+      await persistThemeStages(plan);
       setSessionMinutes(minutes);
       setTodayPlan(plan);
       setErrorMessage(undefined);
     },
-    [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
+    [diplomaAttempts, pendingItems, persistThemeStages, profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const createNextSession = useCallback(
@@ -116,6 +148,7 @@ export function usePlanLifecycleActions(input: UsePlanLifecycleActionsInput) {
         );
 
         await savePlan(plan);
+        await persistThemeStages(plan);
         setSessionMinutes(minutes);
         setTodayPlan(plan);
         setTrainingLogs(await loadTrainingLogsForDate(date));
@@ -131,13 +164,14 @@ export function usePlanLifecycleActions(input: UsePlanLifecycleActionsInput) {
       const nextPlan = appendPlanSession(todayPlan, sessionPlan);
 
       await savePlan(nextPlan);
+      await persistThemeStages(nextPlan);
       setSessionMinutes(minutes);
       setTodayPlan(nextPlan);
       setTrainingLogs(await loadTrainingLogsForDate(todayPlan.date));
       setAllTrainingLogs(await loadTrainingLogs());
       setErrorMessage(undefined);
     },
-    [diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses],
+    [diplomaAttempts, pendingItems, persistThemeStages, profile, todayPlan, trainingLogs, weaknesses],
   );
 
   const updateLearningPlanResponse = useCallback(
