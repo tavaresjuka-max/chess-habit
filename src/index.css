@@ -189,17 +189,27 @@ li {
 
 .block-carousel-viewport {
   overflow: hidden;
+  cursor: grab;
+  transition: height 0.25s ease;
+}
+
+.block-carousel-viewport:active {
+  cursor: grabbing;
 }
 
 .block-carousel-container {
   display: flex;
-  align-items: stretch;
+  /* flex-start (não stretch): cada slide fica na altura natural do seu card. Com
+     stretch, todos ficavam tão altos quanto o maior e sobrava um vão abaixo dos
+     curtos. A altura do viewport segue o slide atual (ver BlockCarousel). */
+  align-items: flex-start;
 }
 
 .block-carousel-slide {
-  flex: 0 0 100%;
+  /* < 100% deixa o próximo card "espiar" na borda — sinaliza que dá pra arrastar. */
+  flex: 0 0 92%;
   min-width: 0;
-  padding: 0 2px;
+  padding: 0 6px;
 }
 
 .block-carousel-controls {
@@ -228,18 +238,46 @@ li {
   gap: 7px;
 }
 
-.block-carousel-dot {
-  width: 9px;
-  height: 9px;
-  padding: 0;
-  border: 0;
+/* Pip numerado: número da página dentro de cada ponto, cor por status (atual /
+   concluído). Seletor com .block-carousel-dots para vencer a moldura global de
+   botão (que, por especificidade, transformava os pontos em quadros vazios). */
+.block-carousel-dots .block-carousel-dot {
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0 4px;
+  border: 1px solid var(--line-soft);
   border-radius: 50%;
-  background: var(--green-100);
+  background: var(--surface-raised);
+  color: var(--ink-600);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transform: none;
+  filter: none;
   cursor: pointer;
 }
 
-.block-carousel-dot.is-selected {
+.block-carousel-dots .block-carousel-dot:hover {
+  background: var(--green-100);
+  box-shadow: none;
+  transform: none;
+  filter: none;
+}
+
+.block-carousel-dots .block-carousel-dot.is-done {
+  background: var(--green-100);
+  color: var(--green-900);
+}
+
+.block-carousel-dots .block-carousel-dot.is-selected,
+.block-carousel-dots .block-carousel-dot.is-selected:hover {
   background: var(--green-900);
+  color: #fff;
+  border-color: var(--green-900);
 }
 
 /* Títulos com a serif do gabinete; rótulos funcionais seguem em Inter. */
@@ -2073,7 +2111,7 @@ li.diploma-row {
    qualquer largura/altura (o asset recortado tem alpha nos chanfros, então a
    placa assenta sobre qualquer superfície, clara ou escura). A sombra usa
    drop-shadow — box-shadow retangular vazaria nos cantos transparentes. */
-button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button),
+button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):not(.block-carousel-dot),
 .button-link:not(.secondary-link) {
   border: 12px solid transparent;
   border-image: url('/art/moldura-botao-primario-slice.webp') 48 fill / 12px stretch;
@@ -2084,7 +2122,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   filter: drop-shadow(0 2px 3px rgba(18, 42, 34, 0.28));
 }
 
-button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):hover,
+button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):not(.block-carousel-dot):hover,
 .button-link:not(.secondary-link):hover {
   background: none;
   box-shadow: none;

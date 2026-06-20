@@ -30,6 +30,24 @@ export function BlockCarousel({
     startIndex: initialIndex,
   });
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
+  const [viewportHeight, setViewportHeight] = useState<number | undefined>(undefined);
+
+  // Ajusta a altura do viewport ao slide atual: sem isso o carrossel fica tão alto
+  // quanto o maior bloco e sobra um vão grande abaixo dos blocos curtos (feedback
+  // do dono). jsdom devolve offsetHeight 0; só fixamos altura real para não
+  // esconder o conteúdo nos testes.
+  const syncHeight = useCallback(() => {
+    if (emblaApi === undefined) {
+      return;
+    }
+
+    const slide = emblaApi.slideNodes()[emblaApi.selectedScrollSnap()];
+    const height = slide?.offsetHeight ?? 0;
+
+    if (height > 0) {
+      setViewportHeight(height);
+    }
+  }, [emblaApi]);
 
   useEffect(() => {
     if (emblaApi === undefined) {
@@ -38,15 +56,35 @@ export function BlockCarousel({
 
     const onSelect = (): void => {
       setSelectedIndex(emblaApi.selectedScrollSnap());
+      syncHeight();
     };
 
     onSelect();
     emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
 
     return () => {
       emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
     };
-  }, [emblaApi]);
+  }, [emblaApi, syncHeight]);
+
+  // Recalcula quando os blocos mudam (status/conteúdo) e ao redimensionar a tela.
+  useEffect(() => {
+    syncHeight();
+  }, [blocks, syncHeight]);
+
+  useEffect(() => {
+    const onResize = (): void => {
+      syncHeight();
+    };
+
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+    };
+  }, [syncHeight]);
 
   const scrollTo = useCallback((index: number) => emblaApi?.scrollTo(index), [emblaApi]);
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
@@ -84,7 +122,11 @@ export function BlockCarousel({
         </button>
       </div>
 
-      <div className="block-carousel-viewport" ref={emblaRef}>
+      <div
+        className="block-carousel-viewport"
+        ref={emblaRef}
+        style={viewportHeight === undefined ? undefined : { height: viewportHeight }}
+      >
         <div className="block-carousel-container">
           {blocks.map((block, index) => (
             <div
@@ -109,16 +151,23 @@ export function BlockCarousel({
           <ChevronLeft aria-hidden="true" size={18} />
         </button>
         <div className="block-carousel-dots">
-          {blocks.map((block, index) => (
-            <button
-              key={block.id}
-              type="button"
-              className={`block-carousel-dot${index === selectedIndex ? ' is-selected' : ''}`}
-              aria-label={`Ir para bloco ${String(index + 1)}`}
-              aria-current={index === selectedIndex}
-              onClick={() => scrollTo(index)}
-            />
-          ))}
+          {blocks.map((block, index) => {
+            const isSelected = index === selectedIndex;
+            const isDone = block.status === 'done';
+
+            return (
+              <button
+                key={block.id}
+                type="button"
+                className={`block-carousel-dot${isSelected ? ' is-selected' : ''}${isDone ? ' is-done' : ''}`}
+                aria-label={`Ir para bloco ${String(index + 1)}${isDone ? ' (concluído)' : ''}`}
+                aria-current={isSelected}
+                onClick={() => scrollTo(index)}
+              >
+                {index + 1}
+              </button>
+            );
+          })}
         </div>
         <button
           type="button"
