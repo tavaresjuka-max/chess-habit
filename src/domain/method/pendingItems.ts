@@ -124,11 +124,14 @@ export function createPendingItemFromTheme(
 const GRADUATION_ATTEMPTS = SPACING_DAYS.length;
 
 // Só "forma" (gradua) um item se a acurácia CUMULATIVA do tema (todo o histórico de
-// puzzles, via buildSkillMap) for >= 75% (decisão 2026-06-20). Válvula de segurança:
+// puzzles, via buildSkillMap) for >= 75% (decisão 2026-06-20). Válvula de amostra:
 // só BLOQUEIA a formatura com amostra suficiente (>= 10 tentativas). Com pouco dado
 // (ou nenhum), a graduação cai no critério por volume — dados ralos nunca travam.
+// Válvula de ESCAPE: após 2 ciclos consecutivos bloqueados no teto de espaçamento, o
+// item forma assim mesmo (não fica eterno); o tema segue rastreado como fraqueza.
 const GRADUATION_MIN_ACCURACY_PERCENT = 75;
 const GRADUATION_MIN_ATTEMPTS = 10;
+const GRADUATION_GATE_ESCAPE_CYCLES = 2;
 
 function graduationBlockedByAccuracy(themeMastery?: { accuracyPercent: number; attempts: number }): boolean {
   return (
@@ -165,17 +168,21 @@ export function advancePendingItem(
           ? getNextDueDate(0)
           : getNextDueDate(attempts);
 
+  // Conta ciclos consecutivos bloqueados pela acurácia no teto de espaçamento; zera
+  // quando não está bloqueado no teto. Após GRADUATION_GATE_ESCAPE_CYCLES, escapa.
+  const atCeiling = masteryTarget !== 'regress' && attempts >= GRADUATION_ATTEMPTS;
+  const accuracyBlocks = graduationBlockedByAccuracy(themeMastery);
+  const gateBlockedCount = atCeiling && accuracyBlocks ? (item.gateBlockedCount ?? 0) + 1 : 0;
+  const escaped = gateBlockedCount >= GRADUATION_GATE_ESCAPE_CYCLES;
+  const graduates = atCeiling && (!accuracyBlocks || escaped);
+
   return {
     ...item,
     attempts: masteryTarget === 'regress' ? 0 : attempts,
     dueAt,
     ...(feedback === undefined ? {} : { lastFeedback: feedback }),
-    status:
-      masteryTarget !== 'regress' &&
-      attempts >= GRADUATION_ATTEMPTS &&
-      !graduationBlockedByAccuracy(themeMastery)
-        ? 'done'
-        : 'open',
+    gateBlockedCount,
+    status: graduates ? 'done' : 'open',
     updatedAt: new Date().toISOString(),
   };
 }

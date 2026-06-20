@@ -34,6 +34,10 @@ export type PendingTrainingItem = {
   dueAt: string;
   attempts: number;
   lastFeedback?: PlanBlockFeedback;
+  // Ciclos consecutivos em que a graduação ficou bloqueada pela acurácia no teto de
+  // espaçamento. Válvula de escape: após GRADUATION_GATE_ESCAPE_CYCLES, forma assim
+  // mesmo (o tema segue rastreado como fraqueza). Persistido no item.
+  gateBlockedCount?: number;
   status: 'open' | 'done' | 'deferred';
   createdAt: string;
   updatedAt: string;

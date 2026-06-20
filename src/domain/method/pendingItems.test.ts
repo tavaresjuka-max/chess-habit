@@ -127,6 +127,25 @@ describe('pending training items', () => {
     expect(advanced).toMatchObject({ attempts: 4, status: 'done' });
   });
 
+  it('válvula de escape: após 2 ciclos bloqueado no teto, forma assim mesmo', () => {
+    const blocked = { accuracyPercent: 50, attempts: 12 };
+
+    const first = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, blocked);
+    expect(first).toMatchObject({ attempts: 4, status: 'open', gateBlockedCount: 1 });
+
+    const second = advancePendingItem(first, 'good', undefined, blocked);
+    expect(second).toMatchObject({ attempts: 4, status: 'done', gateBlockedCount: 2 });
+  });
+
+  it('zera o contador de escape quando o item não está bloqueado no teto', () => {
+    const recovered = advancePendingItem(createItem({ attempts: 3, gateBlockedCount: 1 }), 'good', undefined, {
+      accuracyPercent: 90,
+      attempts: 12,
+    });
+
+    expect(recovered).toMatchObject({ attempts: 4, status: 'done', gateBlockedCount: 0 });
+  });
+
   it('pula dois níveis de espaçamento no feedback easy', () => {
     const advanced = advancePendingItem(createItem({ attempts: 1 }), 'easy');
 
