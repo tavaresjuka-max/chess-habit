@@ -280,6 +280,16 @@ li {
   border-color: var(--green-900);
 }
 
+/* Em telas de toque, os pontos do carrossel sobem para 44px (WCAG 2.5.5): o
+   seletor com .block-carousel-dots vence a regra base de botão, então precisa
+   repetir aqui. No desktop (pointer fino) o pip compacto de 30px é suficiente. */
+@media (pointer: coarse) {
+  .block-carousel-dots .block-carousel-dot {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 /* Títulos com a serif do gabinete; rótulos funcionais seguem em Inter. */
 .panel h1,
 .welcome-panel h1,
@@ -609,7 +619,6 @@ button[aria-disabled='true'] {
 }
 
 .link-button {
-  min-height: auto;
   border: none;
   background: none;
   color: var(--ink-600);

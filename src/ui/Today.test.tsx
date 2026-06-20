@@ -216,7 +216,7 @@ describe('Today — lembrete de backup', () => {
   it('mostra aviso quando ainda nao existe backup exportado', () => {
     renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], backupMeta: null });
 
-    expect(screen.getByText(/Backup local: ainda nao ha export JSON/i)).toBeInTheDocument();
+    expect(screen.getByText(/Backup local: ainda não há export JSON/i)).toBeInTheDocument();
   });
 
   it('mostra aviso quando o backup local esta atrasado', () => {
@@ -229,7 +229,7 @@ describe('Today — lembrete de backup', () => {
       },
     });
 
-    expect(screen.getByText('Backup local: ultimo export ha 11 dias.')).toBeInTheDocument();
+    expect(screen.getByText('Backup local: último export há 11 dias.')).toBeInTheDocument();
   });
 
   it('nao mostra aviso quando o backup e recente', () => {

@@ -252,7 +252,7 @@ export function Today({
         />
       </div>
 
-      <ul className="day-stats" aria-label="Números de hoje">
+      <ul className="day-stats" role="list" aria-label="Números de hoje">
         <li>
           <strong>
             {doneBlockCount}/{allBlocksOrdered.length}
@@ -644,14 +644,14 @@ function clampPercent(percent: number): number {
 
 function getBackupReminder(meta: BackupMeta | undefined, today: string): string | undefined {
   if (meta === undefined) {
-    return 'Backup local: ainda nao ha export JSON registrado para este aparelho.';
+    return 'Backup local: ainda não há export JSON registrado para este aparelho.';
   }
 
   const todayDate = new Date(`${today}T12:00:00.000Z`);
   const exportedAt = new Date(meta.exportedAt);
 
   if (Number.isNaN(todayDate.getTime()) || Number.isNaN(exportedAt.getTime())) {
-    return 'Backup local: a data do ultimo export nao pode ser lida.';
+    return 'Backup local: a data do último export não pôde ser lida.';
   }
 
   const daysSinceBackup = Math.floor((todayDate.getTime() - exportedAt.getTime()) / 86_400_000);
@@ -660,7 +660,7 @@ function getBackupReminder(meta: BackupMeta | undefined, today: string): string 
     return undefined;
   }
 
-  return `Backup local: ultimo export ha ${String(daysSinceBackup)} dias.`;
+  return `Backup local: último export há ${String(daysSinceBackup)} dias.`;
 }
 
 function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefined }) {
@@ -672,7 +672,7 @@ function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefi
     <section className="day-completion-card" aria-labelledby="day-completion-title">
       <div>
         <h2 id="day-completion-title">{summary.heading}</h2>
-        <ul className="completion-metrics" aria-label="Resumo do treino">
+        <ul className="completion-metrics" role="list" aria-label="Resumo do treino">
           {summary.metrics.map((metric) => (
             <li key={metric}>{metric}</li>
           ))}
@@ -692,7 +692,7 @@ function RoadmapList({ items }: { items: TrainingRoadmapItem[] }) {
   }
 
   return (
-    <ol className="roadmap-list" aria-label="Próximos passos do roteiro">
+    <ol className="roadmap-list" role="list" aria-label="Próximos passos do roteiro">
       {items.map((item) => (
         <li className={`roadmap-item roadmap-${item.status}`} key={item.id}>
           <div>

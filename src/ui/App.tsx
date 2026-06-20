@@ -169,10 +169,21 @@ export function App() {
   const shouldShowConfig = activeView === 'config';
   const shouldShowProgress = activeView === 'progress';
 
+  const didMountFocusRef = useRef(false);
   useEffect(() => {
-    if (onboardingResolved && activeView !== 'today') {
-      viewRef.current?.focus();
+    if (!onboardingResolved) {
+      return;
     }
+
+    // Não rouba o foco na primeira pintura; move para o conteúdo principal quando
+    // o usuário TROCA de aba — inclusive ao VOLTAR para o Hoje, que antes ficava
+    // sem foco e obrigava o teclado a re-tabular toda a navegação.
+    if (!didMountFocusRef.current) {
+      didMountFocusRef.current = true;
+      return;
+    }
+
+    viewRef.current?.focus();
   }, [activeView, onboardingResolved]);
 
   if (appState.loadState === 'loading') {
