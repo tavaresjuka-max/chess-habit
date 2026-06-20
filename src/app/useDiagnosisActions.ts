@@ -495,10 +495,22 @@ const confidenceRank = {
   high: 2,
 } satisfies Record<Weakness['confidence'], number>;
 
+// Sinais Chess.com derivam observedAt do end_time real do jogo, então o corte de
+// 90 dias os descartaria cedo demais (achado nº1: 294 sinais -> 0 fraquezas). Mas
+// isentá-los por completo deixava ratings/aberturas de anos atrás vivos para sempre
+// (fraquezas-fantasma). Meio-termo: Chess.com usa uma janela maior (365d) em vez de
+// ilimitada; as demais fontes seguem com 90 dias.
+const CHESSCOM_SIGNAL_MAX_AGE_DAYS = 365;
+
 function filterSignalsForDiagnosis(signals: Signal[], nowIso: string): Signal[] {
   const freshSignals = new Set(filterFreshSignals(signals, nowIso));
+  const chesscomFreshSignals = new Set(
+    filterFreshSignals(signals, nowIso, CHESSCOM_SIGNAL_MAX_AGE_DAYS),
+  );
 
-  return signals.filter((signal) => signal.source === 'chesscom' || freshSignals.has(signal));
+  return signals.filter((signal) =>
+    signal.source === 'chesscom' ? chesscomFreshSignals.has(signal) : freshSignals.has(signal),
+  );
 }
 
 function mergePuzzleWeakness(weaknesses: Weakness[], puzzleWeakness: Weakness | undefined): Weakness[] {

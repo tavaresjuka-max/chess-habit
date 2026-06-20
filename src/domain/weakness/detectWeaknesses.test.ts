@@ -52,9 +52,11 @@ describe('detectWeaknesses', () => {
       },
     ];
 
-    // Default (0,6) dispara; iniciante (0,8) não — accuracy baixa é normal lá.
+    // Limiar de accuracy baixado para 0,6 inclusive no iniciante (decisão 2026-06-20):
+    // 0,75 agora dispara nas duas bandas. Antes (0,8) o iniciante ficava mudo — o
+    // achado nº1 do dono (Chess.com com muitos sinais e zero fraquezas).
     expect(detectWeaknesses(signals, '1000-1200')[0]).toMatchObject({ tag: 'blunder-rate', confidence: 'low' });
-    expect(detectWeaknesses(signals, '400-800')).toEqual([]);
+    expect(detectWeaknesses(signals, '400-800')[0]).toMatchObject({ tag: 'blunder-rate' });
   });
 
   it('ignora accuracy baixa com amostra pequena (< 8 partidas)', () => {

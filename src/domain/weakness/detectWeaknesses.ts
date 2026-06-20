@@ -9,10 +9,11 @@ import type { Confidence, LearnerBand, PuzzleThemeStats, Signal, Weakness, Weakn
 const BLUNDER_RATE_BEGINNER = 0.3;
 const BLUNDER_RATE_DEFAULT = 0.5;
 
-// Precisão (accuracy) baixa é normal para iniciantes — por isso o limiar deles é
-// mais alto: só vira sinal quando quase todas as partidas têm accuracy baixa.
-// Acima de 800, basta uma maioria das partidas com precisão baixa.
-const ACCURACY_LOW_RATE_BEGINNER = 0.8;
+// Precisão (accuracy) baixa é comum para iniciantes, mas o limiar de 0,8 era alto
+// demais e quase nunca disparava: um iniciante com 60-75% das partidas ruins não
+// recebia o sinal (Chess.com mudo, achado nº1 do dono). Alinhado ao default 0,6
+// (decisão 2026-06-20) para que metade-ou-mais das partidas ruins já vire sinal.
+const ACCURACY_LOW_RATE_BEGINNER = 0.6;
 const ACCURACY_LOW_RATE_DEFAULT = 0.6;
 const CHESSCOM_OPENING_LOSS_RATE = 0.5;
 const CHESSCOM_RAPID_FALLBACK_RATING = 1000;
