@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Achievement, TrainingLog } from '../domain';
+import { generatePlan, type Achievement, type LearnerProfile, type TrainingLog } from '../domain';
+import type { DiplomaAttempt } from '../domain/method/types';
 import {
   loadLichessOAuthToken,
+  saveProfile,
   saveTrainingLog,
 } from '../infra/storage/appData';
 import { syncAchievements } from './achievementsSync';
@@ -17,6 +19,7 @@ vi.mock('../infra/storage/appData', () => ({
   getLichessStudyLink: vi.fn(),
   loadLichessOAuthToken: vi.fn(),
   saveDiplomaAttempt: vi.fn(),
+  saveDiplomaAttempts: vi.fn(),
   saveLichessStudyLink: vi.fn(),
   saveProfile: vi.fn(),
   saveTrainingLog: vi.fn(),
@@ -67,6 +70,33 @@ describe('useStudyActions', () => {
     expect(input.setAchievements).toHaveBeenCalledWith([unlockedAchievement]);
     expect(input.setLichessConnectionState).toHaveBeenLastCalledWith('connected');
   });
+
+  it('promove a banda e persiste o perfil quando o diploma da banda foi conquistado (Decisão #1)', async () => {
+    const profile: LearnerProfile = {
+      lichessUsername: 'jukasparov',
+      band: '400-800',
+      defaultSessionMinutes: 15,
+      goals: ['rotina'],
+      updatedAt: '2026-06-06T00:00:00.000Z',
+    };
+    // Diploma do Peão já conquistado (ambas as seções passadas) -> applyDiplomaProgress
+    // promove 400-800 -> 800-1000 dentro do reconcile, sem botão de banda separado.
+    const peaoAttempts = [diplomaSection('peao', 'valor-pecas'), diplomaSection('peao', 'mates-basicos')];
+    const input = createInput({
+      profile,
+      todayPlan: generatePlan(profile, [], 15, '2026-06-19'),
+      diplomaAttempts: peaoAttempts,
+    });
+    const { result } = renderHook(() => useStudyActions(input));
+
+    await act(async () => {
+      await result.current.reconcileLichessResults();
+    });
+
+    expect(vi.mocked(saveProfile)).toHaveBeenCalledWith(expect.objectContaining({ band: '800-1000' }));
+    expect(input.setProfile).toHaveBeenCalledWith(expect.objectContaining({ band: '800-1000' }));
+    expect(input.setLichessMessage).toHaveBeenLastCalledWith(expect.stringContaining('800-1000'));
+  });
 });
 
 const existingLog = doneLog('existing-log', '2026-06-18');
@@ -95,6 +125,23 @@ function createInput(overrides: Partial<UseStudyActionsInput> = {}): UseStudyAct
     setTodayPlan: vi.fn(),
     setTrainingLogs: vi.fn(),
     ...overrides,
+  };
+}
+
+function diplomaSection(
+  diplomaId: DiplomaAttempt['diplomaId'],
+  sectionId: string,
+): DiplomaAttempt {
+  return {
+    id: `${diplomaId}:${sectionId}`,
+    diplomaId,
+    sectionId,
+    scorePercent: 95,
+    totalItems: 30,
+    passed: true,
+    source: 'lichess',
+    createdAt: '2026-06-18T00:00:00.000Z',
+    updatedAt: '2026-06-18T00:00:00.000Z',
   };
 }
 
