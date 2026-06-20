@@ -75,11 +75,13 @@ export function Config({
 
   async function handleSubmit() {
     await onSave({
+      // Espalha o perfil atual primeiro para preservar campos que esta tela nao
+      // edita (goals, themeStages do PED-3, etc.); so os campos abaixo mudam.
+      ...initialProfile,
       lichessUsername: lichessUsername.trim() === '' ? undefined : lichessUsername.trim(),
       chesscomUsername: chesscomUsername.trim() === '' ? undefined : chesscomUsername.trim(),
       band,
       defaultSessionMinutes,
-      goals: initialProfile.goals,
       updatedAt: new Date().toISOString(),
     });
     toast.success('Configuração salva.');
@@ -239,11 +241,12 @@ export function Config({
           // do placement falhar depois, o perfil já está coerente e a conquista
           // Calibrado apenas fica para a próxima avaliação.
           await onSave({
+            // Preserva campos nao editados aqui (goals, themeStages do PED-3, etc.).
+            ...initialProfile,
             lichessUsername: lichessUsername.trim() === '' ? undefined : lichessUsername.trim(),
             chesscomUsername: chesscomUsername.trim() === '' ? undefined : chesscomUsername.trim(),
             band: placement.band,
             defaultSessionMinutes,
-            goals: initialProfile.goals,
             updatedAt: new Date().toISOString(),
           });
           await onSavePlacementResult({

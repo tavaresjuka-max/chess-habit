@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BackupImportResult } from '../app/backupStatus';
 import type { LearnerProfile } from '../domain';
@@ -100,6 +100,20 @@ describe('Config — rendering', () => {
     render(<Config {...makeProps()} />);
     // "Essencial" fold is open by default
     expect(screen.getByDisplayValue('testuser')).toBeInTheDocument();
+  });
+
+  it('preserva themeStages do perfil ao salvar (PED-3 não é zerado — achado do council)', async () => {
+    const onSave = vi.fn(() => Promise.resolve());
+    const profileWithStages: LearnerProfile = { ...profile, themeStages: { fork: 'retrieval' } };
+    render(<Config {...makeProps({ profile: profileWithStages, onSave })} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({ themeStages: { fork: 'retrieval' } }),
+      );
+    });
   });
 
   it('renders with no profile (uses default profile — empty username)', () => {

@@ -337,10 +337,17 @@ export function useAppState(): AppState {
       return;
     }
 
+    // Trade-off deliberado (council 2026-06-20): marca como resolvido no PRIMEIRO
+    // 'ready', mesmo se ainda desconectado. Assim o auto-fetch só dispara para quem
+    // ABRE o app já conectado (token salvo), e NÃO quando o Lichess conecta no meio
+    // da sessão — isso evita reconciliar durante o funil/OAuth e mantém os e2e
+    // verdes. Quem conecta depois pega o auto-fetch no próximo boot (ou no botão).
     didBootReconcileRef.current = true;
 
     if (lichessConnectionState === 'connected' && onboardingCompletedAt !== undefined) {
-      void reconcileLichessResults({ silent: true });
+      // .catch: em modo silent, engole tambem um erro antes do try interno (ex.:
+      // loadLichessOAuthToken falhar), evitando unhandled rejection no boot.
+      void reconcileLichessResults({ silent: true }).catch(() => undefined);
     }
   }, [loadState, lichessConnectionState, onboardingCompletedAt, reconcileLichessResults]);
 
