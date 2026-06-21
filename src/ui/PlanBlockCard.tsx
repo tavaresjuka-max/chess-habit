@@ -53,6 +53,16 @@ export function PlanBlockCard({
     }
     prevConfirmingSkipRef.current = isConfirmingSkip;
   }, [isConfirmingSkip]);
+  const [justCompleted, setJustCompleted] = useState(false);
+  const prevStatusRef = useRef(block.status);
+  // Carimbo "FEITO" (council UX): anima SÓ na transição para concluído nesta sessão.
+  // Bloco que já monta concluído (reload) não recarimba — o status-pill já marca.
+  useEffect(() => {
+    if (block.status === 'done' && prevStatusRef.current !== 'done') {
+      setJustCompleted(true);
+    }
+    prevStatusRef.current = block.status;
+  }, [block.status]);
   const timerStatus = trainingLog === undefined ? undefined : formatTimerStatus(trainingLog, nowIso);
   const isDone = block.status === 'done';
   const isSubmittingFeedback = submittingFeedback !== undefined;
@@ -104,6 +114,11 @@ export function PlanBlockCard({
 
   return (
     <article className="plan-block" aria-labelledby={`block-title-${block.id}`}>
+      {justCompleted ? (
+        <span className="block-stamp" aria-hidden="true">
+          Boa!
+        </span>
+      ) : null}
       <div className="block-header">
         {/* h3: o título do bloco fica subordinado ao h2 da seção (hero ou Sessão N).
             O id rotula o <article> inteiro (aria-labelledby): o leitor de tela

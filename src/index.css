@@ -2897,3 +2897,70 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     animation: none;
   }
 }
+
+/* Carimbo "FEITO" (council UX): momento seco ao concluir — carimba, segura e
+   some (não fica permanente; o status-pill já é o marcador durável). */
+.plan-block {
+  position: relative;
+}
+
+.block-stamp {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  z-index: 2;
+  padding: 4px 16px;
+  border: 3px solid var(--danger-600);
+  border-radius: 8px;
+  color: var(--danger-600);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  animation: block-stamp-in 1.6s var(--ease) forwards;
+}
+
+@keyframes block-stamp-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-12deg) scale(1.7);
+  }
+  14% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) rotate(-12deg) scale(1);
+  }
+  72% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) rotate(-12deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-12deg) scale(1);
+  }
+}
+
+/* Sem movimento: só um cross-fade (aparece, segura, some) — sem escala. */
+@media (prefers-reduced-motion: reduce) {
+  .block-stamp {
+    animation: block-stamp-fade 1.4s var(--ease) forwards;
+  }
+}
+
+@keyframes block-stamp-fade {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  72% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}

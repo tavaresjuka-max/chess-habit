@@ -91,6 +91,20 @@ describe('PlanBlockCard', () => {
     expect(screen.queryByText(/🏅/)).not.toBeInTheDocument();
   });
 
+  it('carimba "Boa!" na transição para concluído (council)', () => {
+    const { rerender } = render(<PlanBlockCard {...makeProps({ block: makeBlock({ id: 'b1', status: 'pending' }) })} />);
+    expect(screen.queryByText('Boa!')).not.toBeInTheDocument();
+
+    rerender(<PlanBlockCard {...makeProps({ block: makeBlock({ id: 'b1', status: 'done' }) })} />);
+    expect(screen.getByText('Boa!')).toBeInTheDocument();
+  });
+
+  it('não carimba um bloco que já monta concluído (sem recarimbar no reload)', () => {
+    render(<PlanBlockCard {...makeProps({ block: makeBlock({ id: 'b2', status: 'done' }) })} />);
+
+    expect(screen.queryByText('Boa!')).not.toBeInTheDocument();
+  });
+
   it('não mostra diagrama quando o bloco não tem weaknessTag', () => {
     renderPlanBlockCard(makeBlock({ id: 'no-tag' }));
 
