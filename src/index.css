@@ -1065,7 +1065,7 @@ textarea {
   grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 8px;
   list-style: none;
-  margin: 0 0 14px;
+  margin: 0 0 20px;
   padding: 0;
 }
 
@@ -1099,7 +1099,7 @@ textarea {
 .hero-now {
   display: grid;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .hero-now-label {
@@ -2751,4 +2751,64 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   .diagnosis-strip {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================================
+   Polimento UX (council 2026-06-20): HIERARQUIA primeiro.
+   Achado 3/3 — tudo tinha o mesmo peso e o "próximo passo" não
+   dominava. Regras ADITIVAS (tokens; adaptam ao tema noite).
+   ============================================================ */
+
+/* Herói "Agora": o próximo passo precisa DOMINAR — título serif,
+   maior e em itálico de livro. (Respiro fica na regra base p/ a media
+   query mobile ainda poder reduzir.) */
+.hero-now .block-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-style: italic;
+  line-height: 1.18;
+}
+
+/* Números do dia: ponto focal de motivação — grandes e serif
+   (mantêm o verde de identidade; cor não vira enfeite). */
+.day-stats strong {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 720;
+}
+
+/* Chip de diploma (PROD-5) como SELO discreto de conquista
+   (âmbar = fechamento/diploma), não chip neutro genérico. */
+.block-diploma {
+  margin-top: 6px;
+}
+
+.block-diploma .metric-chip {
+  border-color: var(--gold-300);
+  background: var(--gold-050);
+  color: var(--gold-700);
+  font-weight: 680;
+}
+
+/* Convite de calibração (PROD-3): folha de papel calma e
+   destacável — neutra (é sugestão, não pendência). */
+.calibration-invite {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+.calibration-invite p {
+  margin: 0 0 10px;
+  color: var(--ink-700);
+}
+
+.calibration-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
