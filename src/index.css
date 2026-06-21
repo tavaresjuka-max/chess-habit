@@ -2964,3 +2964,39 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
     opacity: 0;
   }
 }
+
+/* Fim do dia: a mesa se arruma (council UX). Com o dia concluído, o plano
+   recua (tarefas arquivadas) e o fecho do dia se assenta com foco. A transição
+   anima sozinha quando .plan-archived entra. */
+.hero-now.plan-archived {
+  opacity: 0.66;
+  transform: scale(0.99);
+  transition:
+    opacity 360ms var(--ease),
+    transform 360ms var(--ease);
+}
+
+.hero-now.day-complete-moment {
+  animation: day-complete-settle 420ms var(--ease);
+}
+
+@keyframes day-complete-settle {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-now.plan-archived {
+    transition: none;
+  }
+
+  .hero-now.day-complete-moment {
+    animation: none;
+  }
+}

@@ -374,7 +374,10 @@ export function Today({
 
       {/* A ação (próximo passo / "treinando agora") vem logo após o enquadramento. */}
       {allBlocksOrdered.length > 0 ? (
-        <section className="hero-now" aria-labelledby="hero-now-title">
+        <section
+          className={`hero-now${isDayComplete ? ' plan-archived' : ''}`}
+          aria-labelledby="hero-now-title"
+        >
           <h2 id="hero-now-title" className="hero-now-label">
             {activeBlock !== undefined ? 'Treinando agora' : isDayComplete ? 'Plano do dia' : 'Próximo passo'}
           </h2>
@@ -412,7 +415,7 @@ export function Today({
         </section>
       ) : null}
       {isDayComplete ? (
-        <section className="hero-now" aria-labelledby="hero-done-title">
+        <section className="hero-now day-complete-moment" aria-labelledby="hero-done-title">
           <h2 id="hero-done-title" className="hero-now-label">
             Dia completo
           </h2>

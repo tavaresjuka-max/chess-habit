@@ -180,6 +180,19 @@ describe('Today — hero "Agora"', () => {
 
     expect(screen.queryByRole('region', { name: /próximo passo/i })).not.toBeInTheDocument();
   });
+
+  it('arquiva o plano e mostra o fecho "Dia completo" quando todos terminam', () => {
+    renderToday({
+      blocks: [
+        makeBlock({ id: 'bloco-1', status: 'done' }),
+        makeBlock({ id: 'bloco-2', status: 'done' }),
+      ],
+      trainingLogs: [makeDoneLog('bloco-1', 600), makeDoneLog('bloco-2', 300)],
+    });
+
+    expect(screen.getByRole('heading', { name: 'Dia completo' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Plano do dia' }).closest('section')).toHaveClass('plan-archived');
+  });
 });
 
 describe('Today — empty-state', () => {
