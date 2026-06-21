@@ -11,6 +11,24 @@ cima, para ser selecionável, acessível e traduzível. Gere superfícies em bra
 
 ---
 
+## Automação (gerar via API)
+
+Já existe um script que faz tudo: `scripts/generate-art.mjs`. Ele chama a OpenAI
+Images API (`gpt-image-1`), salva o master em `entrega/` e otimiza para WebP em
+`public/art/`. A chave vem só do ambiente (`OPENAI_API_KEY`) — nunca de arquivo.
+
+```
+# PowerShell
+$env:OPENAI_API_KEY="sk-..."; node scripts/generate-art.mjs
+# bash
+OPENAI_API_KEY=sk-... node scripts/generate-art.mjs
+# um só:  node scripts/generate-art.mjs --only=selo-cera-torre
+```
+
+O modelo de imagem é `gpt-image-1` (o chat `gpt-5.5` não emite arquivo via API
+direta). Os prompts abaixo são a referência humana; a versão canônica executável
+está embutida no script. Custo ~US$1,5-2 pelos 8 assets.
+
 ## TEMPLATE MESTRE (cole no início de cada prompt)
 
 > Vintage academic storybook illustration, in the style of a hand-drawn antique
