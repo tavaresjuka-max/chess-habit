@@ -23,6 +23,7 @@ import {
   loadOpenPendingItems,
   loadProfile,
   markOnboardingCompleted,
+  getPurgeCutoff,
   loadSignals,
   loadTrainingLogs,
   loadTrainingLogsForDate,
@@ -635,3 +636,14 @@ function createTrainingLog(id: string, blockId: string) {
     updatedAt: '2026-06-06T10:04:00.000Z',
   } as const;
 }
+
+describe('getPurgeCutoff (B1: corte de purga independente de fuso)', () => {
+  it('retorna exatamente 90 dias antes do nowIso, em qualquer fuso', () => {
+    // 01:00 UTC = 22:00 do dia anterior em GMT-3 — o caso que quebrava com getDate local.
+    const nowIso = '2026-06-21T01:00:00.000Z';
+    const cutoff = getPurgeCutoff(nowIso);
+    const days = (Date.parse(nowIso) - Date.parse(cutoff)) / 86_400_000;
+
+    expect(days).toBe(90);
+  });
+});

@@ -118,10 +118,13 @@ export async function loadTrainingLogsForDate(date: string): Promise<TrainingLog
 
 const softDeletePurgeDays = 90;
 
-function getPurgeCutoff(nowIso: string): string {
+// Exportada para teste. UTC para ser independente de fuso (igual a addDays em
+// pendingItems): com getDate/setDate LOCAIS o corte de 90d variava ±1 dia em
+// fusos negativos (ex.: GMT-3), purgando sinais com 89 ou 91 dias. (B1, council)
+export function getPurgeCutoff(nowIso: string): string {
   const cutoff = new Date(nowIso);
 
-  cutoff.setDate(cutoff.getDate() - softDeletePurgeDays);
+  cutoff.setUTCDate(cutoff.getUTCDate() - softDeletePurgeDays);
 
   return cutoff.toISOString();
 }

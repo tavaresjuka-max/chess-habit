@@ -49,4 +49,13 @@ describe('DiplomaCelebration', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('prende o foco: Tab é cancelado dentro do diálogo (B3, a11y)', () => {
+    render(<DiplomaCelebration diplomaAttempts={peaoPassed} />);
+
+    const dialog = screen.getByRole('dialog');
+    // fireEvent.keyDown devolve false quando o handler chama preventDefault.
+    expect(fireEvent.keyDown(dialog, { key: 'Tab' })).toBe(false);
+    expect(screen.getByRole('button', { name: 'Continuar' })).toHaveFocus();
+  });
 });

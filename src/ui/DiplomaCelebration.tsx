@@ -72,6 +72,10 @@ export function DiplomaCelebration({ diplomaAttempts }: { diplomaAttempts: Diplo
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
           dismiss();
+        } else if (event.key === 'Tab') {
+          // Foco preso (B3, council): o diálogo tem um único alvo focável (Continuar).
+          event.preventDefault();
+          continueRef.current?.focus();
         }
       }}
     >

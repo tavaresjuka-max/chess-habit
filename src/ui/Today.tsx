@@ -827,6 +827,12 @@ function getNextDiplomaSummary(attempts: DiplomaAttempt[]): NextDiplomaSummary |
 }
 
 function playTimerBeep(): void {
+  // Respeita prefers-reduced-motion: evita o susto sonoro (TDAH); o timer visual
+  // continua marcando o fim do tempo. (B4, council)
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
+
   try {
     const audioContext = new AudioContext();
     const oscillator = audioContext.createOscillator();
