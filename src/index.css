@@ -2812,3 +2812,88 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   gap: 10px;
   align-items: center;
 }
+
+/* Momento de diploma (council UX): celebração em tela cheia, passageira —
+   recompensa como MOMENTO, não ruído permanente. */
+.diploma-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(18, 42, 34, 0.72);
+  animation: diploma-fade var(--speed) var(--ease);
+}
+
+.diploma-celebration-card {
+  width: 100%;
+  max-width: 360px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px 24px;
+  text-align: center;
+  border: 1px solid var(--gold-300);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  background-image: url('/art/textura-papel.webp');
+  background-size: 256px auto;
+  box-shadow: var(--shadow-md);
+  animation: diploma-rise 320ms var(--ease);
+}
+
+.diploma-celebration-kicker {
+  margin: 0;
+  color: var(--gold-700);
+  font-size: 0.82rem;
+  font-weight: 760;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.diploma-celebration-art {
+  width: 200px;
+  height: auto;
+}
+
+.diploma-celebration-card h2 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.diploma-celebration-card p {
+  margin: 0;
+  color: var(--ink-600);
+}
+
+.diploma-celebration-card button {
+  margin-top: 6px;
+}
+
+@keyframes diploma-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes diploma-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diploma-celebration,
+  .diploma-celebration-card {
+    animation: none;
+  }
+}

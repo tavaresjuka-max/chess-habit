@@ -12,6 +12,7 @@ import {
   SOURCE_CODE_URL,
 } from '../config/appIdentity';
 import { LemosAvatar } from './art/LemosAvatar';
+import { DiplomaCelebration } from './DiplomaCelebration';
 import { Onboarding, type OnboardingStep } from './Onboarding';
 import { ReloadPrompt } from './ReloadPrompt';
 import { Today } from './Today';
@@ -295,6 +296,7 @@ export function App() {
     <main className="app-shell">
       <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
       <ReloadPrompt />
+      <DiplomaCelebration diplomaAttempts={appState.diplomaAttempts} />
       <a className="skip-link" href="#main-content">
         Pular para o conteúdo
       </a>
