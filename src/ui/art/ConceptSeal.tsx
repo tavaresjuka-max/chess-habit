@@ -13,7 +13,8 @@ export type ConceptId =
   | 'dados'
   | 'avaliacao'
   | 'lichess'
-  | 'essencial';
+  | 'essencial'
+  | 'metas';
 
 type ConceptSealProps = {
   concept: ConceptId;

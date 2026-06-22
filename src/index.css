@@ -466,6 +466,9 @@ li {
   height: 220px;
   object-fit: contain;
   border-radius: var(--radius-lg);
+  /* Cena em papel: emoldurar como estampa vintage para o creme ler intencional. */
+  border: 1px solid var(--gold-300);
+  box-shadow: var(--shadow-md);
   animation: brand-pulse 2.2s var(--ease) infinite;
 }
 
@@ -609,13 +612,21 @@ button[aria-disabled='true'] {
   color: var(--accent-text);
 }
 
+/* Mesmo acabamento premium dos painéis pintados (borda dourada + drop-shadow),
+   em vermelho — para o botão de perigo não destoar como "plástico liso". */
 .danger-button {
-  border-color: var(--danger-600);
+  border: 1px solid var(--gold-300);
   background: linear-gradient(180deg, var(--danger-600), var(--danger-700));
+  color: #fff;
+  box-shadow: none;
+  filter: drop-shadow(0 2px 3px rgba(18, 42, 34, 0.28));
 }
 
 .danger-button:hover {
-  background: var(--danger-700);
+  background: linear-gradient(180deg, var(--danger-700), var(--danger-700));
+  box-shadow: none;
+  filter: drop-shadow(0 4px 8px rgba(18, 42, 34, 0.32)) brightness(1.06);
+  transform: translateY(-1px);
 }
 
 .link-button {
@@ -1029,9 +1040,10 @@ textarea {
   align-content: start;
 }
 
-/* Respiro entre o trabalho do dia e o contexto (mesma pilha em todas as larguras). */
+/* Espaçamento UNIFORME: as dobras já trazem margin-bottom:14px; sem row-gap extra
+   entre a coluna principal e o contexto, pra não criar uma "quebra" sem sentido. */
 .today-columns {
-  row-gap: 18px;
+  row-gap: 0;
 }
 
 /* Decisão do dono 2026-06-19: coluna única também no desktop (consistente com o
@@ -1166,7 +1178,8 @@ textarea {
 .medalha-icon {
   flex-shrink: 0;
   object-fit: contain;
-  border-radius: 50%;
+  /* Medalha dourada com fita (não disco) — sem clip circular que corta a fita. */
+  border-radius: 0;
 }
 
 /* ---------- Cartões ---------- */
@@ -2107,6 +2120,20 @@ li.diploma-row {
   background-size: 256px auto;
 }
 
+/* Selos de cera decorativos */
+.tutor-cera-seal {
+  flex-shrink: 0;
+  opacity: 0.85;
+  object-fit: contain;
+}
+
+.conquistas-cera-seal {
+  display: block;
+  margin: 12px auto 0;
+  opacity: 0.8;
+  object-fit: contain;
+}
+
 /* Retrato do Lemos no TutorCard */
 .tutor-portrait-frame {
   background: url('/art/moldura-tutorcard.webp') center / 100% 100% no-repeat;
@@ -2193,9 +2220,12 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   filter: none;
 }
 
-/* ---------- Tema escuro ---------- */
+/* ---------- Tema verde — forçado sempre (independe do tema do SO) ----------
+   `@media all` é sempre verdadeiro: estas variáveis sobrescrevem o :root claro
+   acima (mesma especificidade, vem depois) em qualquer sistema. Decisão do dono
+   (2026-06-21): o verde é a identidade do app, não um modo opcional. */
 
-@media (prefers-color-scheme: dark) {
+@media all {
   :root {
     /* Tinta clara sobre verde-noite */
     --ink-900: #e6eae4;
@@ -2296,7 +2326,8 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 .diploma-seal-img {
   flex-shrink: 0;
   object-fit: contain;
-  border-radius: 50%;
+  /* Emblema dourado recortado (não disco) — sem clip circular que corta a peça. */
+  border-radius: 0;
 }
 
 .diploma-row-achieved {
@@ -2346,12 +2377,15 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   text-align: center;
 }
 
+/* Ilustrações de estado-vazio são estampas em papel: emoldurar como placa
+   vintage (borda dourada + sombra) para o creme ler como intencional no verde. */
 .empty-state-art {
   display: block;
   margin: 0 auto 12px;
   object-fit: contain;
   border-radius: var(--radius-md);
-  opacity: 0.92;
+  border: 1px solid var(--gold-300);
+  box-shadow: var(--shadow-sm);
 }
 
 .progress-empty {
@@ -2420,10 +2454,13 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   box-shadow: inset 0 0 0 2px var(--surface);
 }
 
+/* Os selos de seção são selos de cera transparentes (recortados) — exibir
+   inteiros, sem moldura/disco/anel do CSS (o próprio selo já traz borda e relevo). */
 .concept-seal-art {
-  border: 1px solid var(--gold-300);
-  border-radius: 50%;
-  object-fit: cover;
+  border: none;
+  border-radius: 0;
+  object-fit: contain;
+  background: none;
   box-shadow: none;
 }
 

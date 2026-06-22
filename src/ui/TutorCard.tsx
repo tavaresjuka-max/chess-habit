@@ -54,6 +54,16 @@ function LemosPortrait({ pose }: { pose: string }) {
   );
 }
 
+function TutorHeading({ pose }: { pose: string }) {
+  return (
+    <div className="tutor-heading">
+      <LemosPortrait pose={pose} />
+      <h2>Professor Tavarez</h2>
+      <img src="/art/selo-cera-cavalo.webp" alt="" aria-hidden="true" className="tutor-cera-seal" width={28} height={28} />
+    </div>
+  );
+}
+
 export function TutorCard({
   plan,
   weaknesses,
@@ -79,10 +89,7 @@ export function TutorCard({
     const pose = poseFor(message.phase);
     return (
       <section className="tutor-card" aria-label="Professor Tavarez">
-        <div className="tutor-heading">
-          <LemosPortrait pose={pose} />
-          <h2>Professor Tavarez</h2>
-        </div>
+        <TutorHeading pose={pose} />
         {message.lines.map((line) => (
           <p key={line}>{line}</p>
         ))}
@@ -103,10 +110,7 @@ export function TutorCard({
 
   return (
     <section className="tutor-card" aria-label="Professor Tavarez">
-      <div className="tutor-heading">
-        <LemosPortrait pose={pose} />
-        <h2>Professor Tavarez</h2>
-      </div>
+      <TutorHeading pose={pose} />
       {message.lines.map((line) => (
         <p key={line}>{line}</p>
       ))}

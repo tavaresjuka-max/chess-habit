@@ -210,6 +210,14 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
               );
             })}
           </ul>
+          <img
+            src="/art/selo-cera-louro.webp"
+            alt=""
+            aria-hidden="true"
+            className="conquistas-cera-seal"
+            width={48}
+            height={48}
+          />
         </Fold>
       ) : null}
 

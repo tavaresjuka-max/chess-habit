@@ -551,7 +551,7 @@ export function Today({
       <aside className="today-aside" aria-label="Resumo e contexto">
 
       <Fold
-        concept="sessao"
+        concept="metas"
         title={sessionMilestoneSummary.heading}
         meta={`${String(sessionMilestoneSummary.currentMilestone.progressPercent)}%`}
       >

@@ -41,13 +41,10 @@ function readStoredFunnelPhase(): FunnelPhase | undefined {
 const Config = lazy(() => import('./Config').then((module) => ({ default: module.Config })));
 const Progress = lazy(() => import('./Progress').then((module) => ({ default: module.Progress })));
 
-// jsdom nao implementa matchMedia; o tema do toast cai em light nos testes.
+// O app força o tema verde/escuro sempre (ver index.css, "@media all"), então o
+// toast também é sempre escuro — independe do prefers-color-scheme do SO.
 function getPreferredToastTheme(): 'light' | 'dark' {
-  if (typeof window.matchMedia !== 'function') {
-    return 'light';
-  }
-
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return 'dark';
 }
 
 function ViewFallback() {
