@@ -181,6 +181,10 @@ li {
   margin-bottom: 8px;
 }
 
+.block-carousel-toolbar > * {
+  min-width: 0;
+}
+
 .block-carousel-status {
   font-size: 0.82rem;
   font-weight: 650;
@@ -870,6 +874,11 @@ textarea {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
+}
+
+.session-heading > *,
+.section-subheading > * {
+  min-width: 0;
 }
 
 .session-heading h2,
@@ -1775,6 +1784,10 @@ li.diploma-row {
   gap: 10px;
 }
 
+.pending-review-list li > div:first-child > * {
+  min-width: 0;
+}
+
 .pending-review-list span,
 .active-track-line {
   color: var(--gold-700);
@@ -1851,6 +1864,10 @@ li.diploma-row {
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
+}
+
+.roadmap-item > div > * {
+  min-width: 0;
 }
 
 .roadmap-item span,
@@ -2549,6 +2566,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  min-width: 0;
   padding: 12px 14px;
   user-select: none;
   list-style: none;
