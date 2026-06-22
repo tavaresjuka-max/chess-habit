@@ -194,10 +194,12 @@ li {
 .block-carousel-viewport {
   overflow: hidden;
   /* transform:translateZ(0) + contain:paint forçam o viewport a ser uma camada
-     GPU própria. Sem isso, Android Chrome deixa o container do Embla (que tem
-     transform) escapar do overflow:hidden e pintar fora dos limites. */
+     GPU própria. clip-path:inset(0) adiciona clip no nível compositor — Android
+     Chrome deixa GPU sub-layers (Embla usa translate3d) escaparem do overflow:hidden,
+     mas o clip-path é aplicado APÓS compositing e impede o escape. */
   transform: translateZ(0);
   contain: paint;
+  clip-path: inset(0);
   cursor: grab;
   transition: height 0.25s ease;
 }
@@ -1127,6 +1129,10 @@ textarea {
   display: grid;
   gap: 8px;
   margin-bottom: 20px;
+}
+
+.hero-now > * {
+  min-width: 0; /* filhos do grid: h2-label e block-carousel não forçam o track além do container */
 }
 
 .hero-now-label {
