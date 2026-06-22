@@ -193,6 +193,10 @@ li {
 
 .block-carousel-viewport {
   overflow: hidden;
+  /* contain:paint força o viewport a ser uma camada de compositing própria, para
+     que o overflow:hidden seja aplicado no GPU — sem isso, o Android Chrome
+     deixa o container do Embla (que tem transform) escapar do clip. */
+  contain: paint;
   cursor: grab;
   transition: height 0.25s ease;
 }
