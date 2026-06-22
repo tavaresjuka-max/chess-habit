@@ -324,7 +324,8 @@ li {
    aparece suave por baixo sem comprometer a leitura (cream a ~86%). */
 .panel {
   width: min(100%, 560px);
-  overflow-wrap: anywhere;
+  min-width: 0; /* grid item: impede expansão via min-width:auto quando conteúdo tem min-content largo */
+  overflow-wrap: break-word;
   background: rgba(255, 253, 249, 0.86);
   backdrop-filter: blur(7px) saturate(1.04);
   -webkit-backdrop-filter: blur(7px) saturate(1.04);
@@ -1046,7 +1047,12 @@ textarea {
 .today-aside {
   display: grid;
   gap: 0;
+  min-width: 0; /* grid items: evita expansão via min-width:auto quando conteúdo tem min-content largo */
   align-content: start;
+}
+
+.today-main > * {
+  min-width: 0; /* todos grid items do today-main: evita que qualquer filho force o track além do container */
 }
 
 /* Espaçamento UNIFORME: as dobras já trazem margin-bottom:14px; sem row-gap extra
@@ -1199,6 +1205,7 @@ textarea {
   background: var(--surface-raised);
   display: grid;
   gap: 8px;
+  min-width: 0; /* grid item: impede expansão além do container */
   margin-bottom: 14px;
   padding: 16px 18px;
   box-shadow: var(--shadow-md);
@@ -1210,11 +1217,14 @@ textarea {
   font-size: 1.05rem;
 }
 
+.tutor-card > * {
+  min-width: 0; /* todos grid items: impede o track de expandir via min-width:auto */
+}
+
 .tutor-heading {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0; /* grid item: impede o track de expandir além do espaço disponível */
 }
 
 .tutor-heading h2 {
@@ -2158,6 +2168,14 @@ li.diploma-row {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 430px) {
+  .tutor-portrait-frame {
+    width: 96px;
+    height: 72px;
+    padding: 10px 8px;
+  }
 }
 
 .tutor-pose {
