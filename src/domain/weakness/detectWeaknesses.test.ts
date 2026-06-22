@@ -59,6 +59,21 @@ describe('detectWeaknesses', () => {
     expect(detectWeaknesses(signals, '400-800')[0]).toMatchObject({ tag: 'blunder-rate' });
   });
 
+  it('threshold 0,55 dispara só em banda iniciante (limiar banda específico 2B)', () => {
+    // 5/9 = 0,556 — acima de 0,55 (iniciante) mas abaixo de 0,60 (default).
+    const signals: Signal[] = [
+      {
+        source: 'chesscom',
+        confidence: 'low',
+        observedAt,
+        value: { kind: 'accuracy', lowAccuracyGames: 5, games: 9 },
+      },
+    ];
+
+    expect(detectWeaknesses(signals, '400-800')[0]).toMatchObject({ tag: 'blunder-rate' });
+    expect(detectWeaknesses(signals, '1000-1200')).toEqual([]);
+  });
+
   it('ignora accuracy baixa com amostra pequena (< 8 partidas)', () => {
     const signals: Signal[] = [
       {

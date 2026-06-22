@@ -27,6 +27,7 @@ import {
   loadSignals,
   loadTrainingLogs,
   loadTrainingLogsForDate,
+  loadStoredPuzzleWeakness,
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
@@ -645,5 +646,43 @@ describe('getPurgeCutoff (B1: corte de purga independente de fuso)', () => {
     const days = (Date.parse(nowIso) - Date.parse(cutoff)) / 86_400_000;
 
     expect(days).toBe(90);
+  });
+});
+
+describe('loadStoredPuzzleWeakness (1B: fraqueza de puzzle durável)', () => {
+  const puzzleWeakness: Weakness = {
+    tag: 'fork',
+    score: 0.6,
+    confidence: 'medium',
+    evidence: 'Sinal durável de puzzle.',
+    observedAt: '2026-06-06T00:00:00.000Z',
+    source: 'puzzle',
+  };
+
+  it('retorna fraqueza de puzzle salva quando dentro do prazo', async () => {
+    await replaceWeaknesses([puzzleWeakness]);
+
+    const result = await loadStoredPuzzleWeakness('2026-06-22T00:00:00.000Z');
+
+    expect(result).toMatchObject({ tag: 'fork', source: 'puzzle', observedAt: '2026-06-06T00:00:00.000Z' });
+  });
+
+  it('retorna undefined quando fraqueza de puzzle expirou (> 90 dias)', async () => {
+    await replaceWeaknesses([puzzleWeakness]);
+
+    // 91 dias após 2026-06-06 = 2026-09-05
+    const result = await loadStoredPuzzleWeakness('2026-09-05T00:00:00.000Z');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('retorna undefined quando não há fraqueza de puzzle armazenada', async () => {
+    const nonPuzzleWeakness: Weakness = { tag: 'pin', score: 0.5, confidence: 'low', evidence: 'Sinal de partida.' };
+
+    await replaceWeaknesses([nonPuzzleWeakness]);
+
+    const result = await loadStoredPuzzleWeakness('2026-06-22T00:00:00.000Z');
+
+    expect(result).toBeUndefined();
   });
 });
