@@ -187,6 +187,10 @@ li {
   color: var(--ink-600);
 }
 
+.block-carousel {
+  overflow-x: clip;
+}
+
 .block-carousel-viewport {
   overflow: hidden;
   cursor: grab;
@@ -315,6 +319,7 @@ li {
    aparece suave por baixo sem comprometer a leitura (cream a ~86%). */
 .panel {
   width: min(100%, 560px);
+  overflow-x: clip;
   overflow-wrap: anywhere;
   background: rgba(255, 253, 249, 0.86);
   backdrop-filter: blur(7px) saturate(1.04);
