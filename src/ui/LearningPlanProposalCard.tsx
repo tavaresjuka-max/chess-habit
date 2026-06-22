@@ -144,6 +144,64 @@ export function LearningPlanProposalCard({
     );
   }
 
+  // Plano aprovado + revisando: mostra só o formulário no mesmo contexto
+  // compacto/fold — evita expandir o card completo que confunde no mobile.
+  if (response?.status === 'approved' && isReviewing) {
+    const reviewForm = (
+      <div className="learning-plan-review-form">
+        <label className="field">
+          <span>O que você quer mudar?</span>
+          <textarea
+            value={reviewNote}
+            onChange={(event) => {
+              setReviewNote(event.target.value);
+            }}
+            placeholder="Ex.: mais exercícios de garfo, mais partidas rápidas, sessões de 30 min..."
+          />
+        </label>
+        <div className="button-row" role="group" aria-label="Sugestões de revisão">
+          {reviewSuggestions.map((suggestion) => (
+            <button
+              className="secondary-button"
+              key={suggestion}
+              type="button"
+              onClick={() => {
+                addSuggestion(suggestion);
+              }}
+            >
+              {formatSuggestionLabel(suggestion)}
+            </button>
+          ))}
+        </div>
+        <div className="button-row">
+          <button type="button" disabled={isSaving} onClick={() => void requestRevision()}>
+            Enviar revisão
+          </button>
+          <button
+            type="button"
+            className="link-button"
+            disabled={isSaving}
+            onClick={() => {
+              setIsReviewing(false);
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+
+    if (compact) {
+      return <div className="learning-plan-compact">{reviewForm}</div>;
+    }
+
+    return (
+      <Fold concept="plano" title="Plano de hoje" meta="revisando">
+        {reviewForm}
+      </Fold>
+    );
+  }
+
   return (
     <section className="learning-plan-card" aria-labelledby="learning-plan-title">
       <div className="learning-plan-heading">
