@@ -653,6 +653,7 @@ button[aria-disabled='true'] {
   text-underline-offset: 3px;
   padding: 4px 6px;
   box-shadow: none;
+  max-width: max-content;
 }
 
 .link-button:hover {
@@ -2253,6 +2254,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   padding: 2px 8px;
   box-shadow: none;
   filter: drop-shadow(0 1px 2px rgba(22, 32, 28, 0.22));
+  max-width: max-content;
 }
 
 .secondary-button:hover,
