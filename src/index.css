@@ -1214,6 +1214,11 @@ textarea {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0; /* grid item: impede o track de expandir além do espaço disponível */
+}
+
+.tutor-heading h2 {
+  min-width: 0; /* flex item: permite encolher abaixo da largura natural do texto no Android */
 }
 
 .tutor-heading svg {
