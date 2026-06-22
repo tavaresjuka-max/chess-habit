@@ -1411,6 +1411,10 @@ textarea {
   gap: 12px;
 }
 
+.session-milestone-current-line > * {
+  min-width: 0;
+}
+
 .session-milestone-current-line span {
   color: var(--slate-700);
   font-weight: 750;
@@ -1664,6 +1668,11 @@ textarea {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: space-between;
+}
+
+.skill-map-row > *,
+.track-effort li > * {
+  min-width: 0;
 }
 
 .skill-map-theme {
@@ -2468,6 +2477,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 
 .band-field > select {
   flex: 1;
+  min-width: 0;
 }
 
 /* Pendências em dia: mesmo cartão, layout centrado de reforço positivo. */
