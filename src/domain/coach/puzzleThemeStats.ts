@@ -1,4 +1,10 @@
-import type { PuzzleThemeStats, TrainingLog, WeaknessTag } from '../types';
+import type { LearnerProfile, PuzzleThemeStats, TrainingLog, WeaknessTag } from '../types';
+import {
+  GRADUATION_ACCURACY,
+  GRADUATION_MIN_PUZZLES,
+  POOL_MAX_PER_SESSION,
+  PRIMARY_SESSION_CEILING,
+} from '../plan/schedulerConstants';
 
 export function buildPuzzleThemeStats(logs: TrainingLog[]): PuzzleThemeStats | undefined {
   const activityStats = buildPuzzleActivityThemeStats(logs);
@@ -116,4 +122,74 @@ const puzzleThemeToWeaknessTag: Partial<Record<string, WeaknessTag>> = {
 
 export function weaknessTagFromPuzzleTheme(theme: string): WeaknessTag | undefined {
   return puzzleThemeToWeaknessTag[theme];
+}
+
+// ---------------------------------------------------------------------------
+// D5 — Guarda do sinal diagnóstico (SPEC 2026-06-22)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sufixos de blockId cujos resultados NÃO devem alimentar selectPrimaryWeakness.
+ * Blocos de pool (-revisao e -transferencia em modo intercalado) contêm puzzles
+ * de temas secundários; incluí-los no diagnóstico causaria ping-pong de tema.
+ * Blocos diagnósticos válidos: -tema, -aquecimento (e outros sem sufixo especial).
+ */
+const POOL_BLOCK_SUFFIXES = ['-revisao', '-transferencia'] as const;
+
+function isDiagnosticLog(log: TrainingLog): boolean {
+  return !POOL_BLOCK_SUFFIXES.some((suffix) => log.blockId.endsWith(suffix));
+}
+
+/**
+ * D5: variante filtrada de buildPuzzleThemeStats que exclui resultados de blocos
+ * de pool (-revisao/-transferencia). Use esta função para alimentar
+ * selectPrimaryWeakness em vez de buildPuzzleThemeStats, evitando ping-pong.
+ */
+export function buildDiagnosticThemeStats(logs: TrainingLog[]): PuzzleThemeStats | undefined {
+  const diagnosticLogs = logs.filter(isDiagnosticLog);
+
+  return buildPuzzleThemeStats(diagnosticLogs);
+}
+
+// ---------------------------------------------------------------------------
+// D3 — Pool de rotação (SPEC 2026-06-22)
+// ---------------------------------------------------------------------------
+
+/**
+ * D3: deriva o pool de temas intercalados a partir de profile.graduatedThemes,
+ * excluindo o tema primário atual. A seleção retorna ≤ POOL_MAX_PER_SESSION temas.
+ * Ordenação futura (least-recently-reviewed) pode ser adicionada com dados de log;
+ * por ora retorna na ordem da lista (determinística e estável).
+ */
+export function buildInterleavePool(profile: LearnerProfile, primaryTag: WeaknessTag): WeaknessTag[] {
+  const graduated = profile.graduatedThemes ?? [];
+
+  return graduated.filter((tag): tag is WeaknessTag => tag !== primaryTag).slice(0, POOL_MAX_PER_SESSION);
+}
+
+// ---------------------------------------------------------------------------
+// D4 — Critério de graduação (SPEC 2026-06-22)
+// ---------------------------------------------------------------------------
+
+/**
+ * D4: tema graduado = acurácia ≥ GRADUATION_ACCURACY (80%) sobre ≥
+ * GRADUATION_MIN_PUZZLES (30) tentativas. Reutiliza os mesmos limiares do
+ * gate de diploma (SECTION_ACCURACY_TARGET / SECTION_MIN_ATTEMPTS).
+ */
+export function isThemeGraduated(entry: { attempts: number; wins: number }): boolean {
+  if (entry.attempts < GRADUATION_MIN_PUZZLES) {
+    return false;
+  }
+
+  const accuracyPercent = Math.round((entry.wins / entry.attempts) * 100);
+
+  return accuracyPercent >= GRADUATION_ACCURACY;
+}
+
+/**
+ * D4 — teto anti-trava: retorna true quando o tema esteve como primário por
+ * mais de PRIMARY_SESSION_CEILING (12) sessões sem graduar, forçando rotação.
+ */
+export function shouldForceRotation(sessionsOnPrimary: number): boolean {
+  return sessionsOnPrimary > PRIMARY_SESSION_CEILING;
 }

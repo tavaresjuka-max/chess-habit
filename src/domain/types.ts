@@ -144,6 +144,14 @@ export type LearnerProfile = {
   // aluno intermitente (perfil TDAH) retomar de onde parou em vez de recomeçar
   // no 'guided' quando não há plano recente. Opcional e retrocompatível.
   themeStages?: Partial<Record<WeaknessTag, PlanResourceStage>>;
+  // D3 (scheduler híbrido 2026-06-22): temas que já atingiram o critério de
+  // graduação (stage=transfer + acurácia≥80% sobre ≥30 puzzles) e agora integram
+  // o pool de revisão espaçada. Derivado de avaliação externa; não gerenciado aqui.
+  graduatedThemes?: WeaknessTag[];
+  // D4 (scheduler híbrido 2026-06-22): número de sessões em que o tema atual foi
+  // primário sem graduar. Reset ao graduar ou forçar rotação. Usado para aplicar
+  // o teto anti-trava de 12 sessões.
+  sessionsOnPrimaryTheme?: number;
   updatedAt: string;
 };
 
@@ -168,6 +176,10 @@ export type PlanBlock = {
   masteryTarget?: 'advance' | 'review' | 'regress';
   drillFormatId?: DrillFormatId;
   guidingQuestion?: string;
+  // D6 (scheduler híbrido 2026-06-22): bloco de transferência misto (âncora +
+  // pool sem rótulo). Persiste o dado de discriminação agora; exibição no
+  // Progresso vem depois. Derivável também pelo sufixo do blockId.
+  isDiscrimination?: boolean;
   updatedAt: string;
 };
 
@@ -178,6 +190,9 @@ export type DailyPlan = {
   learningPlanResponse?: LearningPlanResponse;
   blocks: PlanBlock[];
   generatedFromWeaknessesAt: string;
+  // D4 (scheduler híbrido 2026-06-22): sinaliza que o tema primário atingiu o
+  // teto de 12 sessões sem graduar e foi forçado a rotar neste plano.
+  primaryThemeForced?: boolean;
 };
 
 export type PuzzleActivityTrainingResult = {

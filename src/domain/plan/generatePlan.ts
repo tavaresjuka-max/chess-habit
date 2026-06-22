@@ -1,7 +1,8 @@
 import { getCoachNote } from '../coach/coachCatalog';
 import { assertNever } from '../assertNever';
-import { weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
+import { buildInterleavePool, shouldForceRotation, weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
 import { getRecentlyEarnedDiploma } from '../method/diplomas';
+import { INTERLEAVE_STAGES } from './schedulerConstants';
 import { getMethodTrackTitle } from '../method/methodTracks';
 import { isDueToday } from '../method/pendingItems';
 import { selectMethodTrack } from '../method/selectMethodTrack';
@@ -86,6 +87,16 @@ export function generatePlan(
   // Fallback persistido (PED-3): sem sinal do plano anterior, retoma o estágio
   // alcançado por tema em vez de cair sempre no 'guided'.
   const persistedThemeStage = profile.themeStages?.[primaryWeakness.tag];
+  // D1/D3 (scheduler híbrido): pool de intercalação só existe quando o tema
+  // primário já saiu da aquisição (estágio em retrieval/transfer). Em aquisição
+  // (explain/guided) o pool fica vazio → revisao/transferencia seguem o primário.
+  const primaryThemeStage = getResourceStage('tema', latestThemeSignal, persistedThemeStage);
+  const interleavePool = INTERLEAVE_STAGES.includes(primaryThemeStage)
+    ? buildInterleavePool(profile, primaryWeakness.tag)
+    : [];
+  // D4: teto anti-trava — sinaliza que o tema primário deve rotar (consumo do
+  // sinal e incremento de sessionsOnPrimaryTheme ficam na camada de estado).
+  const primaryThemeForced = shouldForceRotation(profile.sessionsOnPrimaryTheme ?? 0);
   const completedResourceIds = getCompletedResourceIds(options.previousPlan, options.completedResourceIds);
   const weeklyFocus = createWeeklyFocus(date, primaryWeakness);
   const learningPlanResponse =
@@ -121,6 +132,7 @@ export function generatePlan(
             minutes: budgetBlock.minutes,
             primaryWeakness,
             secondaryWeakness,
+            interleavePool,
             latestThemeSignal,
             persistedThemeStage,
             recentThemeStats: options.recentThemeStats,
@@ -139,6 +151,7 @@ export function generatePlan(
     ...(learningPlanResponse === undefined ? {} : { learningPlanResponse }),
     blocks,
     generatedFromWeaknessesAt: updatedAt,
+    ...(primaryThemeForced ? { primaryThemeForced: true } : {}),
   };
 }
 
@@ -166,6 +179,7 @@ function createPlanBlock(input: {
   minutes: number;
   primaryWeakness: Weakness;
   secondaryWeakness?: Weakness;
+  interleavePool: WeaknessTag[];
   latestThemeSignal: LatestThemeSignal | undefined;
   persistedThemeStage?: PlanResourceStage;
   recentThemeStats?: PuzzleThemeStats;
@@ -174,12 +188,28 @@ function createPlanBlock(input: {
   activeTrack: MethodTrackId;
 }): PlanBlock {
   const resourceStage = getResourceStage(input.kind, input.latestThemeSignal, input.persistedThemeStage);
+  // D2: na pós-aquisição (pool não-vazio), a revisão puxa um tema do pool
+  // (recuperação espaçada) e a transferência vira detecção sem rótulo. Aquecimento
+  // e tema permanecem âncora.
+  // Revisão puxa o 1º tema do pool; transferência (detecção sem rótulo) puxa o 2º
+  // quando existe, senão o 1º — garante prática de tema intercalado também em
+  // sessões sem bloco de revisão (30/60 min têm transferência, não revisão).
+  const interleaveTag =
+    input.interleavePool.length === 0
+      ? undefined
+      : input.kind === 'revisao'
+        ? input.interleavePool[0]
+        : input.kind === 'transferencia'
+          ? (input.interleavePool[1] ?? input.interleavePool[0])
+          : undefined;
+  const isDiscrimination = input.kind === 'transferencia' && input.interleavePool.length > 0;
   const copy = getBlockCopy(
     input.kind,
     input.primaryWeakness,
     resourceStage,
     input.profile.band,
     input.secondaryWeakness,
+    interleaveTag,
   );
   const destination = getDestinationForWeakness(copy.weaknessTag, resourceStage, {
     learnerBand: input.profile.band,
@@ -207,6 +237,7 @@ function createPlanBlock(input: {
     status: 'pending',
     methodTrackId: input.activeTrack,
     guidingQuestion: getGuidingQuestion(input.activeTrack),
+    ...(isDiscrimination ? { isDiscrimination: true } : {}),
     updatedAt: input.updatedAt,
   };
 }
@@ -326,6 +357,7 @@ function getBlockCopy(
   resourceStage: PlanResourceStage,
   band: LearnerBand,
   secondaryWeakness?: Weakness,
+  interleaveTag?: WeaknessTag,
 ): BlockCopy {
   // O bloco de transferência treina a fraqueza secundária quando existe uma real
   // e distinta da primária (decisão 1 do dono): reduz monotonia e ataca uma
@@ -351,22 +383,30 @@ function getBlockCopy(
         reason: primaryWeakness.evidence,
         weaknessTag: primaryTheme,
       };
-    case 'revisao':
+    case 'revisao': {
+      // D2: na pós-aquisição, a revisão intercala um tema já graduado (recuperação
+      // espaçada). Em aquisição (interleaveTag undefined), revisa o tema do dia.
+      const reviewTag = interleaveTag ?? primaryTheme;
       return {
         title: 'Revisão curta',
-        task: `Revise ${weaknessTitleByTag[primaryTheme]} em um treino curto e explique mentalmente qual padrão decidiu a posição.`,
+        task: `Revise ${weaknessTitleByTag[reviewTag]} em um treino curto e explique mentalmente qual padrão decidiu a posição.`,
         stopRule: 'Pare depois de uma posição bem entendida.',
-        reason: 'Revisão consolida o tema do dia sem cair em uma análise genérica.',
-        weaknessTag: primaryTheme,
+        reason: 'Revisão consolida temas já vistos sem cair em uma análise genérica.',
+        weaknessTag: reviewTag,
       };
-    case 'transferencia':
+    }
+    case 'transferencia': {
+      // D2: na pós-aquisição, a transferência vira detecção de um tema já visto
+      // (interleaveTag), sem rótulo. Em aquisição, segue a fraqueza secundária/primária.
+      const transferTag = interleaveTag ?? primaryTheme;
       return {
         title: 'Transferência para partida',
-        task: `Resolva uma rodada menos guiada de ${weaknessTitleByTag[primaryTheme]} e procure o padrão antes de calcular lances candidatos.`,
+        task: `Resolva uma rodada menos guiada de ${weaknessTitleByTag[transferTag]} e procure o padrão antes de calcular lances candidatos.`,
         stopRule: 'Pare ao encontrar uma posição em que você consiga explicar o plano em uma frase.',
         reason: 'Transferência evita que o tema fique preso ao formato de puzzle.',
-        weaknessTag: primaryTheme,
+        weaknessTag: transferTag,
       };
+    }
     case 'final':
       return getFinalBlockCopy(getFinalThemeByBand(band));
     default:
