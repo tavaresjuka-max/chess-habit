@@ -10,10 +10,10 @@ declare const process: {
 };
 
 export const CONTENT_SECURITY_POLICY =
-  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://lichess.org https://api.chess.com; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests";
+  "default-src 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://lichess.org https://api.chess.com https://api.lichess.org; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests";
 
 export const pwaOptions = {
-  injectRegister: 'auto',
+  injectRegister: 'script-defer',
   // 'prompt': o ReloadPrompt avisa que ha versao nova e aplica na hora,
   // em vez do autoUpdate silencioso que so pegava na segunda reabertura.
   registerType: 'prompt',

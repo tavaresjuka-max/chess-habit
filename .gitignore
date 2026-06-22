@@ -43,3 +43,15 @@ playwright-report/
 # Arquivos temporários de auditoria/scripts locais
 tmp/
 .art-backup/
+
+# Planejamento e artefatos de council (não fazem parte do repo público)
+prompts/
+_council_*.txt
+council.ps1
+PLAN-M1.md
+
+# Source PNGs das imagens premium (os otimizados ficam em public/art/ como WebP)
+assets/
+
+# Arquivo de contexto da IA (privado)
+CLAUDE.md
