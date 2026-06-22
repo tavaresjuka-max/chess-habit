@@ -159,8 +159,8 @@ function AccountsStep({
       </button>
       <h1 id="accounts-title">Suas contas</h1>
       <p>
-        Informe onde você joga para eu buscar suas partidas. Não joga online ainda? Deixe em branco e
-        continue — eu te faço algumas perguntas para calibrar.
+        Informe onde você joga para eu buscar suas partidas. Não joga online? Deixe em branco e
+        continue — eu faço algumas perguntas para calibrar.
       </p>
 
       <form

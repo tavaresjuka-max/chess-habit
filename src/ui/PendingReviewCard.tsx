@@ -31,7 +31,7 @@ export function PendingReviewCard({ pendingItems, onOpenItem, onDeferItem }: Pen
           height={140}
         />
         <h2 id="pending-review-title">Tudo em dia</h2>
-        <p>Nenhuma revisão vence hoje. Suas pendências estão em ordem.</p>
+        <p>Nenhuma revisão vence hoje. Pendências em ordem.</p>
       </section>
     );
   }

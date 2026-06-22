@@ -54,9 +54,9 @@ describe('buildLearningPlanProposal', () => {
     expect(proposal.estimateMinutes).toBe(30);
     expect(proposal.checkpointHours).toBe(6);
     expect(proposal.checkpointSessions).toBe(12);
-    expect(proposal.reviewPrompt).toContain('aprovar o plano');
-    expect(proposal.reviewPrompt).toContain('pedir revisão');
-    expect(proposal.caveat).toContain('não é promessa de rating');
+    expect(proposal.reviewPrompt).toContain('Aprove o plano');
+    expect(proposal.reviewPrompt).toContain('peça revisão');
+    expect(proposal.caveat).toContain('Não é promessa de rating');
   });
 
   it('uses conservative language when real weakness signals are still missing', () => {

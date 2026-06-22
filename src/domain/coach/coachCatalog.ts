@@ -7,13 +7,13 @@ export const coachNotesByBlockKind = {
   aquecimento:
     'Não é prova de velocidade: olhe o tabuleiro inteiro, procure peças soltas e siga com calma.',
   tema:
-    'Hoje o foco é repetição deliberada de um padrão. Procure a ideia antes do lance: alvo, defensor e consequência material. Pare quando a regra de parada bater, mesmo se estiver embalado.',
+    'Hoje é repetição deliberada de um padrão. Procure a ideia antes do lance: alvo, defensor e consequência material. Pare quando a regra de parada bater, mesmo embalado.',
   revisao:
-    'Revise como quem procura causa, não culpa. Escolha uma posição recente e pergunte qual informação você ignorou. Uma resposta honesta vale mais que muitos lances passados no automático.',
+    'Revise procurando causa, não culpa. Escolha uma posição recente e pergunte qual informação você ignorou. Uma resposta honesta vale mais que muitos lances no automático.',
   transferencia:
-    'Agora leve o padrão para uma posição menos limpa. Antes de mover, diga em voz baixa o que mudou em relação aos puzzles. Esse bloco treina reconhecer o tema fora da vitrine.',
+    'Agora leve o padrão para uma posição menos limpa. Antes de mover, diga em voz baixa o que mudou em relação aos puzzles. Aqui você reconhece o tema fora da vitrine.',
   final:
-    'Feche com calma e precisão. Final bom nasce de rei ativo, peões contados e plano simples. Se a linha ficar nebulosa, volte um lance e reduza a posição a uma pergunta concreta.',
+    'Feche com calma e precisão. Final bom nasce de rei ativo, peões contados e plano simples. Se a linha ficar nebulosa, volte um lance e reduza a uma pergunta concreta.',
 } satisfies Record<PlanBlockKind, string>;
 
 export function getCoachNote(
@@ -21,7 +21,7 @@ export function getCoachNote(
   context: { weaknessTag?: WeaknessTag; resourceStage?: PlanResourceStage } = {},
 ): string {
   if (kind === 'tema' && context.weaknessTag === 'fork') {
-    return 'Garfo é quando uma peça sua ataca dois alvos ao mesmo tempo. Neste treino você vai ver garfos com cavalo, bispo, peão e dama. Isso importa porque o rival consegue salvar um alvo, mas o outro pode cair. No começo você aprende a ver o desenho; com treino, começa a preparar o garfo alguns lances antes.';
+    return 'Garfo é uma peça sua atacando dois alvos ao mesmo tempo. Hoje: garfos com cavalo, bispo, peão e dama. O rival salva um alvo, mas o outro pode cair. No começo você vê o desenho; com treino, prepara o garfo alguns lances antes.';
   }
 
   return coachNotesByBlockKind[kind];

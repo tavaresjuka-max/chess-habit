@@ -39,11 +39,11 @@ const causeByTag: Partial<Record<WeaknessTag, { message: string; procedure: stri
     procedure: 'Antes de mover, veja se há peça presa contra o rei ou a dama.',
   },
   skewer: {
-    message: 'Espetos têm sido difíceis de enxergar a tempo.',
+    message: 'Espetos têm sido difíceis de ver a tempo.',
     procedure: 'Cheque linhas onde a peça maior está na frente da menor.',
   },
   discovered: {
-    message: 'Descobertas têm surpreendido você.',
+    message: 'Descobertas têm surpreendido.',
     procedure: 'Antes de mover, veja qual peça atrás abre linha ao se mover.',
   },
   'back-rank': {

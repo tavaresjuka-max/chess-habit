@@ -206,9 +206,9 @@ describe('generatePlan', () => {
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const note = plan.blocks[0]?.coachNote ?? '';
 
-    expect(note).toContain('Garfo é quando uma peça sua ataca dois alvos ao mesmo tempo.');
+    expect(note).toContain('Garfo é uma peça sua atacando dois alvos ao mesmo tempo.');
     expect(note).toContain('cavalo, bispo, peão e dama');
-    expect(note).toContain('começa a preparar o garfo alguns lances antes');
+    expect(note).toContain('prepara o garfo alguns lances antes');
     expect(note).not.toContain('consequência material');
   });
 
@@ -380,7 +380,7 @@ describe('generatePlan', () => {
       url: 'https://lichess.org/training/fork',
     });
     expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');
-    expect(plan.blocks[0]?.coachNote).toContain('Garfo é quando uma peça sua ataca dois alvos');
+    expect(plan.blocks[0]?.coachNote).toContain('Garfo é uma peça sua atacando dois alvos');
   });
 
   it('repairs a same-day guided Practice lesson after the block has been opened', () => {

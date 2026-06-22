@@ -327,18 +327,18 @@ function buildImprovementLines(input: {
 }): string[] {
   if (input.completedSessions === 0) {
     return [
-      'Sem sessões concluídas ainda. Conclua blocos para ativar este painel.',
+      'Sem sessões concluídas. Conclua blocos para ativar este painel.',
       'Com puzzles reconciliados, comparo acerto e temas fortes e fracos.',
     ];
   }
 
   const lines = [
-    `Você já registrou ${formatHours(input.completedHours)} em ${formatSessionCount(input.completedSessions)} concluída${input.completedSessions === 1 ? '' : 's'}.`,
+    `${formatHours(input.completedHours)} em ${formatSessionCount(input.completedSessions)} concluída${input.completedSessions === 1 ? '' : 's'}.`,
   ];
   const positiveFeedback = input.feedback.easy + input.feedback.good;
 
   if (positiveFeedback > input.feedback.hard) {
-    lines.push('Seu feedback recente está mais para fácil/bom do que difícil; isso libera repetição ou transferência no próximo ajuste.');
+    lines.push('Feedback recente mais fácil/bom que difícil; libera repetição ou transferência no próximo ajuste.');
   } else if (input.feedback.hard > positiveFeedback) {
     lines.push('Feedback pesado em difícil: explicação curta e treino guiado antes de subir a carga.');
   }
@@ -370,7 +370,7 @@ function buildImprovementLines(input: {
   }
 
   if (input.puzzleStats.accuracy === undefined) {
-    lines.push('Sem resultados reconciliados ainda. Confira no Lichess para medir o acerto.');
+    lines.push('Sem resultados reconciliados. Confira no Lichess para medir o acerto.');
   }
 
   return lines;
@@ -379,8 +379,8 @@ function buildImprovementLines(input: {
 function buildSkillSignals(stats: SessionMilestoneStats): string[] {
   if (stats.completedSessions === 0) {
     return [
-      'Hábito: ainda não há sessões concluídas.',
-      'Habilidade: ainda falta treino reconciliado ou feedback para medir uma melhora real.',
+      'Hábito: sem sessões concluídas.',
+      'Habilidade: falta treino reconciliado ou feedback para medir melhora real.',
     ];
   }
 
@@ -402,9 +402,9 @@ function buildSkillSignals(stats: SessionMilestoneStats): string[] {
   }
 
   if (positiveFeedback > stats.feedback.hard) {
-    signals.push('Carga: o feedback permite repetir com variação ou transferir para tarefa menos guiada.');
+    signals.push('Carga: repetir com variação ou transferir para tarefa menos guiada.');
   } else if (stats.feedback.hard > positiveFeedback) {
-    signals.push('Carga: o feedback pede explicação curta antes de aumentar dificuldade.');
+    signals.push('Carga: explicação curta antes de aumentar dificuldade.');
   }
 
   return signals;
@@ -434,10 +434,10 @@ function buildNextCheckpoint(currentMilestone: SessionMilestone, completedHours:
   const remainingHours = roundToTenth(Math.max(0, currentMilestone.targetHours - completedHours));
 
   if (remainingHours === 0) {
-    return `${currentMilestone.label} concluído. O próximo ciclo fica baseado nas mesmas métricas, sem promessa de rating.`;
+    return `${currentMilestone.label} concluído. O próximo ciclo usa as mesmas métricas, sem promessa de rating.`;
   }
 
-  return `Próximo checkpoint: ${currentMilestone.label}. Faltam cerca de ${formatHours(remainingHours)} para revisar o plano.`;
+  return `Próximo checkpoint: ${currentMilestone.label}. Faltam cerca de ${formatHours(remainingHours)} para revisar.`;
 }
 
 function formatSessionCount(count: number): string {

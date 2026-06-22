@@ -128,7 +128,7 @@ function CurrentMilestone({
       />
       <p>
         {formatHours(milestone.completedHours)} de {formatHours(milestone.targetHours)} -{' '}
-        {String(milestone.completedSessions)} de {String(milestone.targetSessions)} sessões previstas.
+        {String(milestone.completedSessions)} de {String(milestone.targetSessions)} sessões.
       </p>
       <p className="session-milestone-next">{nextCheckpoint}</p>
     </div>

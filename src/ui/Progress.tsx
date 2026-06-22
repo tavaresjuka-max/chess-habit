@@ -97,7 +97,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
               width={140}
               height={140}
             />
-            <p>Sem treinos ainda. A primeira sessão ativa este painel.</p>
+            <p>Sem treinos. A primeira sessão ativa este painel.</p>
           </div>
         )}
       </Fold>
@@ -128,7 +128,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
             ))}
           </ul>
         ) : (
-          <p>Sem placar por tema ainda. Conclua blocos de puzzle e use “Conferir puzzles”.</p>
+          <p>Sem placar por tema. Conclua blocos de puzzle e use “Conferir puzzles”.</p>
         )}
       </Fold>
 

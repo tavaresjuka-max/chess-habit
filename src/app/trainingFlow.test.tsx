@@ -93,9 +93,9 @@ describe('training flow', () => {
   it('shows a simple Professor Lemos introduction before the guided fork lesson', async () => {
     render(<App />);
 
-    expect(await screen.findByText(/Garfo é quando uma peça sua ataca dois alvos ao mesmo tempo/)).toBeTruthy();
+    expect(await screen.findByText(/Garfo é uma peça sua atacando dois alvos ao mesmo tempo/)).toBeTruthy();
     expect(screen.getAllByText(/cavalo, bispo, peão e dama/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/preparar o garfo alguns lances antes/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/prepara o garfo alguns lances antes/).length).toBeGreaterThan(0);
   });
 
   it('stores approval of the Professor Lemos learning plan proposal', async () => {
@@ -157,7 +157,7 @@ describe('training flow', () => {
     expect(await screen.findByRole('heading', { name: 'Dia concluído. Bom trabalho.' })).toBeTruthy();
     expect(screen.getByText('1/1 bloco feito')).toBeTruthy();
     expect(screen.getByText(/Feedback do dia: bom: 1/)).toBeTruthy();
-    expect(screen.getByText(/Na próxima sessão vamos estudar/)).toBeTruthy();
+    expect(screen.getByText(/Na próxima sessão:/)).toBeTruthy();
   });
 
   it('updates accumulated phase milestones after completing a block', async () => {
@@ -167,7 +167,7 @@ describe('training flow', () => {
 
     await completeFirstBlockWithFeedback('Bom');
 
-    expect(await screen.findByText('0h de 6h - 1 de 72 sessões previstas.', {}, { timeout: 5000 })).toBeTruthy();
+    expect(await screen.findByText('0h de 6h - 1 de 72 sessões.', {}, { timeout: 5000 })).toBeTruthy();
     expect(screen.getByText('sessão')).toBeTruthy();
   });
 

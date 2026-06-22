@@ -91,7 +91,7 @@ export function buildNextStepExplanations(plan: DailyPlan, themeStats?: PuzzleTh
 
     if (block.feedback === 'hard') {
       explanations.push(
-        `"${block.title}" foi difícil: voltamos um passo nesse tema, com explicação antes do treino.`,
+        `"${block.title}" foi difícil: voltamos um passo, com explicação antes do treino.`,
       );
     } else if (block.feedback === 'easy' && block.resourceStage === 'explain') {
       explanations.push(`"${block.title}" foi fácil: agora puzzles variados, sem repetir a explicação.`);
@@ -129,5 +129,5 @@ export function buildReturnRecalibrationNote(daysSinceLastSession: number): stri
     return undefined;
   }
 
-  return `Você ficou ${String(daysSinceLastSession)} dias fora — normal, a vida acontece. Preparei uma sessão mais curta para recomeçar leve; quando quiser, aumente o tempo.`;
+  return `${String(daysSinceLastSession)} dias fora — normal, a vida acontece. Preparei uma sessão mais curta para recomeçar leve; quando quiser, aumente o tempo.`;
 }

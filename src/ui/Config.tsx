@@ -176,7 +176,7 @@ export function Config({
           <label className="field">
             <span>Usuário Chess.com</span>
             <small className="field-hint">
-              Só dados públicos, sem login. O diagnóstico atualiza na tela Hoje.
+              Só dados públicos, sem login. Diagnóstico atualiza na tela Hoje.
             </small>
             <input
               autoComplete="username"

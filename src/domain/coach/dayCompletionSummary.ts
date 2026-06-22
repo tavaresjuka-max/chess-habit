@@ -49,11 +49,11 @@ function buildBlocksLine(doneCount: number, totalCount: number, skippedCount: nu
   const skippedPart =
     skippedCount > 0 ? ` e ${formatCount(skippedCount, 'bloco pulado', 'blocos pulados')}` : '';
 
-  return `Você encerrou o plano com ${String(doneCount)} de ${String(totalCount)} ${formatNoun(
+  return `Plano encerrado com ${String(doneCount)} de ${String(totalCount)} ${formatNoun(
     totalCount,
     'bloco',
     'blocos',
-  )} ${doneCount === 1 ? 'feito' : 'feitos'}${skippedPart} e registrou ${formatElapsedMinutes(
+  )} ${doneCount === 1 ? 'feito' : 'feitos'}${skippedPart} e ${formatElapsedMinutes(
     elapsedSeconds,
   )} de treino.`;
 }
@@ -124,7 +124,7 @@ function buildPuzzleLine(dayLogs: TrainingLog[]): string | undefined {
   }
 
   if (completedPuzzleLogs.some((log) => log.result === undefined)) {
-    return 'Puzzles ainda sem placar. Confira no Lichess para calibrar o plano.';
+    return 'Puzzles sem placar. Confira no Lichess para calibrar o plano.';
   }
 
   return undefined;
@@ -137,7 +137,7 @@ function buildNextLine(roadmap: TrainingRoadmapItem[]): string | undefined {
     return undefined;
   }
 
-  return `Na próxima sessão vamos estudar ${nextItem.title} (${String(nextItem.minutes)} min) em ${
+  return `Na próxima sessão: ${nextItem.title} (${String(nextItem.minutes)} min) em ${
     nextItem.destinationLabel
   }.`;
 }

@@ -62,9 +62,9 @@ export function buildLearningPlanProposal(input: BuildLearningPlanProposalInput)
     estimate: `≈${String(firstPhaseHours)}h · ${String(sessions)} sessões de ${String(input.sessionMinutes)} min · ~${String(weeksAtDailyPace)} semana${weeksAtDailyPace === 1 ? '' : 's'}`,
     checkpoint: `Checkpoint: ${String(checkpointHours)}h · ${String(checkpointSessions)} sessões — teste curto, plano ajustado.`,
     caveat:
-      'Isso não é promessa de rating. É uma janela de treino para medir se os sinais melhoraram e se o plano precisa mudar.',
+      'Não é promessa de rating. É uma janela de treino para medir se os sinais melhoraram e se o plano precisa mudar.',
     reviewPrompt:
-      'O que acha? Você pode aprovar o plano ou pedir revisão dizendo se quer mais exercícios, mais partidas, partidas de um tempo específico ou sessões mais longas.',
+      'O que acha? Aprove o plano ou peça revisão: mais exercícios, mais partidas, partidas de um tempo específico ou sessões mais longas.',
     estimateHours: firstPhaseHours,
     estimateSessions: sessions,
     estimateMinutes: input.sessionMinutes,
@@ -76,18 +76,18 @@ export function buildLearningPlanProposal(input: BuildLearningPlanProposalInput)
 
 function getEvidenceLevel(primaryWeakness: Weakness | undefined): string {
   if (primaryWeakness === undefined) {
-    return 'Confiança: inicial. Ainda faltam sinais reais suficientes; o foco vem da faixa atual e será recalibrado com treino.';
+    return 'Confiança: inicial. Faltam sinais reais; o foco vem da faixa atual e será recalibrado com treino.';
   }
 
   switch (primaryWeakness.confidence) {
     case 'high':
       if (primaryWeakness.score >= 0.7) {
-        return 'Confiança: forte para rotina. Há sinais consistentes o bastante para priorizar este tema, sem tratar isso como diagnóstico definitivo.';
+        return 'Confiança: forte para rotina. Há sinais consistentes para priorizar este tema, sem diagnóstico definitivo.';
       }
 
-      return 'Confiança: média. O tema aparece como hipótese prática; vamos confirmar pelo resultado dos próximos treinos.';
+      return 'Confiança: média. Hipótese prática; confirmamos pelo resultado dos próximos treinos.';
     case 'medium':
-      return 'Confiança: média. O tema aparece como hipótese prática; vamos confirmar pelo resultado dos próximos treinos.';
+      return 'Confiança: média. Hipótese prática; confirmamos pelo resultado dos próximos treinos.';
     case 'low':
       if (primaryWeakness.score >= 0.5) {
         // Score é tamanho do efeito; confiança é a confiabilidade do sinal.

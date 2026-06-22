@@ -181,7 +181,7 @@ export function Today({
           height={160}
         />
         <h1 id="today-title">Hoje</h1>
-        <p>Ainda não há um plano para hoje. Posso montar um agora com base no seu perfil.</p>
+        <p>Sem plano para hoje. Posso montar um agora com base no seu perfil.</p>
         <button
           type="button"
           onClick={() => {

@@ -149,6 +149,12 @@ describe('Onboarding — accounts step — fields', () => {
     expect(screen.getByText(/Deixe em branco e\s+continue/)).toBeInTheDocument();
   });
 
+  it('renders the calibration text without "ainda"', () => {
+    render(<Onboarding {...makeProps()} />);
+    expect(screen.getByText(/Não joga online\?/)).toBeInTheDocument();
+    expect(screen.getByText(/eu faço algumas perguntas/)).toBeInTheDocument();
+  });
+
   it('hides the optional "Conectar Lichess" button until a Lichess username is typed', () => {
     render(<Onboarding {...makeProps()} />);
     expect(screen.queryByRole('button', { name: /Conectar Lichess/ })).toBeNull();

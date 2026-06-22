@@ -124,7 +124,7 @@ describe('buildDayCompletionSummary', () => {
     expect(summary?.lines).toContain('Feedback do dia: bom: 1, difícil: 1.');
     expect(summary?.lines).toContain('Puzzles conferidos: 3 certos e 1 errado em 4 tentativas.');
     expect(summary?.lines).toContain(
-      'Na próxima sessão vamos estudar Repeticao: garfos (30 min) em Puzzles Lichess: Fork.',
+      'Na próxima sessão: Repeticao: garfos (30 min) em Puzzles Lichess: Fork.',
     );
   });
 
@@ -135,7 +135,7 @@ describe('buildDayCompletionSummary', () => {
       roadmap,
     });
 
-    expect(summary?.lines).toContain('Puzzles ainda sem placar. Confira no Lichess para calibrar o plano.');
+    expect(summary?.lines).toContain('Puzzles sem placar. Confira no Lichess para calibrar o plano.');
   });
 
   it('closes the day when every block was skipped without inventing puzzle work', () => {
@@ -152,9 +152,9 @@ describe('buildDayCompletionSummary', () => {
     expect(summary?.heading).toBe('Dia encerrado.');
     expect(summary?.metrics).toEqual(['0/2 blocos feitos', '30 min planejados', 'menos de 1 min registrados']);
     expect(summary?.lines).toContain(
-      'Você encerrou o plano com 0 de 2 blocos feitos e 2 blocos pulados e registrou menos de 1 min de treino.',
+      'Plano encerrado com 0 de 2 blocos feitos e 2 blocos pulados e menos de 1 min de treino.',
     );
-    expect(summary?.lines.some((line) => line.includes('Puzzles ainda sem placar'))).toBe(false);
+    expect(summary?.lines.some((line) => line.includes('Puzzles sem placar'))).toBe(false);
   });
 });
 

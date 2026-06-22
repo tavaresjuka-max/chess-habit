@@ -19,7 +19,7 @@ describe('lichess study', () => {
     expect(pgn).toContain('[Event "Tema do dia: garfos"]');
     expect(pgn).toContain('{ Tarefa: Estude a lição guiada de garfo');
     expect(pgn).toContain('Destino: https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p');
-    expect(pgn).toContain('{ Garfo é quando uma peça sua ataca dois alvos ao mesmo tempo.');
+    expect(pgn).toContain('{ Garfo é uma peça sua atacando dois alvos ao mesmo tempo.');
     expect(pgn).not.toContain('[FEN');
   });
 

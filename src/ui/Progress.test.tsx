@@ -85,7 +85,7 @@ describe('Progress', () => {
       />,
     );
 
-    expect(screen.getByText('Sem treinos ainda. A primeira sessão ativa este painel.')).toBeInTheDocument();
+    expect(screen.getByText('Sem treinos. A primeira sessão ativa este painel.')).toBeInTheDocument();
   });
 
   it('exibe métricas de ritmo quando há treinos concluídos', () => {
@@ -118,7 +118,7 @@ describe('Progress', () => {
     );
 
     expect(
-      screen.getByText(/Sem placar por tema ainda/),
+      screen.getByText(/Sem placar por tema\./),
     ).toBeInTheDocument();
   });
 

@@ -53,7 +53,7 @@ const summary: SessionMilestoneSummary = {
     bestTheme: 'Fork',
     weakTheme: 'Pin',
     improvementLines: [
-      'Você já registrou 1.5h em 3 sessões concluídas.',
+      '1.5h em 3 sessões concluídas.',
       'Puzzles reconciliados: 15/20 acertos (75%).',
       'Tema mais estavel ate agora: Fork.',
     ],
@@ -62,7 +62,7 @@ const summary: SessionMilestoneSummary = {
     'Hábito: 3 sessões registradas, com 1.5h de treino.',
     'Habilidade: 75% de acerto nos puzzles reconciliados.',
   ],
-  nextCheckpoint: 'Proximo checkpoint: Checkpoint 6h. Faltam cerca de 4.5h para revisar o plano.',
+  nextCheckpoint: 'Proximo checkpoint: Checkpoint 6h. Faltam cerca de 4.5h para revisar.',
   nextSignalToMeasure: 'Proximo sinal: repetir Pin e verificar se os erros caem no proximo ciclo.',
 };
 
