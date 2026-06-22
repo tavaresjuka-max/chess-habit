@@ -9,6 +9,7 @@ import {
   loadChesscomMonthCache,
   loadLichessOAuthToken,
   loadSignals,
+  loadStoredPuzzleWeakness,
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
@@ -31,6 +32,7 @@ vi.mock('../infra/storage/appData', () => ({
   loadChesscomMonthCache: vi.fn(),
   loadLichessOAuthToken: vi.fn(),
   loadSignals: vi.fn(),
+  loadStoredPuzzleWeakness: vi.fn(),
   loadWeaknesses: vi.fn(),
   replaceSignalsForSource: vi.fn(),
   replaceWeaknesses: vi.fn(),
@@ -69,6 +71,7 @@ beforeEach(() => {
   vi.mocked(loadChesscomMonthCache).mockResolvedValue(undefined);
   vi.mocked(loadLichessOAuthToken).mockResolvedValue(undefined);
   vi.mocked(loadSignals).mockResolvedValue([chesscomSignal]);
+  vi.mocked(loadStoredPuzzleWeakness).mockResolvedValue(undefined);
   vi.mocked(loadWeaknesses).mockResolvedValue([]);
   vi.mocked(replaceSignalsForSource).mockResolvedValue(undefined);
   vi.mocked(replaceWeaknesses).mockResolvedValue(undefined);

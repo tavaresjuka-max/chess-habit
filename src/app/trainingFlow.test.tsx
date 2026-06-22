@@ -189,7 +189,7 @@ describe('training flow', () => {
   it.each([
     ['Fácil', 'easy', 'retrieval', 'https://lichess.org/training/short'],
     ['Bom', 'good', 'retrieval', 'https://lichess.org/training/short'],
-    ['Difícil', 'hard', 'explain', 'https://lichess.org/training/short'],
+    ['Difícil', 'hard', 'guided', 'https://lichess.org/training/short'],
   ] satisfies Array<[string, PlanBlockFeedback, PlanResourceStage, string]>)(
     'uses feedback %s to adapt the next generated plan',
     async (buttonName, expectedFeedback, expectedStage, expectedUrl) => {

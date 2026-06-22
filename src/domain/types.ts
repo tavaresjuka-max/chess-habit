@@ -55,6 +55,10 @@ export type Weakness = {
   score: number;
   confidence: Confidence;
   evidence: string;
+  /** Timestamp do dado-fonte; permite sobreviver ao GC de trainingLogs (1B). */
+  observedAt?: string;
+  /** Fraquezas de puzzle recebem 'puzzle' para permitir fallback durável. */
+  source?: 'puzzle';
 };
 
 export type LearnerBand =

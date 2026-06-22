@@ -613,5 +613,17 @@ function fromWeaknessRecord(record: WeaknessRecord): Weakness {
     score: record.score,
     confidence: record.confidence,
     evidence: record.evidence,
+    ...(record.observedAt !== undefined && { observedAt: record.observedAt }),
+    ...(record.source !== undefined && { source: record.source }),
   };
+}
+
+/** Retorna a fraqueza de puzzle armazenada se ainda for fresca (dentro de maxAgeDays). */
+export async function loadStoredPuzzleWeakness(nowIso: string, maxAgeDays = 90): Promise<Weakness | undefined> {
+  const records = await db.weaknesses.toArray();
+  const record = records.find((r) => r.source === 'puzzle' && r.deletedAt === undefined);
+  if (record === undefined || record.observedAt === undefined) return undefined;
+  const age = Date.parse(nowIso) - Date.parse(record.observedAt);
+  if (Number.isNaN(age) || age > maxAgeDays * 86_400_000) return undefined;
+  return fromWeaknessRecord(record);
 }

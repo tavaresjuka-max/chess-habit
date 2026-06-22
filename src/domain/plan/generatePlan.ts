@@ -471,8 +471,8 @@ function getThemeResourceStage(
 
   switch (latestThemeSignal?.feedback) {
     case 'hard':
-      // 'difícil' pede mais suporte, não mais desafio: recua para explicação.
-      return 'explain';
+      // 'difícil' = zona certa de aprendizado; guided oferece dicas sem re-explicar do zero.
+      return 'guided';
     case 'good':
       // Avança um estágio sem pular consolidação; teto em 'retrieval'.
       return advanceThemeStage(latestThemeSignal.resourceStage, 'retrieval');

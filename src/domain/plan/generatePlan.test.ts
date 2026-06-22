@@ -404,7 +404,7 @@ describe('generatePlan', () => {
     expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/training/fork');
   });
 
-  it('moves a hard repeated theme back to an explanation resource', () => {
+  it('moves a hard repeated theme to guided stage', () => {
     const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06', {
       previousPlan: {
@@ -420,12 +420,12 @@ describe('generatePlan', () => {
       },
     });
 
-    expect(plan.blocks[0]?.resourceStage).toBe('explain');
-    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/video/mbiR0tcdqBY');
-    expect(plan.blocks[0]?.task).toContain('Revise uma explicação curta de garfos');
+    expect(plan.blocks[0]?.resourceStage).toBe('guided');
+    expect(plan.blocks[0]?.destination.url).toBe('https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p');
+    expect(plan.blocks[0]?.task).toContain('Estude a lição guiada de garfo');
   });
 
-  it('keeps explanation support after a hard explanation was already tried', () => {
+  it('hard feedback routes to guided regardless of previous hard stage', () => {
     const guidedPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const explanationPlan = generatePlan(baseProfile, [], 15, '2026-06-06', {
       previousPlan: {
@@ -456,18 +456,18 @@ describe('generatePlan', () => {
       sessionNumber: 2,
     });
 
-    expect(plan.blocks[0]?.resourceStage).toBe('explain');
+    expect(plan.blocks[0]?.resourceStage).toBe('guided');
     expect(plan.blocks[0]?.destination.source).toBe('lichess');
-    expect(plan.blocks[0]?.task).toContain('Revise uma explica');
+    expect(plan.blocks[0]?.task).toContain('Estude a li');
   });
 
   it.each([
-    ['guided', 'explain'],
-    ['explain', 'explain'],
-    ['retrieval', 'explain'],
-    ['transfer', 'explain'],
-    ['review', 'explain'],
-  ] as const)('never advances stage after hard feedback from %s', (resourceStage, expectedStage) => {
+    ['guided', 'guided'],
+    ['explain', 'guided'],
+    ['retrieval', 'guided'],
+    ['transfer', 'guided'],
+    ['review', 'guided'],
+  ] as const)('hard feedback routes to guided stage from %s', (resourceStage, expectedStage) => {
     const previousPlan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const plan = generatePlan(baseProfile, [], 15, '2026-06-07', {
       previousPlan: {

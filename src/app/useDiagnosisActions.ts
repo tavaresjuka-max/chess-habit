@@ -25,6 +25,7 @@ import {
   loadChesscomMonthCache,
   loadLichessOAuthToken,
   loadSignals,
+  loadStoredPuzzleWeakness,
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
@@ -160,9 +161,12 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       const nowIso = new Date().toISOString();
       const date = getTodayDate();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
+      const puzzleWeakness =
+        createWeaknessFromPuzzleStats(recentThemeStats, nowIso) ??
+        (await loadStoredPuzzleWeakness(nowIso));
       const nextWeaknesses = mergePuzzleWeakness(
         detectWeaknesses(filterSignalsForDiagnosis(allSignals, nowIso), args.targetProfile.band),
-        createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
+        puzzleWeakness,
       );
       const plan = generatePlan(
         args.targetProfile,
@@ -438,9 +442,12 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       setSignals(allSignals);
       const nowIso = new Date().toISOString();
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
+      const puzzleWeakness =
+        createWeaknessFromPuzzleStats(recentThemeStats, nowIso) ??
+        (await loadStoredPuzzleWeakness(nowIso));
       const nextWeaknesses = mergePuzzleWeakness(
         detectWeaknesses(filterSignalsForDiagnosis(allSignals, nowIso), profile?.band),
-        createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
+        puzzleWeakness,
       );
 
       await replaceWeaknesses(nextWeaknesses);
