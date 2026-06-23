@@ -2258,7 +2258,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 .secondary-link {
   border: 12px solid transparent;
   border-image: url('/art/moldura-botao-secundario-slice.webp') 48 fill / 12px stretch;
-  background: none;
+  background-color: #e8dfc8;
   color: #2b3a33;
   padding: 2px 8px;
   box-shadow: none;

@@ -548,7 +548,7 @@ export function Today({
       </Fold>
       </div>
 
-      <aside className="today-aside" aria-label="Resumo e contexto">
+      <section className="today-aside" aria-label="Resumo e contexto">
 
       <Fold
         concept="metas"
@@ -697,7 +697,7 @@ export function Today({
           </div>
         </div>
       </Fold>
-      </aside>
+      </section>
       </div>
     </section>
   );
