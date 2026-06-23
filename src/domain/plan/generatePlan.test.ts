@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PendingTrainingItem } from '../method/types';
-import type { LearnerProfile, SessionMinutes } from '../types';
+import type { LearnerProfile, PlanBlock, PlanBlockFeedback, PlanResourceStage, SessionMinutes } from '../types';
 import { advanceThemeStage, extractThemeStages, generatePlan, getReviewRatioForPendingCount } from './generatePlan';
 import { getTimeBudget } from './timeBudget';
 
@@ -255,6 +255,82 @@ describe('generatePlan', () => {
 
     // feedback 'easy' com cap retrieval → retrieval (feedback vence accuracy 30%)
     expect(tema?.resourceStage).toBe('retrieval');
+  });
+
+  describe('DD-Ped6 — expiração de feedback (14 dias) com floor anti-penhasco', () => {
+    function temaFeedbackBlock(date: string, resourceStage: PlanResourceStage, feedback: PlanBlockFeedback): PlanBlock {
+      return {
+        id: `${date}-tema`,
+        title: 'Garfo',
+        source: 'lichess',
+        weaknessTag: 'fork',
+        resourceStage,
+        task: '',
+        stopRule: '',
+        reason: '',
+        coachNote: '',
+        estimatedMinutes: 5,
+        status: 'done',
+        destination: { source: 'lichess', label: 'Puzzles Lichess: Fork', url: 'https://lichess.org/training/fork' },
+        feedback,
+        sessionNumber: 1,
+        updatedAt: `${date}T10:00:00.000Z`,
+      };
+    }
+
+    const profile1200: LearnerProfile = { ...baseProfile, band: '1000-1200', themeStages: { fork: 'retrieval' } };
+
+    function planWith(block: PlanBlock) {
+      return { date: block.id.slice(0, 10), sessionMinutes: 15, generatedFromWeaknessesAt: `${block.id.slice(0, 10)}T08:00:00`, blocks: [block] };
+    }
+
+    it('feedback de 10 dias atrás ainda vence (não expira < 14 dias)', () => {
+      // 'easy' em guided há 10 dias → feedback ainda força avanço (retrieval),
+      // mesmo com acurácia baixa que, se expirado, manteria no persistido.
+      const plan = generatePlan({ ...profile1200, themeStages: { fork: 'guided' } }, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-13', 'guided', 'easy')),
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 10, losses: 8 }] },
+      });
+      const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+      expect(tema?.resourceStage).toBe('retrieval');
+    });
+
+    it('exatamente 14 dias ainda é válido (limiar inclusivo)', () => {
+      const plan = generatePlan({ ...profile1200, themeStages: { fork: 'guided' } }, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-09', 'guided', 'easy')),
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 10, losses: 8 }] },
+      });
+      const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+      // 06-09 → 06-23 = 14 dias exatos → feedback 'easy' ainda vence.
+      expect(tema?.resourceStage).toBe('retrieval');
+    });
+
+    it('feedback de 20 dias + acurácia alta → expira e a acurácia AVANÇA do persistido', () => {
+      // 'easy' há 20 dias expira; persistido = retrieval (high-water); acurácia 90%
+      // (advance) → avança um do persistido → transfer.
+      const plan = generatePlan(profile1200, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-03', 'guided', 'easy')),
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 10, losses: 1 }] },
+      });
+      const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+      expect(tema?.resourceStage).toBe('transfer');
+    });
+
+    it('feedback de 20 dias + acurácia baixa → expira mas NÃO regride abaixo do persistido (council)', () => {
+      // Cenário do contraexemplo do DeepSeek: aluno sumiu, volta, acurácia histórica
+      // baixa. O corte seco regrediria para 'guided' (tédio). O floor segura no
+      // estágio já alcançado (retrieval).
+      const plan = generatePlan(profile1200, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-03', 'guided', 'easy')),
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 10, losses: 8 }] },
+      });
+      const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+      expect(tema?.resourceStage).toBe('retrieval');
+    });
   });
 
   it('volta à fraqueza primária na transferência quando não há secundária distinta', () => {

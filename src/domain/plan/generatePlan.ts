@@ -50,8 +50,20 @@ export type GeneratePlanOptions = {
 type LatestThemeSignal = {
   feedback?: PlanBlockFeedback;
   resourceStage?: PlanResourceStage;
-  source: 'feedback' | 'prior-guided';
+  source: 'feedback' | 'prior-guided' | 'feedback-expired';
 };
+
+// DD-Ped6 (2026-06-23): feedback explícito com mais de 14 dias deixa de FORÇAR o
+// estágio; a acurácia recente volta a gatear. Council (DeepSeek) alertou que um
+// corte seco vira "penhasco motivacional" para o aprendiz TDAH que some por uns
+// dias — por isso a expiração NUNCA regride abaixo do estágio já alcançado
+// (ver masteryAwareFallback). Limiar inclusivo: exatamente 14 dias ainda vale.
+const FEEDBACK_EXPIRY_DAYS = 14;
+
+function isFeedbackExpired(blockDate: string, currentDate: string): boolean {
+  const ageDays = (Date.parse(currentDate) - Date.parse(blockDate)) / 86_400_000;
+  return ageDays > FEEDBACK_EXPIRY_DAYS;
+}
 
 // Tema padrao por banda quando nao ha sinal real. Bandas acima de 1200 usam
 // padroes provisorios ate o curriculo denso do Corte 8.
@@ -105,7 +117,14 @@ export function generatePlan(
         : ((primaryStat.attempts - primaryStat.losses) / primaryStat.attempts) * 100;
     const mastery = computeMastery({ accuracyPercent, recentFeedbacks: [], minVolumeReached: true });
     if (mastery === 'advance') return advanceThemeStage(persistedThemeStage, 'transfer');
-    if (mastery === 'regress') return 'guided';
+    if (mastery === 'regress') {
+      // DD-Ped6 + council: feedback EXPIRADO nunca regride abaixo do estágio já
+      // alcançado (evita penhasco motivacional ao voltar de uma pausa). Sem
+      // feedback algum (nunca houve), mantém o rebaixamento padrão para 'guided'.
+      return latestThemeSignal?.source === 'feedback-expired'
+        ? persistedThemeStage ?? latestThemeSignal.resourceStage ?? 'guided'
+        : 'guided';
+    }
     return persistedThemeStage ?? 'guided';
   })();
   // D1/D3 (scheduler híbrido): pool de intercalação só existe quando o tema
@@ -591,6 +610,15 @@ function getLatestThemeSignalForWeakness(
     return {
       resourceStage: guidedBlock.resourceStage,
       source: 'prior-guided',
+    };
+  }
+
+  // DD-Ped6: feedback com mais de 14 dias não força mais o estágio — devolve só o
+  // estágio alcançado (sem o campo feedback) para a acurácia recente voltar a gatear.
+  if (isFeedbackExpired(block.id.slice(0, 10), currentDate)) {
+    return {
+      resourceStage: block.resourceStage,
+      source: 'feedback-expired',
     };
   }
 
