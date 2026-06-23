@@ -1,6 +1,5 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
-  bandFromPuzzlePerfSignal,
   buildDiagnosticThemeStats,
   buildPuzzleThemeStats,
   createWeaknessFromPuzzleStats,
@@ -9,7 +8,9 @@ import {
   detectWeaknesses,
   filterFreshSignals,
   generatePlan,
+  learnerBands,
   type DailyPlan,
+  type LearnerBand,
   type LearnerProfile,
   type LichessOAuthToken,
   type Signal,
@@ -19,8 +20,10 @@ import {
   type Weakness,
 } from '../domain';
 import { confidenceRank } from '../domain/confidence';
+import { bandFromLichessGameRatings } from '../domain/placement/lichessBand';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
+import { fetchLichessAccount } from '../infra/lichess/account';
 import { importLichessSignals } from '../infra/lichess/games';
 import {
   appendSignals,
@@ -32,7 +35,9 @@ import {
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
+  savePlacementResult,
   savePlan,
+  saveProfile,
 } from '../infra/storage/appData';
 import type { AppView, DiagnosisState, LichessConnectionState } from './state';
 import { getTodayDate } from './date';
@@ -85,6 +90,7 @@ export type UseDiagnosisActionsInput = {
   setTodayPlan: Dispatch<SetStateAction<DailyPlan | undefined>>;
   setLichessConnectionState: Dispatch<SetStateAction<LichessConnectionState>>;
   setLichessMessage: Dispatch<SetStateAction<string | undefined>>;
+  setProfile: Dispatch<SetStateAction<LearnerProfile | undefined>>;
 };
 
 // Sinal mais recente salvo por fonte. Em Chess.com, observedAt preserva a data
@@ -118,6 +124,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     setErrorMessage,
     setLichessConnectionState,
     setLichessMessage,
+    setProfile,
     setSignals,
     setTodayPlan,
     setWeaknesses,
@@ -130,6 +137,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       fetchSignals: () => Promise<Signal[]>;
       onStart: () => void;
       options?: DiagnosisSyncOptions;
+      derivedBand?: LearnerBand;
     }): Promise<DiagnosisSyncResult | undefined> => {
       if (args.options?.maxAgeMs !== undefined) {
         const lastSyncAt = await latestSignalObservedAt(args.source);
@@ -162,6 +170,26 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       setSignals(allSignals);
       const nowIso = new Date().toISOString();
       const date = getTodayDate();
+      // M2a (DD5): aplica a banda derivada (só sobe) DENTRO do guard de epoch e
+      // ANTES de generatePlan, para o plano nascer com a banda certa e não
+      // competir com mudança manual concorrente. derivedBand já passou pelo gate
+      // "só sobe" (indexOf maior) no chamador; aqui persistimos no perfil/placement.
+      const effectiveProfile: LearnerProfile =
+        args.derivedBand !== undefined && args.derivedBand !== args.targetProfile.band
+          ? { ...args.targetProfile, band: args.derivedBand, updatedAt: nowIso }
+          : args.targetProfile;
+      if (effectiveProfile !== args.targetProfile) {
+        await saveProfile(effectiveProfile);
+        setProfile(effectiveProfile);
+        // calibrated: false = promovido por rating de jogo (não por calibração de
+        // puzzles), preserva a semântica do achievement isCalibrado.
+        await savePlacementResult({
+          band: effectiveProfile.band,
+          confidence: 'high',
+          calibrated: false,
+          completedAt: nowIso,
+        });
+      }
       // recentThemeStats (com todos os logs) é usado para detecção de fraqueza
       // (createWeaknessFromPuzzleStats). diagnosticThemeStats (D5) filtra logs de
       // pool e alimenta selectPrimaryWeakness em generatePlan — evita ping-pong.
@@ -171,11 +199,11 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
         createWeaknessFromPuzzleStats(recentThemeStats, nowIso) ??
         (await loadStoredPuzzleWeakness(nowIso));
       const nextWeaknesses = mergePuzzleWeakness(
-        detectWeaknesses(filterSignalsForDiagnosis(allSignals, nowIso), args.targetProfile.band),
+        detectWeaknesses(filterSignalsForDiagnosis(allSignals, nowIso), effectiveProfile.band),
         puzzleWeakness,
       );
       const plan = generatePlan(
-        args.targetProfile,
+        effectiveProfile,
         nextWeaknesses,
         sessionMinutes,
         date,
@@ -220,6 +248,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       latestPlanRef,
       pendingItems,
       sessionMinutes,
+      setProfile,
       setSignals,
       setTodayPlan,
       setWeaknesses,
@@ -278,18 +307,44 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       }
 
       let token: LichessOAuthToken | undefined;
+      let derivedBand: LearnerBand | undefined;
+
+      // M2a: lê /api/account best-effort ANTES do sync para derivar a banda (só
+      // sobe). O token é carregado uma vez e reutilizado em fetchSignals. Falha
+      // de rede/429 aqui NÃO quebra o sync (DD6) — derivada fica undefined.
+      try {
+        token = await loadLichessOAuthToken();
+      } catch (error) {
+        console.warn('Falha ao carregar token Lichess; mantendo banda.', error);
+      }
+
+      if (token?.accessToken !== undefined) {
+        try {
+          const account = await fetchLichessAccount({ token: token.accessToken });
+          const derived = account ? bandFromLichessGameRatings(account) : undefined;
+          // DD4: SÓ SOBE — aplica apenas se o índice for maior que o atual.
+          if (
+            derived !== undefined &&
+            learnerBands.indexOf(derived.band) > learnerBands.indexOf(targetProfile.band)
+          ) {
+            derivedBand = derived.band;
+          }
+        } catch (error) {
+          console.warn('Falha ao ler /api/account; mantendo banda.', error);
+        }
+      }
 
       try {
         const result = await runDiagnosisSync({
           source: 'lichess',
           targetProfile,
           options,
+          derivedBand,
           onStart: () => {
             setLichessConnectionState('syncing');
             setLichessMessage('Atualizando diagnóstico Lichess.');
           },
           fetchSignals: async () => {
-            token = await loadLichessOAuthToken();
             // Auto-sync (maxAgeMs presente) limita ao recente; manual puxa tudo.
             const max = options?.maxAgeMs !== undefined ? AUTO_SYNC_MAX_LICHESS_GAMES : undefined;
 
@@ -307,16 +362,14 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
 
         setLichessConnectionState(token === undefined ? 'disconnected' : 'connected');
 
-        const puzzleBand = bandFromPuzzlePerfSignal(result.signals, targetProfile.band);
         const syncBaseMessage =
           result.signals.length === 0
             ? 'Lichess atualizado, mas ainda sem sinais suficientes.'
             : `Lichess atualizado com ${String(result.signals.length)} sinais derivados.`;
-        setLichessMessage(
-          puzzleBand !== null && puzzleBand.band !== targetProfile.band
-            ? `${syncBaseMessage} Rating de puzzles: ${String(puzzleBand.rating)} → banda sugerida: ${puzzleBand.band}.`
-            : syncBaseMessage,
-        );
+        // DD7: a nota de promoção (M2a) é CONCATENADA na mensagem final (não
+        // setada antes, senão seria sobrescrita pela mensagem de sucesso).
+        const bandNote = derivedBand !== undefined ? ` Subi sua faixa para ${derivedBand}.` : '';
+        setLichessMessage(`${syncBaseMessage}${bandNote}`);
       } catch (error) {
         setLichessConnectionState('error');
         setLichessMessage(toLichessErrorMessage(error));

@@ -202,6 +202,7 @@ export function useAppState(): AppState {
     setTodayPlan,
     setLichessConnectionState,
     setLichessMessage,
+    setProfile,
   });
 
   const saveProfile = useCallback(async (rawProfile: LearnerProfile, options?: { autoSync?: boolean }) => {
