@@ -9,8 +9,7 @@ export const APP_MANIFEST_NAME = APP_NAME;
 export const APP_LEGAL_DISCLAIMER =
   `${APP_NAME} é um app não oficial, não afiliado, endossado ou mantido pelo Lichess.`;
 
-// TODO(beta-publico): preencher quando o repositorio publico estiver definido.
-export const SOURCE_CODE_URL: string | undefined = undefined;
+export const SOURCE_CODE_URL = 'https://github.com/tavaresjuka-max/chess-habit' as const;
 
 // Doacao fica externa e opcional; apoiador nao recebe vantagem funcional.
 export const DONATION_URL: string | undefined = undefined;
@@ -23,5 +22,4 @@ export const PRIVACY_SUMMARY = [
   'Você pode exportar um backup e apagar tudo a qualquer momento na tela de Configuração.',
 ] as const;
 
-// TODO(beta-publico): preencher quando o dono definir o canal (e-mail, formulario ou issue tracker).
-export const FEEDBACK_URL: string | undefined = undefined;
+export const FEEDBACK_URL = 'https://github.com/tavaresjuka-max/chess-habit/issues' as const;
