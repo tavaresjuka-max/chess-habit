@@ -1,6 +1,7 @@
 import { getCoachNote } from '../coach/coachCatalog';
 import { assertNever } from '../assertNever';
 import { buildInterleavePool, shouldForceRotation, weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
+import { computeMastery } from '../method/mastery';
 import { getRecentlyEarnedDiploma } from '../method/diplomas';
 import { INTERLEAVE_STAGES } from './schedulerConstants';
 import { getMethodTrackTitle } from '../method/methodTracks';
@@ -87,10 +88,30 @@ export function generatePlan(
   // Fallback persistido (PED-3): sem sinal do plano anterior, retoma o estágio
   // alcançado por tema em vez de cair sempre no 'guided'.
   const persistedThemeStage = profile.themeStages?.[primaryWeakness.tag];
+  // DD-Ped1: acurácia real refina o fallback SÓ quando não há feedback explícito
+  // recente. Feedback vence acurácia. Mínimo 3 tentativas (DD-Ped4).
+  // C1: weaknessTagFromPuzzleTheme já importado — sem mapeamento reverso necessário.
+  // C4: computeMastery direto, sem masteryTargetFromCompletedLog.
+  const masteryAwareFallback: PlanResourceStage = (() => {
+    if (latestThemeSignal?.feedback !== undefined) return persistedThemeStage ?? 'guided';
+    const primaryStat = options.recentThemeStats?.themes.find(
+      (s) => weaknessTagFromPuzzleTheme(s.theme) === primaryWeakness.tag,
+    );
+    if (primaryStat === undefined || primaryStat.attempts < 3) return persistedThemeStage ?? 'guided';
+    // C3: accuracy nativo do Lichess se disponível; fallback para (attempts-losses)/attempts.
+    const accuracyPercent =
+      primaryStat.accuracy !== undefined
+        ? primaryStat.accuracy
+        : ((primaryStat.attempts - primaryStat.losses) / primaryStat.attempts) * 100;
+    const mastery = computeMastery({ accuracyPercent, recentFeedbacks: [], minVolumeReached: true });
+    if (mastery === 'advance') return advanceThemeStage(persistedThemeStage, 'transfer');
+    if (mastery === 'regress') return 'guided';
+    return persistedThemeStage ?? 'guided';
+  })();
   // D1/D3 (scheduler híbrido): pool de intercalação só existe quando o tema
   // primário já saiu da aquisição (estágio em retrieval/transfer). Em aquisição
   // (explain/guided) o pool fica vazio → revisao/transferencia seguem o primário.
-  const primaryThemeStage = getResourceStage('tema', latestThemeSignal, persistedThemeStage);
+  const primaryThemeStage = getResourceStage('tema', latestThemeSignal, masteryAwareFallback);
   const interleavePool = INTERLEAVE_STAGES.includes(primaryThemeStage)
     ? buildInterleavePool(profile, primaryWeakness.tag)
     : [];
@@ -134,7 +155,7 @@ export function generatePlan(
             secondaryWeakness,
             interleavePool,
             latestThemeSignal,
-            persistedThemeStage,
+            persistedThemeStage: masteryAwareFallback,
             recentThemeStats: options.recentThemeStats,
             completedResourceIds,
             updatedAt,

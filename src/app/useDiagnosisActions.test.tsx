@@ -337,6 +337,95 @@ describe('useDiagnosisActions', () => {
       expect(savePlan).toHaveBeenCalled();
       expect(input.setLichessConnectionState).toHaveBeenCalledWith('connected');
     });
+
+    describe('nudge puzzle-perf (DD-Ped2)', () => {
+      const puzzlePerfSignal: Signal = {
+        source: 'lichess',
+        confidence: 'medium',
+        observedAt: '2026-06-23T10:00:00.000Z',
+        // rating 950 > 90% de 1000 (teto de '800-1000') → deve mostrar nudge
+        value: { kind: 'puzzle-perf', rating: 950, games: 60 },
+      };
+
+      it('rating de puzzles > 90% do teto → nudge aparece na mensagem', async () => {
+        vi.mocked(loadSignals).mockResolvedValue([puzzlePerfSignal]);
+        vi.mocked(importLichessSignals).mockResolvedValue([lichessSignal]);
+
+        const input = createInput({
+          profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+        });
+        const { result } = renderHook(() => useDiagnosisActions(input));
+
+        await act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        });
+
+        expect(input.setLichessMessage).toHaveBeenCalledWith(
+          expect.stringContaining('rating de puzzles (950)'),
+        );
+      });
+
+      it('rating de puzzles < 90% do teto → sem nudge', async () => {
+        const lowSignal: Signal = { ...puzzlePerfSignal, value: { kind: 'puzzle-perf', rating: 700, games: 60 } };
+        vi.mocked(loadSignals).mockResolvedValue([lowSignal]);
+        vi.mocked(importLichessSignals).mockResolvedValue([lichessSignal]);
+
+        const input = createInput({
+          profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+        });
+        const { result } = renderHook(() => useDiagnosisActions(input));
+
+        await act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        });
+
+        expect(input.setLichessMessage).toHaveBeenCalledWith(
+          expect.not.stringContaining('rating de puzzles'),
+        );
+      });
+
+      it('sem sinal puzzle-perf no DB → sem nudge, sync completa normalmente', async () => {
+        vi.mocked(loadSignals).mockResolvedValue([chesscomSignal]);
+        vi.mocked(importLichessSignals).mockResolvedValue([lichessSignal]);
+
+        const input = createInput({
+          profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+        });
+        const { result } = renderHook(() => useDiagnosisActions(input));
+
+        await act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        });
+
+        expect(input.setLichessMessage).toHaveBeenCalledWith(
+          expect.not.stringContaining('rating de puzzles'),
+        );
+        expect(savePlan).toHaveBeenCalled();
+      });
+
+      it('loadSignals rejeita no nudge → sync completa sem nudge e sem throw', async () => {
+        // 1ª call = diagnose (linha 169, deve ter sucesso); 2ª call = nudge (rejeita).
+        vi.mocked(loadSignals)
+          .mockResolvedValueOnce([chesscomSignal])
+          .mockRejectedValueOnce(new Error('DB error'));
+        vi.mocked(importLichessSignals).mockResolvedValue([lichessSignal]);
+
+        const input = createInput({
+          profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+        });
+        const { result } = renderHook(() => useDiagnosisActions(input));
+
+        await act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        });
+
+        // Sync completou sem throw (nudge é silencioso)
+        expect(savePlan).toHaveBeenCalled();
+        expect(input.setLichessMessage).toHaveBeenCalledWith(
+          expect.not.stringContaining('rating de puzzles'),
+        );
+      });
+    });
   });
 });
 

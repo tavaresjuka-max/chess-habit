@@ -174,6 +174,89 @@ describe('generatePlan', () => {
     expect(extractThemeStages(plan).fork).toBe('guided');
   });
 
+  it('sem feedback e accuracy >= 80% + volume suficiente → mastery avança estágio (DD-Ped1)', () => {
+    // Sem plano anterior (sem feedback explícito) E accuracy alta: computeMastery
+    // deve retornar 'advance' e o bloco de tema deve sair do persistedThemeStage.
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      band: '1000-1200',
+      themeStages: { fork: 'guided' },
+    };
+    const plan = generatePlan(profile, [], 15, '2026-06-06', {
+      // fork com 10 tentativas e 0 erros → accuracy 100% (ou nativa se tivesse)
+      recentThemeStats: { since: '2026-06-01', until: '2026-06-06', themes: [{ theme: 'fork', attempts: 10, losses: 0 }] },
+    });
+    const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+    // guided + advance (teto transfer) → retrieval
+    expect(tema?.resourceStage).toBe('retrieval');
+  });
+
+  it('sem feedback e accuracy < 50% + volume suficiente → mastery regride para guided (DD-Ped1)', () => {
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      band: '1000-1200',
+      themeStages: { fork: 'retrieval' },
+    };
+    const plan = generatePlan(profile, [], 15, '2026-06-06', {
+      // 10 tentativas, 6 erros → accuracy 40%
+      recentThemeStats: { since: '2026-06-01', until: '2026-06-06', themes: [{ theme: 'fork', attempts: 10, losses: 6 }] },
+    });
+    const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+    expect(tema?.resourceStage).toBe('guided');
+  });
+
+  it('sem feedback e volume insuficiente (< 3 tentativas) → mantém persistedThemeStage (DD-Ped4)', () => {
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      band: '1000-1200',
+      themeStages: { fork: 'retrieval' },
+    };
+    const plan = generatePlan(profile, [], 15, '2026-06-06', {
+      recentThemeStats: { since: '2026-06-01', until: '2026-06-06', themes: [{ theme: 'fork', attempts: 2, losses: 0 }] },
+    });
+    const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+    expect(tema?.resourceStage).toBe('retrieval');
+  });
+
+  it('feedback explícito vence computeMastery mesmo com accuracy baixa (DD-Ped1)', () => {
+    // Aluno marcou 'easy' no último bloco → deve avançar para retrieval,
+    // independente da accuracy histórica que indicaria 'regress'.
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      band: '1000-1200',
+      themeStages: { fork: 'guided' },
+    };
+    // Simula plano anterior com feedback 'easy' no bloco de tema
+    const previousBlock = {
+      id: '2026-06-05-tema',
+      title: 'Garfo',
+      source: 'lichess' as const,
+      weaknessTag: 'fork' as const,
+      resourceStage: 'guided' as const,
+      task: '',
+      stopRule: '',
+      reason: '',
+      coachNote: '',
+      estimatedMinutes: 5,
+      status: 'done' as const,
+      destination: { source: 'lichess' as const, label: 'Puzzles Lichess: Fork', url: 'https://lichess.org/training/fork' },
+      feedback: 'easy' as const,
+      sessionNumber: 1,
+      updatedAt: '2026-06-05T10:00:00.000Z',
+    };
+    const plan = generatePlan(profile, [], 15, '2026-06-06', {
+      previousPlan: { date: '2026-06-05', sessionMinutes: 15, generatedFromWeaknessesAt: '2026-06-05T08:00:00', blocks: [previousBlock] },
+      recentThemeStats: { since: '2026-06-01', until: '2026-06-06', themes: [{ theme: 'fork', attempts: 10, losses: 7 }] },
+    });
+    const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+    // feedback 'easy' com cap retrieval → retrieval (feedback vence accuracy 30%)
+    expect(tema?.resourceStage).toBe('retrieval');
+  });
+
   it('volta à fraqueza primária na transferência quando não há secundária distinta', () => {
     const weaknesses = [
       { tag: 'fork' as const, score: 0.8, confidence: 'medium' as const, evidence: 'Garfos frequentes.' },

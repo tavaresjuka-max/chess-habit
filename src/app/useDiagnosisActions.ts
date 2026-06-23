@@ -369,7 +369,25 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
         // DD7: a nota de promoção (M2a) é CONCATENADA na mensagem final (não
         // setada antes, senão seria sobrescrita pela mensagem de sucesso).
         const bandNote = derivedBand !== undefined ? ` Subi sua faixa para ${derivedBand}.` : '';
-        setLichessMessage(`${syncBaseMessage}${bandNote}`);
+        // DD-Ped2/C5: nudge qualitativo quando puzzle rating > 90% do teto da faixa.
+        // Reutiliza sinal puzzle-perf já gravado no DB pelo sync — zero chamada extra (C2).
+        let puzzleNudge = '';
+        try {
+          const allSignals = await loadSignals();
+          const latestPuzzleSignal = [...allSignals]
+            .filter((s) => s.value.kind === 'puzzle-perf')
+            .sort((a, b) => b.observedAt.localeCompare(a.observedAt))[0];
+          if (latestPuzzleSignal?.value.kind === 'puzzle-perf') {
+            const effectiveBand = derivedBand ?? targetProfile.band;
+            const upperBound = parseInt(effectiveBand.split('-')[1] ?? '9999', 10);
+            if (latestPuzzleSignal.value.rating > upperBound * 0.9) {
+              puzzleNudge = ` Seu rating de puzzles (${String(latestPuzzleSignal.value.rating)}) está perto do teto da sua faixa — bom sinal!`;
+            }
+          }
+        } catch {
+          // silencioso: nudge é opcional, não pode travar o sync
+        }
+        setLichessMessage(`${syncBaseMessage}${bandNote}${puzzleNudge}`);
       } catch (error) {
         setLichessConnectionState('error');
         setLichessMessage(toLichessErrorMessage(error));
