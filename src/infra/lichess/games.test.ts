@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   extractSignalsFromLichessGames,
   fetchLichessGames,
+  fetchLichessPuzzlePerf,
   getPlayerSideLichess,
   parseLichessGamesNdjson,
 } from './games';
@@ -144,3 +145,58 @@ function requestUrl(input: RequestInfo | URL): string {
 
   return input.url;
 }
+
+describe('fetchLichessPuzzlePerf', () => {
+  const makeFetcher = (status: number, body: unknown) =>
+    (): Promise<Response> =>
+      Promise.resolve({
+        ok: status >= 200 && status < 300,
+        status,
+        json: () => Promise.resolve(body),
+      } as Response);
+
+  it('returns parsed rating and games for a valid response', async () => {
+    const fetcher = makeFetcher(200, {
+      perf: { glicko: { rating: 1340.7, deviation: 65.2, provisional: false } },
+      stat: { count: { all: 150 } },
+    });
+
+    const result = await fetchLichessPuzzlePerf('jukasparov', { fetcher });
+    expect(result).toEqual({ rating: 1341, games: 150, deviation: 65, provisional: false });
+  });
+
+  it('returns null on 404 (user has no puzzle history)', async () => {
+    const fetcher = makeFetcher(404, {});
+    const result = await fetchLichessPuzzlePerf('newuser', { fetcher });
+    expect(result).toBeNull();
+  });
+
+  it('returns null on other HTTP errors (graceful degradation)', async () => {
+    const fetcher = makeFetcher(500, {});
+    const result = await fetchLichessPuzzlePerf('user', { fetcher });
+    expect(result).toBeNull();
+  });
+
+  it('returns null on missing glicko fields', async () => {
+    const fetcher = makeFetcher(200, { perf: {}, stat: { count: { all: 10 } } });
+    const result = await fetchLichessPuzzlePerf('user', { fetcher });
+    expect(result).toBeNull();
+  });
+
+  it('returns null for empty username', async () => {
+    const fetcher = makeFetcher(200, {});
+    const result = await fetchLichessPuzzlePerf('', { fetcher });
+    expect(result).toBeNull();
+  });
+
+  it('does NOT emit signal for provisional rating (RD gate)', async () => {
+    // importLichessSignals deve filtrar; mas testamos a forma do resultado
+    const fetcher = makeFetcher(200, {
+      perf: { glicko: { rating: 1200, deviation: 200, provisional: true } },
+      stat: { count: { all: 5 } },
+    });
+    const result = await fetchLichessPuzzlePerf('newplayer', { fetcher });
+    expect(result).toEqual({ rating: 1200, games: 5, deviation: 200, provisional: true });
+    // (o gate acontece em puzzlePerfToSignal, não aqui)
+  });
+})

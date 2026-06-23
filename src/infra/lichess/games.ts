@@ -66,13 +66,24 @@ type JudgmentAggregate = {
 const lichessBaseUrl = 'https://lichess.org';
 
 export async function importLichessSignals(options: ImportLichessSignalsOptions): Promise<Signal[]> {
-  const games = await fetchLichessGames(options);
+  // Paralelo: partidas + rating de puzzles (API pública, sem OAuth).
+  // A fila serial garante rate-limit; Promise.allSettled encaixa ambas sem
+  // deixar um erro de puzzlePerf derrubar o import de partidas.
+  const [gamesResult, puzzlePerfResult] = await Promise.allSettled([
+    fetchLichessGames(options),
+    fetchLichessPuzzlePerf(options.username, { fetcher: options.fetcher }),
+  ]);
 
-  return extractSignalsFromLichessGames(
-    options.username,
-    games,
-    options.observedAt ?? new Date().toISOString(),
-  );
+  if (gamesResult.status === 'rejected') {
+    throw gamesResult.reason;
+  }
+
+  const observedAt = options.observedAt ?? new Date().toISOString();
+  const gameSignals = extractSignalsFromLichessGames(options.username, gamesResult.value, observedAt);
+  const puzzlePerf = puzzlePerfResult.status === 'fulfilled' ? puzzlePerfResult.value : null;
+  const puzzleSignal = puzzlePerfToSignal(puzzlePerf, observedAt);
+
+  return puzzleSignal === undefined ? gameSignals : [...gameSignals, puzzleSignal];
 }
 
 export async function fetchLichessGames(options: ImportLichessSignalsOptions): Promise<LichessGameJson[]> {
@@ -155,6 +166,71 @@ export function extractSignalsFromLichessGames(
     ...colorSignals(colors, observedAt),
     ...judgmentSignals(judgment, observedAt),
   ];
+}
+
+export type LichessPuzzlePerf = {
+  rating: number;
+  games: number;
+  deviation: number;
+  provisional: boolean;
+};
+
+export async function fetchLichessPuzzlePerf(
+  username: string,
+  options: { fetcher?: typeof fetch } = {},
+): Promise<LichessPuzzlePerf | null> {
+  const trimmed = username.trim();
+  if (trimmed === '') return null;
+
+  const fetcher = options.fetcher ?? lichessFetch;
+  const url = `${lichessBaseUrl}/api/user/${encodeURIComponent(trimmed)}/perf/puzzle`;
+  const response = await fetcher(url, { headers: { Accept: 'application/json' } });
+
+  if (response.status === 404) return null;
+  if (response.status === 429) throw new LichessRateLimitError();
+  if (!response.ok) return null;
+
+  return parsePuzzlePerf((await response.json()) as unknown);
+}
+
+function parsePuzzlePerf(data: unknown): LichessPuzzlePerf | null {
+  if (!isRecord(data)) return null;
+  const perf = data.perf;
+  if (!isRecord(perf)) return null;
+  const glicko = perf.glicko;
+  if (!isRecord(glicko)) return null;
+  const stat = data.stat;
+  const count = isRecord(stat) && isRecord(stat.count) ? stat.count : undefined;
+  const rating = glicko.rating;
+  const deviation = glicko.deviation;
+  const provisional = glicko.provisional;
+  const games = count?.all;
+
+  if (typeof rating !== 'number' || typeof deviation !== 'number') return null;
+
+  return {
+    rating: Math.round(rating),
+    games: typeof games === 'number' ? games : 0,
+    deviation: Math.round(deviation),
+    provisional: provisional === true,
+  };
+}
+
+function puzzlePerfToSignal(perf: LichessPuzzlePerf | null, observedAt: string): Signal | undefined {
+  // Gates do council: ≥10 partidas, não provisório, desvio ≤ 110.
+  // provisional=true indica RD alto (conta nova/inativa) — o rating é instável
+  // e não deve ancorar a seleção de banda. Threshold 110 ≈ 2× o RD de referência
+  // do Glicko-2; acima disso o IC de 95% cobre mais de 4 bandas.
+  if (perf === null || perf.games < 10 || perf.provisional || perf.deviation > 110) {
+    return undefined;
+  }
+
+  return {
+    source: 'lichess',
+    value: { kind: 'puzzle-perf', rating: perf.rating, games: perf.games },
+    confidence: 'high',
+    observedAt,
+  };
 }
 
 export function getPlayerSideLichess(game: LichessGameJson, username: string): LichessGameColor | null {

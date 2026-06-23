@@ -1,5 +1,5 @@
 import { learnerBands } from '../bands';
-import type { Confidence, LearnerBand } from '../types';
+import type { Confidence, LearnerBand, Signal } from '../types';
 
 // Placement v1 (Corte 3): questionario curto + rating conhecido opcional +
 // calibracao externa por puzzles no Lichess (autorrelato ou leitura puzzle:read).
@@ -161,4 +161,30 @@ export function describePlacementConfidence(confidence: Confidence): string {
     case 'low':
       return 'confiança baixa — calibrar com puzzles melhora a sugestão';
   }
+}
+
+export function bandFromPuzzlePerfSignal(
+  signals: Signal[],
+  currentBand?: LearnerBand,
+): { band: LearnerBand; rating: number } | null {
+  const signal = signals
+    .filter((s) => s.source === 'lichess' && s.value.kind === 'puzzle-perf')
+    .sort((a, b) => b.observedAt.localeCompare(a.observedAt))[0];
+
+  if (signal === undefined || signal.value.kind !== 'puzzle-perf') return null;
+
+  const { rating } = signal.value;
+  const suggestedBand = bandFromEstimate(rating);
+
+  // Anti-ping-pong: mantém banda atual se o delta for < 200 pts do centro da banda.
+  // Evita troca de banda por oscilação normal do Glicko-2 (±50 pts entre sessões).
+  if (currentBand !== undefined) {
+    const parts = currentBand.split('-').map(Number);
+    const lo = parts[0] ?? 0;
+    const hi = parts[1] ?? 0;
+    const mid = (lo + hi) / 2;
+    if (Math.abs(rating - mid) < 200) return { band: currentBand, rating };
+  }
+
+  return { band: suggestedBand, rating };
 }

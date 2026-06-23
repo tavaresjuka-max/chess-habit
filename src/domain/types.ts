@@ -41,7 +41,8 @@ export type SignalValue =
     }
   | { kind: 'clock'; timeoutLosses: number; games: number }
   | { kind: 'accuracy'; lowAccuracyGames: number; games: number }
-  | { kind: 'manual'; tag: WeaknessTag; note?: string };
+  | { kind: 'manual'; tag: WeaknessTag; note?: string }
+  | { kind: 'puzzle-perf'; rating: number; games: number };
 
 export type Signal = {
   source: SourceId;

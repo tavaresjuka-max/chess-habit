@@ -1,5 +1,6 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
+  bandFromPuzzlePerfSignal,
   buildDiagnosticThemeStats,
   buildPuzzleThemeStats,
   createWeaknessFromPuzzleStats,
@@ -305,10 +306,16 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
         }
 
         setLichessConnectionState(token === undefined ? 'disconnected' : 'connected');
-        setLichessMessage(
+
+        const puzzleBand = bandFromPuzzlePerfSignal(result.signals, targetProfile.band);
+        const syncBaseMessage =
           result.signals.length === 0
             ? 'Lichess atualizado, mas ainda sem sinais suficientes.'
-            : `Lichess atualizado com ${String(result.signals.length)} sinais derivados.`,
+            : `Lichess atualizado com ${String(result.signals.length)} sinais derivados.`;
+        setLichessMessage(
+          puzzleBand !== null && puzzleBand.band !== targetProfile.band
+            ? `${syncBaseMessage} Rating de puzzles: ${String(puzzleBand.rating)} → banda sugerida: ${puzzleBand.band}.`
+            : syncBaseMessage,
         );
       } catch (error) {
         setLichessConnectionState('error');

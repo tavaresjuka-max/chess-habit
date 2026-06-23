@@ -415,7 +415,8 @@ describe('training flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Atualizar Lichess' }));
 
     expect(await screen.findByText(/Lichess atualizado com/i)).toBeTruthy();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // 2 chamadas: 1 para partidas (NDJSON) + 1 para perf/puzzle (M2a)
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it('uses Conferir puzzles to update dashboard/replay signals and pending training blocks', async () => {

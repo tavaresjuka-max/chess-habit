@@ -271,6 +271,7 @@ function signalToCandidates(
       ];
 
     case 'color':
+    case 'puzzle-perf':
       return [];
     default:
       return assertNever(signal.value);
