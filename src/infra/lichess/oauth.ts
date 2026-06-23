@@ -1,4 +1,5 @@
 import type { LichessOAuthScope, LichessOAuthToken } from '../../domain';
+import { isRecord } from '../utils/typeGuards';
 
 export type LichessOAuthRequest = {
   authorizationUrl: string;
@@ -175,8 +176,4 @@ function bytesToBase64Url(bytes: Uint8Array): string {
   }
 
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }

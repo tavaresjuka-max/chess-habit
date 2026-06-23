@@ -1,5 +1,7 @@
 import type { Signal } from '../../domain';
 import { lichessFetch } from '../http/providerQueue';
+import { parseJsonLineOrUndefined } from '../utils/ndjson';
+import { isRecord } from '../utils/typeGuards';
 import { LichessRateLimitError } from './puzzleActivity';
 
 export type LichessGameColor = 'white' | 'black';
@@ -118,14 +120,6 @@ export function parseLichessGamesNdjson(ndjson: string): LichessGameJson[] {
     .filter((line) => line.trim() !== '')
     .map(parseJsonLineOrUndefined)
     .filter(isLichessGameJson);
-}
-
-function parseJsonLineOrUndefined(line: string): unknown {
-  try {
-    return JSON.parse(line) as unknown;
-  } catch {
-    return undefined;
-  }
 }
 
 export function extractSignalsFromLichessGames(
@@ -415,8 +409,4 @@ function toRate(count: number, total: number): number {
   }
 
   return Math.round((count / total) * 1000) / 1000;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }

@@ -1,4 +1,5 @@
 import { lichessFetch } from '../http/providerQueue';
+import { isRecord } from '../utils/typeGuards';
 import { LichessRateLimitError } from './puzzleActivity';
 
 const lichessBaseUrl = 'https://lichess.org';
@@ -79,8 +80,4 @@ function parsePerf(value: unknown): LichessPerf | undefined {
   }
 
   return { rating: value.rating, games: value.games, provisional: value.prov === true };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }
