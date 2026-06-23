@@ -60,6 +60,13 @@ type LatestThemeSignal = {
 // (ver masteryAwareFallback). Limiar inclusivo: exatamente 14 dias ainda vale.
 const FEEDBACK_EXPIRY_DAYS = 14;
 
+// Council (GLM 5.2, 2026-06-23): a acurácia só pode PROMOVER o estágio sobre uma
+// amostra robusta — avançar com 3 puzzles a ≥80% "fabrica progresso sobre ruído"
+// (variância empurra a acurácia pra cima por acaso e o floor trava o avanço pra
+// sempre). Alinhado ao padrão de graduação do projeto (SECTION_MIN_ATTEMPTS=30).
+// Regredir/segurar em amostra fina continua permitido (direção segura).
+const MIN_ATTEMPTS_FOR_STAGE_ADVANCE = 30;
+
 function isFeedbackExpired(blockDate: string, currentDate: string): boolean {
   const ageDays = (Date.parse(currentDate) - Date.parse(blockDate)) / 86_400_000;
   return ageDays > FEEDBACK_EXPIRY_DAYS;
@@ -116,7 +123,11 @@ export function generatePlan(
         ? primaryStat.accuracy
         : ((primaryStat.attempts - primaryStat.losses) / primaryStat.attempts) * 100;
     const mastery = computeMastery({ accuracyPercent, recentFeedbacks: [], minVolumeReached: true });
-    if (mastery === 'advance') return advanceThemeStage(persistedThemeStage, 'transfer');
+    // Avanço exige amostra robusta (anti-ratchet do council): abaixo do mínimo,
+    // a acurácia não promove — segura no estágio persistido.
+    if (mastery === 'advance' && primaryStat.attempts >= MIN_ATTEMPTS_FOR_STAGE_ADVANCE) {
+      return advanceThemeStage(persistedThemeStage, 'transfer');
+    }
     if (mastery === 'regress') {
       // DD-Ped6 + council: feedback EXPIRADO nunca regride abaixo do estágio já
       // alcançado (evita penhasco motivacional ao voltar de uma pausa). Sem
