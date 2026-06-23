@@ -26,6 +26,9 @@ import {
   type TutorQuestionAnswer,
   type Weakness,
 } from '../domain';
+import { computeRecentActivity } from '../domain/metrics/recentActivity';
+import { buildMilestoneLine, buildFactualFooter } from '../domain/coach/retentionCopy';
+import { AccumulationStrip } from './AccumulationStrip';
 import {
   DIPLOMAS,
   findDiplomaSectionForTheme,
@@ -200,6 +203,13 @@ export function Today({
 
   const sessionSummaries = getPlanSessionSummaries(plan);
   const totalPlannedMinutes = getPlanTotalMinutes(plan);
+  const consistency = computeConsistency(allTrainingLogs, plan.date);
+  const recentActivity = computeRecentActivity(allTrainingLogs, plan.date, 14);
+  const milestoneLine = buildMilestoneLine(consistency);
+  const factualFooter = buildFactualFooter({
+    todayMinutes: recentActivity.todayMinutes,
+    weekSessions: recentActivity.weekSessions,
+  });
   // Conquistas desbloqueadas hoje entram como linhas sóbrias no relatório do
   // dia (spec de badges: sem modal, sem confete).
   const achievementsUnlockedToday = achievements.filter(
@@ -217,9 +227,10 @@ export function Today({
             ...achievementsUnlockedToday.map(
               (achievement) => getAchievementDefinition(achievement.id).reportLine,
             ),
+            // Marca de recorde de sequência — linha sóbria, 1x por estado, sem modal.
+            ...(milestoneLine !== undefined ? [milestoneLine] : []),
           ],
         };
-  const consistency = computeConsistency(allTrainingLogs, plan.date);
   // Hero "Agora": o bloco ativo (treinando) ou o primeiro pendente. Uma ação
   // clara visível no topo — o app decide, o aluno só executa.
   const allBlocksOrdered = sessionSummaries.flatMap((session) => session.blocks);
@@ -344,13 +355,9 @@ export function Today({
           <strong>{minutesTrainedToday}</strong>
           <span>min hoje</span>
         </li>
-        {consistency.currentStreakDays >= 2 ? (
-          <li>
-            <strong>{consistency.currentStreakDays}</strong>
-            <span>dias seguidos</span>
-          </li>
-        ) : null}
       </ul>
+      <AccumulationStrip recentDays={recentActivity.recentDays} />
+      <p className="accumulation-footer">{factualFooter}</p>
 
       {backupReminder !== undefined ? (
         <p className="backup-reminder" role="status">

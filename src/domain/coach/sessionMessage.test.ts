@@ -23,13 +23,15 @@ describe('buildSessionMessage', () => {
     expect(message.lines).toContain(weakness.evidence);
   });
 
-  it('adds a sober streak line from 2 days on', () => {
+  it('não expõe contador de "dias seguidos" no welcome (acumulação carrega a constância — council 2026-06-23)', () => {
     const message = buildSessionMessage({
       phase: 'pre',
       primaryWeakness: weakness,
       consistency: { ...baseConsistency, currentStreakDays: 3 },
     });
-    expect(message.lines.some((line) => line.includes('3 dias seguidos'))).toBe(true);
+    // Streak consecutivo vira placar punitivo; o sinal de constância agora vem
+    // da faixa de acumulação na tela Hoje, não de uma linha do coach.
+    expect(message.lines.some((line) => line.includes('dias seguidos'))).toBe(false);
   });
 
   it('uses the return phase after an absence', () => {

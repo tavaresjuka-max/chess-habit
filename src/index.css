@@ -1133,6 +1133,44 @@ textarea {
   font-weight: 650;
 }
 
+/* ---------- Faixa de acumulação (substitui contador "X dias seguidos") ---------- */
+
+.accumulation-strip {
+  display: flex;
+  gap: 3px;
+  margin: 0 0 6px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.accumulation-day {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  /* Respeita prefers-reduced-motion: sem transição de enchimento */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .accumulation-day--active {
+    /* Nenhuma animação: preenchimento estático já é o suficiente */
+  }
+}
+
+.accumulation-day--active {
+  background: var(--green-900);
+  border-color: var(--green-900);
+}
+
+.accumulation-footer {
+  font-size: 0.78rem;
+  color: var(--ink-600);
+  margin: 0 0 20px;
+  font-weight: 500;
+}
+
 /* ---------- Hero "Agora": uma ação clara visível ---------- */
 
 .hero-now {
