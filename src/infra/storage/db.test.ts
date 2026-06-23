@@ -92,6 +92,63 @@ describe('migração Dexie v7 — backfill de updatedAt', () => {
       upgraded.close();
     }
   });
+
+  it('preserva updatedAt de signal que já o tinha antes da migração v7 (??= não sobrescreve)', async () => {
+    const name = 'migracao-test-v7-preserva-signal';
+
+    await seedLegacyDb(name, 6, V6_STORES, async (legacy) => {
+      await legacy.table('signals').put({
+        id: 's-existing',
+        source: 'lichess',
+        observedAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2025-12-01T00:00:00.000Z', // já definido no v6 (campo extra, não indexado)
+        confidence: 'medium',
+        value: { kind: 'accuracy', lowAccuracyGames: 3, games: 5 },
+      });
+    });
+
+    const upgraded = new TutorDatabase(name);
+    await upgraded.open();
+
+    try {
+      const signal = await upgraded.signals.get('s-existing');
+
+      // updatedAt já estava definido → ??= não sobrescreve.
+      expect(signal?.updatedAt).toBe('2025-12-01T00:00:00.000Z');
+    } finally {
+      upgraded.close();
+    }
+  });
+
+  it('usa now quando signal não tem observedAt nem updatedAt na migração v7', async () => {
+    const name = 'migracao-test-v7-sem-observedat';
+    const before = Date.now();
+
+    await seedLegacyDb(name, 6, V6_STORES, async (legacy) => {
+      // Registro sem observedAt nem updatedAt (campo omitido completamente).
+      await legacy.table('signals').put({
+        id: 's-nodate',
+        source: 'chesscom',
+        confidence: 'medium',
+        value: { kind: 'judgment', blunders: 2, mistakes: 1, inaccuracies: 0, games: 5 },
+      });
+    });
+
+    const upgraded = new TutorDatabase(name);
+    await upgraded.open();
+
+    try {
+      const signal = await upgraded.signals.get('s-nodate');
+
+      // updatedAt deve ser um timestamp válido de "agora" (fallback quando observedAt ausente).
+      expect(typeof signal?.updatedAt).toBe('string');
+      const parsed = Date.parse(signal?.updatedAt ?? '');
+      expect(Number.isNaN(parsed)).toBe(false);
+      expect(parsed).toBeGreaterThanOrEqual(before);
+    } finally {
+      upgraded.close();
+    }
+  });
 });
 
 describe('migração Dexie v8 — migrateLegacyBand', () => {
@@ -142,6 +199,33 @@ describe('migração Dexie v8 — migrateLegacyBand', () => {
       const profile = await upgraded.profile.get('default');
 
       expect(profile?.band).toBe('800-1000');
+    } finally {
+      upgraded.close();
+    }
+  });
+
+  it('não quebra quando perfil não tem campo band (typeof !== string → skip)', async () => {
+    const name = 'migracao-test-v8-sem-band';
+
+    await seedLegacyDb(name, 7, V7_STORES, async (legacy) => {
+      await legacy.table('profile').put({
+        id: 'default',
+        defaultSessionMinutes: 15,
+        goals: [],
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        // band propositalmente ausente — simula perfil antigo incompleto.
+      });
+    });
+
+    const upgraded = new TutorDatabase(name);
+    await upgraded.open();
+
+    try {
+      const profile = await upgraded.profile.get('default');
+
+      // Sem band no input, a migração pula silenciosamente (typeof !== 'string').
+      expect(profile?.band).toBeUndefined();
+      expect(profile?.defaultSessionMinutes).toBe(15);
     } finally {
       upgraded.close();
     }
