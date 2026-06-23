@@ -328,6 +328,90 @@ describe('Today — conquistas no relatório do dia', () => {
   });
 });
 
+describe('Today — faixa de acumulação (substitui contador de dias seguidos)', () => {
+  it('exibe a faixa de acumulação (aria-label com N de M dias)', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })] });
+    // Deve ter uma faixa com role="img" e aria-label informativo
+    expect(screen.getByRole('img', { name: /de \d+ dias com treino/ })).toBeInTheDocument();
+  });
+
+  it('não exibe mais "dias seguidos" nos números do dia', () => {
+    renderToday({
+      blocks: [makeBlock({ id: 'b1' })],
+      trainingLogs: [
+        makeDoneLog('bloco-streak-1', 600),
+        makeDoneLog('bloco-streak-2', 600),
+        makeDoneLog('bloco-streak-3', 600),
+      ],
+    });
+    expect(screen.queryByText('dias seguidos')).not.toBeInTheDocument();
+  });
+
+  it('exibe o rodapé factual com minutos e sessões da semana', () => {
+    renderToday({
+      blocks: [makeBlock({ id: 'b1' })],
+      trainingLogs: [makeDoneLog('bloco-1', 600)],
+    });
+    // O rodapé deve conter "min" e indicativo de sessões
+    expect(screen.getByText(/min · Esta semana:/)).toBeInTheDocument();
+  });
+
+  it('marca de recorde aparece no relatório do dia quando bate sequência recorde (≥3)', () => {
+    // Para ter streak de 3 dias e longest=3, precisamos de logs em 3 dias consecutivos
+    // O plano é 2026-06-12. Logs em 10, 11, 12 → streak=3, longest=3.
+    const streakLogs = [
+      {
+        id: '2026-06-10:bloco-streak',
+        date: '2026-06-10',
+        blockId: 'bloco-streak',
+        blockTitle: 'Tema',
+        source: 'lichess' as const,
+        destinationLabel: 'Lichess',
+        plannedSeconds: 600,
+        startedAt: '2026-06-10T10:00:00.000Z',
+        completedAt: '2026-06-10T10:10:00.000Z',
+        elapsedSeconds: 600,
+        timeLimitReached: false,
+        status: 'done' as const,
+        updatedAt: '2026-06-10T10:10:00.000Z',
+      },
+      {
+        id: '2026-06-11:bloco-streak',
+        date: '2026-06-11',
+        blockId: 'bloco-streak',
+        blockTitle: 'Tema',
+        source: 'lichess' as const,
+        destinationLabel: 'Lichess',
+        plannedSeconds: 600,
+        startedAt: '2026-06-11T10:00:00.000Z',
+        completedAt: '2026-06-11T10:10:00.000Z',
+        elapsedSeconds: 600,
+        timeLimitReached: false,
+        status: 'done' as const,
+        updatedAt: '2026-06-11T10:10:00.000Z',
+      },
+      makeDoneLog('bloco-1', 600), // 2026-06-12 (hoje no plano)
+    ];
+
+    renderToday({
+      blocks: [makeBlock({ id: 'bloco-1', status: 'done' })],
+      trainingLogs: streakLogs,
+    });
+
+    // A marca de recorde deve aparecer no relatório do dia (DayCompletionCard)
+    expect(screen.getByText('Esta é a sua sequência mais longa até aqui.')).toBeInTheDocument();
+  });
+
+  it('marca de recorde não aparece em dia normal (sem bater recorde)', () => {
+    // Apenas 1 log hoje, sem streak histórico
+    renderToday({
+      blocks: [makeBlock({ id: 'bloco-1', status: 'done' })],
+      trainingLogs: [makeDoneLog('bloco-1', 600)],
+    });
+    expect(screen.queryByText('Esta é a sua sequência mais longa até aqui.')).not.toBeInTheDocument();
+  });
+});
+
 // ---------------------------------------------------------------------------
 // formatRoadmapStatus — covers 'done' and 'future' branches (lines 859-866)
 // ---------------------------------------------------------------------------

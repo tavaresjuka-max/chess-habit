@@ -152,7 +152,9 @@ describe('TutorCard', () => {
     expect(onAnswer).toHaveBeenCalledWith('loose-piece');
   });
 
-  it('reads the streak from full history, not just today logs', () => {
+  it('não mostra contador de "dias seguidos" mesmo com histórico de vários dias (council 2026-06-23)', () => {
+    // M-Retenção: o streak consecutivo foi removido do coach (vira placar
+    // punitivo); a constância passa a vir da faixa de acumulação na tela Hoje.
     const history: TrainingLog[] = [
       { ...doneLog(), id: 'log-d1', date: '2026-06-06' },
       { ...doneLog(), id: 'log-d2', date: '2026-06-07' },
@@ -170,7 +172,7 @@ describe('TutorCard', () => {
       />,
     );
 
-    expect(screen.getByText('2 dias seguidos. Isso já é rotina.')).toBeInTheDocument();
+    expect(screen.queryByText(/dias seguidos/)).not.toBeInTheDocument();
   });
 
   it('greets a returning learner from the gap in full history, not today logs', () => {

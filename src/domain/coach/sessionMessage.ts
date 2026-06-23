@@ -17,20 +17,16 @@ function reasonLine(weakness: Weakness | undefined): string {
   return weakness?.evidence ?? MAINTENANCE_REASON;
 }
 
-function streakLines(consistency: Consistency): string[] {
-  if (consistency.currentStreakDays >= 2) {
-    return [`${String(consistency.currentStreakDays)} dias seguidos. Isso já é rotina.`];
-  }
-  return [];
-}
-
+// M-Retenção (council 2026-06-23): NÃO expor um contador de "dias seguidos" no
+// coach. Streak consecutivo vira placar — na quebra a linha some sozinha
+// (punição por omissão) e dispara evitação no aluno TDAH. O sinal de constância
+// passa a vir da FAIXA DE ACUMULAÇÃO na tela Hoje (intrínseco, nunca "quebra").
 function buildWelcome(context: SessionContext): CoachMessage {
   return {
     phase: 'welcome',
     lines: [
       'Bom treino. Comece observando o tabuleiro inteiro antes do primeiro lance.',
       reasonLine(context.primaryWeakness),
-      ...streakLines(context.consistency),
     ],
   };
 }
