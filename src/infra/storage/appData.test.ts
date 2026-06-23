@@ -634,7 +634,7 @@ describe('appData storage', () => {
     // Documenta o comportamento real do "defer": updatePendingItemStatus(id,'deferred')
     // persiste apenas status e updatedAt. dueAt e demais campos são preservados.
     // (O plano Task 5 menciona "defer reagenda dueAt"; o código NÃO reagenda.
-    //  Ver RELATÓRIO — divergência sinalizada, não corrigida porNON-GOALS.)
+    //  Ver RELATÓRIO — divergência sinalizada, não corrigida por NON-GOALS.)
     const item = createPendingItem();
 
     await savePendingItem(item);

@@ -220,6 +220,60 @@ describe('pending training items', () => {
       expect(buildGuidingPrompt(track)).not.toBe('');
     }
   });
+
+  it('cadeia de transições: hard → open → due → advance(hard) → open again (M-Hardening Task 5)', () => {
+    // Cadeia pedida pelo plano (Task 5):
+    //   criação por feedback 'hard' → open (estudar) → defer/reestuda → volta a ficar due.
+    // Asserir cada transição persiste o campo certo (status, dueAt, lastFeedback, attempts).
+    //
+    // 1. Criação por 'hard': item nasce OPEN, dueAt=amanhã, lastFeedback='hard'.
+    const created = createPendingItemFromFeedback(baseLog, 'fork', 'pending-review', 'fork');
+
+    expect(created).toMatchObject({
+      status: 'open',
+      dueAt: tomorrow,
+      lastFeedback: 'hard',
+      attempts: 0,
+    });
+    // No dia seguinte ainda NÃO está due (dueAt=amanhã == hoje+1; isDueToday checa <=).
+    // Simula "hoje" sendo o dia da criação: dueAt=amanhã ainda não venceu.
+    expect(isDueToday(created, { nowFn: () => new Date(`${today}T12:00:00`) })).toBe(false);
+
+    // 2. Avançando o calendário até o dueAt → item "volta a ficar due".
+    //    (isDueToday é a função que decide se o item aparece na fila de revisão.)
+    vi.setSystemTime(new Date(`${tomorrow}T12:00:00.000Z`));
+    const dueTomorrow = isDueToday(created, {
+      nowFn: () => new Date(`${tomorrow}T12:00:00`),
+    });
+    expect(dueTomorrow).toBe(true);
+
+    // 3. Estuda (advance) dando feedback 'hard' novamente: dueAt é reagendado para
+    //    amanhã (relativo ao novo "hoje" = tomorrow), attempts permanece em 0
+    //    (hard recua, clamp em 0), status continua OPEN. lastFeedback='hard'.
+    const advanced = advancePendingItem(created, 'hard');
+
+    expect(advanced).toMatchObject({
+      status: 'open',
+      dueAt: addDays(tomorrow, 1),
+      lastFeedback: 'hard',
+      attempts: 0,
+    });
+    // Após advance(hard) o item sai da fila due (dueAt virou depois de "hoje").
+    expect(isDueToday(advanced, { nowFn: () => new Date(`${tomorrow}T12:00:00`) })).toBe(false);
+
+    // 4. Volta a ficar due no dia seguinte ao novo dueAt (cadeia se repete).
+    const dayAfter = addDays(tomorrow, 1);
+    expect(isDueToday(advanced, { nowFn: () => new Date(`${dayAfter}T12:00:00`) })).toBe(true);
+  });
+
+  it('isDueToday ignora itens deferred: defer não é "due" (M-Hardening Task 5)', () => {
+    // Documenta o comportamento REAL de defer: o item sai da lista open/due.
+    // (O plano menciona "defer reagenda dueAt", mas o updatePendingItemStatus só
+    // persiste status+updatedAt — sem auto-revive para open. Ver report.)
+    const deferredItem = createItem({ status: 'deferred', dueAt: today });
+
+    expect(isDueToday(deferredItem, { nowFn: () => new Date(`${today}T12:00:00`) })).toBe(false);
+  });
 });
 
 function createItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {
