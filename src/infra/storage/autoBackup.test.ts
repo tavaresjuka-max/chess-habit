@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   describeAutoBackupStatus,
   getSaveFilePicker,
+  isAutoBackupSupported,
   pickAutoBackupFile,
   writeAutoBackup,
   type FileSystemFileHandleLike,
@@ -81,6 +82,28 @@ describe('writeAutoBackup', () => {
 
     expect(await writeAutoBackup(handle, 'x')).toBe('error');
   });
+
+  it('writes directly when handle has no queryPermission method', async () => {
+    // Covers the false branch of `handle.queryPermission !== undefined`:
+    // permission stays 'granted' and the write proceeds without a permission check.
+    const { handle, written, closed } = createHandle({
+      queryPermission: undefined,
+      requestPermission: undefined,
+    });
+
+    expect(await writeAutoBackup(handle, 'direct')).toBe('written');
+    expect(written).toEqual(['direct']);
+    expect(closed.value).toBe(true);
+  });
+
+  it('returns needs-permission when requestPermission is called but denies', async () => {
+    const { handle } = createHandle({
+      queryPermission: vi.fn().mockResolvedValue('prompt'),
+      requestPermission: vi.fn().mockResolvedValue('denied'),
+    });
+
+    expect(await writeAutoBackup(handle, 'x', { allowPermissionRequest: true })).toBe('needs-permission');
+  });
 });
 
 describe('getSaveFilePicker', () => {
@@ -95,6 +118,33 @@ describe('getSaveFilePicker', () => {
     g['showSaveFilePicker'] = fakePicker;
     try {
       expect(getSaveFilePicker()).toBe(fakePicker);
+    } finally {
+      delete g['showSaveFilePicker'];
+    }
+  });
+
+  it('returns undefined when showSaveFilePicker is a non-function value', () => {
+    const g = globalThis as Record<string, unknown>;
+    g['showSaveFilePicker'] = 'not-a-function';
+    try {
+      expect(getSaveFilePicker()).toBeUndefined();
+    } finally {
+      delete g['showSaveFilePicker'];
+    }
+  });
+});
+
+describe('isAutoBackupSupported', () => {
+  it('returns false when File System Access API is absent', () => {
+    // jsdom environment: showSaveFilePicker is not defined
+    expect(isAutoBackupSupported()).toBe(false);
+  });
+
+  it('returns true when showSaveFilePicker is present', () => {
+    const g = globalThis as Record<string, unknown>;
+    g['showSaveFilePicker'] = vi.fn();
+    try {
+      expect(isAutoBackupSupported()).toBe(true);
     } finally {
       delete g['showSaveFilePicker'];
     }
@@ -135,5 +185,13 @@ describe('describeAutoBackupStatus', () => {
     expect(describeAutoBackupStatus('enabled', 'meu.json')).toContain('meu.json');
     expect(describeAutoBackupStatus('needs-permission')).toContain('permissão');
     expect(describeAutoBackupStatus('error')).toContain('falhou');
+  });
+
+  it('omits the file name when enabled status has no fileName', () => {
+    // Covers the `fileName === undefined ? '' : ...` false branch (line 110).
+    const description = describeAutoBackupStatus('enabled');
+
+    expect(description).toContain('ativo');
+    expect(description).not.toContain('em "');
   });
 });

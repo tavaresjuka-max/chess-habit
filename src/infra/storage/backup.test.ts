@@ -312,6 +312,192 @@ describe('validateBackupData', () => {
     expect(error).toContain('profile');
   });
 
+  // --- plans validation sub-branches ---
+
+  it('rejects plans item where blocks is not an array', () => {
+    const data: BackupData = { ...createEmptyData(), plans: [{ date: '2026-06-01', blocks: 'bad' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('blocks');
+  });
+
+  it('rejects plans item where a block is not an object', () => {
+    const data: BackupData = { ...createEmptyData(), plans: [{ date: '2026-06-01', blocks: [null] }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('blocks[0]');
+  });
+
+  it('rejects plans item where block destination is not an object', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      plans: [{ date: '2026-06-01', blocks: [{ id: 'b1', destination: 'bad' }] }],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('destination');
+  });
+
+  it('accepts a plan block with a valid Lichess destination URL', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      plans: [
+        {
+          date: '2026-06-01',
+          blocks: [{ id: 'b1', destination: { url: 'https://lichess.org/training/fork' } }],
+        },
+      ],
+    };
+
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  it('accepts a plan block with no destination (undefined)', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      plans: [{ date: '2026-06-01', blocks: [{ id: 'b1' }] }],
+    };
+
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  it('accepts a plan block with a destination that has no url field', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      plans: [{ date: '2026-06-01', blocks: [{ id: 'b1', destination: { label: 'No URL' } }] }],
+    };
+
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  // --- logs validation sub-branches ---
+
+  it('rejects logs item that is not an object', () => {
+    const data: BackupData = { ...createEmptyData(), logs: ['not-an-object'] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('logs');
+    expect(error).toContain('id');
+  });
+
+  // --- signals validation sub-branches ---
+
+  it('rejects signals item that is not an object', () => {
+    const data: BackupData = { ...createEmptyData(), signals: [42] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('signals');
+    expect(error).toContain('id');
+  });
+
+  it('rejects signals item missing observedAt', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      signals: [{ id: 's1', source: 'lichess', value: { kind: 'accuracy' } }],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('signals');
+    expect(error).toContain('observedAt');
+  });
+
+  // --- weaknesses validation sub-branches ---
+
+  it('rejects weaknesses item with empty tag string', () => {
+    const data: BackupData = { ...createEmptyData(), weaknesses: [{ id: 'w1', tag: '' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('weaknesses');
+    expect(error).toContain('tag');
+  });
+
+  // --- methodTracks validation sub-branches ---
+
+  it('rejects methodTracks item that is not an object', () => {
+    const data: BackupData = { ...createEmptyData(), methodTracks: [null] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('methodTracks');
+    expect(error).toContain('id');
+  });
+
+  it('rejects methodTracks item with empty id', () => {
+    const data: BackupData = { ...createEmptyData(), methodTracks: [{ id: '' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('methodTracks');
+    expect(error).toContain('id');
+  });
+
+  it('accepts valid methodTracks items', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      methodTracks: [{ id: 'track-1', method: 'puzzle', updatedAt: '2026-06-01T00:00:00.000Z' }],
+    };
+
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  // --- pendingItems validation sub-branches ---
+
+  it('rejects pendingItems item that is not an object', () => {
+    const data: BackupData = { ...createEmptyData(), pendingItems: [null] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('pendingItems');
+    expect(error).toContain('id');
+  });
+
+  // --- diplomaAttempts validation sub-branches ---
+
+  it('rejects diplomaAttempts item that is not an object', () => {
+    const data: BackupData = { ...createEmptyData(), diplomaAttempts: [null] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('diplomaAttempts');
+    expect(error).toContain('id');
+  });
+
+  it('rejects diplomaAttempts item with empty id', () => {
+    const data: BackupData = { ...createEmptyData(), diplomaAttempts: [{ id: '' }] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('diplomaAttempts');
+    expect(error).toContain('id');
+  });
+
+  it('accepts valid diplomaAttempts items', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      diplomaAttempts: [{ id: 'attempt-1', theme: 'fork', accuracy: 90, attemptedAt: '2026-06-01T00:00:00.000Z' }],
+    };
+
+    expect(validateBackupData(data)).toBeNull();
+  });
+
+  // --- lichessStudies validation sub-branches ---
+
+  it('rejects lichessStudies item that is not an object', () => {
+    const data: BackupData = { ...createEmptyData(), lichessStudies: [null] };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('lichessStudies');
+    expect(error).toContain('id');
+  });
+
   it('rejects achievements item with empty id', () => {
     const data: BackupData = {
       ...createEmptyData(),
@@ -370,6 +556,36 @@ describe('parseBackupFile error paths', () => {
     }
   });
 
+  it('rejects a backup with a wrong format name', async () => {
+    const file = await createBackupFile(createEmptyData(), '2026-06-10T12:00:00.000Z');
+    const broken = JSON.parse(JSON.stringify(file)) as Record<string, unknown>;
+
+    broken.format = 'wrong-format';
+
+    const result = await parseBackupFile(JSON.stringify(broken));
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('lichess-tutor');
+    }
+  });
+
+  it('rejects a backup with an unsupported version number', async () => {
+    const file = await createBackupFile(createEmptyData(), '2026-06-10T12:00:00.000Z');
+    const broken = JSON.parse(JSON.stringify(file)) as Record<string, unknown>;
+
+    broken.version = 99;
+
+    const result = await parseBackupFile(JSON.stringify(broken));
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('99');
+    }
+  });
+
   it('rejects a backup where exportedAt is missing', async () => {
     const file = await createBackupFile(createEmptyData(), '2026-06-10T12:00:00.000Z');
     const broken = JSON.parse(JSON.stringify(file)) as Record<string, unknown>;
@@ -399,5 +615,108 @@ describe('parseBackupFile error paths', () => {
     if (!result.ok) {
       expect(result.error).toContain('dados');
     }
+  });
+
+  it('rejects a backup whose checksum does not match the data', async () => {
+    const file = await createBackupFile(createEmptyData(), '2026-06-10T12:00:00.000Z');
+    const tampered = JSON.parse(JSON.stringify(file)) as Record<string, unknown>;
+    const data = tampered.data as Record<string, unknown>;
+
+    // Inject an extra record so data no longer matches the stored checksum.
+    (data['logs'] as unknown[]).push({ id: 'injected', startedAt: '2026-01-01T00:00:00.000Z' });
+
+    const result = await parseBackupFile(JSON.stringify(tampered));
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('Checksum');
+    }
+  });
+
+  it('rejects a backup whose fnv1a checksum does not match', async () => {
+    // Build a valid backup and replace the checksum prefix so the algorithm
+    // branch that detects "fnv1a:" is exercised, then corrupt the hash value.
+    const file = await createBackupFile(createEmptyData(), '2026-06-10T12:00:00.000Z');
+    const broken = JSON.parse(JSON.stringify(file)) as Record<string, unknown>;
+
+    broken.checksum = 'fnv1a:deadbeef';
+
+    const result = await parseBackupFile(JSON.stringify(broken));
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toContain('Checksum');
+    }
+  });
+});
+
+describe('computeBackupChecksum algorithm selection', () => {
+  it('uses fnv1a when crypto is completely undefined', async () => {
+    const originalCrypto = globalThis.crypto;
+
+    try {
+      // Delete the crypto global so typeof globalThis.crypto === 'undefined'
+      // triggering the very first early-return in getSubtleCrypto.
+      Object.defineProperty(globalThis, 'crypto', {
+        value: undefined,
+        configurable: true,
+        writable: true,
+      });
+
+      const checksum = await computeBackupChecksum('hello');
+
+      expect(checksum).toMatch(/^fnv1a:/);
+    } finally {
+      Object.defineProperty(globalThis, 'crypto', {
+        value: originalCrypto,
+        configurable: true,
+        writable: true,
+      });
+    }
+  });
+
+  it('uses fnv1a when crypto.subtle is unavailable (insecure context)', async () => {
+    const originalCrypto = globalThis.crypto;
+
+    try {
+      // Replace crypto with an object that has no `subtle` property so the
+      // code takes the fnv1a fallback branch (second guard in getSubtleCrypto).
+      Object.defineProperty(globalThis, 'crypto', {
+        value: {},
+        configurable: true,
+        writable: true,
+      });
+
+      const checksum = await computeBackupChecksum('hello');
+
+      expect(checksum).toMatch(/^fnv1a:/);
+    } finally {
+      Object.defineProperty(globalThis, 'crypto', {
+        value: originalCrypto,
+        configurable: true,
+        writable: true,
+      });
+    }
+  });
+
+  it('uses fnv1a when explicitly requested even with subtle available', async () => {
+    const checksum = await computeBackupChecksum('hello', 'fnv1a');
+
+    expect(checksum).toMatch(/^fnv1a:[0-9a-f]{8}$/);
+  });
+
+  it('countBackupRecords includes all optional tables when present', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      achievements: [{}],
+      placementResults: [{}, {}],
+      lichessStudies: [{}, {}, {}],
+      appMeta: [{}],
+    };
+
+    // 0 required + 1 + 2 + 3 + 1 = 7
+    expect(countBackupRecords(data)).toBe(7);
   });
 });
