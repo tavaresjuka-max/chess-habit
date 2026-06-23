@@ -20,7 +20,7 @@ export default defineConfig({
     // url em 127.0.0.1 e o vite preview default às vezes sobe só em ::1.
     command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4188 --strictPort',
     url: 'http://127.0.0.1:4188',
-    reuseExistingServer: false,
+    reuseExistingServer: !process.env['CI'],
     timeout: 180_000,
   },
 });
