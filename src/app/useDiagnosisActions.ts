@@ -1,5 +1,6 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
+  buildDiagnosticThemeStats,
   buildPuzzleThemeStats,
   createWeaknessFromPuzzleStats,
   createKnownManualSignals,
@@ -160,7 +161,11 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       setSignals(allSignals);
       const nowIso = new Date().toISOString();
       const date = getTodayDate();
+      // recentThemeStats (com todos os logs) é usado para detecção de fraqueza
+      // (createWeaknessFromPuzzleStats). diagnosticThemeStats (D5) filtra logs de
+      // pool e alimenta selectPrimaryWeakness em generatePlan — evita ping-pong.
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
+      const diagnosticThemeStats = buildDiagnosticThemeStats(trainingLogs);
       const puzzleWeakness =
         createWeaknessFromPuzzleStats(recentThemeStats, nowIso) ??
         (await loadStoredPuzzleWeakness(nowIso));
@@ -175,7 +180,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
         date,
         buildPlanContext({
           previousPlan: latestPlanRef.current,
-          recentThemeStats,
+          recentThemeStats: diagnosticThemeStats,
           trainingLogs,
           pendingItems,
           diplomaAttempts,
@@ -390,7 +395,10 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     const allSignals = await loadSignals();
     setSignals(allSignals);
     const nowIso = new Date().toISOString();
+    // Dual-use: recentThemeStats para detecção de fraqueza; diagnosticThemeStats (D5)
+    // para generatePlan (guarda anti ping-pong).
     const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
+    const diagnosticThemeStats = buildDiagnosticThemeStats(trainingLogs);
     const nextWeaknesses = mergePuzzleWeakness(
       detectWeaknesses(filterSignalsForDiagnosis(allSignals, nowIso), profile?.band),
       createWeaknessFromPuzzleStats(recentThemeStats, nowIso),
@@ -408,7 +416,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
         date,
         buildPlanContext({
           previousPlan: todayPlan,
-          recentThemeStats,
+          recentThemeStats: diagnosticThemeStats,
           trainingLogs,
           pendingItems,
           diplomaAttempts,
@@ -441,7 +449,10 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       const allSignals = await loadSignals();
       setSignals(allSignals);
       const nowIso = new Date().toISOString();
+      // Dual-use: recentThemeStats para detecção de fraqueza; diagnosticThemeStats (D5)
+      // para generatePlan (guarda anti ping-pong).
       const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
+      const diagnosticThemeStats = buildDiagnosticThemeStats(trainingLogs);
       const puzzleWeakness =
         createWeaknessFromPuzzleStats(recentThemeStats, nowIso) ??
         (await loadStoredPuzzleWeakness(nowIso));
@@ -462,7 +473,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
           date,
           buildPlanContext({
             previousPlan: todayPlan,
-            recentThemeStats,
+            recentThemeStats: diagnosticThemeStats,
             trainingLogs,
             pendingItems,
             diplomaAttempts,

@@ -1,6 +1,6 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
-  buildPuzzleThemeStats,
+  buildDiagnosticThemeStats,
   buildSkillMap,
   completeTrainingLog,
   createTrainingLog,
@@ -175,7 +175,8 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
               setPendingItems(nextPendingItems);
 
               if (profile !== undefined) {
-                const recentThemeStats = buildPuzzleThemeStats(nextTrainingLogs);
+                // D5: usa buildDiagnosticThemeStats para excluir logs de pool do sinal diagnóstico.
+                const recentThemeStats = buildDiagnosticThemeStats(nextTrainingLogs);
 
                 finalPlan = generatePlan(
                   profile,

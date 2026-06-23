@@ -148,6 +148,10 @@ export type LearnerProfile = {
   // graduação (stage=transfer + acurácia≥80% sobre ≥30 puzzles) e agora integram
   // o pool de revisão espaçada. Derivado de avaliação externa; não gerenciado aqui.
   graduatedThemes?: WeaknessTag[];
+  // D4 (scheduler híbrido 2026-06-22): tema que era primário na última sessão criada.
+  // Usado em conjunto com sessionsOnPrimaryTheme para detectar mudança de tema e
+  // resetar o contador. Não gerenciado por generatePlan — atualizado em createNextSession.
+  currentPrimaryTheme?: WeaknessTag;
   // D4 (scheduler híbrido 2026-06-22): número de sessões em que o tema atual foi
   // primário sem graduar. Reset ao graduar ou forçar rotação. Usado para aplicar
   // o teto anti-trava de 12 sessões.

@@ -1,7 +1,7 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 import {
-  buildPuzzleThemeStats,
+  buildDiagnosticThemeStats,
   buildSkillMap,
   generatePlan,
   type Achievement,
@@ -144,7 +144,8 @@ export function useStudyActions(input: UseStudyActionsInput) {
         );
 
         const effectiveProfile = bandChanged ? { ...currentProfile, band: promotedBand } : currentProfile;
-        const recentThemeStats = buildPuzzleThemeStats(nextTrainingLogs);
+        // D5: usa buildDiagnosticThemeStats para excluir logs de pool do sinal diagnóstico.
+        const recentThemeStats = buildDiagnosticThemeStats(nextTrainingLogs);
         const nextPlan = generatePlan(
           effectiveProfile,
           weaknesses,

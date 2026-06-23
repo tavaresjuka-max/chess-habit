@@ -11,7 +11,7 @@ import type {
   Weakness,
 } from '../domain';
 import {
-  buildPuzzleThemeStats,
+  buildDiagnosticThemeStats,
   computeConsistency,
   generatePlan,
   getReturnSessionMinutes,
@@ -182,7 +182,8 @@ export function useAppData() {
         }
 
         const storedAchievements = await syncAchievements(storedAllTrainingLogs);
-        const recentThemeStats = buildPuzzleThemeStats(storedTrainingLogs);
+        // D5: usa buildDiagnosticThemeStats para excluir logs de pool do sinal diagnóstico no boot.
+        const recentThemeStats = buildDiagnosticThemeStats(storedTrainingLogs);
         const normalizedStoredPlan = storedPlan === undefined ? undefined : normalizePlanDestinations(storedPlan);
         const normalizedPreviousPlan =
           previousPlan === undefined ? undefined : normalizePlanDestinations(previousPlan);

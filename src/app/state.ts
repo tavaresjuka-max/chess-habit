@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import {
-  buildPuzzleThemeStats,
+  buildDiagnosticThemeStats,
   createTrainingRoadmap,
   generatePlan,
   type Achievement,
@@ -213,7 +213,8 @@ export function useAppState(): AppState {
       promotedBand === rawProfile.band ? rawProfile : { ...rawProfile, band: promotedBand };
 
     const date = getTodayDate();
-    const recentThemeStats = buildPuzzleThemeStats(trainingLogs);
+    // D5: usa buildDiagnosticThemeStats para excluir logs de pool do sinal diagnóstico.
+    const recentThemeStats = buildDiagnosticThemeStats(trainingLogs);
     const plan = generatePlan(
       nextProfile,
       weaknesses,
