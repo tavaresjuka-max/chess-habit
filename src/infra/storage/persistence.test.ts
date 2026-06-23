@@ -62,6 +62,21 @@ describe('requestPersistentStorage', () => {
 
     expect(await requestPersistentStorage()).toBe('unsupported');
   });
+
+  it('returns unsupported when navigator.storage has no persist method', async () => {
+    // Covers the branch where storage exists but lacks the persist API
+    // (partial StorageManager implementation in older browsers).
+    stubStorageManager({ persisted: vi.fn().mockResolvedValue(false) });
+
+    expect(await requestPersistentStorage()).toBe('unsupported');
+  });
+
+  it('returns unsupported when navigator.storage has no persisted method', async () => {
+    // Covers the branch where storage exists but lacks the persisted API.
+    stubStorageManager({ persist: vi.fn().mockResolvedValue(true) });
+
+    expect(await requestPersistentStorage()).toBe('unsupported');
+  });
 });
 
 describe('describePersistenceStatus', () => {

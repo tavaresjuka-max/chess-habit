@@ -495,3 +495,180 @@ describe('Config — manual signals import', () => {
     expect(onImportKnownManualSignals).toHaveBeenCalledTimes(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// autoBackupStatus branches
+// ---------------------------------------------------------------------------
+
+describe('Config — autoBackupStatus', () => {
+  it('shows "Ativar backup automático" when autoBackupStatus is "disabled"', () => {
+    render(<Config {...makeProps({ autoBackupStatus: 'disabled' })} />);
+    openFold('Dados locais');
+    expect(screen.getByRole('button', { name: 'Ativar backup automático' })).toBeInTheDocument();
+  });
+
+  it('calls onEnableAutoBackup when "Ativar backup automático" is clicked', async () => {
+    const onEnableAutoBackup = vi.fn(() => Promise.resolve());
+    render(<Config {...makeProps({ autoBackupStatus: 'disabled', onEnableAutoBackup })} />);
+    openFold('Dados locais');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ativar backup automático' }));
+    await flushPromises();
+
+    expect(onEnableAutoBackup).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows "Desligar backup automático" when autoBackupStatus is "enabled"', () => {
+    render(<Config {...makeProps({ autoBackupStatus: 'enabled' })} />);
+    openFold('Dados locais');
+    expect(screen.getByRole('button', { name: 'Desligar backup automático' })).toBeInTheDocument();
+    // "Reativar" button should NOT be shown when status is 'enabled'
+    expect(screen.queryByRole('button', { name: 'Reativar backup automático' })).not.toBeInTheDocument();
+  });
+
+  it('calls onDisableAutoBackup when "Desligar backup automático" is clicked', async () => {
+    const onDisableAutoBackup = vi.fn(() => Promise.resolve());
+    render(<Config {...makeProps({ autoBackupStatus: 'enabled', onDisableAutoBackup })} />);
+    openFold('Dados locais');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Desligar backup automático' }));
+    await flushPromises();
+
+    expect(onDisableAutoBackup).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows both "Reativar" and "Desligar" when autoBackupStatus is "needs-permission"', () => {
+    render(<Config {...makeProps({ autoBackupStatus: 'needs-permission' })} />);
+    openFold('Dados locais');
+    expect(screen.getByRole('button', { name: 'Reativar backup automático' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Desligar backup automático' })).toBeInTheDocument();
+  });
+
+  it('does NOT show auto-backup buttons when autoBackupStatus is "unsupported"', () => {
+    render(<Config {...makeProps({ autoBackupStatus: 'unsupported' })} />);
+    openFold('Dados locais');
+    expect(screen.queryByRole('button', { name: 'Ativar backup automático' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Desligar backup automático' })).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatBackupMeta — invalid date branch (line 411-412)
+// ---------------------------------------------------------------------------
+
+describe('Config — formatBackupMeta', () => {
+  it('shows "Nenhum backup exportado ainda." when backupMeta is undefined', () => {
+    render(<Config {...makeProps({ backupMeta: undefined })} />);
+    openFold('Dados locais');
+    expect(screen.getByText('Nenhum backup exportado ainda.')).toBeInTheDocument();
+  });
+
+  it('shows formatted date and record count when backupMeta is valid', () => {
+    render(
+      <Config
+        {...makeProps({
+          backupMeta: {
+            exportedAt: '2026-06-15T10:00:00.000Z',
+            recordCount: 42,
+            checksum: 'abc123',
+          },
+        })}
+      />,
+    );
+    openFold('Dados locais');
+    expect(screen.getByText(/42 registros/)).toBeInTheDocument();
+  });
+
+  it('falls back to raw string when exportedAt is not a valid date', () => {
+    render(
+      <Config
+        {...makeProps({
+          backupMeta: {
+            exportedAt: 'data-invalida',
+            recordCount: 3,
+            checksum: 'xyz',
+          },
+        })}
+      />,
+    );
+    openFold('Dados locais');
+    expect(screen.getByText(/data-invalida/)).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatLichessConnection — error state (line 428)
+// ---------------------------------------------------------------------------
+
+describe('Config — formatLichessConnection', () => {
+  it('shows "Conexão Lichess precisa de atenção." when connectionState is "error"', () => {
+    render(<Config {...makeProps({ lichessConnectionState: 'error' })} />);
+    openFold('Lichess');
+    expect(screen.getByText('Conexão Lichess precisa de atenção.')).toBeInTheDocument();
+  });
+
+  it('shows "Sincronizando com o Lichess." when connectionState is "syncing"', () => {
+    render(<Config {...makeProps({ lichessConnectionState: 'syncing' })} />);
+    openFold('Lichess');
+    expect(screen.getByText('Sincronizando com o Lichess.')).toBeInTheDocument();
+  });
+
+  it('shows "Desconectado." when token is undefined and state is "disconnected"', () => {
+    render(<Config {...makeProps({ lichessToken: undefined, lichessConnectionState: 'disconnected' })} />);
+    openFold('Lichess');
+    expect(screen.getByText('Desconectado.')).toBeInTheDocument();
+  });
+
+  it('shows connected scopes when token is present', () => {
+    const lichessToken = {
+      accessToken: 'tok123',
+      tokenType: 'Bearer' as const,
+      scopes: ['puzzle:read' as const, 'study:write' as const],
+      obtainedAt: '2026-06-15T00:00:00.000Z',
+      expiresAt: '2027-06-15T00:00:00.000Z',
+    };
+    render(<Config {...makeProps({ lichessToken, lichessConnectionState: 'connected' })} />);
+    openFold('Lichess');
+    expect(screen.getByText(/puzzle:read/)).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// storagePersistence branch
+// ---------------------------------------------------------------------------
+
+describe('Config — storagePersistence', () => {
+  it('renders persistence status when storagePersistence is provided', () => {
+    render(<Config {...makeProps({ storagePersistence: 'persisted' })} />);
+    openFold('Dados locais');
+    // describePersistenceStatus returns a string; just confirm it's rendered
+    const dataZone = screen.getByRole('region', { name: /config/i }).querySelector('.data-zone');
+    expect(dataZone).toBeInTheDocument();
+  });
+
+  it('does NOT show a persistence paragraph when storagePersistence is undefined', () => {
+    render(<Config {...makeProps({ storagePersistence: undefined })} />);
+    openFold('Dados locais');
+    // Just confirms no crash and section renders
+    expect(screen.getByText('Nenhum backup exportado ainda.')).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// lichessMessage visible in Lichess fold
+// ---------------------------------------------------------------------------
+
+describe('Config — lichessMessage', () => {
+  it('renders lichessMessage when provided', () => {
+    render(<Config {...makeProps({ lichessMessage: 'Erro de autenticação.' })} />);
+    openFold('Lichess');
+    expect(screen.getByText('Erro de autenticação.')).toBeInTheDocument();
+  });
+
+  it('does NOT render a lichessMessage paragraph when undefined', () => {
+    render(<Config {...makeProps({ lichessMessage: undefined })} />);
+    openFold('Lichess');
+    // "Desconectado." is already present but no extra message paragraph
+    expect(screen.queryByText('Erro de autenticação.')).not.toBeInTheDocument();
+  });
+});

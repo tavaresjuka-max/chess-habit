@@ -8,6 +8,8 @@ type LichessDataset = 'many' | 'few' | 'none';
 type MockApiOptions = {
   chesscom?: Record<string, ChesscomDataset>;
   lichess?: Record<string, LichessDataset>;
+  /** Override the mocked /api/account rapid rating (default: 1500, non-provisional, 50 games). */
+  lichessAccountRating?: number;
 };
 
 const screenshotDir = path.join(process.cwd(), 'e2e', '__screenshots__');
@@ -188,6 +190,24 @@ async function mockExternalApis(page: Page, options: MockApiOptions): Promise<vo
 
   await page.route('https://lichess.org/**', async (route) => {
     const url = new URL(route.request().url());
+
+    if (url.pathname === '/api/account') {
+      // M2a: retorna conta com rating de jogo alto e não-provisório para disparar
+      // a promoção de banda (só sobe). `prov: false` = não-provisório (parseLichessAccount
+      // usa `value.prov === true` para marcar provisional).
+      const rapidRating = options.lichessAccountRating ?? 1500;
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'e2euser',
+          username: 'e2eUser',
+          perfs: {
+            rapid: { rating: rapidRating, games: 50, prov: false },
+          },
+        }),
+      });
+      return;
+    }
 
     if (url.pathname === '/api/token') {
       await route.fulfill({

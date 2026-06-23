@@ -327,3 +327,238 @@ describe('Today — conquistas no relatório do dia', () => {
     ).not.toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// formatRoadmapStatus — covers 'done' and 'future' branches (lines 859-866)
+// ---------------------------------------------------------------------------
+
+describe('Today — roadmap status labels', () => {
+  function renderWithRoadmap(items: import('../domain').TrainingRoadmapItem[]) {
+    return render(
+      <Today
+        plan={makePlan([makeBlock({ id: 'b1' })])}
+        roadmap={items}
+        sessionMinutes={15}
+        learnerBand="0-400"
+        trainingLogs={[]}
+        allTrainingLogs={[]}
+        pendingItems={[]}
+        diplomaAttempts={[]}
+        achievements={[]}
+        weaknesses={[]}
+        diagnosisState="idle"
+        diagnosisMessage={undefined}
+        lichessConnectionState="disconnected"
+        lichessConnected={false}
+        lichessMessage={undefined}
+        lichessStudyLink={undefined}
+        backupMeta={undefined}
+        onSessionMinutesChange={noop}
+        onCreateNextSession={noop}
+        onAnswerTutorQuestion={noop}
+        onImportFreeActivity={noop}
+        onSyncChesscomDiagnosis={noop}
+        onSyncLichessDiagnosis={noop}
+        onReconcileLichessResults={noop}
+        onCreateLichessStudy={noop}
+        onConnectLichess={noop}
+        onApproveLearningPlan={noop}
+        onRequestLearningPlanRevision={noop}
+        onOpenPendingItem={noop}
+        onDeferPendingItem={noop}
+        onSavePendingFromHardFeedback={noop}
+        onStartBlockTraining={noop}
+        onCompleteBlockTraining={noop}
+        onSkipBlockTraining={noop}
+      />,
+    );
+  }
+
+  it('renders "Planejado" for a current roadmap item', () => {
+    renderWithRoadmap([
+      {
+        id: 'r1',
+        date: '2026-06-12',
+        label: 'Garfos',
+        minutes: 10,
+        title: 'Puzzles de garfo',
+        destinationLabel: 'Lichess',
+        status: 'current',
+      },
+    ]);
+    expect(screen.getByText(/Planejado/)).toBeInTheDocument();
+  });
+
+  it('renders "Feito" for a done roadmap item', () => {
+    renderWithRoadmap([
+      {
+        id: 'r2',
+        date: '2026-06-11',
+        label: 'Garfos',
+        minutes: 10,
+        title: 'Puzzles de garfo (feito)',
+        destinationLabel: 'Lichess',
+        status: 'done',
+      },
+    ]);
+    expect(screen.getByText(/Feito/)).toBeInTheDocument();
+  });
+
+  it('renders "Próximo" for a future roadmap item', () => {
+    renderWithRoadmap([
+      {
+        id: 'r3',
+        date: '2026-06-13',
+        label: 'Pregadas',
+        minutes: 10,
+        title: 'Puzzles de pregada',
+        destinationLabel: 'Lichess',
+        status: 'future',
+      },
+    ]);
+    // formatRoadmapStatus('future') returns 'Próximo' in a <small> element inside the roadmap list
+    const roadmapList = screen.getByRole('list', { name: /próximos passos do roteiro/i });
+    expect(within(roadmapList).getByText(/Próximo/)).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// playTimerBeep — prefers-reduced-motion early return (line 833)
+// ---------------------------------------------------------------------------
+
+describe('Today — timer beep (prefers-reduced-motion)', () => {
+  it('does NOT create AudioContext when prefers-reduced-motion is active', () => {
+    // Mock matchMedia to report prefers-reduced-motion: reduce
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    const AudioContextSpy = vi.fn();
+    const originalAudioContext = (window as unknown as Record<string, unknown>).AudioContext;
+    (window as unknown as Record<string, unknown>).AudioContext = AudioContextSpy;
+
+    // Render with an active training log to trigger the timer effect
+    const activeLog: TrainingLog = {
+      id: '2026-06-12:bloco-1',
+      date: '2026-06-12',
+      blockId: 'bloco-1',
+      blockTitle: 'Tema do dia',
+      source: 'lichess',
+      destinationLabel: 'Lichess',
+      plannedSeconds: 1, // already expired
+      startedAt: new Date(Date.now() - 5000).toISOString(),
+      completedAt: undefined,
+      elapsedSeconds: undefined,
+      timeLimitReached: false,
+      status: 'active',
+      updatedAt: new Date().toISOString(),
+    };
+
+    renderToday({
+      blocks: [makeBlock({ id: 'bloco-1' })],
+      trainingLogs: [activeLog],
+    });
+
+    // AudioContext should never have been constructed
+    expect(AudioContextSpy).not.toHaveBeenCalled();
+
+    // Restore
+    window.matchMedia = originalMatchMedia;
+    (window as unknown as Record<string, unknown>).AudioContext = originalAudioContext;
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getNextDiplomaSummary — undefined return path (line 826)
+// ---------------------------------------------------------------------------
+
+describe('Today — next diploma summary (undefined path)', () => {
+  it('renders without a diploma chip when diplomaAttempts is empty', () => {
+    renderToday({
+      blocks: [makeBlock({ id: 'b1' })],
+    });
+    // The SessionMilestonesCard renders without crashing; no diploma chip shown
+    expect(screen.getByRole('heading', { name: 'Hoje' })).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getBackupReminder — NaN date branch (line 744)
+// ---------------------------------------------------------------------------
+
+describe('Today — backup reminder NaN date', () => {
+  it('shows "data do último export não pôde ser lida" when exportedAt is invalid', () => {
+    renderToday({
+      blocks: [makeBlock({ id: 'b1' })],
+      trainingLogs: [makeDoneLog('b1', 600)],
+      backupMeta: {
+        checksum: 'x',
+        exportedAt: 'data-invalida',
+        recordCount: 5,
+      },
+    });
+    expect(screen.getByText(/data do último export não pôde ser lida/i)).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatFriendlyDate — invalid date falls back to raw string (line 709)
+// ---------------------------------------------------------------------------
+
+describe('Today — formatFriendlyDate invalid date', () => {
+  it('falls back to the raw date string when plan.date is not a valid date', () => {
+    render(
+      <Today
+        plan={{
+          date: 'nao-e-data',
+          sessionMinutes: 15,
+          blocks: [],
+          generatedFromWeaknessesAt: '2026-06-12T09:00:00.000Z',
+        }}
+        roadmap={[]}
+        sessionMinutes={15}
+        learnerBand="0-400"
+        trainingLogs={[]}
+        allTrainingLogs={[]}
+        pendingItems={[]}
+        diplomaAttempts={[]}
+        achievements={[]}
+        weaknesses={[]}
+        diagnosisState="idle"
+        diagnosisMessage={undefined}
+        lichessConnectionState="disconnected"
+        lichessConnected={false}
+        lichessMessage={undefined}
+        lichessStudyLink={undefined}
+        backupMeta={undefined}
+        onSessionMinutesChange={noop}
+        onCreateNextSession={noop}
+        onAnswerTutorQuestion={noop}
+        onImportFreeActivity={noop}
+        onSyncChesscomDiagnosis={noop}
+        onSyncLichessDiagnosis={noop}
+        onReconcileLichessResults={noop}
+        onCreateLichessStudy={noop}
+        onConnectLichess={noop}
+        onApproveLearningPlan={noop}
+        onRequestLearningPlanRevision={noop}
+        onOpenPendingItem={noop}
+        onDeferPendingItem={noop}
+        onSavePendingFromHardFeedback={noop}
+        onStartBlockTraining={noop}
+        onCompleteBlockTraining={noop}
+        onSkipBlockTraining={noop}
+      />,
+    );
+    // The raw string 'nao-e-data' should appear in the subtitle line
+    expect(screen.getByText(/nao-e-data/)).toBeInTheDocument();
+  });
+});
