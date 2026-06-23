@@ -183,13 +183,31 @@ describe('generatePlan', () => {
       themeStages: { fork: 'guided' },
     };
     const plan = generatePlan(profile, [], 15, '2026-06-06', {
-      // fork com 10 tentativas e 0 erros → accuracy 100% (ou nativa se tivesse)
-      recentThemeStats: { since: '2026-06-01', until: '2026-06-06', themes: [{ theme: 'fork', attempts: 10, losses: 0 }] },
+      // fork com 30 tentativas e 0 erros → accuracy 100% e volume robusto (≥30).
+      recentThemeStats: { since: '2026-06-01', until: '2026-06-06', themes: [{ theme: 'fork', attempts: 30, losses: 0 }] },
     });
     const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
 
     // guided + advance (teto transfer) → retrieval
     expect(tema?.resourceStage).toBe('retrieval');
+  });
+
+  it('sem feedback, accuracy alta MAS amostra fina (< 30) → NÃO promove, segura no persistido (council anti-ratchet)', () => {
+    // Achado do council (GLM 2026-06-23): avançar com poucos puzzles a ≥80%
+    // fabrica progresso sobre ruído. Com 10/10 (100%) mas < 30 tentativas, a
+    // acurácia não promove — o estágio fica no persistido.
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      band: '1000-1200',
+      themeStages: { fork: 'guided' },
+    };
+    const plan = generatePlan(profile, [], 15, '2026-06-06', {
+      recentThemeStats: { since: '2026-06-01', until: '2026-06-06', themes: [{ theme: 'fork', attempts: 10, losses: 0 }] },
+    });
+    const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+    // Sem volume robusto: segura no persistido 'guided' (não avança para retrieval).
+    expect(tema?.resourceStage).toBe('guided');
   });
 
   it('sem feedback e accuracy < 50% + volume suficiente → mastery regride para guided (DD-Ped1)', () => {
@@ -307,16 +325,28 @@ describe('generatePlan', () => {
       expect(tema?.resourceStage).toBe('retrieval');
     });
 
-    it('feedback de 20 dias + acurácia alta → expira e a acurácia AVANÇA do persistido', () => {
-      // 'easy' há 20 dias expira; persistido = retrieval (high-water); acurácia 90%
-      // (advance) → avança um do persistido → transfer.
+    it('feedback de 20 dias + acurácia alta + volume robusto (≥30) → expira e a acurácia AVANÇA do persistido', () => {
+      // 'easy' há 20 dias expira; persistido = retrieval (high-water); 30 puzzles
+      // a ~90% (advance, volume robusto) → avança um do persistido → transfer.
+      const plan = generatePlan(profile1200, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-03', 'guided', 'easy')),
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 30, losses: 3 }] },
+      });
+      const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
+
+      expect(tema?.resourceStage).toBe('transfer');
+    });
+
+    it('feedback de 20 dias + acurácia alta MAS amostra fina (< 30) → expira mas NÃO fabrica avanço (council anti-ratchet)', () => {
+      // Mesmo cenário de expiração, mas só 10 puzzles a 90%: amostra fina não
+      // promove. Segura no persistido 'retrieval' (não vai a 'transfer').
       const plan = generatePlan(profile1200, [], 15, '2026-06-23', {
         previousPlan: planWith(temaFeedbackBlock('2026-06-03', 'guided', 'easy')),
         recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 10, losses: 1 }] },
       });
       const tema = plan.blocks.find((b) => b.id.endsWith('-tema'));
 
-      expect(tema?.resourceStage).toBe('transfer');
+      expect(tema?.resourceStage).toBe('retrieval');
     });
 
     it('feedback de 20 dias + acurácia baixa → expira mas NÃO regride abaixo do persistido (council)', () => {
