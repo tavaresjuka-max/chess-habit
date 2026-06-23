@@ -1,123 +1,144 @@
-# Pacote de prompts — visual premium (Chess Habit)
+# M0 - Style Guide: Chess Habit Visual Premium
 
-Gerado 2026-06-21 a partir do council de UX e da análise dos assets que JÁ existem
-(`public/art/`), para manter consistência (risco nº1 do council: assets com
-tratamentos diferentes). Use o **TEMPLATE MESTRE** em TODO prompt — é o que garante
-que cada imagem nova combine com o Professor Lemos, os diplomas e os selos atuais.
+Status: todos os assets ja existem em `public/art/` como imagens provisorias. M0 e sobre substituir esses arquivos por versoes premium geradas pelo usuario no ChatGPT Plus e integradas no repo.
 
-Regra de ouro de a11y/PWA (council): **as imagens são SÓ o papel/elemento — sem
-texto embutido.** O texto real (plano, notas, números) é renderizado pelo app por
-cima, para ser selecionável, acessível e traduzível. Gere superfícies em branco.
+Regra de ouro: as imagens nao devem conter texto real. O app renderiza textos por cima para manter acessibilidade, traducao e contraste.
 
----
+## Lemos
 
-## Automação (gerar via API)
+Use esta base em todos os prompts do Lemos:
 
-Já existe um script que faz tudo: `scripts/generate-art.mjs`. Ele chama a OpenAI
-Images API (`gpt-image-1`), salva o master em `entrega/` e otimiza para WebP em
-`public/art/`. A chave vem só do ambiente (`OPENAI_API_KEY`) — nunca de arquivo.
+> Lemos, a wise horse chess tutor. Character design: anthropomorphic dark gray horse professor with a long thoughtful face, soft black-gray mane, small round reading glasses, friendly intelligent eyes, wearing a dark forest-green knitted cardigan, cream shirt, and muted gold bow tie. Art style: antique academic storybook illustration, painterly colored pencil and watercolor, soft paper grain, clean composition, no harsh outlines. Color palette: deep forest greens, warm parchment tones (#f5f3ec background family), muted gold accents, dark wood. Always consistent: same horse face, same mane, same glasses, same cardigan, same bow tie.
 
+Consistencia:
+
+- Mesmo cavalo professor em todos os assets: pelagem cinza-escura, crina preta/cinza, oculos pequenos, cardigan verde-escuro e gravata-borboleta dourada.
+- Expressoes podem variar, mas o rosto e a silhueta precisam permanecer estaveis.
+- Fundo parchment cream `#f5f3ec` ou neutro suave.
+- Evitar fundo branco puro, fantasia medieval exagerada, armadura, sombras duras e traco de cartoon moderno.
+
+## Lote 1 - impacto maximo
+
+### `lemos-pose-boas-vindas.webp` - 1024x1024
+
+> [base Lemos] Pose: Lemos standing upright, arms slightly open in a welcoming gesture, warm genuine smile, slightly leaning forward. Mood: welcoming, warm, "come on in". Background: soft parchment, subtle chess board pattern in the distance.
+
+### `lemos-pose-aprovando.webp` - 1024x1024
+
+> [base Lemos] Pose: Lemos giving a firm thumbs up, confident smile, slight nod energy. Mood: approval, "well done", confident. Background: soft glow behind him, parchment.
+
+### `lemos-pose-celebracao.webp` - 1024x1024
+
+> [base Lemos] Pose: Lemos arms raised in celebration, huge grin, one hand holding a small trophy or chess piece (knight). Mood: joyful victory, "you did it!". Background: warm golden light, confetti or sparkles, parchment base.
+
+### `lemos-avatar-medalhao.webp` - 512x512
+
+> [base Lemos] Bust/portrait shot of Lemos, from shoulders up. Framing: circular or oval medallion crop effect. Expression: confident, friendly, direct eye contact. Background: rich dark green (#1f3f36), subtle ornamental border. Style: portrait medallion, slightly more formal than the poses.
+
+## Lote 2 - poses complementares
+
+### `lemos-pose-chamando-de-volta.webp` - 1024x1024
+
+> [base Lemos] Pose: Lemos waving with one hand raised, the other hand gesturing "come here", friendly beckoning smile. Mood: "come back, we miss you", gentle invitation. Background: soft parchment, hint of a chess clock ticking.
+
+### `lemos-pose-pensando.webp` - 1024x1024
+
+> [base Lemos] Pose: Lemos in classic thinking pose - chin resting on one hand, eyes slightly upward, a small chess piece (knight or queen) on the table in front of him. Mood: contemplative, analyzing, focused. Background: dim study light, parchment.
+
+### `lemos-pose-explicando.webp` - 1024x1024
+
+> [base Lemos] Pose: Lemos at a small chalkboard or pointing at a chess diagram, teaching posture, one hand extended pointing, focused but friendly expression. Mood: "let me explain", patient tutor. Background: study room, books visible, parchment tones.
+
+### `loading-lemos.webp` - 512x512
+
+> [base Lemos] Pose: Lemos seated at a small desk, looking at a tiny chess board, hand on chin, thinking. Small hourglass or chess clock nearby. Mood: patient waiting, studying. Background: warm study light, parchment. Style: cozy, calm, patient.
+
+## Lote 3 - diplomas
+
+Conceito geral:
+
+> Medieval parchment diploma/certificate. Style: illuminated manuscript aesthetic, gold leaf accents, ornamental border. Color: aged parchment (#f5f3ec base), deep forest green (#1f3f36) for borders, gold (#c9a227) for decorations. Typography space: large central area for the chess piece icon + title text, leave clean.
+
+### `diploma-peao.webp` - 1024x1024
+
+> [diploma concept] Central icon: a beautiful golden chess pawn piece, rendered with depth and gleam. Border: simple but elegant - vines and pawns repeating. Bottom: space for text "Mestre dos Peoes" (text added in UI).
+
+### `diploma-rei.webp` - 1024x1024
+
+> [diploma concept] Central icon: a majestic golden chess king, ornate crown, gleaming. Border: royal ornamental - fleur-de-lis and kings. Bottom: space for "Mestre do Rei".
+
+### `diploma-torre.webp` - 1024x1024
+
+> [diploma concept] Central icon: a solid golden chess rook/tower, fortress-like. Border: castellated top border, stone texture accent. Bottom: space for "Mestre das Torres".
+
+## Lote 4 - fundos e bilhetes
+
+### `fundo-mesa-dia.webp` - 1792x1024
+
+> A warm medieval study room from above/angle view. A large wooden desk with: an open chess book, a chessboard mid-game, a cup of tea, scattered notes, a quill pen. Lighting: warm golden daylight from a window, dust particles visible. Color: warm ambers, dark woods, parchment whites. Style: detailed painterly illustration, slightly realistic, no characters visible. Aspect: 1792x1024 widescreen landscape.
+
+### `fundo-mesa-noite.webp` - 1792x1024
+
+> Same scene as fundo-mesa-dia but at night. Lighting: warm oil lamp / candlelight, deep shadows, cozy amber glow. The chess book is open to a different page, as if someone has been studying for hours. Color: deeper ambers, near-black wood, warm candlelight pools. Style: same painterly illustration, nighttime atmosphere. Aspect: 1792x1024 widescreen landscape.
+
+### `bilhete-lemos.webp` - about 600x300
+
+> A handwritten note on aged parchment paper. Lemos's handwriting style: neat but warm, medieval-influenced script. Content placeholder: ruled lines on parchment, a small ink stamp of Lemos's fox paw. No actual words needed - just the texture of a personal note. Style: physical note, slightly worn edges.
+
+### `bilhete-lemos-noite.webp` - 600x300
+
+> Same parchment note but on a darker background (night reading). The parchment has slightly warmer/amber tint from candlelight. Same Lemos paw stamp.
+
+## Lote 5 - paginas/documentos UI
+
+### `boas-vindas-placement.webp` - about 800x600
+
+> A chess board seen slightly from above, elegant wooden pieces mid-setup. Surrounding: a parchment frame, feeling of "diagnosis day". Style: warm, inviting, "let's see where you are". No text needed - UI adds text overlay.
+
+### `boletim-semanal.webp` - about 800x600
+
+> A formal parchment document style - a weekly report/bulletin. Decorative header with chess motifs. Body: placeholder lines (not real text), feels like a weekly report. Stamp/seal in corner: a knight or chess piece.
+
+### `pagina-caderno.webp` - about 800x600
+
+> An open notebook page, slightly cream/parchment. Style: college-rule lines but in warm parchment tones. Corner: a small chess piece doodle (like a student would draw). Feels: personal study notes, warm and human.
+
+## Lote 6 - selos gold
+
+Os PNGs existem em `assets/badges-gold/`. Converter em massa para WebP, sem regenerar.
+
+Conceito geral dos selos gold:
+
+> Circular badge/seal design. Style: wax seal or embossed coin aesthetic. Color: rich gold (#c9a227) on dark green (#1f3f36) background. Each seal has: a central icon + ring border with small text/ornament. Style: premium heraldic, slightly 3D embossed look.
+
+## Integracao por lote
+
+Coloque os PNGs recebidos em `entrega/m0/` com os nomes finais, por exemplo `lemos-pose-boas-vindas.png`, e rode:
+
+```powershell
+node scripts/integrate-m0-assets.mjs
 ```
-# PowerShell
-$env:OPENAI_API_KEY="sk-..."; node scripts/generate-art.mjs
-# bash
-OPENAI_API_KEY=sk-... node scripts/generate-art.mjs
-# um só:  node scripts/generate-art.mjs --only=selo-cera-torre
+
+Para integrar um unico arquivo:
+
+```powershell
+node scripts/integrate-m0-assets.mjs --only=lemos-pose-boas-vindas
 ```
 
-O modelo de imagem é `gpt-image-1` (o chat `gpt-5.5` não emite arquivo via API
-direta). Os prompts abaixo são a referência humana; a versão canônica executável
-está embutida no script. Custo ~US$1,5-2 pelos 8 assets.
+Para converter os PNGs de badges:
 
-## TEMPLATE MESTRE (cole no início de cada prompt)
+```powershell
+node scripts/integrate-m0-assets.mjs --badges
+```
 
-> Vintage academic storybook illustration, in the style of a hand-drawn antique
-> chess manual. Aged parchment / cream paper (#f5f3ec), deep forest-green (#1f3f36)
-> and antique-gold (#9f8540) accents, ink (#16201c) linework. Rendered in soft
-> colored pencil and light watercolor with fine pen outlines and subtle paper grain.
-> Warm, diffused light from the upper-left, gentle natural drop shadow, restrained
-> ornate detailing, cozy and scholarly mood. Part of a cohesive set that includes an
-> anthropomorphic horse professor in a green cardigan and ornate green-and-gold
-> diploma frames with a wax seal. Muted warm palette only. NOT flat vector, NOT 3D
-> render, NOT photographic, no neon, no harsh contrast.
+Checklist:
 
-## RESTRIÇÕES TÉCNICAS (valem para todos)
+- Converter para `public/art/<nome>.webp`.
+- Verificar peso: poses 1024x1024 abaixo de 80 KB; fundos 1792x1024 abaixo de 200 KB; avatares 512x512 abaixo de 40 KB.
+- Verificar dimensoes.
+- Rodar `npm run build`.
+- Fazer check visual em preview desktop e mobile.
+- Commitar por lote pequeno, por exemplo `art(m0): add lemos welcome pose premium`.
+- Deploy obrigatorio via prebuilt: `vercel build --prod --yes` e `vercel deploy --prebuilt --prod --yes`.
 
-> Single centered subject, isolated on a transparent background (alpha), generous
-> empty margin. No text, letters, numbers, captions or watermark of any kind. Even
-> line weight and identical lighting across the whole set. Master render 1024 px on
-> the long side; trim and export to WebP, quality ~70, target ≤40 KB.
-
----
-
-## 1. Página de caderno — plano do dia (`pagina-caderno.webp`)
-
-**Uso:** fundo do plano do dia (o app desenha os blocos por cima).
-**Formato:** retrato 4:5 (~1024×1280).
-
-> [TEMPLATE MESTRE] A single sheet of aged ruled notebook paper lying flat, faint
-> horizontal rules and one thin vertical margin line in dusty red, softly worn and
-> slightly darkened edges, a gentle curl at the bottom-right corner, one or two very
-> light coffee-ring stains. Completely blank (no writing). [RESTRIÇÕES]
-
-## 2. Bilhete do Professor — nota/post-it (`bilhete-lemos.webp`)
-
-**Uso:** fundo do TutorCard (a fala do Professor vai por cima). Máx. 1 por tela.
-**Formato:** paisagem ~5:3 (~1024×620).
-
-> [TEMPLATE MESTRE] A small note card of warm cream paper, gently rotated about -2
-> degrees, one top corner slightly lifted, held by a short strip of translucent
-> washi tape at the top center, soft drop shadow beneath. Faint horizontal guide
-> lines, blank surface. Cozy, hand-made feel. [RESTRIÇÕES]
->
-> Variante modo-noite (council alertou contraste): repetir trocando "warm cream
-> paper" por "soft dark slate paper (#22303c) with a faint warm grain", mantendo a
-> fita translúcida — para o texto claro do app ter contraste.
-
-## 3. Selos de cera — seções (`selo-cera-{peao,torre,rei,cavalo,louro}.webp`)
-
-**Uso:** elevar os selos de seção ao mesmo tratamento do selo do diploma (consistência).
-**Formato:** quadrado ~512×512 cada, fundo transparente.
-
-> [TEMPLATE MESTRE] A round wax seal in deep forest-green sealing wax with an
-> antique-gold chess emblem pressed into the center — [EMBLEMA] — glossy wax sheen,
-> slightly irregular hand-pressed wax rim, small soft drop shadow. Identical in
-> style to the green-and-gold wax seal at the bottom of the existing diploma.
-> [RESTRIÇÕES]
->
-> Trocar [EMBLEMA] por: a pawn / a rook / a king / a knight horse-head / a laurel
-> wreath. Gerar todos no MESMO ângulo e iluminação.
-
-## 4. Boletim semanal (`boletim-semanal.webp`)
-
-**Uso:** fundo do resumo semanal no Progresso (o app desenha as métricas/carimbos por cima).
-**Formato:** retrato 4:5 (~1024×1280).
-
-> [TEMPLATE MESTRE] An aged academic report-card sheet of parchment, a slim
-> green-and-gold ruled header band across the top, faint horizontal rows below it, a
-> small green-and-gold chess crest centered at the very top, a narrow side column
-> marked off for a stack of day stamps, softly worn edges. All rows completely blank
-> (no writing). [RESTRIÇÕES]
-
-## 5. (Opcional) Carimbo de tinta "FEITO/BOA" (`carimbo-feito.webp`)
-
-**Uso:** substituir o carimbo CSS atual ao concluir bloco, se quiser textura real.
-**Formato:** ~512×320, transparente. (Hoje é CSS puro; só gere se quiser o look de borracha.)
-
-> [TEMPLATE MESTRE] A diagonal rubber-stamp imprint in muted brick-red ink
-> (#9d3d37), an empty rounded-rectangle stamp frame with distressed, slightly
-> uneven hand-pressed edges and ink speckle. Blank inside (the app prints the word).
-> Transparent background. [RESTRIÇÕES]
-
----
-
-## Ordem sugerida (impacto/esforço)
-
-1. **Selos de cera** (#3) — destravam consistência de TODO o sistema de selos; 5 imagens, mesmo molde.
-2. **Bilhete do Professor** (#2) + variante noite — alto afeto, 1 lugar.
-3. **Página de caderno** (#1) — transforma a tela principal.
-4. **Boletim semanal** (#4) — fecha o Progresso.
-5. Carimbo "FEITO" (#5) — opcional (já há versão CSS).
-
-Depois de gerar: cada asset entra com `loading="lazy"`, exceto os 1–2 críticos da
-primeira dobra (`<link rel="preload">`). Manter ≤40 KB por arquivo.
+Nota de cache: depois do deploy, o app Android pode precisar do botao "Atualizar agora" quando o service worker detectar novo hash.

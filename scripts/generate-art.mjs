@@ -26,15 +26,14 @@ if (!API_KEY) {
 const FORCE = process.argv.includes('--force');
 const ONLY = process.argv.find((arg) => arg.startsWith('--only='))?.slice('--only='.length);
 
-// Template MESTRE (igual ao de docs/design/image-prompts-premium.md). Garante que
-// todo asset combine com o Professor Lemos, os diplomas e os selos já existentes.
+// Template MESTRE. Garante que todo asset combine com Lemos, os diplomas e os selos.
 const MASTER =
-  'Vintage academic storybook illustration, in the style of a hand-drawn antique chess manual. ' +
-  'Aged parchment / cream paper (#f5f3ec), deep forest-green (#1f3f36) and antique-gold (#9f8540) ' +
-  'accents, ink (#16201c) linework. Soft colored pencil and light watercolor with fine pen outlines ' +
-  'and subtle paper grain. Warm diffused light from the upper-left, gentle natural drop shadow, ' +
-  'restrained ornate detailing, cozy scholarly mood. Cohesive with a set featuring an anthropomorphic ' +
-  'horse professor in a green cardigan and ornate green-and-gold diploma frames with a wax seal. ' +
+  'Warm storybook illustration, slightly painterly, soft depth-of-field, clean composition, no harsh outlines. ' +
+  'Aged parchment / cream paper (#f5f3ec), deep forest-green (#1f3f36), muted gold (#c9a227), and dark wood accents. ' +
+  'Warm diffused light, gentle natural drop shadow, antique academic storybook mood. ' +
+  'Cohesive with a set featuring Lemos, a wise anthropomorphic dark gray horse chess tutor with a long thoughtful face, ' +
+  'soft black-gray mane, small round reading glasses, friendly intelligent eyes, a dark forest-green knitted cardigan, ' +
+  'cream shirt, and muted gold bow tie. ' +
   'Muted warm palette only. NOT flat vector, NOT 3D render, NOT photographic, no neon, no harsh contrast.';
 
 const TECH =
