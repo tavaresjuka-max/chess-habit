@@ -1,5 +1,7 @@
 import type { TrainingResult } from '../../domain';
 import { lichessFetch } from '../http/providerQueue';
+import { parseJsonLineOrUndefined } from '../utils/ndjson';
+import { isRecord } from '../utils/typeGuards';
 
 export type LichessPuzzleActivity = {
   date: number;
@@ -155,14 +157,6 @@ export function parsePuzzleActivityNdjson(ndjson: string): LichessPuzzleActivity
     .filter(isPuzzleActivity);
 }
 
-function parseJsonLineOrUndefined(line: string): unknown {
-  try {
-    return JSON.parse(line) as unknown;
-  } catch {
-    return undefined;
-  }
-}
-
 function puzzleActivityUrl(options: FetchPuzzleActivityOptions): string {
   const params = new URLSearchParams({
     before: String(Date.parse(options.until)),
@@ -193,6 +187,3 @@ function isPuzzleActivity(value: unknown): value is LichessPuzzleActivity {
   );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}

@@ -529,6 +529,138 @@ describe('appData storage', () => {
     ).toBe(false);
   });
 
+  it('preserva atomicidade ao rejeitar checksum corrompido (M-Hardening Task 3)', async () => {
+    // Cenário: o checksum no arquivo foi adulterado diretamente (não os dados).
+    // O import deve rejeitar ANTES de tocar nas tabelas — perfil pré-existente
+    // continua inteiro após a tentativa falha.
+    await saveProfile(profile);
+    await savePlan(generatePlan(profile, [], 15, '2026-06-06'));
+    await saveMethodTrack(methodTrack);
+    await savePendingItem(createPendingItem());
+
+    const exported = await exportAllAsJson('2026-06-10T12:00:00.000Z');
+    const payload = JSON.parse(exported) as ExportPayload;
+    // Corrompe só o checksum (troca por um que não bate), mantendo os dados.
+    payload.checksum = 'sha256:deadbeef';
+    const corrupted = JSON.stringify(payload);
+
+    const result = await importBackupFromJson(corrupted);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain('Checksum');
+    }
+    // Nenhuma tabela foi limpa: perfil, plano, método e pending continuam lá.
+    await expect(loadProfile()).resolves.toEqual(profile);
+    await expect(getPlan('2026-06-06')).resolves.toBeDefined();
+    await expect(loadMethodTracks()).resolves.toEqual([methodTrack]);
+    await expect(loadOpenPendingItems()).resolves.toHaveLength(1);
+  });
+
+  it('restaura backup antigo sem tabelas opcionais (achievements/lichessStudies) sem lançar (M-Hardening Task 3)', async () => {
+    // Backups exportados antes do Corte 7 (achievements) e Corte F (lichessStudies,
+    // appMeta) não têm essas chaves em data. O import deve restaurar o que existe
+    // e deixar as tabelas ausentes como vazias — não quebra, não lança.
+    // Estratégia: exporta um backup real (perfis com id 'default' etc.) e remove
+    // as tabelas opcionais do payload, simulando um arquivo antigo.
+    await saveProfile(profile);
+    await savePlan(generatePlan(profile, [], 15, '2026-06-06'));
+    await saveMethodTrack(methodTrack);
+    await savePendingItem(createPendingItem());
+    await saveDiplomaAttempt(diplomaAttempt);
+
+    const exported = await exportAllAsJson('2026-06-10T12:00:00.000Z');
+    const payload = JSON.parse(exported) as ExportPayload & {
+      data: Record<string, unknown> & {
+        achievements?: unknown[];
+        placementResults?: unknown[];
+        lichessStudies?: unknown[];
+        appMeta?: unknown[];
+      };
+    };
+
+    // Remove as tabelas opcionais (simula um backup de versão anterior do app).
+    delete payload.data.achievements;
+    delete payload.data.placementResults;
+    delete payload.data.lichessStudies;
+    delete payload.data.appMeta;
+
+    // Recalcula o checksum sobre os dados agora sem opcionais (algoritmo fnv1a
+    // é determinístico e não depende de contexto seguro).
+    const algorithm = payload.checksum.startsWith('fnv1a:') ? 'fnv1a' : 'fnv1a';
+    payload.checksum = await computeBackupChecksum(JSON.stringify(payload.data), algorithm);
+    const json = JSON.stringify(payload);
+
+    // Limpa o aparelho para checar que a restauração realmente grava os dados.
+    await clearAll();
+    await expect(loadProfile()).resolves.toBeUndefined();
+
+    const result = await importBackupFromJson(json);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // Conta apenas as tabelas requeridas (backupTableNames) — opcionais ausentes somam 0.
+      expect(result.recordCount).toBe(1 + 1 + 0 + 0 + 0 + 1 + 1 + 1);
+    }
+    // Tabelas requeridas foram restauradas.
+    await expect(loadProfile()).resolves.toEqual(profile);
+    await expect(getPlan('2026-06-06')).resolves.toBeDefined();
+    await expect(loadMethodTracks()).resolves.toEqual([methodTrack]);
+    // Tabelas opcionais ausentes ficam vazias, não lançam nem corrompem.
+    await expect(db.achievements.count()).resolves.toBe(0);
+    await expect(getLichessStudyLink('2026-06-06')).resolves.toBeUndefined();
+  });
+
+  it('trata JSON malformado sem corromper estado existente (M-Hardening Task 3)', async () => {
+    // Cenário: já há dados válidos no aparelho; o usuário cola um arquivo que não
+    // é JSON. O import rejeita sem tocar no estado — nada é apagado.
+    await saveProfile(profile);
+    await saveMethodTrack(methodTrack);
+
+    const malformed = '{not valid json,,,}';
+
+    const result = await importBackupFromJson(malformed);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain('JSON');
+    }
+    // Estado pré-existente intacto.
+    await expect(loadProfile()).resolves.toEqual(profile);
+    await expect(loadMethodTracks()).resolves.toEqual([methodTrack]);
+  });
+
+  it('updatePendingItemStatus persiste status+updatedAt, NÃO toca em dueAt (M-Hardening Task 5)', async () => {
+    // Documenta o comportamento real do "defer": updatePendingItemStatus(id,'deferred')
+    // persiste apenas status e updatedAt. dueAt e demais campos são preservados.
+    // (O plano Task 5 menciona "defer reagenda dueAt"; o código NÃO reagenda.
+    //  Ver RELATÓRIO — divergência sinalizada, não corrigida por NON-GOALS.)
+    const item = createPendingItem();
+
+    await savePendingItem(item);
+
+    const before = await db.pendingItems.get(item.id);
+    expect(before?.status).toBe('open');
+    expect(before?.dueAt).toBe(item.dueAt);
+
+    // Defer.
+    await updatePendingItemStatus(item.id, 'deferred');
+
+    const after = await db.pendingItems.get(item.id);
+
+    // status e updatedAt mudaram.
+    expect(after?.status).toBe('deferred');
+    expect(after?.updatedAt).not.toBe(item.updatedAt);
+    // dueAt NÃO foi reagendado — permanece exatamente como estava na criação.
+    expect(after?.dueAt).toBe(item.dueAt);
+    // demais campos preservados.
+    expect(after?.weaknessTag).toBe(item.weaknessTag);
+    expect(after?.attempts).toBe(item.attempts);
+
+    // Item sai da lista open (defer esconde da fila de revisão).
+    await expect(loadOpenPendingItems()).resolves.toEqual([]);
+  });
+
   it('rejects a backup where profile is not an array (shape inválida)', async () => {
     // data.profile deve ser array — qualquer outro tipo falha na validação de shape
     // antes mesmo de chegar ao validateBackupData.

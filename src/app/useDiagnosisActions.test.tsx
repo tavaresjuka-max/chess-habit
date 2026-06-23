@@ -3,6 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DailyPlan, LearnerProfile, Signal } from '../domain';
 import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
+import { fetchLichessAccount } from '../infra/lichess/account';
 import { importLichessSignals } from '../infra/lichess/games';
 import {
   appendSignals,
@@ -14,7 +15,9 @@ import {
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
+  savePlacementResult,
   savePlan,
+  saveProfile,
 } from '../infra/storage/appData';
 import { bumpOperationEpoch } from './operationEpoch';
 import { useDiagnosisActions, type UseDiagnosisActionsInput } from './useDiagnosisActions';
@@ -27,6 +30,10 @@ vi.mock('../infra/lichess/games', () => ({
   importLichessSignals: vi.fn(),
 }));
 
+vi.mock('../infra/lichess/account', () => ({
+  fetchLichessAccount: vi.fn(),
+}));
+
 vi.mock('../infra/storage/appData', () => ({
   appendSignals: vi.fn(),
   loadChesscomMonthCache: vi.fn(),
@@ -37,7 +44,9 @@ vi.mock('../infra/storage/appData', () => ({
   replaceSignalsForSource: vi.fn(),
   replaceWeaknesses: vi.fn(),
   saveChesscomMonthCache: vi.fn(),
+  savePlacementResult: vi.fn(),
   savePlan: vi.fn(),
+  saveProfile: vi.fn(),
 }));
 
 const profile: LearnerProfile = {
@@ -67,6 +76,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(importChesscomSignals).mockResolvedValue([chesscomSignal]);
   vi.mocked(importLichessSignals).mockResolvedValue([]);
+  vi.mocked(fetchLichessAccount).mockResolvedValue(undefined);
   vi.mocked(appendSignals).mockResolvedValue(undefined);
   vi.mocked(loadChesscomMonthCache).mockResolvedValue(undefined);
   vi.mocked(loadLichessOAuthToken).mockResolvedValue(undefined);
@@ -76,7 +86,9 @@ beforeEach(() => {
   vi.mocked(replaceSignalsForSource).mockResolvedValue(undefined);
   vi.mocked(replaceWeaknesses).mockResolvedValue(undefined);
   vi.mocked(saveChesscomMonthCache).mockResolvedValue(undefined);
+  vi.mocked(savePlacementResult).mockResolvedValue(undefined);
   vi.mocked(savePlan).mockResolvedValue(undefined);
+  vi.mocked(saveProfile).mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -213,6 +225,208 @@ describe('useDiagnosisActions', () => {
     expect(replaceWeaknesses).not.toHaveBeenCalled();
     expect(savePlan).not.toHaveBeenCalled();
   });
+
+  describe('M2a — banda automática a partir do Lichess', () => {
+    const lichessToken = {
+      accessToken: 'tok-123',
+      tokenType: 'Bearer' as const,
+      scopes: ['puzzle:read' as const],
+      obtainedAt: '2026-06-15T00:00:00.000Z',
+      expiresAt: '2027-01-01T00:00:00.000Z',
+    };
+
+    it('AC1: sobe da banda 400-800 para 1200-1600 via rapid 1500 não-provisório', async () => {
+      vi.mocked(loadLichessOAuthToken).mockResolvedValue(lichessToken);
+      vi.mocked(fetchLichessAccount).mockResolvedValue({
+        id: 'jukasparov',
+        username: 'jukasparov',
+        rapid: { rating: 1500, games: 40, provisional: false },
+      });
+
+      const input = createInput({
+        profile: { ...profile, lichessUsername: 'jukasparov', band: '400-800' },
+      });
+      const { result } = renderHook(() => useDiagnosisActions(input));
+
+      await act(async () => {
+        await result.current.runLichessSync(input.profile as LearnerProfile);
+      });
+
+      expect(saveProfile).toHaveBeenCalledWith(expect.objectContaining({ band: '1200-1600' }));
+      expect(input.setProfile).toHaveBeenCalledWith(expect.objectContaining({ band: '1200-1600' }));
+      expect(savePlacementResult).toHaveBeenCalledWith(
+        expect.objectContaining({ band: '1200-1600', confidence: 'high' }),
+      );
+      // O plano do mesmo sync é regenerado com a banda nova (saveProfile provou que
+      // effectiveProfile foi construído e passou a generatePlan dentro do guard).
+      expect(savePlan).toHaveBeenCalled();
+      // Mensagem final inclui a nota de promoção (DD7).
+      expect(input.setLichessMessage).toHaveBeenCalledWith(
+        expect.stringContaining('Subi sua faixa para 1200-1600'),
+      );
+    });
+
+    it('AC3: banda atual 2000-2200 com rapid 900 → NÃO rebaixa; saveProfile não chamado', async () => {
+      vi.mocked(loadLichessOAuthToken).mockResolvedValue(lichessToken);
+      vi.mocked(fetchLichessAccount).mockResolvedValue({
+        id: 'jukasparov',
+        username: 'jukasparov',
+        rapid: { rating: 900, games: 40, provisional: false },
+      });
+
+      const input = createInput({
+        profile: { ...profile, lichessUsername: 'jukasparov', band: '2000-2200' },
+      });
+      const { result } = renderHook(() => useDiagnosisActions(input));
+
+      await act(async () => {
+        await result.current.runLichessSync(input.profile as LearnerProfile);
+      });
+
+      expect(saveProfile).not.toHaveBeenCalled();
+      expect(input.setProfile).not.toHaveBeenCalled();
+      expect(savePlacementResult).not.toHaveBeenCalled();
+      // Plano segue com a banda original (sem promoção).
+      expect(savePlan).toHaveBeenCalled();
+      // Mensagem NÃO inclui nota de promoção.
+      expect(input.setLichessMessage).toHaveBeenCalledWith(
+        expect.not.stringContaining('Subi sua faixa'),
+      );
+    });
+
+    it('AC4: sem perf de jogo não-provisório → saveProfile não chamado; banda intacta', async () => {
+      vi.mocked(loadLichessOAuthToken).mockResolvedValue(lichessToken);
+      vi.mocked(fetchLichessAccount).mockResolvedValue({
+        id: 'jukasparov',
+        username: 'jukasparov',
+        puzzle: { rating: 1500, games: 99, provisional: false },
+      });
+
+      const input = createInput({
+        profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+      });
+      const { result } = renderHook(() => useDiagnosisActions(input));
+
+      await act(async () => {
+        await result.current.runLichessSync(input.profile as LearnerProfile);
+      });
+
+      expect(saveProfile).not.toHaveBeenCalled();
+      expect(input.setProfile).not.toHaveBeenCalled();
+      expect(savePlacementResult).not.toHaveBeenCalled();
+      expect(savePlan).toHaveBeenCalled();
+    });
+
+    it('best-effort: fetchLichessAccount rejeita (429) → sync completa sem throw e banda intacta', async () => {
+      vi.mocked(loadLichessOAuthToken).mockResolvedValue(lichessToken);
+      vi.mocked(fetchLichessAccount).mockRejectedValue(new Error('HTTP 429'));
+
+      const input = createInput({
+        profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+      });
+      const { result } = renderHook(() => useDiagnosisActions(input));
+
+      await expect(
+        act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(saveProfile).not.toHaveBeenCalled();
+      // O sync ainda persiste plano/sinais normalmente (best-effort).
+      expect(savePlan).toHaveBeenCalled();
+      expect(input.setLichessConnectionState).toHaveBeenCalledWith('connected');
+    });
+
+    describe('nudge puzzle-perf (DD-Ped2)', () => {
+      const puzzlePerfSignal: Signal = {
+        source: 'lichess',
+        confidence: 'medium',
+        observedAt: '2026-06-23T10:00:00.000Z',
+        // rating 950 > 90% de 1000 (teto de '800-1000') → deve mostrar nudge
+        value: { kind: 'puzzle-perf', rating: 950, games: 60 },
+      };
+
+      it('rating de puzzles > 90% do teto → nudge aparece na mensagem', async () => {
+        vi.mocked(loadSignals).mockResolvedValue([puzzlePerfSignal]);
+        vi.mocked(importLichessSignals).mockResolvedValue([lichessSignal]);
+
+        const input = createInput({
+          profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+        });
+        const { result } = renderHook(() => useDiagnosisActions(input));
+
+        await act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        });
+
+        expect(input.setLichessMessage).toHaveBeenCalledWith(
+          expect.stringContaining('rating de puzzles (950)'),
+        );
+      });
+
+      it('rating de puzzles < 90% do teto → sem nudge', async () => {
+        const lowSignal: Signal = { ...puzzlePerfSignal, value: { kind: 'puzzle-perf', rating: 700, games: 60 } };
+        vi.mocked(loadSignals).mockResolvedValue([lowSignal]);
+        vi.mocked(importLichessSignals).mockResolvedValue([lichessSignal]);
+
+        const input = createInput({
+          profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+        });
+        const { result } = renderHook(() => useDiagnosisActions(input));
+
+        await act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        });
+
+        expect(input.setLichessMessage).toHaveBeenCalledWith(
+          expect.not.stringContaining('rating de puzzles'),
+        );
+      });
+
+      it('sem sinal puzzle-perf no DB → sem nudge, sync completa normalmente', async () => {
+        vi.mocked(loadSignals).mockResolvedValue([chesscomSignal]);
+        vi.mocked(importLichessSignals).mockResolvedValue([lichessSignal]);
+
+        const input = createInput({
+          profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+        });
+        const { result } = renderHook(() => useDiagnosisActions(input));
+
+        await act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        });
+
+        expect(input.setLichessMessage).toHaveBeenCalledWith(
+          expect.not.stringContaining('rating de puzzles'),
+        );
+        expect(savePlan).toHaveBeenCalled();
+      });
+
+      it('loadSignals rejeita no nudge → sync completa sem nudge e sem throw', async () => {
+        // 1ª call = diagnose (linha 169, deve ter sucesso); 2ª call = nudge (rejeita).
+        vi.mocked(loadSignals)
+          .mockResolvedValueOnce([chesscomSignal])
+          .mockRejectedValueOnce(new Error('DB error'));
+        vi.mocked(importLichessSignals).mockResolvedValue([lichessSignal]);
+
+        const input = createInput({
+          profile: { ...profile, lichessUsername: 'jukasparov', band: '800-1000' },
+        });
+        const { result } = renderHook(() => useDiagnosisActions(input));
+
+        await act(async () => {
+          await result.current.runLichessSync(input.profile as LearnerProfile);
+        });
+
+        // Sync completou sem throw (nudge é silencioso)
+        expect(savePlan).toHaveBeenCalled();
+        expect(input.setLichessMessage).toHaveBeenCalledWith(
+          expect.not.stringContaining('rating de puzzles'),
+        );
+      });
+    });
+  });
 });
 
 function createInput(overrides: Partial<UseDiagnosisActionsInput> = {}): UseDiagnosisActionsInput {
@@ -233,6 +447,7 @@ function createInput(overrides: Partial<UseDiagnosisActionsInput> = {}): UseDiag
     setTodayPlan: vi.fn(),
     setLichessConnectionState: vi.fn(),
     setLichessMessage: vi.fn(),
+    setProfile: vi.fn(),
     ...overrides,
   };
 }

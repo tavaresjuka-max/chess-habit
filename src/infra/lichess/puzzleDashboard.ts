@@ -1,5 +1,6 @@
 import type { PuzzleDashboardTrainingResult, PuzzleReplaySummaryTrainingResult, PuzzleThemeStat } from '../../domain/types';
 import { lichessFetch } from '../http/providerQueue';
+import { isRecord } from '../utils/typeGuards';
 import { LichessRateLimitError } from './puzzleActivity';
 
 export type LichessPuzzlePerformance = {
@@ -317,10 +318,6 @@ function isoDaysBefore(until: string, days: number): string {
   }
 
   return new Date(parsed - days * 24 * 60 * 60 * 1000).toISOString();
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }
 
 function isInteger(value: unknown): value is number {
