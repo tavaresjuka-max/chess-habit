@@ -9,6 +9,7 @@ import {
   type LichessOAuthToken,
   type LichessStudyLink,
   type PlanBlock,
+  type ErrorType,
   type PlanBlockFeedback,
   type SessionMinutes,
   type Signal,
@@ -107,7 +108,7 @@ export type AppState = {
   readonly deferPendingItem: (item: PendingTrainingItem) => Promise<void>;
   readonly savePendingFromHardFeedback: (blockId: string) => Promise<void>;
   readonly startBlockTraining: (block: PlanBlock) => Promise<void>;
-  readonly completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
+  readonly completeBlockTraining: (blockId: string, feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) => Promise<void>;
   readonly skipBlockTraining: (blockId: string) => Promise<void>;
   readonly exportBackup: () => Promise<string>;
   readonly importBackup: (json: string) => Promise<BackupImportResult>;

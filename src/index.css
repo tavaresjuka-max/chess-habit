@@ -1179,6 +1179,18 @@ textarea {
   line-height: 1.45;
 }
 
+/* Teto explícito (FM 2200-2400): nota honesta de "organizador", sóbria, sem alarme. */
+.organizer-ceiling-note {
+  font-size: 0.85rem;
+  color: var(--ink-700);
+  background: var(--surface-2, rgba(31, 63, 54, 0.05));
+  border-left: 3px solid var(--ink-400, #1f3f36);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
 /* ---------- Hero "Agora": uma ação clara visível ---------- */
 
 .hero-now {
@@ -2049,6 +2061,53 @@ li.diploma-row {
   margin: 0;
   font-weight: 650;
   color: var(--ink-700);
+}
+
+/* Fase 1 — seletor de errorType (taxonomia de erro em 1 toque).
+   Mesma constância visual do rating-row; o subprompt baixa o tom para
+   deixar claro que é opcional (TDAH — fricção zero, sem cobrança). */
+.error-type-selector .rating-subprompt {
+  margin: 0;
+  font-size: 0.85em;
+  color: var(--ink-700);
+  opacity: 0.75;
+}
+
+.self-explanation-row {
+  display: flex;
+}
+
+.self-explanation-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.self-explanation-input::placeholder {
+  color: var(--ink-700);
+  opacity: 0.6;
+}
+
+.self-explanation-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Seletor de 1 toque: o botão ativo ganha um contorno sóbrio (sem confete).
+   A transição de cor é suave SÓ sem prefers-reduced-motion. */
+.error-type-selector .secondary-button.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .error-type-selector .secondary-button {
+    transition: border-color 120ms var(--ease), box-shadow 120ms var(--ease);
+  }
 }
 
 .next-session {

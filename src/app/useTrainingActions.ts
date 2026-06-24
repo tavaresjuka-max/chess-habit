@@ -9,6 +9,7 @@ import {
   skipTrainingLog,
   type Achievement,
   type DailyPlan,
+  type ErrorType,
   type LearnerProfile,
   type PlanBlock,
   type PlanBlockFeedback,
@@ -90,7 +91,7 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
   );
 
   const updateBlockStatusWithTrainingLog = useCallback(
-    async (blockId: string, status: PlanBlock['status'], feedback?: PlanBlockFeedback) => {
+    async (blockId: string, status: PlanBlock['status'], feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) => {
       if (todayPlan === undefined) {
         return;
       }
@@ -128,6 +129,8 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
             log: typedLog,
             completedAt: updatedAt,
             feedback,
+            errorType,
+            selfExplanation,
           });
           const reconcileOutcome = await reconcileLogIfPossible(completedLog);
           const nextTrainingLogs = upsertTrainingLog(trainingLogs, reconcileOutcome.log);
@@ -241,8 +244,8 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
     [updateBlockStatusWithTrainingLog],
   );
 
-  const completeBlockTraining = (blockId: string, feedback?: PlanBlockFeedback) =>
-    updateBlockStatusWithTrainingLog(blockId, 'done', feedback);
+  const completeBlockTraining = (blockId: string, feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) =>
+    updateBlockStatusWithTrainingLog(blockId, 'done', feedback, errorType, selfExplanation);
 
   return {
     startBlockTraining,

@@ -11,6 +11,9 @@ export const learnerBands = [
   '1200-1600',
   '1600-2000',
   '2000-2200',
+  // Teto aspiracional (FM) — council 2026-06-24. Acima de 2200 o app vira mais
+  // organizador de autoestudo; currículo desta faixa é esboço honesto.
+  '2200-2400',
 ] as const satisfies readonly LearnerBand[];
 
 export const beginnerBands = ['0-400', '400-800'] as const satisfies readonly LearnerBand[];
@@ -23,6 +26,7 @@ export const improvingAndUpBands = [
   '1200-1600',
   '1600-2000',
   '2000-2200',
+  '2200-2400',
 ] as const satisfies readonly LearnerBand[];
 
 export function isLearnerBand(value: string): value is LearnerBand {
@@ -31,6 +35,13 @@ export function isLearnerBand(value: string): value is LearnerBand {
 
 export function isBeginnerBand(band: LearnerBand | undefined): boolean {
   return band !== undefined && (beginnerBands as readonly string[]).includes(band);
+}
+
+// Banda de TETO (FM 2200-2400). Council 2026-06-24: acima de ~2200 o sinal local
+// satura e o app não ensina tier novo — assume papel de organizador de autoestudo.
+// A escada de ENSINO vai até 2200; esta banda é o teto explícito, não um tier falso.
+export function isOrganizerCeilingBand(band: LearnerBand | undefined): boolean {
+  return band === '2200-2400';
 }
 
 // Migracao dos perfis criados antes do spine: as bandas antigas eram '0-800' e

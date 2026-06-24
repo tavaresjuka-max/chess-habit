@@ -18,6 +18,7 @@ import {
   type DayCompletionSummary,
   type LearnerBand,
   type LichessStudyLink,
+  type ErrorType,
   type PlanBlock,
   type PlanBlockFeedback,
   type SessionMinutes,
@@ -40,6 +41,7 @@ import { getMethodTrackTitle } from '../domain/method/methodTracks';
 import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import type { BackupMeta } from '../app/backupStatus';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
+import { ORGANIZER_CEILING_MESSAGE } from '../domain/curriculum/curriculum';
 import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
 import { BlockCarousel } from './BlockCarousel';
@@ -83,7 +85,7 @@ type TodayProps = {
   onDeferPendingItem: (item: PendingTrainingItem) => Promise<void>;
   onSavePendingFromHardFeedback: (blockId: string) => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
-  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
+  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
   // PROD-3: convite não-bloqueante para calibrar (usuário sem contas e sem calibração).
   showCalibrationInvite?: boolean;
@@ -362,6 +364,14 @@ export function Today({
         // R2b: oferta sóbria de reforçar a base (enquadrada como acúmulo, não
         // remediação). Decoplada do estágio exibido — não regride nada.
         <p className="support-base-note">{buildSupportBaseLine()}</p>
+      ) : null}
+      {plan.organizerCeiling === true ? (
+        // Teto explícito (council 2026-06-24): no topo (FM 2200-2400) o app assume
+        // honestamente o papel de organizador de autoestudo — não finge um tier de
+        // ensino novo. Mensagem sem promessa de rating.
+        <p className="organizer-ceiling-note" role="note">
+          {ORGANIZER_CEILING_MESSAGE}
+        </p>
       ) : null}
 
       {backupReminder !== undefined ? (

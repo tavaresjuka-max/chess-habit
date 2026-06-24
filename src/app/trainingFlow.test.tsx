@@ -604,6 +604,13 @@ async function completeFirstBlockWithFeedback(feedbackButtonName: string): Promi
   const ratingGroup = await openFirstCompletionRating();
 
   fireEvent.click(within(ratingGroup).getByRole('button', { name: feedbackButtonName }));
+
+  // Fase 1: após clicar 'Difícil', o seletor de errorType aparece.
+  // Para não bloquear os testes existentes, confirma imediatamente sem errorType.
+  if (feedbackButtonName === 'Difícil') {
+    const errorSelector = await screen.findByRole('group', { name: 'O que falhou?' });
+    fireEvent.click(within(errorSelector).getByRole('button', { name: 'Registrar assim' }));
+  }
 }
 
 function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {

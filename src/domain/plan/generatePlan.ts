@@ -2,7 +2,9 @@ import { getCoachNote } from '../coach/coachCatalog';
 import { assertNever } from '../assertNever';
 import { buildInterleavePool, shouldForceRotation, weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
 import { computeMastery } from '../method/mastery';
+import { isOrganizerCeilingBand } from '../bands';
 import { getRecentlyEarnedDiploma } from '../method/diplomas';
+import { getErrorRoutingCoach, getErrorRoutingEmphasis, type ErrorRoutingCoach } from '../method/errorRouting';
 import { INTERLEAVE_STAGES } from './schedulerConstants';
 import { getMethodTrackTitle } from '../method/methodTracks';
 import { isDueToday } from '../method/pendingItems';
@@ -19,6 +21,7 @@ import type {
   PlanResourceStage,
   PuzzleThemeStats,
   SessionMinutes,
+  TrainingLog,
   Weakness,
   WeaknessTag,
   WeeklyFocus,
@@ -45,6 +48,9 @@ export type GeneratePlanOptions = {
   // Decisão 3: conquistar um diploma há pouco promove à trilha progress-diplomas.
   // generatePlan calcula a recência a partir das tentativas + a data do plano.
   diplomaAttempts?: readonly DiplomaAttempt[];
+  // Fase 1 (2026-06-24): logs recentes para derivar errorType predominante via
+  // errorRouting. Opcional — sem dado, fallback para comportamento atual.
+  recentTrainingLogs?: readonly TrainingLog[];
 };
 
 type LatestThemeSignal = {
@@ -111,6 +117,7 @@ const primaryThemeByBand = {
   '1200-1600': 'mate-in-2',
   '1600-2000': 'conversion',
   '2000-2200': 'conversion',
+  '2200-2400': 'conversion',
 } satisfies Record<LearnerProfile['band'], WeaknessTag>;
 
 type FinalWeaknessTag = 'endgame-pawn' | 'endgame-rook' | 'conversion';
@@ -192,6 +199,11 @@ export function generatePlan(
   });
   const reviewRatio = getReviewRatioForPendingCount(duePendingItems.length);
   const budget = applyAdaptiveReviewRatio(getTimeBudget(sessionMinutes), reviewRatio, duePendingItems.length > 0);
+  // Fase 1 (1c, 2026-06-24): sinal de errorType predominante nos logs recentes.
+  // ADITIVO puro — só ajusta coachNote/guidingQuestion do bloco tema; NÃO toca
+  // estágio (masteryAwareFallback), track (selectMethodTrack), floor
+  // (FEEDBACK_EXPIRY_DAYS) nem M-Retenção. Sem dado → undefined → copy usual.
+  const errorCoach = getErrorRoutingCoach(getErrorRoutingEmphasis([...(options.recentTrainingLogs ?? [])]));
   const blocks = budget.map((budgetBlock, index) =>
     inheritPreviousProgress(
       duePendingItems.length > 0 && index === 0
@@ -219,6 +231,7 @@ export function generatePlan(
             completedResourceIds,
             updatedAt,
             activeTrack,
+            errorCoach,
           }),
       options.previousPlan,
     ),
@@ -242,6 +255,8 @@ export function generatePlan(
     generatedFromWeaknessesAt: updatedAt,
     ...(primaryThemeForced ? { primaryThemeForced: true } : {}),
     ...(chronicSupportSuggested ? { chronicSupportSuggested: true } : {}),
+    // Teto explícito (council 2026-06-24): banda FM 2200-2400 = organizador, não tier novo.
+    ...(isOrganizerCeilingBand(profile.band) ? { organizerCeiling: true } : {}),
   };
 }
 
@@ -276,6 +291,9 @@ function createPlanBlock(input: {
   completedResourceIds: readonly string[];
   updatedAt: string;
   activeTrack: MethodTrackId;
+  // Fase 1 (1c): copy pedagógica derivada do errorType predominante. Aplica-se
+  // SÓ ao bloco tema; undefined mantém a copy usual do gerador.
+  errorCoach?: ErrorRoutingCoach;
 }): PlanBlock {
   const resourceStage = getResourceStage(input.kind, input.latestThemeSignal, input.persistedThemeStage);
   // D2: na pós-aquisição (pool não-vazio), a revisão puxa um tema do pool
@@ -308,6 +326,17 @@ function createPlanBlock(input: {
     completedResourceIds: input.completedResourceIds,
   });
 
+  // Fase 1 (1c) + auditoria council 2026-06-24: o bloco tema GANHA a dica de erro
+  // quando há sinal predominante, mas de forma ADITIVA — anexa ao coachNote base do
+  // tema em vez de SUBSTITUIR. A ênfase é global (não por-tema), então substituir
+  // arriscava orientar a habilidade errada num tema que não gerou o erro; anexar
+  // preserva a orientação correta do tema e só acrescenta o lembrete do modo de erro.
+  const themeErrorCoach = input.kind === 'tema' ? input.errorCoach : undefined;
+  const baseCoachNote = getCoachNote(input.kind, {
+    weaknessTag: copy.weaknessTag,
+    resourceStage,
+  });
+
   return {
     id: createPlanBlockId(input.date, input.sessionNumber, input.index, input.kind),
     sessionNumber: input.sessionNumber,
@@ -320,13 +349,11 @@ function createPlanBlock(input: {
     task: copy.task,
     stopRule: copy.stopRule,
     reason: copy.reason,
-    coachNote: getCoachNote(input.kind, {
-      weaknessTag: copy.weaknessTag,
-      resourceStage,
-    }),
+    coachNote:
+      themeErrorCoach !== undefined ? `${baseCoachNote} ${themeErrorCoach.coachNote}` : baseCoachNote,
     status: 'pending',
     methodTrackId: input.activeTrack,
-    guidingQuestion: getGuidingQuestion(input.activeTrack),
+    guidingQuestion: themeErrorCoach?.guidingQuestion ?? getGuidingQuestion(input.activeTrack),
     ...(isDiscrimination ? { isDiscrimination: true } : {}),
     updatedAt: input.updatedAt,
   };
@@ -515,6 +542,7 @@ function getFinalThemeByBand(band: LearnerBand): FinalWeaknessTag {
     case '1200-1600':
     case '1600-2000':
     case '2000-2200':
+    case '2200-2400':
       return 'conversion';
   }
 }

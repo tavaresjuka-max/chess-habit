@@ -8,6 +8,8 @@ const bandaIndex: Record<LearnerBand, number> = {
   '1200-1600': 5,
   '1600-2000': 6,
   '2000-2200': 7,
+  // Banda aspiracional (FM): reusa o ícone do topo (não há arte banda-8 dedicada).
+  '2200-2400': 7,
 };
 
 type BandaIconProps = {

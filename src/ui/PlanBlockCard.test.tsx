@@ -110,6 +110,90 @@ describe('PlanBlockCard', () => {
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
+
+  // Fase 1 (1a, 2026-06-24): seletor de taxonomia de erro aparece SÓ no fluxo
+  // de feedback 'hard'. Não aparece em easy/good. Não bloqueia (há "Registrar assim").
+  describe('seletor de errorType (Fase 1)', () => {
+    it('mostra o seletor "O que falhou?" apenas após clicar em Difícil', () => {
+      renderPlanBlockCard(makeBlock({ id: 'block-1' }));
+
+      fireEvent.click(screen.getByRole('button', { name: /Concluir/ }));
+      // ainda no grupo easy/good/hard — seletor não aparece
+      expect(screen.queryByRole('group', { name: 'O que falhou?' })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Difícil' }));
+
+      // agora o seletor aparece no lugar do grupo easy/good/hard
+      expect(screen.getByRole('group', { name: 'O que falhou?' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'NÃO VI' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'ERREI A CONTA' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'ESCOLHI ERRADO' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Registrar assim' })).toBeInTheDocument();
+    });
+
+    it('não mostra o seletor após clicar em Fácil (easy)', () => {
+      const onCompleteBlockTraining = vi.fn(() => Promise.resolve());
+      render(<PlanBlockCard {...makeProps({ onCompleteBlockTraining })} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Concluir/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Fácil' }));
+
+      expect(screen.queryByRole('group', { name: 'O que falhou?' })).not.toBeInTheDocument();
+      expect(onCompleteBlockTraining).toHaveBeenCalledWith('block-1', 'easy');
+    });
+
+    it('não mostra o seletor após clicar em Bom (good)', () => {
+      const onCompleteBlockTraining = vi.fn(() => Promise.resolve());
+      render(<PlanBlockCard {...makeProps({ onCompleteBlockTraining })} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Concluir/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Bom' }));
+
+      expect(screen.queryByRole('group', { name: 'O que falhou?' })).not.toBeInTheDocument();
+      expect(onCompleteBlockTraining).toHaveBeenCalledWith('block-1', 'good');
+    });
+
+    it('clicar em NÃO VI completa o bloco com errorType=nao-vi (1 toque)', () => {
+      const onCompleteBlockTraining = vi.fn(() => Promise.resolve());
+      render(<PlanBlockCard {...makeProps({ onCompleteBlockTraining })} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Concluir/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Difícil' }));
+      fireEvent.click(screen.getByRole('button', { name: 'NÃO VI' }));
+
+      expect(onCompleteBlockTraining).toHaveBeenCalledWith('block-1', 'hard', 'nao-vi', undefined);
+    });
+
+    it('Registrar assim completa sem errorType (não bloqueia o fluxo)', () => {
+      const onCompleteBlockTraining = vi.fn(() => Promise.resolve());
+      render(<PlanBlockCard {...makeProps({ onCompleteBlockTraining })} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Concluir/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Difícil' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Registrar assim' }));
+
+      expect(onCompleteBlockTraining).toHaveBeenCalledWith('block-1', 'hard', undefined, undefined);
+    });
+
+    it('envia a autoexplicação quando preenchida antes do 1-toque', () => {
+      const onCompleteBlockTraining = vi.fn(() => Promise.resolve());
+      render(<PlanBlockCard {...makeProps({ onCompleteBlockTraining })} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Concluir/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Difícil' }));
+      fireEvent.change(screen.getByPlaceholderText(/Por que esse lance/), {
+        target: { value: 'Não vi a torre desprotegida.' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'ESCOLHI ERRADO' }));
+
+      expect(onCompleteBlockTraining).toHaveBeenCalledWith(
+        'block-1',
+        'hard',
+        'escolhi-errado',
+        'Não vi a torre desprotegida.',
+      );
+    });
+  });
 });
 
 function renderPlanBlockCard(block: PlanBlock) {

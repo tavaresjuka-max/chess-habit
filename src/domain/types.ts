@@ -69,7 +69,12 @@ export type LearnerBand =
   | '1000-1200'
   | '1200-1600'
   | '1600-2000'
-  | '2000-2200';
+  | '2000-2200'
+  // Teto aspiracional (FM). Council 2026-06-24: acima de ~2200 o sinal local
+  // satura e o app vira mais ORGANIZADOR de autoestudo que professor; o currículo
+  // desta faixa é esboço honesto (cálculo profundo, estrutura, finais teóricos),
+  // não método-puzzle denso. Não prometer rating na UI.
+  | '2200-2400';
 
 export type SessionMinutes = 5 | 15 | 30 | 60;
 
@@ -204,6 +209,12 @@ export type DailyPlan = {
   // estágio exibido); habilita uma oferta sóbria de "reforçar a base". Decoplado
   // da persistência: detecção é só-leitura, não toca profile.themeStages.
   chronicSupportSuggested?: boolean;
+  // M-Sinal-9.5 (auditoria council 2026-06-24): no topo da escada (banda FM
+  // 2200-2400) o app atingiu o TETO do que ensina — acima de ~2200 o sinal local
+  // satura. Em vez de fingir um tier novo (mesmos drills), assume honestamente o
+  // papel de ORGANIZADOR de autoestudo. Flag só-leitura; a UI mostra a mensagem
+  // de teto. NÃO promete rating.
+  organizerCeiling?: boolean;
 };
 
 export type PuzzleActivityTrainingResult = {
@@ -268,6 +279,8 @@ export type TrainingLogStatus = 'active' | 'done' | 'skipped';
 
 export type TrainingLogKind = 'puzzle' | 'free-activity' | 'standard';
 
+export type ErrorType = 'nao-vi' | 'errei-conta' | 'escolhi-errado';
+
 export type TrainingLog = {
   id: string;
   date: string;
@@ -283,6 +296,12 @@ export type TrainingLog = {
   timeLimitReached: boolean;
   status: TrainingLogStatus;
   feedback?: PlanBlockFeedback;
+  // Sinal pedagógico (Fase 1 — 2026-06-24): taxonomia de erro em 1 toque,
+  // capturado SÓ quando feedback='hard'. Opcional — não indexado no Dexie,
+  // sem migração de schema. NÃO bloqueia o fluxo.
+  errorType?: ErrorType;
+  // Autoexplicação de 1 frase ("Por que esse lance?"). Convite, nunca obrigatório.
+  selfExplanation?: string;
   result?: TrainingResult;
   methodTrackId?: MethodTrackId;
   updatedAt: string;

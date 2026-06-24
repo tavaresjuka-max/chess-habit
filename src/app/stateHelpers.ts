@@ -49,6 +49,9 @@ export function buildPlanContext(args: {
     openPendingItems: [...args.pendingItems],
     weakThemesFromDashboard: getWeakThemesFromThemeStats(args.recentThemeStats),
     diplomaAttempts: args.diplomaAttempts,
+    // Fase 1 (2026-06-24): passa os logs para errorRouting derivar o sinal de
+    // errorType predominante. Read-only — não altera o plano, apenas o sinal.
+    recentTrainingLogs: args.trainingLogs,
   };
 }
 

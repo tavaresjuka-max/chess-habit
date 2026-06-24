@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { isLearnerBand, learnerBands, migrateLegacyBand } from './bands';
 
 describe('learner bands spine 0-2200', () => {
-  it('has 7 bands with smaller steps at the start', () => {
+  it('has 8 bands with smaller steps at the start (teto aspiracional FM 2200-2400)', () => {
     expect(learnerBands).toEqual([
       '0-400',
       '400-800',
@@ -11,6 +11,7 @@ describe('learner bands spine 0-2200', () => {
       '1200-1600',
       '1600-2000',
       '2000-2200',
+      '2200-2400',
     ]);
   });
 

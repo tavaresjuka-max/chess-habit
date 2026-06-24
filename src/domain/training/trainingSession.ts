@@ -1,4 +1,4 @@
-import type { Destination, PlanBlock, PlanBlockFeedback, TrainingLog, TrainingLogKind, TrainingResult } from '../types';
+import type { Destination, ErrorType, PlanBlock, PlanBlockFeedback, TrainingLog, TrainingLogKind, TrainingResult } from '../types';
 
 export function createTrainingLog(input: { block: PlanBlock; date: string; startedAt: string }): TrainingLog {
   return {
@@ -34,6 +34,10 @@ export function completeTrainingLog(input: {
   log: TrainingLog;
   completedAt: string;
   feedback?: PlanBlockFeedback;
+  // Fase 1 (2026-06-24): taxonomia de erro (SÓ quando feedback='hard'). Opcional.
+  errorType?: ErrorType;
+  // Autoexplicação de 1 frase. Convite — nunca obrigatório.
+  selfExplanation?: string;
 }): TrainingLog {
   const elapsedSeconds = elapsedSecondsBetween(input.log.startedAt, input.completedAt);
 
@@ -44,6 +48,11 @@ export function completeTrainingLog(input: {
     timeLimitReached: elapsedSeconds >= input.log.plannedSeconds,
     status: 'done',
     ...(input.feedback === undefined ? {} : { feedback: input.feedback }),
+    // errorType só faz sentido junto com feedback='hard'; ignoramos caso contrário.
+    ...(input.errorType !== undefined && input.feedback === 'hard' ? { errorType: input.errorType } : {}),
+    ...(input.selfExplanation !== undefined && input.feedback === 'hard'
+      ? { selfExplanation: input.selfExplanation }
+      : {}),
     updatedAt: input.completedAt,
   };
 }

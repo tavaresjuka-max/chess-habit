@@ -5,10 +5,12 @@ import { TacticDiagram } from './art/TacticDiagram';
 import {
   elapsedSecondsBetween,
   formatElapsedMinutes,
+  type ErrorType,
   type PlanBlock,
   type PlanBlockFeedback,
   type TrainingLog,
 } from '../domain';
+import { ERROR_TYPE_LABELS, SELF_EXPLANATION_PROMPT } from '../domain/method/errorRouting';
 
 type PlanBlockCardProps = {
   block: PlanBlock;
@@ -17,7 +19,7 @@ type PlanBlockCardProps = {
   hasSavedPending: boolean;
   onSavePendingFromHardFeedback: (blockId: string) => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
-  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
+  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
   // Progresso do tema do bloco rumo ao diploma (PROD-5); ausente = bloco sem tema mensurável.
   diplomaProgress?: { label: string; attempts: number; target: number };
@@ -40,6 +42,10 @@ export function PlanBlockCard({
   const [submittingFeedback, setSubmittingFeedback] = useState<PlanBlockFeedback | undefined>(undefined);
   const [openWarning, setOpenWarning] = useState<string | undefined>(undefined);
   const [isConfirmingSkip, setIsConfirmingSkip] = useState(false);
+  // Fase 1 — seletor de errorType: aparece SÓ após feedback='hard', não bloqueia
+  const [pendingHardFeedback, setPendingHardFeedback] = useState(false);
+  const [selectedErrorType, setSelectedErrorType] = useState<ErrorType | undefined>(undefined);
+  const [selfExplanation, setSelfExplanation] = useState('');
   const skipTriggerRef = useRef<HTMLButtonElement>(null);
   const skipCancelRef = useRef<HTMLButtonElement>(null);
   const prevConfirmingSkipRef = useRef(false);
@@ -78,6 +84,9 @@ export function PlanBlockCard({
     setSubmittingFeedback(undefined);
     setOpenWarning(undefined);
     setIsConfirmingSkip(false);
+    setPendingHardFeedback(false);
+    setSelectedErrorType(undefined);
+    setSelfExplanation('');
   }, [block.id]);
 
   async function openTrainingDestination(event: MouseEvent<HTMLAnchorElement>): Promise<void> {
@@ -106,8 +115,32 @@ export function PlanBlockCard({
     }
 
     setIsConfirmingSkip(false);
+
+    // Fase 1: para 'hard', mostra o seletor de errorType antes de completar.
+    // Não bloqueia — o aluno pode pular com "Registrar assim" e completar sem errorType.
+    if (feedback === 'hard') {
+      setPendingHardFeedback(true);
+      return;
+    }
+
     setSubmittingFeedback(feedback);
     void onCompleteBlockTraining(block.id, feedback).finally(() => {
+      setSubmittingFeedback(undefined);
+    });
+  }
+
+  // Confirma o treino 'hard' (com ou sem errorType selecionado).
+  function confirmHardFeedback(errorType?: ErrorType): void {
+    if (isSubmittingFeedback) return;
+    setPendingHardFeedback(false);
+    setIsRating(false);
+    setSubmittingFeedback('hard');
+    void onCompleteBlockTraining(
+      block.id,
+      'hard',
+      errorType,
+      selfExplanation.trim().length > 0 ? selfExplanation.trim() : undefined,
+    ).finally(() => {
       setSubmittingFeedback(undefined);
     });
   }
@@ -206,59 +239,124 @@ export function PlanBlockCard({
           ) : null}
         </div>
       ) : isRating ? (
-        <div className="rating-row" role="group" aria-label="Como foi o treino?">
-          <p className="rating-prompt" role="status" aria-live="polite">
-            {isSubmittingFeedback ? (
-              <>
-                <Loader2 className="rating-spinner" aria-hidden="true" size={15} /> Anotando seu resultado…
-              </>
-            ) : (
-              'Como foi o treino?'
-            )}
-          </p>
-          <div className="button-row" aria-busy={isSubmittingFeedback}>
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={isSubmittingFeedback}
-              onClick={() => {
-                submitFeedback('easy');
-              }}
-            >
-              Fácil
-            </button>
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={isSubmittingFeedback}
-              onClick={() => {
-                submitFeedback('good');
-              }}
-            >
-              Bom
-            </button>
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={isSubmittingFeedback}
-              onClick={() => {
-                submitFeedback('hard');
-              }}
-            >
-              Difícil
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsRating(false);
-              }}
-              className="link-button"
-              disabled={isSubmittingFeedback}
-            >
-              Voltar
-            </button>
+        pendingHardFeedback ? (
+          /* Fase 1 — seletor de errorType: aparece SÓ após 'Difícil'. Não bloqueia:
+             1 toque confirma; "Registrar assim" conclui sem errorType. O campo de
+             autoexplicação é convite (TDAH — fricção zero), enviado só se preenchido. */
+          <div className="rating-row error-type-selector" role="group" aria-label={SELF_EXPLANATION_PROMPT}>
+            <p className="rating-prompt" role="status" aria-live="polite">
+              {isSubmittingFeedback ? (
+                <>
+                  <Loader2 className="rating-spinner" aria-hidden="true" size={15} /> Anotando seu resultado…
+                </>
+              ) : (
+                SELF_EXPLANATION_PROMPT
+              )}
+            </p>
+            {!isSubmittingFeedback ? (
+              <p className="rating-subprompt">Sem cobrança — marque se quiser.</p>
+            ) : null}
+            {!isSubmittingFeedback ? (
+              <div className="self-explanation-row">
+                <input
+                  type="text"
+                  className="self-explanation-input"
+                  placeholder="Por que esse lance? (opcional)"
+                  value={selfExplanation}
+                  maxLength={200}
+                  aria-label="Autoexplicação opcional"
+                  onChange={(event) => {
+                    setSelfExplanation(event.target.value);
+                  }}
+                />
+              </div>
+            ) : null}
+            <div className="button-row" aria-busy={isSubmittingFeedback}>
+              {(Object.entries(ERROR_TYPE_LABELS) as [ErrorType, string][]).map(([type, label]) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={`secondary-button${selectedErrorType === type ? ' active' : ''}`}
+                  disabled={isSubmittingFeedback}
+                  aria-pressed={selectedErrorType === type}
+                  onClick={() => {
+                    setSelectedErrorType(type);
+                    confirmHardFeedback(type);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {!isSubmittingFeedback ? (
+              <div className="button-row">
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => {
+                    confirmHardFeedback(undefined);
+                  }}
+                >
+                  Registrar assim
+                </button>
+              </div>
+            ) : null}
           </div>
-        </div>
+        ) : (
+          <div className="rating-row" role="group" aria-label="Como foi o treino?">
+            <p className="rating-prompt" role="status" aria-live="polite">
+              {isSubmittingFeedback ? (
+                <>
+                  <Loader2 className="rating-spinner" aria-hidden="true" size={15} /> Anotando seu resultado…
+                </>
+              ) : (
+                'Como foi o treino?'
+              )}
+            </p>
+            <div className="button-row" aria-busy={isSubmittingFeedback}>
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={isSubmittingFeedback}
+                onClick={() => {
+                  submitFeedback('easy');
+                }}
+              >
+                Fácil
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={isSubmittingFeedback}
+                onClick={() => {
+                  submitFeedback('good');
+                }}
+              >
+                Bom
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={isSubmittingFeedback}
+                onClick={() => {
+                  submitFeedback('hard');
+                }}
+              >
+                Difícil
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRating(false);
+                }}
+                className="link-button"
+                disabled={isSubmittingFeedback}
+              >
+                Voltar
+              </button>
+            </div>
+          </div>
+        )
       ) : (
         <div className="button-row">
           {safeDestinationUrl !== undefined ? (
