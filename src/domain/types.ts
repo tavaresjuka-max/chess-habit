@@ -268,6 +268,8 @@ export type TrainingLogStatus = 'active' | 'done' | 'skipped';
 
 export type TrainingLogKind = 'puzzle' | 'free-activity' | 'standard';
 
+export type ErrorType = 'nao-vi' | 'errei-conta' | 'escolhi-errado';
+
 export type TrainingLog = {
   id: string;
   date: string;
@@ -283,6 +285,12 @@ export type TrainingLog = {
   timeLimitReached: boolean;
   status: TrainingLogStatus;
   feedback?: PlanBlockFeedback;
+  // Sinal pedagógico (Fase 1 — 2026-06-24): taxonomia de erro em 1 toque,
+  // capturado SÓ quando feedback='hard'. Opcional — não indexado no Dexie,
+  // sem migração de schema. NÃO bloqueia o fluxo.
+  errorType?: ErrorType;
+  // Autoexplicação de 1 frase ("Por que esse lance?"). Convite, nunca obrigatório.
+  selfExplanation?: string;
   result?: TrainingResult;
   methodTrackId?: MethodTrackId;
   updatedAt: string;

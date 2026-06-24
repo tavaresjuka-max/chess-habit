@@ -18,6 +18,7 @@ import {
   type DayCompletionSummary,
   type LearnerBand,
   type LichessStudyLink,
+  type ErrorType,
   type PlanBlock,
   type PlanBlockFeedback,
   type SessionMinutes,
@@ -83,7 +84,7 @@ type TodayProps = {
   onDeferPendingItem: (item: PendingTrainingItem) => Promise<void>;
   onSavePendingFromHardFeedback: (blockId: string) => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
-  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback) => Promise<void>;
+  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
   // PROD-3: convite não-bloqueante para calibrar (usuário sem contas e sem calibração).
   showCalibrationInvite?: boolean;

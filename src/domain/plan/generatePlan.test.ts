@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PendingTrainingItem } from '../method/types';
-import type { LearnerProfile, PlanBlock, PlanBlockFeedback, PlanResourceStage, SessionMinutes } from '../types';
+import type { LearnerProfile, PlanBlock, PlanBlockFeedback, PlanResourceStage, SessionMinutes, TrainingLog } from '../types';
 import { advanceThemeStage, extractThemeStages, generatePlan, getReviewRatioForPendingCount } from './generatePlan';
 import { getTimeBudget } from './timeBudget';
 
@@ -1100,3 +1100,96 @@ function createPendingItem(overrides: Partial<PendingTrainingItem>): PendingTrai
     ...overrides,
   };
 }
+
+// Fase 1 (1c, 2026-06-24): roteamento do gerador pela taxonomia de erro.
+// O errorType predominante nos logs recentes refina a coachNote/guidingQuestion
+// do bloco tema (ADITIVO — não toca estágio, track, floor ou retenção).
+describe('generatePlan × errorRouting — sinal de errorType predominante', () => {
+  type ErrorType = 'nao-vi' | 'errei-conta' | 'escolhi-errado';
+
+  function hardLog(errorType: ErrorType, date: string): TrainingLog {
+    return {
+      id: `${date}:tema-block`,
+      date,
+      blockId: `${date}-02-tema`,
+      blockTitle: 'Tema do dia',
+      source: 'lichess',
+      destinationLabel: 'Lichess Puzzles',
+      logKind: 'standard',
+      plannedSeconds: 600,
+      startedAt: `${date}T10:00:00.000Z`,
+      completedAt: `${date}T10:10:00.000Z`,
+      elapsedSeconds: 600,
+      timeLimitReached: false,
+      status: 'done',
+      feedback: 'hard',
+      errorType,
+      updatedAt: `${date}T10:10:00.000Z`,
+    };
+  }
+
+  it('enfatiza detecção/volume quando nao-vi predomina nos logs recentes', () => {
+    const logs: TrainingLog[] = [
+      hardLog('nao-vi', '2026-06-22'),
+      hardLog('nao-vi', '2026-06-23'),
+      hardLog('errei-conta', '2026-06-24'),
+    ];
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-25', { recentTrainingLogs: logs });
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(tema?.coachNote).toContain('à vista');
+    expect(tema?.guidingQuestion).toContain('à vista');
+  });
+
+  it('enfatiza cálculo quando errei-conta predomina nos logs recentes', () => {
+    const logs: TrainingLog[] = [
+      hardLog('errei-conta', '2026-06-21'),
+      hardLog('errei-conta', '2026-06-22'),
+      hardLog('errei-conta', '2026-06-23'),
+      hardLog('nao-vi', '2026-06-24'),
+    ];
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-25', { recentTrainingLogs: logs });
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(tema?.coachNote).toContain('linha ficou pela metade');
+    expect(tema?.guidingQuestion).toContain('melhor resposta do adversário');
+  });
+
+  it('enfatiza seleção de candidatos quando escolhi-errado predomina', () => {
+    const logs: TrainingLog[] = [
+      hardLog('escolhi-errado', '2026-06-20'),
+      hardLog('escolhi-errado', '2026-06-21'),
+      hardLog('escolhi-errado', '2026-06-22'),
+      hardLog('nao-vi', '2026-06-23'),
+      hardLog('errei-conta', '2026-06-24'),
+    ];
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-25', { recentTrainingLogs: logs });
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(tema?.coachNote).toContain('2 candidatos');
+    expect(tema?.guidingQuestion).toContain('2 candidatos');
+  });
+
+  it('sem logs de errorType → mantém a copy usual do gerador (sem regressão)', () => {
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-25');
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    // coachNote padrão do bloco tema (não contém as frases da taxonomia).
+    expect(tema?.coachNote).not.toContain('à vista');
+    expect(tema?.coachNote).not.toContain('linha ficou pela metade');
+    expect(tema?.coachNote).not.toContain('2 candidatos');
+  });
+
+  it('não toca no bloco de aquecimento (roteamento é só no tema)', () => {
+    const logs: TrainingLog[] = [
+      hardLog('nao-vi', '2026-06-23'),
+      hardLog('nao-vi', '2026-06-24'),
+    ];
+    // Sessão de 30min tem aquecimento + tema + transferência.
+    const plan = generatePlan(baseProfile, [], 30, '2026-06-25', { recentTrainingLogs: logs });
+    const aquecimento = plan.blocks.find((block) => block.id.endsWith('-aquecimento'));
+
+    // Aquecimento mantém sua copy própria (não herda errorCoach).
+    expect(aquecimento?.coachNote).not.toContain('à vista');
+  });
+});

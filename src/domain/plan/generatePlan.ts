@@ -3,6 +3,7 @@ import { assertNever } from '../assertNever';
 import { buildInterleavePool, shouldForceRotation, weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
 import { computeMastery } from '../method/mastery';
 import { getRecentlyEarnedDiploma } from '../method/diplomas';
+import { getErrorRoutingCoach, getErrorRoutingEmphasis, type ErrorRoutingCoach } from '../method/errorRouting';
 import { INTERLEAVE_STAGES } from './schedulerConstants';
 import { getMethodTrackTitle } from '../method/methodTracks';
 import { isDueToday } from '../method/pendingItems';
@@ -19,6 +20,7 @@ import type {
   PlanResourceStage,
   PuzzleThemeStats,
   SessionMinutes,
+  TrainingLog,
   Weakness,
   WeaknessTag,
   WeeklyFocus,
@@ -45,6 +47,9 @@ export type GeneratePlanOptions = {
   // Decisão 3: conquistar um diploma há pouco promove à trilha progress-diplomas.
   // generatePlan calcula a recência a partir das tentativas + a data do plano.
   diplomaAttempts?: readonly DiplomaAttempt[];
+  // Fase 1 (2026-06-24): logs recentes para derivar errorType predominante via
+  // errorRouting. Opcional — sem dado, fallback para comportamento atual.
+  recentTrainingLogs?: readonly TrainingLog[];
 };
 
 type LatestThemeSignal = {
@@ -192,6 +197,11 @@ export function generatePlan(
   });
   const reviewRatio = getReviewRatioForPendingCount(duePendingItems.length);
   const budget = applyAdaptiveReviewRatio(getTimeBudget(sessionMinutes), reviewRatio, duePendingItems.length > 0);
+  // Fase 1 (1c, 2026-06-24): sinal de errorType predominante nos logs recentes.
+  // ADITIVO puro — só ajusta coachNote/guidingQuestion do bloco tema; NÃO toca
+  // estágio (masteryAwareFallback), track (selectMethodTrack), floor
+  // (FEEDBACK_EXPIRY_DAYS) nem M-Retenção. Sem dado → undefined → copy usual.
+  const errorCoach = getErrorRoutingCoach(getErrorRoutingEmphasis([...(options.recentTrainingLogs ?? [])]));
   const blocks = budget.map((budgetBlock, index) =>
     inheritPreviousProgress(
       duePendingItems.length > 0 && index === 0
@@ -219,6 +229,7 @@ export function generatePlan(
             completedResourceIds,
             updatedAt,
             activeTrack,
+            errorCoach,
           }),
       options.previousPlan,
     ),
@@ -276,6 +287,9 @@ function createPlanBlock(input: {
   completedResourceIds: readonly string[];
   updatedAt: string;
   activeTrack: MethodTrackId;
+  // Fase 1 (1c): copy pedagógica derivada do errorType predominante. Aplica-se
+  // SÓ ao bloco tema; undefined mantém a copy usual do gerador.
+  errorCoach?: ErrorRoutingCoach;
 }): PlanBlock {
   const resourceStage = getResourceStage(input.kind, input.latestThemeSignal, input.persistedThemeStage);
   // D2: na pós-aquisição (pool não-vazio), a revisão puxa um tema do pool
@@ -308,6 +322,10 @@ function createPlanBlock(input: {
     completedResourceIds: input.completedResourceIds,
   });
 
+  // Fase 1 (1c): o bloco tema herda a dica de erro quando há sinal predominante;
+  // os demais blocos seguem a copy padrão. ADITIVO — não toca task/reason/stage.
+  const themeErrorCoach = input.kind === 'tema' ? input.errorCoach : undefined;
+
   return {
     id: createPlanBlockId(input.date, input.sessionNumber, input.index, input.kind),
     sessionNumber: input.sessionNumber,
@@ -320,13 +338,13 @@ function createPlanBlock(input: {
     task: copy.task,
     stopRule: copy.stopRule,
     reason: copy.reason,
-    coachNote: getCoachNote(input.kind, {
+    coachNote: themeErrorCoach?.coachNote ?? getCoachNote(input.kind, {
       weaknessTag: copy.weaknessTag,
       resourceStage,
     }),
     status: 'pending',
     methodTrackId: input.activeTrack,
-    guidingQuestion: getGuidingQuestion(input.activeTrack),
+    guidingQuestion: themeErrorCoach?.guidingQuestion ?? getGuidingQuestion(input.activeTrack),
     ...(isDiscrimination ? { isDiscrimination: true } : {}),
     updatedAt: input.updatedAt,
   };
