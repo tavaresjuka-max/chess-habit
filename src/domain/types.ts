@@ -215,6 +215,13 @@ export type DailyPlan = {
   // papel de ORGANIZADOR de autoestudo. Flag só-leitura; a UI mostra a mensagem
   // de teto. NÃO promete rating.
   organizerCeiling?: boolean;
+  // A1' (transparência, council 2026-06-24): ênfase de erro aplicada ao coaching
+  // do bloco-tema, exposta para a UI MOSTRAR o porquê ao aluno (validação honesta
+  // do roteamento em n=1 — telemetria de dev não tem significância). Só-leitura;
+  // setada apenas quando há ênfase (!= 'default'). Tipo inline (espelha as 3
+  // ênfases não-default de ErrorRoutingEmphasis) para evitar import circular com
+  // method/errorRouting.
+  routingEmphasis?: 'detection-volume' | 'calculation' | 'candidate-selection';
 };
 
 export type PuzzleActivityTrainingResult = {

@@ -9,7 +9,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { TrainingLog } from '../types';
-import { getErrorRoutingEmphasis } from './errorRouting';
+import { buildRoutingWhy, getErrorRoutingEmphasis } from './errorRouting';
+import { BANNED_PHRASES } from '../coach/sessionMessage';
 
 function hardLog(overrides: {
   date?: string;
@@ -167,5 +168,32 @@ describe('getErrorRoutingEmphasis', () => {
     // Apenas os 2 nao-vi (done+hard) contam → mas ainda sem maioria absoluta c/ empate impossível
     // 2 nao-vi, 0 outros → nao-vi claramente vence
     expect(getErrorRoutingEmphasis(logs)).toBe('detection-volume');
+  });
+});
+
+describe('buildRoutingWhy (A1 transparencia)', () => {
+  const emphases = ['detection-volume', 'calculation', 'candidate-selection'] as const;
+
+  it('retorna uma linha de porquê para cada ênfase real', () => {
+    for (const e of emphases) {
+      const why = buildRoutingWhy(e);
+      expect(why).toBeTruthy();
+      expect(why?.toLowerCase()).toContain('foco de hoje');
+    }
+  });
+
+  it('retorna undefined para default (sem ênfase = sem nota)', () => {
+    expect(buildRoutingWhy('default')).toBeUndefined();
+  });
+
+  it('passa por BANNED_PHRASES e não promete rating nem usa exclamação', () => {
+    for (const e of emphases) {
+      const why = buildRoutingWhy(e) ?? '';
+      for (const banned of BANNED_PHRASES) {
+        expect(why.toLowerCase()).not.toContain(banned);
+      }
+      expect(why).not.toContain('!');
+      expect(why).not.toMatch(/rating|elo/i);
+    }
   });
 });

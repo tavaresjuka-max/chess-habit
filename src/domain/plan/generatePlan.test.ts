@@ -1192,6 +1192,46 @@ describe('generatePlan × errorRouting — sinal de errorType predominante', () 
     // Aquecimento mantém sua copy própria (não herda errorCoach).
     expect(aquecimento?.coachNote).not.toContain('à vista');
   });
+
+  it("expõe routingEmphasis quando há errorType predominante (transparência A1')", () => {
+    const logs: TrainingLog[] = [
+      hardLog('nao-vi', '2026-06-22'),
+      hardLog('nao-vi', '2026-06-23'),
+      hardLog('errei-conta', '2026-06-24'),
+    ];
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-25', { recentTrainingLogs: logs });
+
+    // Flag só-leitura espelhando a ênfase aplicada (default NÃO é exposto).
+    expect(plan.routingEmphasis).toBe('detection-volume');
+  });
+
+  it("NÃO expõe routingEmphasis sem logs (default = sem nota na UI, A1')", () => {
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-25');
+    expect(plan.routingEmphasis).toBeUndefined();
+  });
+
+  it("expõe routingEmphasis para calculation (errei-conta predominante, A1')", () => {
+    const logs: TrainingLog[] = [
+      hardLog('errei-conta', '2026-06-22'),
+      hardLog('errei-conta', '2026-06-23'),
+    ];
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-25', { recentTrainingLogs: logs });
+    expect(plan.routingEmphasis).toBe('calculation');
+  });
+
+  it('NÃO expõe routingEmphasis quando a sessão não tem bloco-tema (caça-bugs council 2026-06-24)', () => {
+    // Sessão de 5 min (1 bloco) com item de revisão DEVIDO → block[0] é o pendente,
+    // sem bloco-tema. Mesmo com logs que disparam ênfase, a nota não pode prometer
+    // "foco de hoje" sem um bloco que entregue o foco (invariante do council).
+    const logs: TrainingLog[] = [hardLog('errei-conta', '2026-06-23'), hardLog('errei-conta', '2026-06-24')];
+    const plan = generatePlan(baseProfile, [], 5, today, {
+      recentTrainingLogs: logs,
+      openPendingItems: [createPendingItem({ dueAt: today })],
+    });
+
+    expect(plan.blocks.some((b) => b.id.endsWith('-tema'))).toBe(false);
+    expect(plan.routingEmphasis).toBeUndefined();
+  });
 });
 
 describe('teto explícito (organizerCeiling) — banda FM 2200-2400', () => {

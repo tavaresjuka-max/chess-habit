@@ -65,6 +65,7 @@ function renderToday({
   showCalibrationInvite = false,
   onStartCalibration = () => undefined,
   chronicSupportSuggested = false,
+  routingEmphasis,
 }: {
   blocks: PlanBlock[];
   trainingLogs?: TrainingLog[];
@@ -76,10 +77,18 @@ function renderToday({
   showCalibrationInvite?: boolean;
   onStartCalibration?: () => void;
   chronicSupportSuggested?: boolean;
+  routingEmphasis?: 'detection-volume' | 'calculation' | 'candidate-selection';
 }) {
   return render(
     <Today
-      plan={emptyState ? undefined : makePlan(blocks, chronicSupportSuggested ? { chronicSupportSuggested: true } : {})}
+      plan={
+        emptyState
+          ? undefined
+          : makePlan(blocks, {
+              ...(chronicSupportSuggested ? { chronicSupportSuggested: true } : {}),
+              ...(routingEmphasis !== undefined ? { routingEmphasis } : {}),
+            })
+      }
       roadmap={[]}
       sessionMinutes={15}
       learnerBand="0-400"
@@ -661,5 +670,34 @@ describe('Today — R2b suporte crônico', () => {
     renderToday({ blocks: [makeBlock({ id: 'b1' })] });
 
     expect(screen.queryByText(/reforçar a base/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("Today — nota de transparência do roteamento (A1')", () => {
+  it('mostra o porquê quando plan.routingEmphasis está setado (detection-volume)', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })], routingEmphasis: 'detection-volume' });
+
+    // Linhas curadas do buildRoutingWhy para detection-volume.
+    expect(screen.getByText(/à vista/i)).toBeInTheDocument();
+    expect(screen.getByText(/foco de hoje/i)).toBeInTheDocument();
+  });
+
+  it('mostra o porquê para calculation', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })], routingEmphasis: 'calculation' });
+
+    expect(screen.getByText(/conta pela metade/i)).toBeInTheDocument();
+  });
+
+  it('não mostra a nota quando routingEmphasis está ausente (default)', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })] });
+
+    expect(screen.queryByText(/foco de hoje/i)).not.toBeInTheDocument();
+  });
+
+  it('a nota tem role="note" (acessibilidade)', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })], routingEmphasis: 'candidate-selection' });
+
+    const note = screen.getByRole('note');
+    expect(note).toHaveTextContent(/comparar candidatos/i);
   });
 });

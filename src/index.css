@@ -1179,6 +1179,14 @@ textarea {
   line-height: 1.45;
 }
 
+/* A1' transparência: por que o coaching foi roteado — sóbria, informativa. */
+.routing-why-note {
+  font-size: 0.82rem;
+  color: var(--ink-600);
+  margin: -8px 0 20px;
+  line-height: 1.45;
+}
+
 /* Teto explícito (FM 2200-2400): nota honesta de "organizador", sóbria, sem alarme. */
 .organizer-ceiling-note {
   font-size: 0.85rem;
