@@ -203,7 +203,8 @@ export function generatePlan(
   // ADITIVO puro — só ajusta coachNote/guidingQuestion do bloco tema; NÃO toca
   // estágio (masteryAwareFallback), track (selectMethodTrack), floor
   // (FEEDBACK_EXPIRY_DAYS) nem M-Retenção. Sem dado → undefined → copy usual.
-  const errorCoach = getErrorRoutingCoach(getErrorRoutingEmphasis([...(options.recentTrainingLogs ?? [])]));
+  const errorEmphasis = getErrorRoutingEmphasis([...(options.recentTrainingLogs ?? [])]);
+  const errorCoach = getErrorRoutingCoach(errorEmphasis);
   const blocks = budget.map((budgetBlock, index) =>
     inheritPreviousProgress(
       duePendingItems.length > 0 && index === 0
@@ -257,6 +258,9 @@ export function generatePlan(
     ...(chronicSupportSuggested ? { chronicSupportSuggested: true } : {}),
     // Teto explícito (council 2026-06-24): banda FM 2200-2400 = organizador, não tier novo.
     ...(isOrganizerCeilingBand(profile.band) ? { organizerCeiling: true } : {}),
+    // A1' transparência: expõe a ênfase de erro aplicada (só quando != 'default')
+    // para a UI mostrar o porquê do roteamento ao aluno.
+    ...(errorEmphasis !== 'default' ? { routingEmphasis: errorEmphasis } : {}),
   };
 }
 

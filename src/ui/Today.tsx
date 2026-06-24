@@ -42,6 +42,7 @@ import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../doma
 import type { BackupMeta } from '../app/backupStatus';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { ORGANIZER_CEILING_MESSAGE } from '../domain/curriculum/curriculum';
+import { buildRoutingWhy } from '../domain/method/errorRouting';
 import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
 import { BlockCarousel } from './BlockCarousel';
@@ -371,6 +372,13 @@ export function Today({
         // ensino novo. Mensagem sem promessa de rating.
         <p className="organizer-ceiling-note" role="note">
           {ORGANIZER_CEILING_MESSAGE}
+        </p>
+      ) : null}
+      {plan.routingEmphasis !== undefined ? (
+        // A1' transparência (council 2026-06-24): mostra ao aluno POR QUE o coaching
+        // de hoje foi roteado pelo padrão de erro recente. Nota sóbria, sem tap extra.
+        <p className="routing-why-note" role="note">
+          {buildRoutingWhy(plan.routingEmphasis)}
         </p>
       ) : null}
 

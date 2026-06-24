@@ -140,3 +140,23 @@ export function getErrorRoutingCoach(emphasis: ErrorRoutingEmphasis): ErrorRouti
       return undefined;
   }
 }
+
+/**
+ * Transparência (A1', council 2026-06-24): explica AO ALUNO o porquê do roteamento,
+ * na linguagem dele. Mostrar o "porquê" é a validação honesta da hipótese de
+ * roteamento num app de 1 usuário (telemetria de dev não tem significância em n=1).
+ * Retorna undefined para 'default' (sem ênfase = sem nota). Tom Lemos, sem promessa
+ * de rating, sem exclamação; passa BANNED_PHRASES.
+ */
+export function buildRoutingWhy(emphasis: ErrorRoutingEmphasis): string | undefined {
+  switch (emphasis) {
+    case 'detection-volume':
+      return 'Seu padrão recente: lances que estavam à vista passaram. Por isso o foco de hoje é olhar o tabuleiro inteiro antes de calcular.';
+    case 'calculation':
+      return 'Seu padrão recente: a ideia certa, mas a conta pela metade. Por isso o foco de hoje é calcular até o fim da linha.';
+    case 'candidate-selection':
+      return 'Seu padrão recente: o lance escolhido não era o melhor candidato. Por isso o foco de hoje é comparar candidatos antes de decidir.';
+    case 'default':
+      return undefined;
+  }
+}
