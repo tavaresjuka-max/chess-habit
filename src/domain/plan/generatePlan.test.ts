@@ -1193,3 +1193,15 @@ describe('generatePlan × errorRouting — sinal de errorType predominante', () 
     expect(aquecimento?.coachNote).not.toContain('à vista');
   });
 });
+
+describe('teto explícito (organizerCeiling) — banda FM 2200-2400', () => {
+  it('acende organizerCeiling na banda 2200-2400 (council 2026-06-24)', () => {
+    const plan = generatePlan({ ...baseProfile, band: '2200-2400' }, [], 15, '2026-06-06');
+    expect(plan.organizerCeiling).toBe(true);
+  });
+
+  it('não acende em bandas de ensino normais (0-2200)', () => {
+    expect(generatePlan({ ...baseProfile, band: '2000-2200' }, [], 15, '2026-06-06').organizerCeiling).toBeUndefined();
+    expect(generatePlan({ ...baseProfile, band: '800-1000' }, [], 15, '2026-06-06').organizerCeiling).toBeUndefined();
+  });
+});

@@ -2,6 +2,7 @@ import { getCoachNote } from '../coach/coachCatalog';
 import { assertNever } from '../assertNever';
 import { buildInterleavePool, shouldForceRotation, weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
 import { computeMastery } from '../method/mastery';
+import { isOrganizerCeilingBand } from '../bands';
 import { getRecentlyEarnedDiploma } from '../method/diplomas';
 import { getErrorRoutingCoach, getErrorRoutingEmphasis, type ErrorRoutingCoach } from '../method/errorRouting';
 import { INTERLEAVE_STAGES } from './schedulerConstants';
@@ -254,6 +255,8 @@ export function generatePlan(
     generatedFromWeaknessesAt: updatedAt,
     ...(primaryThemeForced ? { primaryThemeForced: true } : {}),
     ...(chronicSupportSuggested ? { chronicSupportSuggested: true } : {}),
+    // Teto explícito (council 2026-06-24): banda FM 2200-2400 = organizador, não tier novo.
+    ...(isOrganizerCeilingBand(profile.band) ? { organizerCeiling: true } : {}),
   };
 }
 

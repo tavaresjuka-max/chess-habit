@@ -1179,6 +1179,18 @@ textarea {
   line-height: 1.45;
 }
 
+/* Teto explícito (FM 2200-2400): nota honesta de "organizador", sóbria, sem alarme. */
+.organizer-ceiling-note {
+  font-size: 0.85rem;
+  color: var(--ink-700);
+  background: var(--surface-2, rgba(31, 63, 54, 0.05));
+  border-left: 3px solid var(--ink-400, #1f3f36);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
 /* ---------- Hero "Agora": uma ação clara visível ---------- */
 
 .hero-now {

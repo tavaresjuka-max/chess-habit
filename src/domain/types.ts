@@ -209,6 +209,12 @@ export type DailyPlan = {
   // estágio exibido); habilita uma oferta sóbria de "reforçar a base". Decoplado
   // da persistência: detecção é só-leitura, não toca profile.themeStages.
   chronicSupportSuggested?: boolean;
+  // M-Sinal-9.5 (auditoria council 2026-06-24): no topo da escada (banda FM
+  // 2200-2400) o app atingiu o TETO do que ensina — acima de ~2200 o sinal local
+  // satura. Em vez de fingir um tier novo (mesmos drills), assume honestamente o
+  // papel de ORGANIZADOR de autoestudo. Flag só-leitura; a UI mostra a mensagem
+  // de teto. NÃO promete rating.
+  organizerCeiling?: boolean;
 };
 
 export type PuzzleActivityTrainingResult = {

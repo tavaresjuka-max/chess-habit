@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { learnerBands } from '../bands';
-import { buildCurriculumOutlook, CURRICULUM, getCurriculumPhaseForBand } from './curriculum';
+import { buildCurriculumOutlook, CURRICULUM, getCurriculumPhaseForBand, ORGANIZER_CEILING_MESSAGE } from './curriculum';
+import { BANNED_PHRASES } from '../coach/sessionMessage';
 
 describe('CURRICULUM', () => {
   it('cobre todas as bandas do spine exatamente uma vez', () => {
@@ -79,5 +80,19 @@ describe('buildCurriculumOutlook', () => {
     const outlook = buildCurriculumOutlook(undefined, undefined);
 
     expect(outlook[0]?.status).toBe('current');
+  });
+});
+
+describe('ORGANIZER_CEILING_MESSAGE (teto explícito FM)', () => {
+  it('passa pela banlist do Professor Lemos (BANNED_PHRASES)', () => {
+    for (const banned of BANNED_PHRASES) {
+      expect(ORGANIZER_CEILING_MESSAGE.toLowerCase()).not.toContain(banned);
+    }
+  });
+
+  it('é honesta: sem promessa de rating, sem exclamação, enquadra como organizador', () => {
+    expect(ORGANIZER_CEILING_MESSAGE).not.toContain('!');
+    expect(ORGANIZER_CEILING_MESSAGE.toLowerCase()).toContain('organizador');
+    expect(ORGANIZER_CEILING_MESSAGE).not.toMatch(/rating|elo/i);
   });
 });

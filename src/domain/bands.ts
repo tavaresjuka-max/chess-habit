@@ -37,6 +37,13 @@ export function isBeginnerBand(band: LearnerBand | undefined): boolean {
   return band !== undefined && (beginnerBands as readonly string[]).includes(band);
 }
 
+// Banda de TETO (FM 2200-2400). Council 2026-06-24: acima de ~2200 o sinal local
+// satura e o app não ensina tier novo — assume papel de organizador de autoestudo.
+// A escada de ENSINO vai até 2200; esta banda é o teto explícito, não um tier falso.
+export function isOrganizerCeilingBand(band: LearnerBand | undefined): boolean {
+  return band === '2200-2400';
+}
+
 // Migracao dos perfis criados antes do spine: as bandas antigas eram '0-800' e
 // '800-1200'. Sem placement ainda, mapeia para a metade inferior do intervalo
 // antigo equivalente; o Placement v1 (Corte 3) refina depois.

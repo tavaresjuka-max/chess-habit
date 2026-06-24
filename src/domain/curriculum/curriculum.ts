@@ -39,6 +39,15 @@ export type CurriculumPhaseOutlook = {
   currentWeekNumber?: number;
 };
 
+// Teto explícito (council 2026-06-24): mensagem honesta quando o aluno atinge a
+// banda FM (2200-2400). Tom Professor Lemos — sem promessa de rating, sem fingir
+// que há tier de ensino novo. Passa pela banlist (BANNED_PHRASES).
+export const ORGANIZER_CEILING_MESSAGE =
+  'Você chegou ao topo do que este app ensina. Daqui em diante ele vira mais um ' +
+  'organizador do seu autoestudo — trilha de leitura do acervo, autoanálise das ' +
+  'suas partidas e finais teóricos — do que um professor que prescreve cada lance. ' +
+  'Para subir além deste ponto, um treinador humano rende mais que qualquer app.';
+
 export const CURRICULUM: readonly CurriculumPhase[] = [
   {
     id: 'fundamentos',
