@@ -258,9 +258,14 @@ export function generatePlan(
     ...(chronicSupportSuggested ? { chronicSupportSuggested: true } : {}),
     // Teto explícito (council 2026-06-24): banda FM 2200-2400 = organizador, não tier novo.
     ...(isOrganizerCeilingBand(profile.band) ? { organizerCeiling: true } : {}),
-    // A1' transparência: expõe a ênfase de erro aplicada (só quando != 'default')
-    // para a UI mostrar o porquê do roteamento ao aluno.
-    ...(errorEmphasis !== 'default' ? { routingEmphasis: errorEmphasis } : {}),
+    // A1' transparência: expõe a ênfase de erro SÓ quando há um bloco-tema que
+    // recebeu o coaching aditivo (createPlanBlock só anexa a dica em kind='tema').
+    // Caça-bugs council 2026-06-24: sem essa guarda, uma sessão sem bloco-tema (ex.:
+    // 5 min com item de revisão pendente no índice 0) mostraria a nota "foco de hoje"
+    // sem nenhum bloco entregar o foco — promessa sem coaching.
+    ...(errorEmphasis !== 'default' && blocks.some((b) => b.id.endsWith('-tema'))
+      ? { routingEmphasis: errorEmphasis }
+      : {}),
   };
 }
 
