@@ -323,9 +323,16 @@ function createPlanBlock(input: {
     completedResourceIds: input.completedResourceIds,
   });
 
-  // Fase 1 (1c): o bloco tema herda a dica de erro quando há sinal predominante;
-  // os demais blocos seguem a copy padrão. ADITIVO — não toca task/reason/stage.
+  // Fase 1 (1c) + auditoria council 2026-06-24: o bloco tema GANHA a dica de erro
+  // quando há sinal predominante, mas de forma ADITIVA — anexa ao coachNote base do
+  // tema em vez de SUBSTITUIR. A ênfase é global (não por-tema), então substituir
+  // arriscava orientar a habilidade errada num tema que não gerou o erro; anexar
+  // preserva a orientação correta do tema e só acrescenta o lembrete do modo de erro.
   const themeErrorCoach = input.kind === 'tema' ? input.errorCoach : undefined;
+  const baseCoachNote = getCoachNote(input.kind, {
+    weaknessTag: copy.weaknessTag,
+    resourceStage,
+  });
 
   return {
     id: createPlanBlockId(input.date, input.sessionNumber, input.index, input.kind),
@@ -339,10 +346,8 @@ function createPlanBlock(input: {
     task: copy.task,
     stopRule: copy.stopRule,
     reason: copy.reason,
-    coachNote: themeErrorCoach?.coachNote ?? getCoachNote(input.kind, {
-      weaknessTag: copy.weaknessTag,
-      resourceStage,
-    }),
+    coachNote:
+      themeErrorCoach !== undefined ? `${baseCoachNote} ${themeErrorCoach.coachNote}` : baseCoachNote,
     status: 'pending',
     methodTrackId: input.activeTrack,
     guidingQuestion: themeErrorCoach?.guidingQuestion ?? getGuidingQuestion(input.activeTrack),
