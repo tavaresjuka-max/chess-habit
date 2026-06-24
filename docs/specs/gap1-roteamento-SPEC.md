@@ -77,8 +77,11 @@ Wiring:
 - ⏳ **Pilar C — gravação + wiring** — pendente (DEFERIDO p/ a passada pós-council no generatePlan):
   registrar `RouteOutcome` (rota moveu weakness.score?) e plugar `pickRouteByHistory` na seleção
   tocam generatePlan/fluxo de fraqueza → serializar com a decisão do eixo de estágio (mesmos arquivos).
-- ⏳ **Guarda theme-map ⊆ Lichess** — pendente; exige ancorar a lista canônica de temas do Lichess
-  (sem inventar slugs). Fazer com cuidado.
+- ✅ **Guarda theme-map ⊆ Lichess (anti-404)** — `resourceCatalog.test.ts`. O catálogo
+  (`lichessPuzzleThemes`, slugs verificados/link-checked, todos `training/<slug>`) é a allowlist
+  canônica; teste data-driven garante que `methodTrainingDestinationAllowlist` + chaves de
+  `puzzleThemeToWeaknessTag` ⊆ catálogo (pega rombo de slug fora do catálogo = URL 404). A validade
+  catálogo↔Lichess real é mantida pela curadoria/link-check, não pelo teste (sem inventar slugs).
 - ✅ **Study-rot fallback** — coberto estruturalmente: o seletor mantém o tema como fallback de menor
   prioridade DEPOIS da Study (teste `resourceCatalog.test.ts` "keeps raw puzzle themes as fallback");
   + curadoria com link-check/cadência. Detecção de 404 em runtime é impossível offline (por design).

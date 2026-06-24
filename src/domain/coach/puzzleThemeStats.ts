@@ -93,7 +93,7 @@ function buildLatestPuzzleDashboardThemeStats(logs: TrainingLog[]): PuzzleThemeS
 // Fonte única do mapa tema-de-puzzle (chave camelCase do Lichess) → fraqueza
 // tática interna. Usada pelo diagnóstico (mensagem do coach) e pela seleção de
 // tema do plano (ponte puzzle→fraqueza).
-const puzzleThemeToWeaknessTag: Partial<Record<string, WeaknessTag>> = {
+export const puzzleThemeToWeaknessTag: Partial<Record<string, WeaknessTag>> = {
   backRankMate: 'back-rank',
   discoveredAttack: 'discovered',
   discoveredCheck: 'discovered',
