@@ -55,3 +55,30 @@ Wiring:
 - [ ] Pilar C: `pickRouteByHistory` puro + teste cold-start = ordem atual.
 - [ ] Guarda: teste mapa de temas ⊆ lista conhecida do Lichess.
 - [ ] Gates: 1026+ testes, lint, tsc, build verdes.
+
+## STATUS (2026-06-24, fase em curso)
+- ✅ **Pilar B (eixo SR/graduação)** — commit `1d3b124`. `difficultyFit.ts` puro + gate em
+  `advancePendingItem`: too-hard observado VENCE o autorrelato e PRECEDE a graduação
+  (fecha o buraco de graduar contra sinal cego); cai pra Study curada ou adia. Retrocompat dura.
+- ✅ **Pilar A (split honesto + surfacing)** — commit `64a8664`. Split já era honesto
+  (explain/guided=Study/vídeo; retrieval+=tema; sem alegação de dificuldade no tema); a
+  deferReason do adiamento agora aparece pro aluno no banner (não some em silêncio).
+- ✅ **Guarda copy offline** — auditado: nenhuma promessa de "treino offline" (só `offlineReady`
+  do PWA = cache do app-shell). PASS.
+- ⏳ **Eixo de ESTÁGIO (critério "promoção bloqueada quando too-hard", linha 52)** — EM COUNCIL
+  (DIVERGIR, não-bloqueante). Conflito real: gatear o estágio no sinal observado contesta a
+  DD-Ped6 (feedback explícito <14d FORÇA o estágio — anti-penhasco TDAH) e pode ser RISCO
+  REDUNDANTE, já que a graduação (a falha mais grave) já é gateada no eixo SR. Decidir após o digest.
+- ✅ **Pilar C — função pura (`pickRouteByHistory`)** — `routeHistory.ts` + testes (7) verdes.
+  Conservadora p/ n=1: só sobrepõe a ordem atual quando há histórico ROBUSTO (≥3 desfechos) e
+  majoritariamente POSITIVO (>50% moveu o score) PARA O CONCEITO; senão cold-start (ordem de hoje).
+  Assinatura refinada p/ 3 args (`candidates, history, weaknessTag`) — escopo por conceito
+  self-contained, mais correto/testável que o atalho de 2 args do contrato. Não fabrica sinal de ruído.
+- ⏳ **Pilar C — gravação + wiring** — pendente (DEFERIDO p/ a passada pós-council no generatePlan):
+  registrar `RouteOutcome` (rota moveu weakness.score?) e plugar `pickRouteByHistory` na seleção
+  tocam generatePlan/fluxo de fraqueza → serializar com a decisão do eixo de estágio (mesmos arquivos).
+- ⏳ **Guarda theme-map ⊆ Lichess** — pendente; exige ancorar a lista canônica de temas do Lichess
+  (sem inventar slugs). Fazer com cuidado.
+- ✅ **Study-rot fallback** — coberto estruturalmente: o seletor mantém o tema como fallback de menor
+  prioridade DEPOIS da Study (teste `resourceCatalog.test.ts` "keeps raw puzzle themes as fallback");
+  + curadoria com link-check/cadência. Detecção de 404 em runtime é impossível offline (por design).
