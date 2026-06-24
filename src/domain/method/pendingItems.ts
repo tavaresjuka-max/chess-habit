@@ -5,6 +5,28 @@ import type { MethodTrackId, PendingTrainingItem } from './types';
 
 const SPACING_DAYS = [1, 3, 7, 14] as const;
 
+// SR adaptativo (SM-2, council 2026-06-24). Intervalo = SPACING_DAYS[attempts] ×
+// (easeFactor / DEFAULT). Default 2.5 => escala 1 => idêntico à escada fixa
+// (retrocompatível). 'easy'/'good' sobem o EF (intervalos maiores), 'hard' desce.
+const DEFAULT_EASE_FACTOR = 2.5;
+const MIN_EASE_FACTOR = 1.3;
+const MAX_EASE_FACTOR = 2.8;
+// Gate de retenção: resgate CEGO de longo prazo antes da graduação final.
+const RETENTION_GATE_DAYS = 30;
+
+function clampEaseFactor(ease: number): number {
+  return Math.max(MIN_EASE_FACTOR, Math.min(MAX_EASE_FACTOR, ease));
+}
+
+// Ajuste do EF por feedback (estilo SM-2, suavizado): 'easy' +0.15, 'good' +0.05,
+// 'hard' -0.20, sem feedback mantém. Clamp [1.3, 2.8].
+export function nextEaseFactor(current: number | undefined, feedback?: PlanBlockFeedback): number {
+  const ease = current ?? DEFAULT_EASE_FACTOR;
+  const delta = feedback === 'easy' ? 0.15 : feedback === 'good' ? 0.05 : feedback === 'hard' ? -0.2 : 0;
+
+  return clampEaseFactor(ease + delta);
+}
+
 type StudyDateOptions = {
   nowFn?: () => Date;
   timeZone?: string;
@@ -54,11 +76,23 @@ function addDays(dateKey: string, days: number): string {
   return date.toISOString().split('T')[0] ?? dateKey;
 }
 
-export function getNextDueDate(attempts: number, options: StudyDateOptions = {}): string {
-  const days = SPACING_DAYS[Math.min(attempts, SPACING_DAYS.length - 1)] ?? 14;
+function dueDateInDays(days: number, options: StudyDateOptions = {}): string {
   const today = toDateKey((options.nowFn ?? (() => new Date()))(), options.timeZone);
 
   return addDays(today, days);
+}
+
+export function getNextDueDate(
+  attempts: number,
+  options: StudyDateOptions = {},
+  easeFactor: number = DEFAULT_EASE_FACTOR,
+): string {
+  const base = SPACING_DAYS[Math.min(attempts, SPACING_DAYS.length - 1)] ?? 14;
+  // attempts<=0 = piso de reaprendizado (amanhã), sem escala. Demais escalam pelo
+  // EF; no EF default (2.5) a escala é 1 => intervalos idênticos à escada fixa.
+  const days = attempts <= 0 ? base : Math.max(1, Math.round(base * (easeFactor / DEFAULT_EASE_FACTOR)));
+
+  return dueDateInDays(days, options);
 }
 
 function clampSpacingAttempts(attempts: number): number {
@@ -155,18 +189,43 @@ export function advancePendingItem(
   masteryTarget?: MasteryResult,
   themeMastery?: { accuracyPercent: number; attempts: number },
 ): PendingTrainingItem {
+  const easeFactor = nextEaseFactor(item.easeFactor, feedback);
+  const now = new Date().toISOString();
+  const lastFeedback = feedback === undefined ? {} : { lastFeedback: feedback };
+
+  // Gate de retenção: o item já está no resgate CEGO de longo prazo.
+  if (item.retentionPending === true) {
+    const retained = feedback !== 'hard' && masteryTarget !== 'regress';
+    if (retained) {
+      // Reteve o padrão após o intervalo longo → gradua de verdade (prova de retenção).
+      return { ...item, easeFactor, retentionPending: false, ...lastFeedback, status: 'done', updatedAt: now };
+    }
+    // Falhou o resgate cego → reaprende: volta um nível, reexpõe amanhã, sai da retenção.
+    return {
+      ...item,
+      easeFactor,
+      retentionPending: false,
+      attempts: clampSpacingAttempts(item.attempts - 1),
+      dueAt: getNextDueDate(0),
+      ...lastFeedback,
+      gateBlockedCount: 0,
+      status: 'open',
+      updatedAt: now,
+    };
+  }
+
   const feedbackAttempts = nextSpacingAttempts(item.attempts, feedback);
   const attempts = masteryTarget === 'advance' ? clampSpacingAttempts(feedbackAttempts + 1) : feedbackAttempts;
   // Mastery real vinda do log reconciliado vence o ajuste local de dueAt do
-  // feedback: 'regress' reexpõe amanhã; 'advance' segue o nível acelerado.
+  // feedback: 'regress' reexpõe amanhã; 'advance' segue o nível acelerado (escala EF).
   const dueAt =
     masteryTarget === 'regress'
       ? getNextDueDate(0)
       : masteryTarget === 'advance'
-        ? getNextDueDate(attempts)
+        ? getNextDueDate(attempts, {}, easeFactor)
         : feedback === 'hard'
           ? getNextDueDate(0)
-          : getNextDueDate(attempts);
+          : getNextDueDate(attempts, {}, easeFactor);
 
   // Conta ciclos consecutivos bloqueados pela acurácia no teto de espaçamento; zera
   // quando não está bloqueado no teto. Após GRADUATION_GATE_ESCAPE_CYCLES, escapa.
@@ -174,16 +233,33 @@ export function advancePendingItem(
   const accuracyBlocks = graduationBlockedByAccuracy(themeMastery);
   const gateBlockedCount = atCeiling && accuracyBlocks ? (item.gateBlockedCount ?? 0) + 1 : 0;
   const escaped = gateBlockedCount >= GRADUATION_GATE_ESCAPE_CYCLES;
-  const graduates = atCeiling && (!accuracyBlocks || escaped);
+  const reachesGraduation = atCeiling && (!accuracyBlocks || escaped);
+
+  // Gate de retenção (council 2026-06-24): no teto, NÃO gradua direto — agenda um
+  // resgate cego de RETENTION_GATE_DAYS. Só vira 'done' se reter (próximo advance).
+  if (reachesGraduation) {
+    return {
+      ...item,
+      attempts,
+      easeFactor,
+      retentionPending: true,
+      dueAt: dueDateInDays(RETENTION_GATE_DAYS),
+      ...lastFeedback,
+      gateBlockedCount,
+      status: 'open',
+      updatedAt: now,
+    };
+  }
 
   return {
     ...item,
     attempts: masteryTarget === 'regress' ? 0 : attempts,
+    easeFactor,
     dueAt,
-    ...(feedback === undefined ? {} : { lastFeedback: feedback }),
+    ...lastFeedback,
     gateBlockedCount,
-    status: graduates ? 'done' : 'open',
-    updatedAt: new Date().toISOString(),
+    status: 'open',
+    updatedAt: now,
   };
 }
 

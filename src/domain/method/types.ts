@@ -38,6 +38,14 @@ export type PendingTrainingItem = {
   // espaçamento. Válvula de escape: após GRADUATION_GATE_ESCAPE_CYCLES, forma assim
   // mesmo (o tema segue rastreado como fraqueza). Persistido no item.
   gateBlockedCount?: number;
+  // SR adaptativo (SM-2, council 2026-06-24): fator de facilidade por item. Intervalo
+  // = SPACING_DAYS[attempts] × (easeFactor / 2.5). Default 2.5 = comportamento da
+  // escada fixa (retrocompatível); sobe com 'easy'/'good', desce com 'hard'. Clamp [1.3, 2.8].
+  easeFactor?: number;
+  // Gate de retenção (council 2026-06-24): ao atingir o teto, o item NÃO gradua direto —
+  // faz um resgate CEGO de longo prazo (RETENTION_GATE_DAYS) antes de virar 'done'.
+  // Mede retenção real, não acerto recente. true = aguardando esse resgate.
+  retentionPending?: boolean;
   status: 'open' | 'done' | 'deferred';
   createdAt: string;
   updatedAt: string;

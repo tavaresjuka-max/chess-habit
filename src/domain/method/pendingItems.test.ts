@@ -81,17 +81,34 @@ describe('pending training items', () => {
     }
   });
 
-  it('marks an item done after four advances', () => {
+  it('no teto entra na retenção (resgate cego), e gradua só ao reter (gate de retenção)', () => {
     const first = createItem({ attempts: 0 });
     const second = advancePendingItem(first);
     const third = advancePendingItem(second);
     const fourth = advancePendingItem(third);
     const fifth = advancePendingItem(fourth);
 
-    expect(fifth).toMatchObject({
-      attempts: 4,
-      status: 'done',
-    });
+    // No teto NÃO gradua direto: agenda o resgate cego de longo prazo.
+    expect(fifth).toMatchObject({ attempts: 4, status: 'open', retentionPending: true });
+
+    // Resgate bem-sucedido (sem 'hard') após o intervalo longo → gradua de verdade.
+    const graduated = advancePendingItem(fifth, 'good');
+    expect(graduated).toMatchObject({ status: 'done', retentionPending: false });
+  });
+
+  it('resgate de retenção falho (hard) reaprende em vez de graduar', () => {
+    const inRetention = createItem({ attempts: 4, retentionPending: true });
+    const failed = advancePendingItem(inRetention, 'hard');
+
+    expect(failed).toMatchObject({ status: 'open', retentionPending: false, lastFeedback: 'hard' });
+    expect(failed.attempts).toBeLessThan(4);
+  });
+
+  it('SM-2: easeFactor sobe com good/easy e desce com hard (clamp 1.3–2.8)', () => {
+    const base = createItem({ attempts: 1 });
+    expect(advancePendingItem(base, 'good').easeFactor).toBeGreaterThan(2.5);
+    expect(advancePendingItem(base, 'hard').easeFactor).toBeLessThan(2.5);
+    expect(advancePendingItem(createItem({ attempts: 1, easeFactor: 1.3 }), 'hard').easeFactor).toBe(1.3);
   });
 
   it('não gradua com 4 revisões se a acurácia cumulativa do tema < 75% (amostra suficiente)', () => {
@@ -109,7 +126,7 @@ describe('pending training items', () => {
       attempts: 12,
     });
 
-    expect(advanced).toMatchObject({ attempts: 4, status: 'done' });
+    expect(advanced).toMatchObject({ attempts: 4, status: 'open', retentionPending: true });
   });
 
   it('gradua por volume com pouca amostra do tema (válvula: dados ralos não travam)', () => {
@@ -118,13 +135,13 @@ describe('pending training items', () => {
       attempts: 5,
     });
 
-    expect(advanced).toMatchObject({ attempts: 4, status: 'done' });
+    expect(advanced).toMatchObject({ attempts: 4, status: 'open', retentionPending: true });
   });
 
   it('gradua por volume quando não há medição cumulativa do tema', () => {
     const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, undefined);
 
-    expect(advanced).toMatchObject({ attempts: 4, status: 'done' });
+    expect(advanced).toMatchObject({ attempts: 4, status: 'open', retentionPending: true });
   });
 
   it('válvula de escape: após 2 ciclos bloqueado no teto, forma assim mesmo', () => {
@@ -134,7 +151,7 @@ describe('pending training items', () => {
     expect(first).toMatchObject({ attempts: 4, status: 'open', gateBlockedCount: 1 });
 
     const second = advancePendingItem(first, 'good', undefined, blocked);
-    expect(second).toMatchObject({ attempts: 4, status: 'done', gateBlockedCount: 2 });
+    expect(second).toMatchObject({ attempts: 4, status: 'open', retentionPending: true, gateBlockedCount: 2 });
   });
 
   it('zera o contador de escape quando o item não está bloqueado no teto', () => {
@@ -143,7 +160,7 @@ describe('pending training items', () => {
       attempts: 12,
     });
 
-    expect(recovered).toMatchObject({ attempts: 4, status: 'done', gateBlockedCount: 0 });
+    expect(recovered).toMatchObject({ attempts: 4, status: 'open', retentionPending: true, gateBlockedCount: 0 });
   });
 
   it('pula dois níveis de espaçamento no feedback easy', () => {
@@ -168,14 +185,14 @@ describe('pending training items', () => {
     const once = advancePendingItem(createItem({ attempts: 0 }), 'easy');
     const twice = advancePendingItem(once, 'easy');
 
-    expect(twice).toMatchObject({ attempts: 4, status: 'done' });
+    expect(twice).toMatchObject({ attempts: 4, status: 'open', retentionPending: true });
   });
 
   it('usa mastery advance para graduar em menos repetições que o feedback sozinho', () => {
     const item = createItem({ attempts: 2 });
 
     expect(advancePendingItem(item, 'good')).toMatchObject({ attempts: 3, status: 'open' });
-    expect(advancePendingItem(item, 'good', 'advance')).toMatchObject({ attempts: 4, status: 'done' });
+    expect(advancePendingItem(item, 'good', 'advance')).toMatchObject({ attempts: 4, status: 'open', retentionPending: true });
   });
 
   it('usa mastery regress para zerar attempts e revisar amanhã mesmo com feedback good', () => {

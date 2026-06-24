@@ -14,7 +14,7 @@ import {
   clearAll,
   getPlan,
   getTrainingLog,
-  loadDonePendingItems,
+  loadOpenPendingItems,
   loadWeaknesses,
   markOnboardingCompleted,
   saveLichessOAuthToken,
@@ -530,12 +530,15 @@ describe('training flow', () => {
     await completeFirstBlockWithFeedback('Bom');
 
     await waitFor(async () => {
-      const donePendingItems = await loadDonePendingItems();
+      // Gate de retenção (2026-06-24): no teto, o item NÃO gradua direto — entra no
+      // resgate cego de longo prazo (status 'open' + retentionPending). Persiste avançado.
+      const openPendingItems = await loadOpenPendingItems();
 
-      expect(donePendingItems[0]).toMatchObject({
+      expect(openPendingItems[0]).toMatchObject({
         id: 'pending-1',
         attempts: 4,
-        status: 'done',
+        status: 'open',
+        retentionPending: true,
         lastFeedback: 'good',
       });
     });
