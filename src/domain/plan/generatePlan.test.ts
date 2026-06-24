@@ -363,6 +363,77 @@ describe('generatePlan', () => {
     });
   });
 
+  describe('R2b — detecção de suporte crônico (penhasco de incompetência)', () => {
+    function temaFeedbackBlock(date: string, resourceStage: PlanResourceStage, feedback: PlanBlockFeedback): PlanBlock {
+      return {
+        id: `${date}-tema`,
+        title: 'Garfo',
+        source: 'lichess',
+        weaknessTag: 'fork',
+        resourceStage,
+        task: '',
+        stopRule: '',
+        reason: '',
+        coachNote: '',
+        estimatedMinutes: 5,
+        status: 'done',
+        destination: { source: 'lichess', label: 'Puzzles Lichess: Fork', url: 'https://lichess.org/training/fork' },
+        feedback,
+        sessionNumber: 1,
+        updatedAt: `${date}T10:00:00.000Z`,
+      };
+    }
+    function planWith(block: PlanBlock) {
+      return { date: block.id.slice(0, 10), sessionMinutes: 15, generatedFromWeaknessesAt: `${block.id.slice(0, 10)}T08:00:00`, blocks: [block] };
+    }
+    const profileRetrieval: LearnerProfile = { ...baseProfile, band: '1000-1200', themeStages: { fork: 'retrieval' } };
+
+    it('estágio avançado segurado pelo floor (feedback expirado) + acurácia caída sustentada (≥30) → acende a flag', () => {
+      const plan = generatePlan(profileRetrieval, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-03', 'guided', 'easy')), // 20 dias → expirado
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 30, losses: 20 }] }, // 33%
+      });
+
+      expect(plan.chronicSupportSuggested).toBe(true);
+    });
+
+    it('feedback explícito recente vence → NÃO acende (DD-Ped1)', () => {
+      const plan = generatePlan(profileRetrieval, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-20', 'retrieval', 'easy')), // 3 dias → não expira
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 30, losses: 20 }] },
+      });
+
+      expect(plan.chronicSupportSuggested).toBeUndefined();
+    });
+
+    it('amostra fina (< 30) → NÃO acende (anti-ruído)', () => {
+      const plan = generatePlan(profileRetrieval, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-03', 'guided', 'easy')),
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 10, losses: 8 }] },
+      });
+
+      expect(plan.chronicSupportSuggested).toBeUndefined();
+    });
+
+    it('estágio NÃO avançado (guided) → NÃO acende (já tem andaime)', () => {
+      const plan = generatePlan({ ...baseProfile, band: '1000-1200', themeStages: { fork: 'guided' } }, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-03', 'guided', 'easy')),
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 30, losses: 20 }] },
+      });
+
+      expect(plan.chronicSupportSuggested).toBeUndefined();
+    });
+
+    it('acurácia boa (≥80%) → NÃO acende (não há penhasco)', () => {
+      const plan = generatePlan(profileRetrieval, [], 15, '2026-06-23', {
+        previousPlan: planWith(temaFeedbackBlock('2026-06-03', 'guided', 'easy')),
+        recentThemeStats: { since: '2026-06-01', until: '2026-06-23', themes: [{ theme: 'fork', attempts: 30, losses: 3 }] }, // 90%
+      });
+
+      expect(plan.chronicSupportSuggested).toBeUndefined();
+    });
+  });
+
   it('volta à fraqueza primária na transferência quando não há secundária distinta', () => {
     const weaknesses = [
       { tag: 'fork' as const, score: 0.8, confidence: 'medium' as const, evidence: 'Garfos frequentes.' },

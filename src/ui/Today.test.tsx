@@ -24,12 +24,13 @@ function makeBlock(overrides: Partial<PlanBlock> & { id: string }): PlanBlock {
   };
 }
 
-function makePlan(blocks: PlanBlock[]): DailyPlan {
+function makePlan(blocks: PlanBlock[], extra: Partial<DailyPlan> = {}): DailyPlan {
   return {
     date: '2026-06-12',
     sessionMinutes: 15,
     blocks,
     generatedFromWeaknessesAt: '2026-06-12T09:00:00.000Z',
+    ...extra,
   };
 }
 
@@ -63,6 +64,7 @@ function renderToday({
   onCreateNextSession = noop,
   showCalibrationInvite = false,
   onStartCalibration = () => undefined,
+  chronicSupportSuggested = false,
 }: {
   blocks: PlanBlock[];
   trainingLogs?: TrainingLog[];
@@ -73,10 +75,11 @@ function renderToday({
   onCreateNextSession?: typeof noop;
   showCalibrationInvite?: boolean;
   onStartCalibration?: () => void;
+  chronicSupportSuggested?: boolean;
 }) {
   return render(
     <Today
-      plan={emptyState ? undefined : makePlan(blocks)}
+      plan={emptyState ? undefined : makePlan(blocks, chronicSupportSuggested ? { chronicSupportSuggested: true } : {})}
       roadmap={[]}
       sessionMinutes={15}
       learnerBand="0-400"
@@ -644,5 +647,19 @@ describe('Today — formatFriendlyDate invalid date', () => {
     );
     // The raw string 'nao-e-data' should appear in the subtitle line
     expect(screen.getByText(/nao-e-data/)).toBeInTheDocument();
+  });
+});
+
+describe('Today — R2b suporte crônico', () => {
+  it('mostra a nota "reforçar a base" quando plan.chronicSupportSuggested é true', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })], chronicSupportSuggested: true });
+
+    expect(screen.getByText(/reforçar a base/i)).toBeInTheDocument();
+  });
+
+  it('não mostra a nota quando a flag está ausente', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })] });
+
+    expect(screen.queryByText(/reforçar a base/i)).not.toBeInTheDocument();
   });
 });
