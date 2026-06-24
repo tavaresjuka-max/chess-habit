@@ -198,6 +198,12 @@ export type DailyPlan = {
   // D4 (scheduler híbrido 2026-06-22): sinaliza que o tema primário atingiu o
   // teto de 12 sessões sem graduar e foi forçado a rotar neste plano.
   primaryThemeForced?: boolean;
+  // R2b (council 2026-06-23): o aluno está num estágio avançado SEGURADO pelo
+  // floor (feedback expirado) mas a acurácia real caiu de forma sustentada — risco
+  // de "penhasco de incompetência". Flag de DETECÇÃO (não altera o plano nem o
+  // estágio exibido); habilita uma oferta sóbria de "reforçar a base". Decoplado
+  // da persistência: detecção é só-leitura, não toca profile.themeStages.
+  chronicSupportSuggested?: boolean;
 };
 
 export type PuzzleActivityTrainingResult = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BANNED_PHRASES } from './sessionMessage';
-import { buildMilestoneLine, buildFactualFooter } from './retentionCopy';
+import { buildMilestoneLine, buildFactualFooter, buildSupportBaseLine } from './retentionCopy';
 
 // Utilitário: verifica que nenhuma string usa frases banidas.
 function assertNoBannedPhrases(lines: (string | undefined)[]): void {
@@ -78,5 +78,19 @@ describe('buildFactualFooter', () => {
     const footer = buildFactualFooter({ todayMinutes: 10, weekSessions: 2 });
     expect(footer).toMatch(/min/i);
     expect(footer).toMatch(/semana|sessão|sessões/i);
+  });
+});
+
+describe('buildSupportBaseLine (R2b)', () => {
+  it('passa por BANNED_PHRASES (sem remediação/vergonha)', () => {
+    assertNoBannedPhrases([buildSupportBaseLine()]);
+  });
+
+  it('enquadra como acúmulo/base, sem exclamação nem palavra de regressão', () => {
+    const line = buildSupportBaseLine();
+    expect(line).not.toContain('!');
+    expect(line.toLowerCase()).toMatch(/base|fundamento|construí/);
+    // Não usa linguagem de queda/regressão.
+    expect(line.toLowerCase()).not.toMatch(/regress|caiu|perdeu|pior|fraco/);
   });
 });

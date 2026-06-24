@@ -38,3 +38,13 @@ export function buildFactualFooter({ todayMinutes, weekSessions }: FooterInput):
   const sessionWord = weekSessions === 1 ? 'sessão' : 'sessões';
   return `Hoje: ${String(todayMinutes)} min · Esta semana: ${String(weekSessions)} ${sessionWord}.`;
 }
+
+/**
+ * R2b: oferta sóbria de "reforçar a base" quando a detecção crônica acende.
+ * Enquadrada como ACÚMULO (firmar o que já se construiu), NUNCA como remediação
+ * ou regressão (council 2026-06-23, framing do GLM: "adicionar base"). Sem '!',
+ * sem ícone, sem rótulo de nível. Constatação calma.
+ */
+export function buildSupportBaseLine(): string {
+  return 'Vale reforçar a base: revisar os fundamentos firma o que você já construiu.';
+}

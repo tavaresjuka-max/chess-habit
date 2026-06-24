@@ -27,7 +27,7 @@ import {
   type Weakness,
 } from '../domain';
 import { computeRecentActivity } from '../domain/metrics/recentActivity';
-import { buildMilestoneLine, buildFactualFooter } from '../domain/coach/retentionCopy';
+import { buildMilestoneLine, buildFactualFooter, buildSupportBaseLine } from '../domain/coach/retentionCopy';
 import { AccumulationStrip } from './AccumulationStrip';
 import {
   DIPLOMAS,
@@ -358,6 +358,11 @@ export function Today({
       </ul>
       <AccumulationStrip recentDays={recentActivity.recentDays} />
       <p className="accumulation-footer">{factualFooter}</p>
+      {plan.chronicSupportSuggested === true ? (
+        // R2b: oferta sóbria de reforçar a base (enquadrada como acúmulo, não
+        // remediação). Decoplada do estágio exibido — não regride nada.
+        <p className="support-base-note">{buildSupportBaseLine()}</p>
+      ) : null}
 
       {backupReminder !== undefined ? (
         <p className="backup-reminder" role="status">

@@ -67,6 +67,35 @@ const FEEDBACK_EXPIRY_DAYS = 14;
 // Regredir/segurar em amostra fina continua permitido (direção segura).
 const MIN_ATTEMPTS_FOR_STAGE_ADVANCE = 30;
 
+// R2b (council 2026-06-23): kill-switch da detecção de suporte crônico. Lógica
+// nova de baixo risco (só-leitura, não altera plano/estágio) — desligável.
+const CHRONIC_SUPPORT_DETECTION_ENABLED: boolean = true;
+
+// Detecta o "penhasco de incompetência": o aluno está num estágio AVANÇADO
+// (retrieval/transfer) SEGURADO pelo floor (feedback expirado, sem feedback novo)
+// mas a acurácia real caiu de forma sustentada (regress) com amostra robusta (≥30).
+// Só-leitura: NÃO toca profile.themeStages nem a composição do plano — apenas
+// sinaliza para uma oferta sóbria de "reforçar a base" (decisão de UI, fase 2).
+function detectChronicSupportNeed(input: {
+  latestThemeSignal: LatestThemeSignal | undefined;
+  persistedThemeStage: PlanResourceStage | undefined;
+  recentThemeStats: PuzzleThemeStats | undefined;
+  tag: WeaknessTag;
+}): boolean {
+  if (!CHRONIC_SUPPORT_DETECTION_ENABLED) return false;
+  // Só relevante em estágio avançado (pouco andaime); em explain/guided o aluno
+  // já recebe apoio.
+  if (input.persistedThemeStage !== 'retrieval' && input.persistedThemeStage !== 'transfer') return false;
+  // Feedback explícito recente vence — não inferir crônico se o aluno acabou de
+  // dar sinal (DD-Ped1). Só agimos quando o estágio está SEGURADO sem feedback.
+  if (input.latestThemeSignal?.feedback !== undefined) return false;
+  const stat = input.recentThemeStats?.themes.find((s) => weaknessTagFromPuzzleTheme(s.theme) === input.tag);
+  if (stat === undefined || stat.attempts < MIN_ATTEMPTS_FOR_STAGE_ADVANCE) return false;
+  const accuracyPercent =
+    stat.accuracy !== undefined ? stat.accuracy : ((stat.attempts - stat.losses) / stat.attempts) * 100;
+  return computeMastery({ accuracyPercent, recentFeedbacks: [], minVolumeReached: true }) === 'regress';
+}
+
 function isFeedbackExpired(blockDate: string, currentDate: string): boolean {
   const ageDays = (Date.parse(currentDate) - Date.parse(blockDate)) / 86_400_000;
   return ageDays > FEEDBACK_EXPIRY_DAYS;
@@ -195,6 +224,15 @@ export function generatePlan(
     ),
   );
 
+  // R2b: detecção só-leitura do penhasco de incompetência (estágio avançado
+  // segurado pelo floor + acurácia caída sustentada). Não altera os blocos acima.
+  const chronicSupportSuggested = detectChronicSupportNeed({
+    latestThemeSignal,
+    persistedThemeStage: masteryAwareFallback,
+    recentThemeStats: options.recentThemeStats,
+    tag: primaryWeakness.tag,
+  });
+
   return {
     date,
     sessionMinutes,
@@ -203,6 +241,7 @@ export function generatePlan(
     blocks,
     generatedFromWeaknessesAt: updatedAt,
     ...(primaryThemeForced ? { primaryThemeForced: true } : {}),
+    ...(chronicSupportSuggested ? { chronicSupportSuggested: true } : {}),
   };
 }
 
