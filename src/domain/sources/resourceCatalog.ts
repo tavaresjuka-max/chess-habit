@@ -872,6 +872,17 @@ export function getLichessResourcesForWeakness(tag: WeaknessTag): LichessResourc
     .sort(compareLichessResources);
 }
 
+// Pilar A/B (council 2026-06-24): a Study curada é a ÚNICA camada de dificuldade CONTROLÁVEL
+// (o curador escolheu a sequência). hasCuratedStudy decide o mismatch: too-hard + tem Study →
+// cai pra Study; sem Study → adia. NÃO inventa IDs — só o que já existe no catálogo.
+export function getCuratedStudyForWeakness(tag: WeaknessTag): LichessResource | undefined {
+  return getLichessResourcesForWeakness(tag).find((resourceItem) => resourceItem.kind === 'practice-study');
+}
+
+export function hasCuratedStudy(tag: WeaknessTag): boolean {
+  return getCuratedStudyForWeakness(tag) !== undefined;
+}
+
 export function getPrimaryLichessResourceForWeakness(tag: WeaknessTag): LichessResource {
   const primaryId = primaryResourceIdByWeakness[tag];
   const primary = lichessResourceCatalog.find((resourceItem) => resourceItem.id === primaryId);

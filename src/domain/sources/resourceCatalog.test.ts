@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { WeaknessTag } from '../types';
 import {
   destinationFromResource,
+  getCuratedStudyForWeakness,
   getLichessResourcesForWeakness,
   getPrimaryLichessResourceForWeakness,
+  hasCuratedStudy,
   lichessCommunityStudies,
   lichessPracticeStudies,
   lichessPuzzleThemes,
@@ -125,5 +127,24 @@ describe('lichessResourceCatalog', () => {
       label: 'Lichess Video (em inglês): abertura - centro, desenvolvimento e rei seguro',
       url: 'https://lichess.org/video/gpsZAim-mYc',
     });
+  });
+});
+
+describe('hasCuratedStudy / getCuratedStudyForWeakness (Pilar A/B, council 2026-06-24)', () => {
+  it('tags com Study curada retornam a Study (rota controlável no mismatch)', () => {
+    for (const tag of ['fork', 'pin', 'skewer', 'endgame-pawn', 'endgame-rook'] satisfies WeaknessTag[]) {
+      const study = getCuratedStudyForWeakness(tag);
+
+      expect(hasCuratedStudy(tag)).toBe(true);
+      expect(study?.kind).toBe('practice-study');
+      expect(study?.url).toMatch(/^https:\/\/lichess\.org\/practice\//);
+    }
+  });
+
+  it('tags sem Study (só vídeo/puzzle) → sem rota controlável → mismatch adia', () => {
+    for (const tag of ['hanging-piece', 'opening-principles', 'time-trouble', 'blunder-rate'] satisfies WeaknessTag[]) {
+      expect(hasCuratedStudy(tag)).toBe(false);
+      expect(getCuratedStudyForWeakness(tag)).toBeUndefined();
+    }
   });
 });

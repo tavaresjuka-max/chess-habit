@@ -1,5 +1,6 @@
 import { createId } from '../ids';
 import type { PlanBlockFeedback, TrainingLog, WeaknessTag } from '../types';
+import { classifyDifficultyFit, decideMismatchAction, type ObservedResult } from './difficultyFit';
 import type { MasteryResult } from './mastery';
 import type { MethodTrackId, PendingTrainingItem } from './types';
 
@@ -188,14 +189,23 @@ export function advancePendingItem(
   feedback?: PlanBlockFeedback,
   masteryTarget?: MasteryResult,
   themeMastery?: { accuracyPercent: number; attempts: number },
+  routing?: { recentObserved?: ObservedResult; hasCuratedStudy?: boolean; studyUrl?: string },
 ): PendingTrainingItem {
   const easeFactor = nextEaseFactor(item.easeFactor, feedback);
   const now = new Date().toISOString();
   const lastFeedback = feedback === undefined ? {} : { lastFeedback: feedback };
 
+  // Gate por resultado OBSERVADO (council 2026-06-24, ver routing-concept-puzzle-decision): o
+  // solve-rate RECENTE da reconciliação classifica o encaixe de dificuldade. 'too-hard' VENCE o
+  // autorrelato — fecha o buraco de "otimizar contra sinal cego": não gradua e dispara o mismatch.
+  // Sem sinal observado (routing ausente) → undefined → comportamento idêntico ao atual.
+  const observedFit =
+    routing?.recentObserved === undefined ? undefined : classifyDifficultyFit(routing.recentObserved);
+
   // Gate de retenção: o item já está no resgate CEGO de longo prazo.
   if (item.retentionPending === true) {
-    const retained = feedback !== 'hard' && masteryTarget !== 'regress';
+    // too-hard observado também reprova o resgate (não basta o autorrelato não ser 'hard').
+    const retained = feedback !== 'hard' && masteryTarget !== 'regress' && observedFit !== 'too-hard';
     if (retained) {
       // Reteve o padrão após o intervalo longo → gradua de verdade (prova de retenção).
       return { ...item, easeFactor, retentionPending: false, ...lastFeedback, status: 'done', updatedAt: now };
@@ -210,6 +220,40 @@ export function advancePendingItem(
       ...lastFeedback,
       gateBlockedCount: 0,
       status: 'open',
+      updatedAt: now,
+    };
+  }
+
+  // Mismatch (too-hard observado, council 2026-06-24): a dificuldade é ingovernável no tema, então
+  // cai pro layer CONTROLÁVEL (Study curada) ou ADIA o conceito — nunca repete volume duro em
+  // silêncio. Decisão do dono (UX TDAH). Precede a graduação: item difícil demais não forma.
+  if (observedFit === 'too-hard') {
+    const action = decideMismatchAction(observedFit, { hasCuratedStudy: routing?.hasCuratedStudy ?? false });
+
+    if (action === 'route-study' && routing?.studyUrl !== undefined) {
+      // Re-ensina pelo layer controlável: recua um nível, reexpõe amanhã, rota passa a ser a Study.
+      return {
+        ...item,
+        easeFactor,
+        attempts: clampSpacingAttempts(item.attempts - 1),
+        lichessUrl: routing.studyUrl,
+        retentionPending: false,
+        dueAt: getNextDueDate(0),
+        ...lastFeedback,
+        gateBlockedCount: 0,
+        status: 'open',
+        updatedAt: now,
+      };
+    }
+
+    // Sem Study curada → adia com nota honesta (não finge controlar a dificuldade).
+    return {
+      ...item,
+      easeFactor,
+      ...lastFeedback,
+      status: 'deferred',
+      deferReason:
+        'Puzzles deste tema ficaram difíceis demais pro seu nível agora — adiado até reforçar a base.',
       updatedAt: now,
     };
   }

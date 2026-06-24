@@ -18,6 +18,7 @@ import {
 } from '../domain';
 import { advancePendingItem, masteryTargetFromCompletedLog } from '../domain/method';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
+import { getCuratedStudyForWeakness } from '../domain/sources/resourceCatalog';
 import {
   getTrainingLog,
   savePendingItem,
@@ -161,12 +162,23 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
                   : buildSkillMap(nextAllTrainingLogs).find(
                       (entry) => entry.theme === pendingItem.lichessTheme,
                     );
-              const advancedPendingItem = advancePendingItem(
-                pendingItem,
-                feedback,
-                masteryTarget,
-                themeMastery,
-              );
+              // Pilar B (council 2026-06-24): solve-rate RECENTE da reconciliação (não só o
+              // cumulativo do diploma) classifica o encaixe de dificuldade. too-hard → cai pra
+              // Study curada ou adia; fecha o buraco de graduar contra sinal cego.
+              const recentThemeStat =
+                pendingItem.lichessTheme === undefined
+                  ? undefined
+                  : reconcileOutcome.log.result?.themeStats?.find(
+                      (stat) => stat.theme === pendingItem.lichessTheme,
+                    );
+              const curatedStudy = getCuratedStudyForWeakness(pendingItem.weaknessTag);
+              const advancedPendingItem = advancePendingItem(pendingItem, feedback, masteryTarget, themeMastery, {
+                ...(recentThemeStat === undefined
+                  ? {}
+                  : { recentObserved: { attempts: recentThemeStat.attempts, losses: recentThemeStat.losses } }),
+                hasCuratedStudy: curatedStudy !== undefined,
+                ...(curatedStudy?.url === undefined ? {} : { studyUrl: curatedStudy.url }),
+              });
 
               await savePendingItem(advancedPendingItem);
 
