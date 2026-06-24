@@ -141,6 +141,10 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
           // nunca divergem se o app fechar no meio (J3 — durabilidade).
           await saveTrainingLogAndPlan(reconcileOutcome.log, nextPlan);
           let finalPlan = nextPlan;
+          // Pilar A/B (council 2026-06-24): quando o gate de dificuldade observada ADIA o
+          // conceito, o aluno precisa VER a nota honesta — sem isso o item some em silêncio.
+          // Surfada no mesmo banner do aviso de reconciliação; o adiamento tem prioridade.
+          let pendingDeferReason: string | undefined;
 
           if (block.pendingItemId !== undefined) {
             const pendingItem = pendingItems.find((item) => item.id === block.pendingItemId);
@@ -189,6 +193,10 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
 
               setPendingItems(nextPendingItems);
 
+              if (advancedPendingItem.status === 'deferred') {
+                pendingDeferReason = advancedPendingItem.deferReason;
+              }
+
               if (profile !== undefined) {
                 // D5: usa buildDiagnosticThemeStats para excluir logs de pool do sinal diagnóstico.
                 const recentThemeStats = buildDiagnosticThemeStats(nextTrainingLogs);
@@ -219,8 +227,9 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
           setTodayPlan(finalPlan);
           setErrorMessage(undefined);
 
-          if (reconcileOutcome.warning !== undefined) {
-            setLichessMessage(reconcileOutcome.warning);
+          const completionMessage = pendingDeferReason ?? reconcileOutcome.warning;
+          if (completionMessage !== undefined) {
+            setLichessMessage(completionMessage);
           }
 
           return;

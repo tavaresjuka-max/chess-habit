@@ -2,6 +2,8 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DailyPlan, LearnerProfile, PlanBlock, TrainingLog } from '../domain';
+import { advancePendingItem } from '../domain/method';
+import type { PendingTrainingItem } from '../domain/method/types';
 import {
   getTrainingLog,
   savePendingItem,
@@ -23,6 +25,13 @@ vi.mock('../infra/storage/appData', () => ({
 vi.mock('./achievementsSync', () => ({
   syncAchievements: vi.fn(),
 }));
+
+// advancePendingItem é a unidade que decide adiar (testada à parte). Aqui o foco é o
+// FIO: status 'deferred' precisa surfar a deferReason pro aluno (Pilar A/B).
+vi.mock('../domain/method', async (importActual) => {
+  const actual = await importActual<typeof import('../domain/method')>();
+  return { ...actual, advancePendingItem: vi.fn() };
+});
 
 const profile: LearnerProfile = {
   lichessUsername: undefined,
@@ -90,6 +99,7 @@ beforeEach(() => {
   vi.mocked(saveTrainingLog).mockResolvedValue(undefined);
   vi.mocked(saveTrainingLogAndPlan).mockResolvedValue(undefined);
   vi.mocked(syncAchievements).mockResolvedValue([]);
+  vi.mocked(advancePendingItem).mockImplementation((item) => item);
 });
 
 afterEach(() => {
@@ -127,6 +137,47 @@ describe('useTrainingActions', () => {
       }),
     );
     expect(input.setErrorMessage).toHaveBeenCalledWith(undefined);
+  });
+
+  it('mostra a nota honesta de adiamento (deferReason) quando o gate de dificuldade adia o item', async () => {
+    const pendingItem: PendingTrainingItem = {
+      id: 'pending-1',
+      origin: 'puzzle',
+      title: 'Peca pendurada',
+      weaknessTag: 'hanging-piece',
+      methodTrackId: 'pending-review',
+      lichessTheme: 'hangingPiece',
+      prompt: 'Treine o tema.',
+      dueAt: '2026-06-15T00:00:00.000Z',
+      attempts: 6,
+      status: 'open',
+      createdAt: '2026-06-10T00:00:00.000Z',
+      updatedAt: '2026-06-14T00:00:00.000Z',
+    };
+    const deferReason =
+      'Puzzles deste tema ficaram difíceis demais pro seu nível agora — adiado até reforçar a base.';
+    vi.mocked(advancePendingItem).mockReturnValue({ ...pendingItem, status: 'deferred', deferReason });
+
+    const blockWithPending: PlanBlock = { ...block, pendingItemId: 'pending-1' };
+    const planWithPending: DailyPlan = { ...plan, blocks: [blockWithPending] };
+    const setLichessMessage = vi.fn();
+    const setPendingItems = vi.fn();
+    const input = createInput({
+      pendingItems: [pendingItem],
+      todayPlan: planWithPending,
+      setLichessMessage,
+      setPendingItems,
+    });
+    const { result } = renderHook(() => useTrainingActions(input));
+
+    await act(async () => {
+      await result.current.completeBlockTraining(block.id, 'good');
+    });
+
+    // Adiado sai da lista ativa (como 'done')...
+    expect(setPendingItems).toHaveBeenCalledWith([]);
+    // ...mas a nota honesta aparece pro aluno em vez de o item sumir em silêncio.
+    expect(setLichessMessage).toHaveBeenCalledWith(deferReason);
   });
 });
 
