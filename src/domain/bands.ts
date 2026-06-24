@@ -11,6 +11,9 @@ export const learnerBands = [
   '1200-1600',
   '1600-2000',
   '2000-2200',
+  // Teto aspiracional (FM) — council 2026-06-24. Acima de 2200 o app vira mais
+  // organizador de autoestudo; currículo desta faixa é esboço honesto.
+  '2200-2400',
 ] as const satisfies readonly LearnerBand[];
 
 export const beginnerBands = ['0-400', '400-800'] as const satisfies readonly LearnerBand[];
@@ -23,6 +26,7 @@ export const improvingAndUpBands = [
   '1200-1600',
   '1600-2000',
   '2000-2200',
+  '2200-2400',
 ] as const satisfies readonly LearnerBand[];
 
 export function isLearnerBand(value: string): value is LearnerBand {

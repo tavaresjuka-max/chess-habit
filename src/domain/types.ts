@@ -69,7 +69,12 @@ export type LearnerBand =
   | '1000-1200'
   | '1200-1600'
   | '1600-2000'
-  | '2000-2200';
+  | '2000-2200'
+  // Teto aspiracional (FM). Council 2026-06-24: acima de ~2200 o sinal local
+  // satura e o app vira mais ORGANIZADOR de autoestudo que professor; o currículo
+  // desta faixa é esboço honesto (cálculo profundo, estrutura, finais teóricos),
+  // não método-puzzle denso. Não prometer rating na UI.
+  | '2200-2400';
 
 export type SessionMinutes = 5 | 15 | 30 | 60;
 

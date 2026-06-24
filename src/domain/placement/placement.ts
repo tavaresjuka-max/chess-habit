@@ -81,6 +81,7 @@ const calibrationThemeByBand: Record<LearnerBand, string> = {
   '1200-1600': 'discoveredAttack',
   '1600-2000': 'quietMove',
   '2000-2200': 'quietMove',
+  '2200-2400': 'quietMove',
 };
 
 export function bandFromEstimate(estimate: number): LearnerBand {

@@ -7,7 +7,7 @@ import {
 } from './placement';
 
 describe('bandFromEstimate', () => {
-  it('maps estimates to the 7-band spine', () => {
+  it('maps estimates to the 8-band spine (teto aspiracional FM 2200-2400)', () => {
     expect(bandFromEstimate(0)).toBe('0-400');
     expect(bandFromEstimate(399)).toBe('0-400');
     expect(bandFromEstimate(400)).toBe('400-800');
@@ -15,7 +15,8 @@ describe('bandFromEstimate', () => {
     expect(bandFromEstimate(1100)).toBe('1000-1200');
     expect(bandFromEstimate(1500)).toBe('1200-1600');
     expect(bandFromEstimate(2100)).toBe('2000-2200');
-    expect(bandFromEstimate(9999)).toBe('2000-2200');
+    expect(bandFromEstimate(2300)).toBe('2200-2400');
+    expect(bandFromEstimate(9999)).toBe('2200-2400');
   });
 });
 

@@ -116,6 +116,7 @@ const primaryThemeByBand = {
   '1200-1600': 'mate-in-2',
   '1600-2000': 'conversion',
   '2000-2200': 'conversion',
+  '2200-2400': 'conversion',
 } satisfies Record<LearnerProfile['band'], WeaknessTag>;
 
 type FinalWeaknessTag = 'endgame-pawn' | 'endgame-rook' | 'conversion';
@@ -533,6 +534,7 @@ function getFinalThemeByBand(band: LearnerBand): FinalWeaknessTag {
     case '1200-1600':
     case '1600-2000':
     case '2000-2200':
+    case '2200-2400':
       return 'conversion';
   }
 }

@@ -180,9 +180,9 @@ export const CURRICULUM: readonly CurriculumPhase[] = [
     id: 'autonomia',
     title: 'Fase 4 — Autonomia',
     subtitle: 'depois do Diploma do Rei',
-    bands: ['1200-1600', '1600-2000', '2000-2200'],
+    bands: ['1200-1600', '1600-2000', '2000-2200', '2200-2400'],
     weeks: [],
-    note: 'Os mesmos temas voltam em posições mais difíceis: cálculo longo, conversão refinada, repertório de abertura e finais avançados. Detalhes por semana chegam ao se aproximar.',
+    note: 'Os mesmos temas voltam em posições mais difíceis: cálculo longo, conversão refinada, repertório por princípio e finais técnicos. No topo (nível mestre), o app vira mais um organizador do seu autoestudo — trilha de leitura, autoanálise e finais teóricos — do que um professor que prescreve cada lance. Detalhes por semana chegam ao se aproximar.',
   },
 ];
 
