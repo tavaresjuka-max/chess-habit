@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { DailyPlan, LearnerProfile, Signal } from '../domain';
+import type { DailyPlan, LearnerProfile, Signal, TrainingLog } from '../domain';
 import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
 import { fetchLichessAccount } from '../infra/lichess/account';
 import { importLichessSignals } from '../infra/lichess/games';
@@ -11,10 +11,12 @@ import {
   loadLichessOAuthToken,
   loadSignals,
   loadStoredPuzzleWeakness,
+  loadTrainingLogs,
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
+  saveDiplomaAttempts,
   savePlacementResult,
   savePlan,
   saveProfile,
@@ -40,10 +42,12 @@ vi.mock('../infra/storage/appData', () => ({
   loadLichessOAuthToken: vi.fn(),
   loadSignals: vi.fn(),
   loadStoredPuzzleWeakness: vi.fn(),
+  loadTrainingLogs: vi.fn(),
   loadWeaknesses: vi.fn(),
   replaceSignalsForSource: vi.fn(),
   replaceWeaknesses: vi.fn(),
   saveChesscomMonthCache: vi.fn(),
+  saveDiplomaAttempts: vi.fn(),
   savePlacementResult: vi.fn(),
   savePlan: vi.fn(),
   saveProfile: vi.fn(),
@@ -89,6 +93,8 @@ beforeEach(() => {
   vi.mocked(savePlacementResult).mockResolvedValue(undefined);
   vi.mocked(savePlan).mockResolvedValue(undefined);
   vi.mocked(saveProfile).mockResolvedValue(undefined);
+  vi.mocked(loadTrainingLogs).mockResolvedValue([]);
+  vi.mocked(saveDiplomaAttempts).mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -427,6 +433,64 @@ describe('useDiagnosisActions', () => {
       });
     });
   });
+
+  describe('PROD-6 — diploma promove no sync (não só no boot/botão manual)', () => {
+    it('avalia diploma por acurácia de puzzle no runLichessSync e promove a banda na hora', async () => {
+      // Logs de treino com puzzle-dashboard cruzando o limiar do Diploma do Peão:
+      // 'hangingPiece' (seção valor-pecas) e 'mateIn1' (seção mates-basicos), ambos
+      // com ≥30 tentativas e ≥80% de acurácia (40 tentativas, 36 acertos = 90%).
+      // SEM reboot e SEM chamar o reconcile manual.
+      const dashboardLog: TrainingLog = {
+        id: 'diploma-dashboard',
+        date: '2026-06-19',
+        blockId: 'lichess-puzzle-dashboard',
+        blockTitle: 'Puzzles Lichess',
+        source: 'lichess',
+        destinationLabel: 'Puzzles Lichess',
+        plannedSeconds: 900,
+        startedAt: '2026-06-19T10:00:00.000Z',
+        completedAt: '2026-06-19T10:15:00.000Z',
+        elapsedSeconds: 900,
+        timeLimitReached: true,
+        status: 'done',
+        updatedAt: '2026-06-19T10:15:00.000Z',
+        result: {
+          source: 'lichess',
+          kind: 'puzzle-dashboard',
+          fetchedAt: '2026-06-19T10:15:00.000Z',
+          since: '2026-05-20',
+          until: '2026-06-19',
+          days: 30,
+          puzzles: 80,
+          wins: 72,
+          losses: 8,
+          themes: ['hangingPiece', 'mateIn1'],
+          weakThemes: [],
+          strongThemes: ['hangingPiece', 'mateIn1'],
+          themeStats: [
+            { theme: 'hangingPiece', attempts: 40, losses: 4 },
+            { theme: 'mateIn1', attempts: 40, losses: 4 },
+          ],
+        },
+      };
+
+      vi.mocked(loadTrainingLogs).mockResolvedValue([dashboardLog]);
+
+      // Banda '400-800' é gateada pelo Diploma do Peão; passou → sobre para '800-1000'.
+      const input = createInput({
+        profile: { ...profile, lichessUsername: 'jukasparov', band: '400-800' },
+      });
+      const { result } = renderHook(() => useDiagnosisActions(input));
+
+      await act(async () => {
+        await result.current.runLichessSync(input.profile as LearnerProfile);
+      });
+
+      expect(saveDiplomaAttempts).toHaveBeenCalled();
+      expect(saveProfile).toHaveBeenCalledWith(expect.objectContaining({ band: '800-1000' }));
+      expect(input.setProfile).toHaveBeenCalledWith(expect.objectContaining({ band: '800-1000' }));
+    });
+  });
 });
 
 function createInput(overrides: Partial<UseDiagnosisActionsInput> = {}): UseDiagnosisActionsInput {
@@ -448,6 +512,7 @@ function createInput(overrides: Partial<UseDiagnosisActionsInput> = {}): UseDiag
     setLichessConnectionState: vi.fn(),
     setLichessMessage: vi.fn(),
     setProfile: vi.fn(),
+    setDiplomaAttempts: vi.fn(),
     ...overrides,
   };
 }
