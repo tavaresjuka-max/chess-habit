@@ -48,13 +48,17 @@ Wiring:
 - Copy: auditar que não há promessa de "treino offline" (offline = só plano).
 
 ## Critérios de aceite (binários)
-- [ ] `difficultyFit.ts` puro + testes: too-hard / fit / too-easy / insufficient + decideMismatchAction.
-- [ ] Promoção de estágio bloqueada quando fit observado = `too-hard` (teste).
-- [ ] too-hard + hasStudy → route-study; too-hard + !hasStudy → `status:'deferred'` + nota (teste).
-- [ ] Retrocompat: item sem sinal observado → comportamento idêntico ao atual (suíte atual verde).
-- [ ] Pilar C: `pickRouteByHistory` puro + teste cold-start = ordem atual.
-- [ ] Guarda: teste mapa de temas ⊆ lista conhecida do Lichess.
-- [ ] Gates: 1026+ testes, lint, tsc, build verdes.
+- [x] `difficultyFit.ts` puro + testes: too-hard / fit / too-easy / insufficient + decideMismatchAction.
+- [x] Promoção de ESTÁGIO bloqueada quando too-hard observado — **DECIDIDO: NÃO gatear** (council
+      DIVERGIR, 2× DeepSeek V4 Pro independentes). Mantém DD-Ped6 intacta; trade-off documentado no
+      STATUS. A falha GRAVE (graduação) já está coberta no eixo SR por Pilar B; o eixo de estágio é
+      falha de 2ª ordem e o gate proposto (HOLD com balde plano ≥30) quebraria o aluno pós-insight.
+- [x] too-hard + hasStudy → route-study; too-hard + !hasStudy → `status:'deferred'` + nota (teste).
+- [x] Retrocompat: item sem sinal observado → comportamento idêntico ao atual (suíte atual verde).
+- [x] Pilar C: `pickRouteByHistory` puro + teste cold-start = ordem atual (commit `7a2f6e8`).
+      (gravação de RouteOutcome + wiring = trabalho FUTURO, fora dos critérios binários — ver Pilar C wiring.)
+- [x] Guarda: teste mapa de temas ⊆ lista conhecida do Lichess (commit `a93a5e5`).
+- [x] Gates: 1055 testes, lint, tsc, build verdes.
 
 ## STATUS (2026-06-24, fase em curso)
 - ✅ **Pilar B (eixo SR/graduação)** — commit `1d3b124`. `difficultyFit.ts` puro + gate em
@@ -65,10 +69,32 @@ Wiring:
   deferReason do adiamento agora aparece pro aluno no banner (não some em silêncio).
 - ✅ **Guarda copy offline** — auditado: nenhuma promessa de "treino offline" (só `offlineReady`
   do PWA = cache do app-shell). PASS.
-- ⏳ **Eixo de ESTÁGIO (critério "promoção bloqueada quando too-hard", linha 52)** — EM COUNCIL
-  (DIVERGIR, não-bloqueante). Conflito real: gatear o estágio no sinal observado contesta a
-  DD-Ped6 (feedback explícito <14d FORÇA o estágio — anti-penhasco TDAH) e pode ser RISCO
-  REDUNDANTE, já que a graduação (a falha mais grave) já é gateada no eixo SR. Decidir após o digest.
+- ✅ **Eixo de ESTÁGIO (critério linha 52) — DECIDIDO: NÃO gatear; manter DD-Ped6.** Council DIVERGIR
+  (2× DeepSeek V4 Pro, prompts independentes — um direto, um disparado pelo GLM) + adjudicação do
+  maestro. **Achado verificado no código:** no conflito autorrelato recente `easy`/`good` (PROMOVE) +
+  solve-rate observado robusto "falhando", nenhum guard existente intercepta (`getThemeResourceStage`
+  promove no caminho do feedback sem ver o observado, `generatePlan.ts:639-648`; Pilar B gateia a
+  GRADUAÇÃO, não o estágio; `detectChronicSupportNeed` se cala com feedback recente, `:97`; o piso ≥30
+  só vale no caminho da ACURÁCIA, `:164` vs `:639`). Logo o gate de estágio NÃO seria redundante para a
+  falha BRANDA. **Mesmo assim, NÃO implementar o HOLD**, por 3 razões convergentes:
+    1. **Validade de construto** (DeepSeek #1): o andaime mede conceitual→procedural; o solve-rate do
+       Lichess mede performance sob dificuldade ingovernável = confound. ≥30 deixa o sinal mais PRECISO,
+       não mais VÁLIDO para "prontidão pedagógica". O autorrelato, com seus defeitos, pergunta a coisa
+       certa ("você entendeu?").
+    2. **Balde ≥30 sem decaimento temporal** (DeepSeek #2, via GLM): insight em xadrez é não-linear (o
+       garfo "faz sentido de repente"); um balde plano de ≥30 congela falhas PRÉ-insight com o mesmo peso
+       das de ontem, prendendo um aluno que JÁ destravou e voltou marcando `easy`. O HOLD-como-especificado
+       quebraria exatamente o aluno que o autorrelato acertaria.
+    3. **Falha de 2ª ordem já protegida**: a falha GRAVE (graduação não-merecida) já está fechada por
+       Pilar B no eixo SR. O HOLD ataca a falha BRANDA (andaime-dentro-do-conceito) adicionando
+       estado/transição/edge novos com validade duvidosa.
+  **Trade-off documentado (assumido conscientemente):** sem controle de dificuldade, B pode promover de
+  estágio cedo demais com autorrelato `easy` estável (~10–15% dos casos, est. DeepSeek). Mitigações já no
+  produto: floor anti-penhasco impede regressão abaixo do conquistado; graduação só com acurácia cumulativa
+  comprovada; banner honesto (Pilar A) deixa o aluno pedir mais apoio. Para TDAH, remover AGÊNCIA
+  (estagnação do HOLD) é pior que remover andaime (promoção precoce, reversível). **Caveat p/ futura
+  revisão:** se um dia gatear estágio no observado, tem de ser RECÊNCIA-PONDERADO (decaimento temporal),
+  nunca balde plano ≥30.
 - ✅ **Pilar C — função pura (`pickRouteByHistory`)** — `routeHistory.ts` + testes (7) verdes.
   Conservadora p/ n=1: só sobrepõe a ordem atual quando há histórico ROBUSTO (≥3 desfechos) e
   majoritariamente POSITIVO (>50% moveu o score) PARA O CONCEITO; senão cold-start (ordem de hoje).
