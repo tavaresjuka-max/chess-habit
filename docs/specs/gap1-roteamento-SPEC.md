@@ -1,0 +1,113 @@
+# SPEC — Gap #1: Roteamento por resultado observado (fase inteira)
+
+Decisão: council 2026-06-24 (ver memory `routing-concept-puzzle-decision`). Dificuldade é
+INGOVERNÁVEL no Lichess (serve por rating global, não por estágio). Lever = gate por
+RESULTADO OBSERVADO + split honesto de camadas + roteamento aprendido. NÃO curar mapa de IDs.
+
+## NON-GOALS (não fazer)
+- NÃO inventar `studyId`/IDs de puzzle do Lichess (404 = fragilidade de orquestrador). Só Studies
+  que já existem no catálogo.
+- NÃO prometer treino offline (treino é online por natureza; offline = só o PLANO).
+- NÃO curar listas de IDs de puzzle por conceito×nível (não escala, apodrece).
+- NÃO quebrar o SR/retention gate já shipado: retrocompat dura — item SEM sinal observado se
+  comporta exatamente como hoje.
+
+## Pilar B — Gate por resultado observado (núcleo)
+Módulo puro novo `src/domain/method/difficultyFit.ts`:
+- `classifyDifficultyFit({ attempts, losses }, opts?) → 'insufficient' | 'too-hard' | 'fit' | 'too-easy'`
+  - solveRate = (attempts − losses) / attempts.
+  - `attempts < minAttempts` (default 4) → `insufficient` (sem sinal confiável ainda).
+  - solveRate < `TOO_HARD_BELOW` (0.40) → `too-hard`.
+  - solveRate > `TOO_EASY_ABOVE` (0.85) → `too-easy`.
+  - senão → `fit`.
+- `decideMismatchAction(fit, ctx: { hasCuratedStudy: boolean }) → 'route-study' | 'defer' | 'continue'`
+  - `too-hard` + hasCuratedStudy → `route-study` (cai pro layer controlável).
+  - `too-hard` + !hasCuratedStudy → `defer` (adia com nota honesta).
+  - senão → `continue`.
+
+Wiring:
+- Promoção de estágio só ocorre quando o fit observado ∈ {`fit`, `too-easy`}. `too-hard` NÃO promove
+  (dispara mismatch action); `insufficient` segura no estágio (segue dando volume), não promove.
+- Aplicado na reconciliação/pós-bloco (call site `useTrainingActions`), usando solve-rate RECENTE
+  da reconciliação Lichess — não só o cumulativo.
+
+## Pilar A — Split honesto de camadas
+- `hasCuratedStudy(tag): boolean` sobre o catálogo existente (sem inventar IDs).
+- Selector mantém: explain/guided = Study (pedagogia controlável); retrieval+ = tema (volume puro).
+  Remover qualquer alegação de "dificuldade" atribuída ao tema (coachNote honesto: tema é volume).
+- Onde NÃO há Study e fit=too-hard → defer com nota ("precisa de base antes").
+
+## Pilar C — Roteamento aprendido por aluno
+- Registrar, por conceito, se a rota MOVEU o sinal de fraqueza (weakness.score caiu) após a sessão.
+- `pickRouteByHistory(candidates, history) → candidate` (puro): prefere rota com melhor histórico de
+  queda de score PARA ESTE ALUNO. Cold-start (sem histórico) → ordem atual (comportamento de hoje).
+
+## Guardas (fragilidade de orquestrador)
+- Teste + const: chaves do nosso mapa de temas ⊆ lista conhecida de temas do Lichess (shipar a lista).
+- Study-rot: ao rotear pra Study, degradar pra tema se indisponível (graceful fallback).
+- Copy: auditar que não há promessa de "treino offline" (offline = só plano).
+
+## Critérios de aceite (binários)
+- [x] `difficultyFit.ts` puro + testes: too-hard / fit / too-easy / insufficient + decideMismatchAction.
+- [x] Promoção de ESTÁGIO bloqueada quando too-hard observado — **DECIDIDO: NÃO gatear** (council
+      DIVERGIR, 2× DeepSeek V4 Pro independentes). Mantém DD-Ped6 intacta; trade-off documentado no
+      STATUS. A falha GRAVE (graduação) já está coberta no eixo SR por Pilar B; o eixo de estágio é
+      falha de 2ª ordem e o gate proposto (HOLD com balde plano ≥30) quebraria o aluno pós-insight.
+- [x] too-hard + hasStudy → route-study; too-hard + !hasStudy → `status:'deferred'` + nota (teste).
+- [x] Retrocompat: item sem sinal observado → comportamento idêntico ao atual (suíte atual verde).
+- [x] Pilar C: `pickRouteByHistory` puro + teste cold-start = ordem atual (commit `7a2f6e8`).
+      (gravação de RouteOutcome + wiring = trabalho FUTURO, fora dos critérios binários — ver Pilar C wiring.)
+- [x] Guarda: teste mapa de temas ⊆ lista conhecida do Lichess (commit `a93a5e5`).
+- [x] Gates: 1055 testes, lint, tsc, build verdes.
+
+## STATUS (2026-06-24, fase em curso)
+- ✅ **Pilar B (eixo SR/graduação)** — commit `1d3b124`. `difficultyFit.ts` puro + gate em
+  `advancePendingItem`: too-hard observado VENCE o autorrelato e PRECEDE a graduação
+  (fecha o buraco de graduar contra sinal cego); cai pra Study curada ou adia. Retrocompat dura.
+- ✅ **Pilar A (split honesto + surfacing)** — commit `64a8664`. Split já era honesto
+  (explain/guided=Study/vídeo; retrieval+=tema; sem alegação de dificuldade no tema); a
+  deferReason do adiamento agora aparece pro aluno no banner (não some em silêncio).
+- ✅ **Guarda copy offline** — auditado: nenhuma promessa de "treino offline" (só `offlineReady`
+  do PWA = cache do app-shell). PASS.
+- ✅ **Eixo de ESTÁGIO (critério linha 52) — DECIDIDO: NÃO gatear; manter DD-Ped6.** Council DIVERGIR
+  (2× DeepSeek V4 Pro, prompts independentes — um direto, um disparado pelo GLM) + adjudicação do
+  maestro. **Achado verificado no código:** no conflito autorrelato recente `easy`/`good` (PROMOVE) +
+  solve-rate observado robusto "falhando", nenhum guard existente intercepta (`getThemeResourceStage`
+  promove no caminho do feedback sem ver o observado, `generatePlan.ts:639-648`; Pilar B gateia a
+  GRADUAÇÃO, não o estágio; `detectChronicSupportNeed` se cala com feedback recente, `:97`; o piso ≥30
+  só vale no caminho da ACURÁCIA, `:164` vs `:639`). Logo o gate de estágio NÃO seria redundante para a
+  falha BRANDA. **Mesmo assim, NÃO implementar o HOLD**, por 3 razões convergentes:
+    1. **Validade de construto** (DeepSeek #1): o andaime mede conceitual→procedural; o solve-rate do
+       Lichess mede performance sob dificuldade ingovernável = confound. ≥30 deixa o sinal mais PRECISO,
+       não mais VÁLIDO para "prontidão pedagógica". O autorrelato, com seus defeitos, pergunta a coisa
+       certa ("você entendeu?").
+    2. **Balde ≥30 sem decaimento temporal** (DeepSeek #2, via GLM): insight em xadrez é não-linear (o
+       garfo "faz sentido de repente"); um balde plano de ≥30 congela falhas PRÉ-insight com o mesmo peso
+       das de ontem, prendendo um aluno que JÁ destravou e voltou marcando `easy`. O HOLD-como-especificado
+       quebraria exatamente o aluno que o autorrelato acertaria.
+    3. **Falha de 2ª ordem já protegida**: a falha GRAVE (graduação não-merecida) já está fechada por
+       Pilar B no eixo SR. O HOLD ataca a falha BRANDA (andaime-dentro-do-conceito) adicionando
+       estado/transição/edge novos com validade duvidosa.
+  **Trade-off documentado (assumido conscientemente):** sem controle de dificuldade, B pode promover de
+  estágio cedo demais com autorrelato `easy` estável (~10–15% dos casos, est. DeepSeek). Mitigações já no
+  produto: floor anti-penhasco impede regressão abaixo do conquistado; graduação só com acurácia cumulativa
+  comprovada; banner honesto (Pilar A) deixa o aluno pedir mais apoio. Para TDAH, remover AGÊNCIA
+  (estagnação do HOLD) é pior que remover andaime (promoção precoce, reversível). **Caveat p/ futura
+  revisão:** se um dia gatear estágio no observado, tem de ser RECÊNCIA-PONDERADO (decaimento temporal),
+  nunca balde plano ≥30.
+- ✅ **Pilar C — função pura (`pickRouteByHistory`)** — `routeHistory.ts` + testes (7) verdes.
+  Conservadora p/ n=1: só sobrepõe a ordem atual quando há histórico ROBUSTO (≥3 desfechos) e
+  majoritariamente POSITIVO (>50% moveu o score) PARA O CONCEITO; senão cold-start (ordem de hoje).
+  Assinatura refinada p/ 3 args (`candidates, history, weaknessTag`) — escopo por conceito
+  self-contained, mais correto/testável que o atalho de 2 args do contrato. Não fabrica sinal de ruído.
+- ⏳ **Pilar C — gravação + wiring** — pendente (DEFERIDO p/ a passada pós-council no generatePlan):
+  registrar `RouteOutcome` (rota moveu weakness.score?) e plugar `pickRouteByHistory` na seleção
+  tocam generatePlan/fluxo de fraqueza → serializar com a decisão do eixo de estágio (mesmos arquivos).
+- ✅ **Guarda theme-map ⊆ Lichess (anti-404)** — `resourceCatalog.test.ts`. O catálogo
+  (`lichessPuzzleThemes`, slugs verificados/link-checked, todos `training/<slug>`) é a allowlist
+  canônica; teste data-driven garante que `methodTrainingDestinationAllowlist` + chaves de
+  `puzzleThemeToWeaknessTag` ⊆ catálogo (pega rombo de slug fora do catálogo = URL 404). A validade
+  catálogo↔Lichess real é mantida pela curadoria/link-check, não pelo teste (sem inventar slugs).
+- ✅ **Study-rot fallback** — coberto estruturalmente: o seletor mantém o tema como fallback de menor
+  prioridade DEPOIS da Study (teste `resourceCatalog.test.ts` "keeps raw puzzle themes as fallback");
+  + curadoria com link-check/cadência. Detecção de 404 em runtime é impossível offline (por design).

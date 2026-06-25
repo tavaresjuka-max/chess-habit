@@ -46,6 +46,10 @@ export type PendingTrainingItem = {
   // faz um resgate CEGO de longo prazo (RETENTION_GATE_DAYS) antes de virar 'done'.
   // Mede retenção real, não acerto recente. true = aguardando esse resgate.
   retentionPending?: boolean;
+  // Gate por resultado observado (council 2026-06-24): quando o solve-rate recente mostra que os
+  // puzzles do tema ficaram difíceis demais (mismatch) e NÃO há Study curada, o conceito é ADIADO
+  // com esta nota honesta em vez de repetir volume duro. Decisão do dono (UX TDAH).
+  deferReason?: string;
   status: 'open' | 'done' | 'deferred';
   createdAt: string;
   updatedAt: string;

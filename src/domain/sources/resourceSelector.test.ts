@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { WeaknessTag } from '../types';
+import { catalogSkillNodes } from './catalogSkills';
 import { selectLichessResource } from './resourceSelector';
 
 describe('selectLichessResource', () => {
@@ -113,4 +115,66 @@ describe('selectLichessResource', () => {
     expect(conversion.kind).not.toBe('analysis-tool');
     expect(['puzzle:advantage', 'puzzle:crushing', 'puzzle:defensiveMove']).toContain(conversion.id);
   });
+});
+
+describe('selectLichessResource — acoplamento COMPORTAMENTAL no retrieval (council 2026-06-25)', () => {
+  // Os guards referencial/semântico (catalogSkills.test.ts) provam que os slugs existem e são do
+  // conceito certo. Este prova que o SCORER de fato USA o acoplamento: no estágio retrieval (recall
+  // ativo = resolver puzzles), a seleção deve devolver um puzzle-theme ON-CONCEITO (slug ∈
+  // node.themeSlugs) — não um Study/vídeo. É o "teste comportamental" que o council (GLM 5.2) apontou
+  // como o lever real além do guard de slug, e a sonda do risco +250(resourceId) vs +180(slug)
+  // sabotando o estágio (Study venceria o puzzle no retrieval). O gate é o árbitro.
+  const tacticalTags = [
+    'hanging-piece',
+    'fork',
+    'pin',
+    'skewer',
+    'discovered',
+    'mate-in-1',
+    'mate-in-2',
+    'back-rank',
+  ] satisfies WeaknessTag[];
+
+  for (const tag of tacticalTags) {
+    it(`retrieval de '${tag}' devolve um puzzle-theme on-conceito (o +180 dispara e vence)`, () => {
+      const node = catalogSkillNodes.find((candidate) => candidate.weaknessTag === tag);
+      const onConceptSlugs = new Set<string>(node?.themeSlugs ?? []);
+
+      const selected = selectLichessResource({
+        weaknessTag: tag,
+        resourceStage: 'retrieval',
+        learnerBand: '800-1000',
+        blockMinutes: 5,
+      });
+
+      expect(
+        selected.kind,
+        `${tag}: retrieval devolveu ${selected.kind} (${selected.id}); retrieval pede puzzle-theme`,
+      ).toBe('puzzle-theme');
+
+      const slug = selected.id.replace(/^puzzle:/, '');
+      expect(
+        onConceptSlugs.has(slug),
+        `${tag}: retrieval devolveu puzzle '${slug}' fora do node.themeSlugs [${[...onConceptSlugs].join(', ')}]`,
+      ).toBe(true);
+    });
+  }
+
+  // Sonda direta do risco do council: a 10min o practice-study fica viável no tempo e disputa por
+  // SCORE com o puzzle (+250 resourceId vs +180 slug). Pedagogicamente retrieval = drill = puzzle,
+  // independente do tempo. Se um Study vencer aqui, é vazamento de estágio (achado p/ o dono).
+  for (const tag of ['fork', 'pin'] satisfies WeaknessTag[]) {
+    it(`retrieval de '${tag}' a 10min ainda prefere puzzle-theme ao Study (+180 vence +250 no estágio)`, () => {
+      const selected = selectLichessResource({
+        weaknessTag: tag,
+        resourceStage: 'retrieval',
+        learnerBand: '800-1000',
+        blockMinutes: 10,
+      });
+      expect(
+        selected.kind,
+        `${tag}: retrieval 10min devolveu ${selected.kind} (${selected.id}); Study vazando no estágio de drill`,
+      ).toBe('puzzle-theme');
+    });
+  }
 });

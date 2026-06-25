@@ -293,6 +293,91 @@ describe('pending training items', () => {
   });
 });
 
+describe('advancePendingItem — gate por dificuldade observada (Pilar B, council 2026-06-24)', () => {
+  const studyUrl = 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p';
+  // 10 tentativas, 7 perdas = solve-rate 0.30 < 0.40 => too-hard (amostra suficiente).
+  const tooHard = { attempts: 10, losses: 7 };
+  // 10 tentativas, 4 perdas = 0.60 => fit. 2 tentativas = insufficient.
+  const fit = { attempts: 10, losses: 4 };
+  const insufficient = { attempts: 2, losses: 2 };
+
+  it('too-hard + tem Study curada → roteia pra Study (recua nível, reexpõe amanhã), NÃO gradua', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 2 }), 'good', undefined, undefined, {
+      recentObserved: tooHard,
+      hasCuratedStudy: true,
+      studyUrl,
+    });
+
+    expect(advanced).toMatchObject({ status: 'open', lichessUrl: studyUrl, retentionPending: false });
+    expect(advanced.attempts).toBeLessThan(2);
+    expect(advanced.dueAt).toBe(tomorrow);
+  });
+
+  it('too-hard + sem Study → adia com nota honesta (status deferred + deferReason)', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 2 }), 'good', undefined, undefined, {
+      recentObserved: tooHard,
+      hasCuratedStudy: false,
+    });
+
+    expect(advanced.status).toBe('deferred');
+    expect(advanced.deferReason).toMatch(/difíceis demais/i);
+  });
+
+  it('too-hard VENCE o autorrelato "good" no teto: não forma (fecha o sinal cego)', () => {
+    const goodMastery = { accuracyPercent: 95, attempts: 20 };
+    const advanced = advancePendingItem(createItem({ attempts: 4 }), 'good', undefined, goodMastery, {
+      recentObserved: tooHard,
+      hasCuratedStudy: true,
+      studyUrl,
+    });
+
+    expect(advanced.status).not.toBe('done');
+    expect(advanced.retentionPending).not.toBe(true);
+    expect(advanced.lichessUrl).toBe(studyUrl);
+  });
+
+  it('too-hard observado também reprova o resgate de retenção (não vira done)', () => {
+    const inRetention = createItem({ attempts: 4, retentionPending: true });
+    const advanced = advancePendingItem(inRetention, 'good', undefined, undefined, {
+      recentObserved: tooHard,
+      hasCuratedStudy: false,
+    });
+
+    expect(advanced.status).toBe('open');
+    expect(advanced.retentionPending).toBe(false);
+  });
+
+  it('fit observado não atrapalha: graduação normal segue (teto → retenção)', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, undefined, {
+      recentObserved: fit,
+      hasCuratedStudy: true,
+      studyUrl,
+    });
+
+    expect(advanced).toMatchObject({ attempts: 4, status: 'open', retentionPending: true });
+  });
+
+  it('amostra insuficiente (cold-start) não adia: segue rota normal', () => {
+    const advanced = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, undefined, {
+      recentObserved: insufficient,
+      hasCuratedStudy: false,
+    });
+
+    expect(advanced).toMatchObject({ attempts: 4, status: 'open', retentionPending: true });
+  });
+
+  it('retrocompat: sem routing, comportamento idêntico ao atual', () => {
+    const withoutRouting = advancePendingItem(createItem({ attempts: 3 }), 'good');
+    const withEmptyRouting = advancePendingItem(createItem({ attempts: 3 }), 'good', undefined, undefined, {});
+
+    expect(withEmptyRouting).toMatchObject({
+      attempts: withoutRouting.attempts,
+      status: withoutRouting.status,
+      retentionPending: withoutRouting.retentionPending,
+    });
+  });
+});
+
 function createItem(overrides: Partial<PendingTrainingItem>): PendingTrainingItem {
   return {
     id: 'pending-1',

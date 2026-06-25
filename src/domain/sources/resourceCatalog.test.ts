@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { puzzleThemeToWeaknessTag } from '../coach/puzzleThemeStats';
 import type { WeaknessTag } from '../types';
+import { methodTrainingDestinationAllowlist } from './destinations';
 import {
   destinationFromResource,
+  getCuratedStudyForWeakness,
   getLichessResourcesForWeakness,
   getPrimaryLichessResourceForWeakness,
+  hasCuratedStudy,
   lichessCommunityStudies,
   lichessPracticeStudies,
   lichessPuzzleThemes,
@@ -125,5 +129,50 @@ describe('lichessResourceCatalog', () => {
       label: 'Lichess Video (em inglês): abertura - centro, desenvolvimento e rei seguro',
       url: 'https://lichess.org/video/gpsZAim-mYc',
     });
+  });
+});
+
+describe('hasCuratedStudy / getCuratedStudyForWeakness (Pilar A/B, council 2026-06-24)', () => {
+  it('tags com Study curada retornam a Study (rota controlável no mismatch)', () => {
+    for (const tag of ['fork', 'pin', 'skewer', 'endgame-pawn', 'endgame-rook'] satisfies WeaknessTag[]) {
+      const study = getCuratedStudyForWeakness(tag);
+
+      expect(hasCuratedStudy(tag)).toBe(true);
+      expect(study?.kind).toBe('practice-study');
+      expect(study?.url).toMatch(/^https:\/\/lichess\.org\/practice\//);
+    }
+  });
+
+  it('tags sem Study (só vídeo/puzzle) → sem rota controlável → mismatch adia', () => {
+    for (const tag of ['hanging-piece', 'opening-principles', 'time-trouble', 'blunder-rate'] satisfies WeaknessTag[]) {
+      expect(hasCuratedStudy(tag)).toBe(false);
+      expect(getCuratedStudyForWeakness(tag)).toBeUndefined();
+    }
+  });
+});
+
+describe('guarda anti-404: temas emitidos ⊆ catálogo verificado de temas do Lichess', () => {
+  // O catálogo (lichessPuzzleThemes) é a allowlist canônica: slugs verificados/link-checked,
+  // todos com URL training/<slug>. Toda lista satélite que emite um tema do Lichess precisa
+  // ficar DENTRO dele — senão geramos uma URL 404 (fragilidade de orquestrador). Guarda
+  // data-driven: pega o rombo no instante em que alguém adiciona um slug fora do catálogo.
+  // (A validade catálogo↔Lichess real é mantida pela curadoria/link-check, não por este teste.)
+  const knownThemeSlugs = new Set(
+    lichessPuzzleThemes.map((resource) => resource.id.replace(/^puzzle:/, '')),
+  );
+
+  it('o lichessTheme de todo destino de training está no catálogo', () => {
+    for (const destination of methodTrainingDestinationAllowlist) {
+      expect(
+        knownThemeSlugs.has(destination.lichessTheme),
+        `destino '${destination.weaknessTag}' emite training/${destination.lichessTheme}, fora do catálogo`,
+      ).toBe(true);
+    }
+  });
+
+  it('toda chave do mapa tema→fraqueza é um tema conhecido do Lichess', () => {
+    for (const theme of Object.keys(puzzleThemeToWeaknessTag)) {
+      expect(knownThemeSlugs.has(theme), `tema '${theme}' do mapa não está no catálogo Lichess`).toBe(true);
+    }
   });
 });

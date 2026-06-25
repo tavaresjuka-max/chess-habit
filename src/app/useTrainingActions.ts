@@ -18,6 +18,7 @@ import {
 } from '../domain';
 import { advancePendingItem, masteryTargetFromCompletedLog } from '../domain/method';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
+import { getCuratedStudyForWeakness } from '../domain/sources/resourceCatalog';
 import {
   getTrainingLog,
   savePendingItem,
@@ -140,6 +141,10 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
           // nunca divergem se o app fechar no meio (J3 — durabilidade).
           await saveTrainingLogAndPlan(reconcileOutcome.log, nextPlan);
           let finalPlan = nextPlan;
+          // Pilar A/B (council 2026-06-24): quando o gate de dificuldade observada ADIA o
+          // conceito, o aluno precisa VER a nota honesta — sem isso o item some em silêncio.
+          // Surfada no mesmo banner do aviso de reconciliação; o adiamento tem prioridade.
+          let pendingDeferReason: string | undefined;
 
           if (block.pendingItemId !== undefined) {
             const pendingItem = pendingItems.find((item) => item.id === block.pendingItemId);
@@ -161,12 +166,23 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
                   : buildSkillMap(nextAllTrainingLogs).find(
                       (entry) => entry.theme === pendingItem.lichessTheme,
                     );
-              const advancedPendingItem = advancePendingItem(
-                pendingItem,
-                feedback,
-                masteryTarget,
-                themeMastery,
-              );
+              // Pilar B (council 2026-06-24): solve-rate RECENTE da reconciliação (não só o
+              // cumulativo do diploma) classifica o encaixe de dificuldade. too-hard → cai pra
+              // Study curada ou adia; fecha o buraco de graduar contra sinal cego.
+              const recentThemeStat =
+                pendingItem.lichessTheme === undefined
+                  ? undefined
+                  : reconcileOutcome.log.result?.themeStats?.find(
+                      (stat) => stat.theme === pendingItem.lichessTheme,
+                    );
+              const curatedStudy = getCuratedStudyForWeakness(pendingItem.weaknessTag);
+              const advancedPendingItem = advancePendingItem(pendingItem, feedback, masteryTarget, themeMastery, {
+                ...(recentThemeStat === undefined
+                  ? {}
+                  : { recentObserved: { attempts: recentThemeStat.attempts, losses: recentThemeStat.losses } }),
+                hasCuratedStudy: curatedStudy !== undefined,
+                ...(curatedStudy?.url === undefined ? {} : { studyUrl: curatedStudy.url }),
+              });
 
               await savePendingItem(advancedPendingItem);
 
@@ -176,6 +192,10 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
                   : pendingItems.filter((item) => item.id !== advancedPendingItem.id);
 
               setPendingItems(nextPendingItems);
+
+              if (advancedPendingItem.status === 'deferred') {
+                pendingDeferReason = advancedPendingItem.deferReason;
+              }
 
               if (profile !== undefined) {
                 // D5: usa buildDiagnosticThemeStats para excluir logs de pool do sinal diagnóstico.
@@ -207,8 +227,9 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
           setTodayPlan(finalPlan);
           setErrorMessage(undefined);
 
-          if (reconcileOutcome.warning !== undefined) {
-            setLichessMessage(reconcileOutcome.warning);
+          const completionMessage = pendingDeferReason ?? reconcileOutcome.warning;
+          if (completionMessage !== undefined) {
+            setLichessMessage(completionMessage);
           }
 
           return;
