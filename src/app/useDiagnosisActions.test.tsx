@@ -26,6 +26,9 @@ import { useDiagnosisActions, type UseDiagnosisActionsInput } from './useDiagnos
 
 vi.mock('../infra/chesscom/chesscomClient', () => ({
   importChesscomSignals: vi.fn(),
+  // fetchChesscomGameRatings é chamado antes do sync para derivar banda (best-effort).
+  // Mock padrão: retorna {} (sem ratings), portanto nenhuma banda é derivada.
+  fetchChesscomGameRatings: vi.fn().mockResolvedValue({}),
 }));
 
 vi.mock('../infra/lichess/games', () => ({

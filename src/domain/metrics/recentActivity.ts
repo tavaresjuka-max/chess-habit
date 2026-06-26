@@ -28,6 +28,12 @@ export function computeRecentActivity(
   // Usamos Date com hora fixa ao meio-dia (igual a formatFriendlyDate em Today.tsx) para
   // evitar ambiguidade de fuso sem depender de UTC.
   const todayDate = new Date(`${today}T12:00:00`);
+
+  // Guarda data inválida: evita NaN-NaN-NaN como React key e keys duplicadas.
+  if (Number.isNaN(todayDate.getTime())) {
+    return { todayMinutes: 0, weekSessions: 0, recentDays: [] };
+  }
+
   const recentDays: { date: string; active: boolean }[] = [];
 
   for (let offset = windowDays - 1; offset >= 0; offset--) {
