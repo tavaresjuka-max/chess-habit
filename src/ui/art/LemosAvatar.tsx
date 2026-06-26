@@ -9,7 +9,7 @@ export function LemosAvatar({ size = 44, className }: LemosAvatarProps) {
       src="/art/lemos-avatar-medalhao.webp"
       width={size}
       height={size}
-      alt="Professor Tavarez"
+      alt="Professor Lemos"
       className={`lemos-avatar-img${className ? ` ${className}` : ''}`}
     />
   );

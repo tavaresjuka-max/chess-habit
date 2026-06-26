@@ -25,7 +25,7 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
       </div>
       <h1 id="welcome-title">A aula pode começar.</h1>
       <p className="welcome-lede">
-        Sou o Professor Tavarez. Aqui o treino é curto e o foco é um só por vez.
+        Sou o Professor Lemos. Aqui o treino é curto e o foco é um só por vez.
         Melhor pouco bem feito que muito no automático.
       </p>
       <ul className="welcome-points">

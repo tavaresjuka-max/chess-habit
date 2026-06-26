@@ -58,7 +58,7 @@ function TutorHeading({ pose }: { pose: string }) {
   return (
     <div className="tutor-heading">
       <LemosPortrait pose={pose} />
-      <h2>Professor Tavarez</h2>
+      <h2>Professor Lemos</h2>
       <img src="/art/selo-cera-cavalo.webp" alt="" aria-hidden="true" className="tutor-cera-seal" width={28} height={28} />
     </div>
   );
@@ -88,7 +88,7 @@ export function TutorCard({
     const message = buildSessionMessage({ phase: 'pre', primaryWeakness, consistency });
     const pose = poseFor(message.phase);
     return (
-      <section className="tutor-card" aria-label="Professor Tavarez">
+      <section className="tutor-card" aria-label="Professor Lemos">
         <TutorHeading pose={pose} />
         {message.lines.map((line) => (
           <p key={line}>{line}</p>
@@ -109,7 +109,7 @@ export function TutorCard({
   const pose = poseFor(message.phase, lastDone.feedback, diagnosis.kind);
 
   return (
-    <section className="tutor-card" aria-label="Professor Tavarez">
+    <section className="tutor-card" aria-label="Professor Lemos">
       <TutorHeading pose={pose} />
       {message.lines.map((line) => (
         <p key={line}>{line}</p>
@@ -148,7 +148,7 @@ function TutorAnswerButtons({
   onAnswerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
 }) {
   return (
-    <div className="button-row tutor-answer-row" role="group" aria-label="Registrar resposta para o Professor Tavarez">
+    <div className="button-row tutor-answer-row" role="group" aria-label="Registrar resposta para o Professor Lemos">
       <button
         type="button"
         className="secondary-button"
