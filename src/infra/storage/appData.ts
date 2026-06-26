@@ -30,6 +30,7 @@ import {
   type SignalRecord,
   type WeaknessRecord,
 } from './db';
+import { QUOTA_EXCEEDED_MESSAGE, isQuotaExceeded } from './quotaError';
 
 const defaultProfileId: ProfileRecord['id'] = 'default';
 const lichessTokenId: LichessOAuthTokenRecord['id'] = 'lichess';
@@ -505,6 +506,11 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
       },
     );
   } catch (err) {
+    // Quota do IndexedDB: mensagem PT acionavel em vez do erro tecnico cru.
+    // Demais erros seguem exatamente o caminho anterior (template com message).
+    if (isQuotaExceeded(err)) {
+      return { ok: false, error: QUOTA_EXCEEDED_MESSAGE };
+    }
     return {
       ok: false,
       error: `Erro ao restaurar dados: ${err instanceof Error ? err.message : 'falha desconhecida'}.`,
