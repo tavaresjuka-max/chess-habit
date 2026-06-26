@@ -43,14 +43,14 @@ const manualNoteByTag = {
 const tutorQuestionAnswerByValue = {
   time: {
     tag: 'time-trouble',
-    note: 'Resposta ao Professor Lemos: tempo pesou mais hoje; vale testar decisao mais simples antes de calcular.',
+    note: 'Resposta ao Professor Tavarez: tempo pesou mais hoje; vale testar decisao mais simples antes de calcular.',
   },
   calculation: {
     tag: 'fork',
-    note: 'Resposta ao Professor Lemos: cálculo pesou mais hoje; usar táticas curtas como proxy de cálculo prático.',
+    note: 'Resposta ao Professor Tavarez: cálculo pesou mais hoje; usar táticas curtas como proxy de cálculo prático.',
   },
   'loose-piece': {
     tag: 'hanging-piece',
-    note: 'Resposta ao Professor Lemos: peca solta pesou mais hoje; priorizar checagem de defensores.',
+    note: 'Resposta ao Professor Tavarez: peca solta pesou mais hoje; priorizar checagem de defensores.',
   },
 } satisfies Record<TutorQuestionAnswer, { tag: WeaknessTag; note: string }>;
