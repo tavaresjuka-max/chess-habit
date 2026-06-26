@@ -22,9 +22,10 @@ import {
 } from '../domain';
 import { confidenceRank } from '../domain/confidence';
 import { bandFromLichessGameRatings } from '../domain/placement/lichessBand';
+import { bandFromChesscomRating } from '../domain/placement/chesscomBand';
 import { applyDiplomaProgress } from '../domain/method/evaluateDiplomas';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
-import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
+import { fetchChesscomGameRatings, importChesscomSignals } from '../infra/chesscom/chesscomClient';
 import { fetchLichessAccount } from '../infra/lichess/account';
 import { importLichessSignals } from '../infra/lichess/games';
 import {
@@ -285,11 +286,29 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
         return;
       }
 
+      let derivedBand: LearnerBand | undefined;
+      // P1: lê /stats do Chess.com best-effort ANTES do sync para derivar a banda
+      // (SÓ SOBE). Falha de rede/429 aqui NÃO quebra o sync — derivada fica undefined.
+      try {
+        const ratings = await fetchChesscomGameRatings(targetProfile.chesscomUsername ?? '');
+        const derived = bandFromChesscomRating(ratings);
+        // DD4: SÓ SOBE — aplica apenas se o índice for maior que o atual.
+        if (
+          derived !== undefined &&
+          learnerBands.indexOf(derived.band) > learnerBands.indexOf(targetProfile.band)
+        ) {
+          derivedBand = derived.band;
+        }
+      } catch (error) {
+        console.warn('Falha ao ler stats Chess.com; mantendo banda.', error);
+      }
+
       try {
         const result = await runDiagnosisSync({
           source: 'chesscom',
           targetProfile,
           options,
+          derivedBand,
           onStart: () => {
             setDiagnosisState('syncing');
             setDiagnosisMessage('Atualizando diagnóstico Chess.com.');
