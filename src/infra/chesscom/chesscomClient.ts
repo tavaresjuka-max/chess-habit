@@ -1,4 +1,5 @@
 import type { LearnerBand, Signal } from '../../domain';
+import type { ChesscomGameRatingsInput } from '../../domain/placement/chesscomBand';
 import { chesscomFetch } from '../http/providerQueue';
 import { extractSignalsFromChesscomGames, extractSignalsFromChesscomStats } from './extractSignals';
 import type { ChesscomArchivesResponse, ChesscomMonthlyArchiveResponse, ChesscomStatsResponse } from './types';
@@ -25,6 +26,11 @@ export type ImportChesscomOptions = {
 };
 
 const chesscomApiBaseUrl = 'https://api.chess.com';
+
+// PROVISÓRIO — recalibrar no beta. Chess.com /stats não expõe rd/provisional
+// (ver ./types.ts), então o total de jogos vira proxy conservador: poucos jogos
+// → provisório → NÃO promove a banda (a banda só sobe; over-promote é pegajoso).
+const MIN_CHESSCOM_GAMES = 10;
 
 export class ChesscomRateLimitError extends Error {
   readonly retryAfterMs: number;
@@ -71,6 +77,38 @@ export async function importChesscomSignals(username: string, options: ImportChe
   }
 
   return signals;
+}
+
+// Fetcher leve (espelha fetchLichessAccount): busca /stats e devolve o input já
+// normalizado para bandFromChesscomRating. Decoupla a derivação-de-banda (ANTES
+// do sync) do importChesscomSignals (que roda DENTRO do sync). Erros (429 →
+// ChesscomRateLimitError; outros → Error) PROPAGAM — o chamador trata.
+export async function fetchChesscomGameRatings(
+  username: string,
+  options: { fetcher?: typeof fetch } = {},
+): Promise<ChesscomGameRatingsInput> {
+  const normalizedUsername = username.trim();
+  if (normalizedUsername === '') {
+    return {};
+  }
+  const fetcher = options.fetcher ?? chesscomFetch;
+  const stats = await fetchJson<ChesscomStatsResponse>(statsUrl(normalizedUsername), fetcher);
+  const input: ChesscomGameRatingsInput = {};
+  for (const [key, category] of [
+    ['rapid', stats.chess_rapid],
+    ['blitz', stats.chess_blitz],
+  ] as const) {
+    const rating = category?.last?.rating;
+    if (rating === undefined) {
+      continue;
+    }
+    const games =
+      (category?.record?.win ?? 0) +
+      (category?.record?.loss ?? 0) +
+      (category?.record?.draw ?? 0);
+    input[key] = { rating, games, provisional: games < MIN_CHESSCOM_GAMES };
+  }
+  return input;
 }
 
 // Utilitario de recencia (opt-in). Decisao do dono 2026-06-13: o diagnostico

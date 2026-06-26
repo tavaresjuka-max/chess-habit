@@ -204,6 +204,7 @@ export function useAppState(): AppState {
     setLichessConnectionState,
     setLichessMessage,
     setProfile,
+    setDiplomaAttempts,
   });
 
   const saveProfile = useCallback(async (rawProfile: LearnerProfile, options?: { autoSync?: boolean }) => {

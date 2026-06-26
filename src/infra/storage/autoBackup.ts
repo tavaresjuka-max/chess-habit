@@ -1,3 +1,5 @@
+import { QUOTA_EXCEEDED_MESSAGE, isQuotaExceeded } from './quotaError';
+
 export type AutoBackupPermission = 'granted' | 'denied' | 'prompt';
 
 export type FileSystemWritableLike = {
@@ -31,7 +33,9 @@ export function isAutoBackupSupported(): boolean {
   return getSaveFilePicker() !== undefined;
 }
 
-export type AutoBackupWriteResult = 'written' | 'needs-permission' | 'error';
+// `quota-error` = armazenamento cheio: degrada com aviso PT, nao crasha nem
+// apaga nada do usuario. Demais falhas continuam caindo em `error`.
+export type AutoBackupWriteResult = 'written' | 'needs-permission' | 'quota-error' | 'error';
 
 // Grava o backup no arquivo escolhido pelo usuario. Sem gesto do usuario o browser
 // pode negar requestPermission; nesse caso o resultado honesto e needs-permission.
@@ -65,7 +69,13 @@ export async function writeAutoBackup(
     await writable.close();
 
     return 'written';
-  } catch {
+  } catch (err) {
+    // Quota: degrada com aviso PT claro (log), nao quebra o fluxo nem apaga
+    // dados. Qualquer outro erro segue exatamente o caminho atual (return 'error').
+    if (isQuotaExceeded(err)) {
+      console.warn(QUOTA_EXCEEDED_MESSAGE);
+      return 'quota-error';
+    }
     return 'error';
   }
 }

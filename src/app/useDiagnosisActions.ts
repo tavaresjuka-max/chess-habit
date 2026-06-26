@@ -2,6 +2,7 @@ import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import {
   buildDiagnosticThemeStats,
   buildPuzzleThemeStats,
+  buildSkillMap,
   createWeaknessFromPuzzleStats,
   createKnownManualSignals,
   createTutorQuestionSignal,
@@ -21,8 +22,10 @@ import {
 } from '../domain';
 import { confidenceRank } from '../domain/confidence';
 import { bandFromLichessGameRatings } from '../domain/placement/lichessBand';
+import { bandFromChesscomRating } from '../domain/placement/chesscomBand';
+import { applyDiplomaProgress } from '../domain/method/evaluateDiplomas';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
-import { importChesscomSignals } from '../infra/chesscom/chesscomClient';
+import { fetchChesscomGameRatings, importChesscomSignals } from '../infra/chesscom/chesscomClient';
 import { fetchLichessAccount } from '../infra/lichess/account';
 import { importLichessSignals } from '../infra/lichess/games';
 import {
@@ -31,10 +34,12 @@ import {
   loadLichessOAuthToken,
   loadSignals,
   loadStoredPuzzleWeakness,
+  loadTrainingLogs,
   loadWeaknesses,
   replaceSignalsForSource,
   replaceWeaknesses,
   saveChesscomMonthCache,
+  saveDiplomaAttempts,
   savePlacementResult,
   savePlan,
   saveProfile,
@@ -91,6 +96,7 @@ export type UseDiagnosisActionsInput = {
   setLichessConnectionState: Dispatch<SetStateAction<LichessConnectionState>>;
   setLichessMessage: Dispatch<SetStateAction<string | undefined>>;
   setProfile: Dispatch<SetStateAction<LearnerProfile | undefined>>;
+  setDiplomaAttempts: Dispatch<SetStateAction<DiplomaAttempt[]>>;
 };
 
 // Sinal mais recente salvo por fonte. Em Chess.com, observedAt preserva a data
@@ -125,6 +131,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
     setLichessConnectionState,
     setLichessMessage,
     setProfile,
+    setDiplomaAttempts,
     setSignals,
     setTodayPlan,
     setWeaknesses,
@@ -174,21 +181,37 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       // ANTES de generatePlan, para o plano nascer com a banda certa e não
       // competir com mudança manual concorrente. derivedBand já passou pelo gate
       // "só sobe" (indexOf maior) no chamador; aqui persistimos no perfil/placement.
-      const effectiveProfile: LearnerProfile =
+      const ratingProfile: LearnerProfile =
         args.derivedBand !== undefined && args.derivedBand !== args.targetProfile.band
           ? { ...args.targetProfile, band: args.derivedBand, updatedAt: nowIso }
           : args.targetProfile;
-      if (effectiveProfile !== args.targetProfile) {
-        await saveProfile(effectiveProfile);
-        setProfile(effectiveProfile);
+      if (ratingProfile !== args.targetProfile) {
+        await saveProfile(ratingProfile);
+        setProfile(ratingProfile);
         // calibrated: false = promovido por rating de jogo (não por calibração de
         // puzzles), preserva a semântica do achievement isCalibrado.
         await savePlacementResult({
-          band: effectiveProfile.band,
+          band: ratingProfile.band,
           confidence: 'high',
           calibrated: false,
           completedAt: nowIso,
         });
+      }
+      // PROD-6: avalia o diploma por acurácia de puzzle no caminho de sync
+      // automático (não só no boot/botão manual), reusando applyDiplomaProgress
+      // com skillMap fresco sobre TODOS os logs reconciliados (o diploma é
+      // mensurado sobre o histórico, não só o dia). Idempotente — faz merge dos
+      // attempts; empilha sobre o M2a (rating) já aplicado acima, sem refetch.
+      const allTrainingLogs = await loadTrainingLogs();
+      const skillMap = buildSkillMap(allTrainingLogs);
+      const diplomaOutcome = applyDiplomaProgress(skillMap, diplomaAttempts, ratingProfile.band, nowIso);
+      const effectiveProfile: LearnerProfile =
+        diplomaOutcome.bandChanged ? { ...ratingProfile, band: diplomaOutcome.promotedBand } : ratingProfile;
+      await saveDiplomaAttempts(diplomaOutcome.evaluated);
+      setDiplomaAttempts(diplomaOutcome.nextAttempts);
+      if (diplomaOutcome.bandChanged) {
+        await saveProfile(effectiveProfile);
+        setProfile(effectiveProfile);
       }
       // recentThemeStats (com todos os logs) é usado para detecção de fraqueza
       // (createWeaknessFromPuzzleStats). diagnosticThemeStats (D5) filtra logs de
@@ -248,6 +271,7 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       latestPlanRef,
       pendingItems,
       sessionMinutes,
+      setDiplomaAttempts,
       setProfile,
       setSignals,
       setTodayPlan,
@@ -262,11 +286,29 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
         return;
       }
 
+      let derivedBand: LearnerBand | undefined;
+      // P1: lê /stats do Chess.com best-effort ANTES do sync para derivar a banda
+      // (SÓ SOBE). Falha de rede/429 aqui NÃO quebra o sync — derivada fica undefined.
+      try {
+        const ratings = await fetchChesscomGameRatings(targetProfile.chesscomUsername ?? '');
+        const derived = bandFromChesscomRating(ratings);
+        // DD4: SÓ SOBE — aplica apenas se o índice for maior que o atual.
+        if (
+          derived !== undefined &&
+          learnerBands.indexOf(derived.band) > learnerBands.indexOf(targetProfile.band)
+        ) {
+          derivedBand = derived.band;
+        }
+      } catch (error) {
+        console.warn('Falha ao ler stats Chess.com; mantendo banda.', error);
+      }
+
       try {
         const result = await runDiagnosisSync({
           source: 'chesscom',
           targetProfile,
           options,
+          derivedBand,
           onStart: () => {
             setDiagnosisState('syncing');
             setDiagnosisMessage('Atualizando diagnóstico Chess.com.');
