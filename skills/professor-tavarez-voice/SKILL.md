@@ -1,9 +1,9 @@
 ---
-name: lichess-tutor-professor-lemos-voice
-description: Use para criar ou revisar mensagens do Professor Lemos.
+name: lichess-tutor-professor-tavarez-voice
+description: Use para criar ou revisar mensagens do Professor Tavarez.
 ---
 
-# Professor Lemos Voice
+# Professor Tavarez Voice
 
 ## Tom
 

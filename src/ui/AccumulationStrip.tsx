@@ -1,7 +1,7 @@
 /**
  * Faixa de acumulação — substitui o contador "X dias seguidos".
  *
- * Tom Professor Lemos: sóbrio, sem chama, sem cor de alarme, sem números grandes.
+ * Tom Professor Tavarez: sóbrio, sem chama, sem cor de alarme, sem números grandes.
  * Dia ativo = bloco preenchido; dia inativo = espaço em branco (contorno).
  * Respeita prefers-reduced-motion (sem animação de enchimento).
  */

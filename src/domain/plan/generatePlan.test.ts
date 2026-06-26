@@ -462,7 +462,7 @@ describe('generatePlan', () => {
     expect(plan.blocks.every((block) => block.methodTrackId === 'progress-diplomas')).toBe(true);
   });
 
-  it('introduces the guided fork lesson with simple Professor Lemos context', () => {
+  it('introduces the guided fork lesson with simple Professor Tavarez context', () => {
     const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
     const note = plan.blocks[0]?.coachNote ?? '';
 

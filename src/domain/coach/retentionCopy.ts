@@ -1,5 +1,5 @@
 /**
- * Cópias de retenção — tom Professor Lemos.
+ * Cópias de retenção — tom Professor Tavarez.
  * SEM 'parabéns', sem confete, sem ícone festivo, sem cor de alarme.
  * Constatação calma, não celebração.
  */

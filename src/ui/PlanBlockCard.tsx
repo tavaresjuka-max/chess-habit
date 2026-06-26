@@ -500,7 +500,7 @@ function formatResourceStage(stage: PlanBlock['resourceStage']): string {
   }
 }
 
-// Sem prefixo "Professor Lemos:" — o card do tutor já carrega retrato e nome;
+// Sem prefixo "Professor Tavarez:" — o card do tutor já carrega retrato e nome;
 // repetir a assinatura em cada fala era ruído.
 function getFeedbackCelebration(feedback: PlanBlockFeedback): string {
   switch (feedback) {

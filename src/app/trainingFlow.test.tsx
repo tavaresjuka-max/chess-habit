@@ -74,7 +74,7 @@ describe('training flow', () => {
     expect(log?.status).toBe('active');
   });
 
-  it('keeps the Lemos screen when the training tab is blocked', async () => {
+  it('keeps the Tavarez screen when the training tab is blocked', async () => {
     vi.mocked(window.open).mockReturnValueOnce(null);
     render(<App />);
 
@@ -90,7 +90,7 @@ describe('training flow', () => {
     expect((await getFirstBlockLog())?.status).toBe('active');
   });
 
-  it('shows a simple Professor Lemos introduction before the guided fork lesson', async () => {
+  it('shows a simple Professor Tavarez introduction before the guided fork lesson', async () => {
     render(<App />);
 
     expect(await screen.findByText(/Garfo é uma peça sua atacando dois alvos ao mesmo tempo/)).toBeTruthy();
@@ -98,7 +98,7 @@ describe('training flow', () => {
     expect(screen.getAllByText(/prepara o garfo alguns lances antes/).length).toBeGreaterThan(0);
   });
 
-  it('stores approval of the Professor Lemos learning plan proposal', async () => {
+  it('stores approval of the Professor Tavarez learning plan proposal', async () => {
     render(<App />);
 
     expect(await screen.findByText('Entendi o que você precisa.')).toBeTruthy();
@@ -114,7 +114,7 @@ describe('training flow', () => {
     expect(screen.queryByRole('button', { name: 'Aprovar plano' })).toBeNull();
   });
 
-  it('stores a revision request for the Professor Lemos learning plan proposal', async () => {
+  it('stores a revision request for the Professor Tavarez learning plan proposal', async () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Revisar plano' }));
@@ -353,7 +353,7 @@ describe('training flow', () => {
     expect(screen.queryByText(/Treinando há/i)).toBeNull();
   });
 
-  it('registers Professor Lemos question answer as a manual signal for the next session', async () => {
+  it('registers Professor Tavarez question answer as a manual signal for the next session', async () => {
     render(<App />);
 
     await completeFirstBlockWithFeedback('Bom');

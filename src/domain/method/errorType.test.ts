@@ -136,7 +136,7 @@ describe('ERROR_TYPE_LABELS — copy passa BANNED_PHRASES', () => {
   });
 });
 
-describe('getErrorRoutingCoach — copy passa BANNED_PHRASES (tom Professor Lemos)', () => {
+describe('getErrorRoutingCoach — copy passa BANNED_PHRASES (tom Professor Tavarez)', () => {
   // Toda string que vira UI (coachNote/guidingQuestion do bloco tema) deve
   // respeitar a banlist — sem 'parabéns', 'gênio', 'você falhou', etc.
   const allEmphases = ['detection-volume', 'calculation', 'candidate-selection'] as const;

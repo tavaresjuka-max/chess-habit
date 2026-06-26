@@ -2,7 +2,7 @@ import type { PlanBlockKind } from '../plan/timeBudget';
 import type { PlanResourceStage, WeaknessTag } from '../types';
 
 export const coachNotesByBlockKind = {
-  // A saudação é papel do Professor Lemos no topo da tela — aqui é só a
+  // A saudação é papel do Professor Tavarez no topo da tela — aqui é só a
   // dica de execução do bloco.
   aquecimento:
     'Não é prova de velocidade: olhe o tabuleiro inteiro, procure peças soltas e siga com calma.',

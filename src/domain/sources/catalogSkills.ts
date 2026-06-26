@@ -10,7 +10,7 @@ export type CatalogSkillNode = {
   stageFit: readonly PlanResourceStage[];
   timeFits: readonly number[];
   resourceIds: readonly string[];
-  lemosCue: string;
+  tavarezCue: string;
   avoidWhen?: readonly string[];
 };
 
@@ -29,7 +29,7 @@ export const catalogSkillNodes = [
     stageFit: allStages,
     timeFits: shortAndMedium,
     resourceIds: ['video:hanging-pieces', 'puzzle:hangingPiece', 'puzzle:trappedPiece', 'puzzle:short'],
-    lemosCue: 'Antes de abrir o Lichess, escolha uma peça sua e uma do rival: quem defende cada uma?',
+    tavarezCue: 'Antes de abrir o Lichess, escolha uma peça sua e uma do rival: quem defende cada uma?',
     avoidWhen: ['Evite se a sessão pede final guiado ou revisão de mate específico.'],
   },
   {
@@ -41,7 +41,7 @@ export const catalogSkillNodes = [
     stageFit: ['explain', 'retrieval', 'review', 'transfer'],
     timeFits: [5, 10, 15, 20],
     resourceIds: ['video:avoid-blunders', 'puzzle:hangingPiece', 'puzzle:defensiveMove', 'puzzle:mix', 'puzzle-mode:streak'],
-    lemosCue: 'Entre no treino com uma regra simples: cheques, capturas, ameaças e peças sem defesa.',
+    tavarezCue: 'Entre no treino com uma regra simples: cheques, capturas, ameaças e peças sem defesa.',
   },
   {
     id: 'fork-two-targets',
@@ -52,7 +52,7 @@ export const catalogSkillNodes = [
     stageFit: allStages,
     timeFits: shortAndMedium,
     resourceIds: ['practice:fundamental-tactics:the-fork', 'video:fork', 'puzzle:fork', 'puzzle:short'],
-    lemosCue: 'Procure primeiro os dois alvos. O lance vem depois; o padrão vem antes.',
+    tavarezCue: 'Procure primeiro os dois alvos. O lance vem depois; o padrão vem antes.',
   },
   {
     id: 'pin-line-pressure',
@@ -63,7 +63,7 @@ export const catalogSkillNodes = [
     stageFit: allStages,
     timeFits: shortAndMedium,
     resourceIds: ['practice:fundamental-tactics:the-pin', 'video:pin', 'puzzle:pin', 'puzzle:xRayAttack'],
-    lemosCue: 'Antes do primeiro clique, pergunte qual peça não pode se mexer e o que está atrás dela.',
+    tavarezCue: 'Antes do primeiro clique, pergunte qual peça não pode se mexer e o que está atrás dela.',
   },
   {
     id: 'skewer-line-pressure',
@@ -74,7 +74,7 @@ export const catalogSkillNodes = [
     stageFit: allStages,
     timeFits: shortAndMedium,
     resourceIds: ['practice:fundamental-tactics:the-skewer', 'video:skewer', 'puzzle:skewer', 'puzzle:xRayAttack'],
-    lemosCue: 'Veja a linha inteira: se a peça grande sair, o que fica exposto atrás?',
+    tavarezCue: 'Veja a linha inteira: se a peça grande sair, o que fica exposto atrás?',
   },
   {
     id: 'discovered-open-line',
@@ -91,7 +91,7 @@ export const catalogSkillNodes = [
       'puzzle:discoveredCheck',
       'puzzle:doubleCheck',
     ],
-    lemosCue: 'Antes de calcular, identifique a peça que sai da frente e a linha que ela libera.',
+    tavarezCue: 'Antes de calcular, identifique a peça que sai da frente e a linha que ela libera.',
   },
   {
     id: 'mate-one-move',
@@ -108,7 +108,7 @@ export const catalogSkillNodes = [
       'puzzle:oneMove',
       'puzzle:mate',
     ],
-    lemosCue: 'Procure casas de fuga, defesas e capturas do rei. Se todas somem, o lance aparece.',
+    tavarezCue: 'Procure casas de fuga, defesas e capturas do rei. Se todas somem, o lance aparece.',
   },
   {
     id: 'mate-two-patterns',
@@ -125,7 +125,7 @@ export const catalogSkillNodes = [
       'puzzle:mate',
       'puzzle:long',
     ],
-    lemosCue: 'Não corra para o lance bonito: primeiro veja a ameaça que continua depois da defesa.',
+    tavarezCue: 'Não corra para o lance bonito: primeiro veja a ameaça que continua depois da defesa.',
   },
   {
     id: 'back-rank-safety',
@@ -141,7 +141,7 @@ export const catalogSkillNodes = [
       'puzzle:backRankMate',
       'puzzle:mateIn2',
     ],
-    lemosCue: 'Olhe o rei preso, as peças que bloqueiam fuga e quem controla a última fileira.',
+    tavarezCue: 'Olhe o rei preso, as peças que bloqueiam fuga e quem controla a última fileira.',
   },
   {
     id: 'opening-principles-core',
@@ -152,7 +152,7 @@ export const catalogSkillNodes = [
     stageFit: ['explain', 'guided', 'retrieval', 'review'],
     timeFits: mediumAndLong,
     resourceIds: ['video:opening-principles-central-control', 'puzzle:opening', 'puzzle:castling', 'puzzle:attackingF2F7'],
-    lemosCue: 'Entre com uma pergunta só: meu lance disputa o centro, desenvolve ou melhora a segurança do rei?',
+    tavarezCue: 'Entre com uma pergunta só: meu lance disputa o centro, desenvolve ou melhora a segurança do rei?',
   },
   {
     id: 'time-pressure-streak',
@@ -163,7 +163,7 @@ export const catalogSkillNodes = [
     stageFit: ['retrieval', 'transfer', 'review'],
     timeFits: [5, 10, 15],
     resourceIds: ['puzzle-mode:streak', 'puzzle-mode:storm', 'puzzle:short', 'puzzle:mix'],
-    lemosCue: 'O treino não é correr: é decidir uma checagem mínima antes de acelerar.',
+    tavarezCue: 'O treino não é correr: é decidir uma checagem mínima antes de acelerar.',
     avoidWhen: ['Evite Storm se o erro recente foi pressa; Streak é o padrão conservador.'],
   },
   {
@@ -181,7 +181,7 @@ export const catalogSkillNodes = [
       'puzzle:pawnEndgame',
       'puzzle:promotion',
     ],
-    lemosCue: 'Conte rei ativo, oposição e casa de promoção antes de calcular qualquer corrida.',
+    tavarezCue: 'Conte rei ativo, oposição e casa de promoção antes de calcular qualquer corrida.',
   },
   {
     id: 'rook-endgame-core',
@@ -197,7 +197,7 @@ export const catalogSkillNodes = [
       'puzzle:queenRookEndgame',
       'study:noseknowsall:rook-endgames-you-must-know',
     ],
-    lemosCue: 'Antes da linha, pergunte se a torre está ativa ou só defendendo passivamente.',
+    tavarezCue: 'Antes da linha, pergunte se a torre está ativa ou só defendendo passivamente.',
   },
   {
     id: 'conversion-material',
@@ -215,7 +215,7 @@ export const catalogSkillNodes = [
       'puzzle:defensiveMove',
       'practice:fundamental-tactics:overloaded-pieces',
     ],
-    lemosCue: 'Vantagem não é pressa: simplifique, ative peças e corte o contrajogo antes do golpe final.',
+    tavarezCue: 'Vantagem não é pressa: simplifique, ative peças e corte o contrajogo antes do golpe final.',
   },
 ] as const satisfies readonly CatalogSkillNode[];
 

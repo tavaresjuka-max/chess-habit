@@ -259,7 +259,7 @@ describe('definições das conquistas', () => {
     }
   });
 
-  it('nenhum texto usa a banlist do Professor Lemos', () => {
+  it('nenhum texto usa a banlist do Professor Tavarez', () => {
     const banned = ['você falhou', 'sumiu', 'gênio', 'talento', 'missão épica', 'parabéns'];
 
     for (const definition of ACHIEVEMENT_DEFINITIONS) {

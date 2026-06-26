@@ -279,7 +279,7 @@ function ImportingStep({
   return (
     <section className="panel loading-panel" aria-live="polite" aria-busy="true">
       <img
-        src="/art/loading-lemos.webp"
+        src="/art/loading-tavarez.webp"
         alt=""
         aria-hidden="true"
         className="loading-art"

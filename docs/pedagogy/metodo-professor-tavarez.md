@@ -1,4 +1,4 @@
-# Metodo Professor Lemos
+# Metodo Professor Tavarez
 
 Data: 2026-06-09
 

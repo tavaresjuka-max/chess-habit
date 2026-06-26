@@ -84,7 +84,7 @@ describe('buildCurriculumOutlook', () => {
 });
 
 describe('ORGANIZER_CEILING_MESSAGE (teto explícito FM)', () => {
-  it('passa pela banlist do Professor Lemos (BANNED_PHRASES)', () => {
+  it('passa pela banlist do Professor Tavarez (BANNED_PHRASES)', () => {
     for (const banned of BANNED_PHRASES) {
       expect(ORGANIZER_CEILING_MESSAGE.toLowerCase()).not.toContain(banned);
     }

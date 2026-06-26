@@ -1,7 +1,7 @@
 // Conquistas de esforço e hábito (Corte 7).
 // Spec aprovada: docs/superpowers/specs/2026-06-10-badges-spec-draft.md
 // Princípios travados: premiar esforço/hábito (nunca rating), sem streak
-// punitivo, métrica de qualidade acoplada, tom sóbrio do Professor Lemos.
+// punitivo, métrica de qualidade acoplada, tom sóbrio do Professor Tavarez.
 
 import type { Confidence, TrainingLog } from '../types';
 import type { PendingTrainingItem } from '../method/types';

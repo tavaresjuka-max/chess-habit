@@ -11,7 +11,7 @@ describe('createKnownManualSignals', () => {
     expect(JSON.stringify(signals)).not.toContain('PGN');
   });
 
-  it('turns a Professor Lemos answer into a single manual signal', () => {
+  it('turns a Professor Tavarez answer into a single manual signal', () => {
     const signal = createTutorQuestionSignal('loose-piece', '2026-06-08T10:00:00.000Z');
 
     expect(signal).toMatchObject({

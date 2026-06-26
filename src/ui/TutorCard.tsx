@@ -41,11 +41,11 @@ function poseFor(phase: CoachMessagePhase, feedback?: PlanBlockFeedback, diagnos
   return POSE.close;
 }
 
-function LemosPortrait({ pose }: { pose: string }) {
+function TavarezPortrait({ pose }: { pose: string }) {
   return (
     <div className="tutor-portrait-frame">
       <img
-        src={`/art/lemos-pose-${pose}.webp`}
+        src={`/art/tavarez-pose-${pose}.webp`}
         alt=""
         aria-hidden="true"
         className="tutor-pose"
@@ -57,7 +57,7 @@ function LemosPortrait({ pose }: { pose: string }) {
 function TutorHeading({ pose }: { pose: string }) {
   return (
     <div className="tutor-heading">
-      <LemosPortrait pose={pose} />
+      <TavarezPortrait pose={pose} />
       <h2>Professor Tavarez</h2>
       <img src="/art/selo-cera-cavalo.webp" alt="" aria-hidden="true" className="tutor-cera-seal" width={28} height={28} />
     </div>

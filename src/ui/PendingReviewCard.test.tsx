@@ -23,7 +23,7 @@ describe('PendingReviewCard', () => {
     expect(screen.getByRole('heading', { name: 'Pendências de hoje (1)' })).toBeInTheDocument();
   });
 
-  it('shows the Professor Lemos message', () => {
+  it('shows the Professor Tavarez message', () => {
     render(<PendingReviewCard pendingItems={[createItem()]} onOpenItem={() => undefined} onDeferItem={() => undefined} />);
 
     expect(screen.getByText(/Antes de avançar/)).toBeInTheDocument();

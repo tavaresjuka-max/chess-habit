@@ -8,7 +8,7 @@ export type SessionContext = {
   puzzleResult?: TrainingResult;
 };
 
-// Lista da banlist do docs/pedagogy/professor-lemos.md, em minúsculas.
+// Lista da banlist do docs/pedagogy/professor-tavarez.md, em minúsculas.
 export const BANNED_PHRASES = ['você falhou', 'sumiu', 'gênio', 'talento', 'missão épica', 'parabéns'];
 
 const MAINTENANCE_REASON = 'Hoje o treino é de manutenção: visão e segurança de peças.';

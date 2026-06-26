@@ -463,7 +463,7 @@ li {
   box-shadow: 0 0 0 1.5px var(--gold-300);
 }
 
-.lemos-avatar-img {
+.tavarez-avatar-img {
   border-radius: 50%;
   object-fit: cover;
   display: block;
@@ -1171,7 +1171,7 @@ textarea {
   font-weight: 500;
 }
 
-/* R2b: nota sóbria de "reforçar a base" — sem cor de alarme, mesmo peso do tom Lemos. */
+/* R2b: nota sóbria de "reforçar a base" — sem cor de alarme, mesmo peso do tom Tavarez. */
 .support-base-note {
   font-size: 0.82rem;
   color: var(--ink-700);
@@ -2304,7 +2304,7 @@ li.diploma-row {
   object-fit: contain;
 }
 
-/* Retrato do Lemos no TutorCard */
+/* Retrato do Tavarez no TutorCard */
 .tutor-portrait-frame {
   background: url('/art/moldura-tutorcard.webp') center / 100% 100% no-repeat;
   flex-shrink: 0;

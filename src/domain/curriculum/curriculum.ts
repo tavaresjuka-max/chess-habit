@@ -40,7 +40,7 @@ export type CurriculumPhaseOutlook = {
 };
 
 // Teto explícito (council 2026-06-24): mensagem honesta quando o aluno atinge a
-// banda FM (2200-2400). Tom Professor Lemos — sem promessa de rating, sem fingir
+// banda FM (2200-2400). Tom Professor Tavarez — sem promessa de rating, sem fingir
 // que há tier de ensino novo. Passa pela banlist (BANNED_PHRASES).
 export const ORGANIZER_CEILING_MESSAGE =
   'Você chegou ao topo do que este app ensina. Daqui em diante ele vira mais um ' +

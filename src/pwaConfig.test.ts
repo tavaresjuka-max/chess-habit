@@ -11,7 +11,7 @@ describe('PWA config', () => {
     // service worker and can be paired with a browser smoke after `npm run build`.
     expect(pwaPlugin).toBeDefined();
     expect(pwaOptions.workbox.navigateFallback).toBe('index.html');
-    // As artes .webp (Lemos, molduras, texturas) fazem parte do app-shell offline.
+    // As artes .webp (Tavarez, molduras, texturas) fazem parte do app-shell offline.
     expect(viteConfig.build?.sourcemap).toBe(false);
     expect(pwaOptions.workbox.sourcemap).toBe(false);
     expect(pwaOptions.workbox.globPatterns).toContain('**/*.{js,css,html,ico,png,svg,webp,webmanifest}');

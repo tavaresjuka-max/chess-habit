@@ -278,7 +278,7 @@ describe('appData storage', () => {
       source: 'outro',
       confidence: 'medium',
       observedAt: '2026-06-08T00:00:00.000Z',
-      value: { kind: 'manual', tag: 'hanging-piece', note: 'Resposta ao Professor Lemos.' },
+      value: { kind: 'manual', tag: 'hanging-piece', note: 'Resposta ao Professor Tavarez.' },
     };
 
     await replaceSignalsForSource('outro', [existingSignal]);

@@ -34,7 +34,7 @@ const ERROR_ROUTING_MIN_ELIGIBLE = 2;
 
 /**
  * Labels de exibição para o seletor de 1 toque na UI.
- * Tom Professor Lemos: descritivo, sem juízo.
+ * Tom Professor Tavarez: descritivo, sem juízo.
  */
 export const ERROR_TYPE_LABELS: Record<ErrorType, string> = {
   'nao-vi': 'NÃO VI',
@@ -107,7 +107,7 @@ export function getErrorRoutingEmphasis(logs: TrainingLog[]): ErrorRoutingEmphas
 }
 
 /**
- * Copy pedagógica derivada da ênfase de erro (tom Professor Lemos, sem juízo).
+ * Copy pedagógica derivada da ênfase de erro (tom Professor Tavarez, sem juízo).
  * Consumida pelo gerador para ajustar coachNote/guidingQuestion do bloco tema.
  * Retorna undefined para 'default' — o gerador mantém sua copy usual.
  *
@@ -145,7 +145,7 @@ export function getErrorRoutingCoach(emphasis: ErrorRoutingEmphasis): ErrorRouti
  * Transparência (A1', council 2026-06-24): explica AO ALUNO o porquê do roteamento,
  * na linguagem dele. Mostrar o "porquê" é a validação honesta da hipótese de
  * roteamento num app de 1 usuário (telemetria de dev não tem significância em n=1).
- * Retorna undefined para 'default' (sem ênfase = sem nota). Tom Lemos, sem promessa
+ * Retorna undefined para 'default' (sem ênfase = sem nota). Tom Tavarez, sem promessa
  * de rating, sem exclamação; passa BANNED_PHRASES.
  */
 export function buildRoutingWhy(emphasis: ErrorRoutingEmphasis): string | undefined {

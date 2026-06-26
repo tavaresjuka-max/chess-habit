@@ -21,7 +21,7 @@ const weaknessTags = [
 ] satisfies WeaknessTag[];
 
 describe('catalogSkillNodes', () => {
-  it('covers every Professor Lemos weakness with at least one sub-skill', () => {
+  it('covers every Professor Tavarez weakness with at least one sub-skill', () => {
     for (const tag of weaknessTags) {
       expect(catalogSkillNodes.some((node) => node.weaknessTag === tag)).toBe(true);
     }
@@ -49,9 +49,9 @@ describe('catalogSkillNodes', () => {
     }
   });
 
-  it('has original Professor Lemos cues and practical fit metadata', () => {
+  it('has original Professor Tavarez cues and practical fit metadata', () => {
     for (const node of catalogSkillNodes) {
-      expect(node.lemosCue.length).toBeGreaterThan(20);
+      expect(node.tavarezCue.length).toBeGreaterThan(20);
       expect(node.bands.length).toBeGreaterThan(0);
       expect(node.stageFit.length).toBeGreaterThan(0);
       expect(node.timeFits.length).toBeGreaterThan(0);

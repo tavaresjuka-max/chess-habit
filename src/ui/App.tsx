@@ -11,7 +11,7 @@ import {
   PRIVACY_SUMMARY,
   SOURCE_CODE_URL,
 } from '../config/appIdentity';
-import { LemosAvatar } from './art/LemosAvatar';
+import { TavarezAvatar } from './art/TavarezAvatar';
 import { DiplomaCelebration } from './DiplomaCelebration';
 import { Onboarding, type OnboardingStep } from './Onboarding';
 import { ReloadPrompt } from './ReloadPrompt';
@@ -197,7 +197,7 @@ export function App() {
       <main className="app-shell">
         <section className="panel loading-panel" aria-live="polite">
           <img
-            src="/art/loading-lemos.webp"
+            src="/art/loading-tavarez.webp"
             alt=""
             aria-hidden="true"
             className="loading-art"
@@ -299,7 +299,7 @@ export function App() {
       </a>
       <nav className="top-nav" aria-label="Navegação principal">
         <span className="brand" aria-hidden="true">
-          <LemosAvatar size={26} className="brand-avatar" />
+          <TavarezAvatar size={26} className="brand-avatar" />
           <span>{APP_NAME}</span>
         </span>
         <button
