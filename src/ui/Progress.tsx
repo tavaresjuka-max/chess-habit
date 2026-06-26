@@ -12,6 +12,7 @@ import {
 } from '../domain';
 import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
 import type { DiplomaAttempt } from '../domain/method/types';
+import { lichessThemeLabel } from '../domain/lichessThemeLabels';
 import { DiplomaSeal } from './art/DiplomaSeal';
 import { formatWeaknessTag } from './formatWeakness';
 import { MedalhaIcon } from './art/MedalhaIcon';
@@ -112,7 +113,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
             {skillMap.map((entry) => (
               <li key={entry.theme}>
                 <div className="skill-map-row">
-                  <span className="skill-map-theme">{entry.theme}</span>
+                  <span className="skill-map-theme">{lichessThemeLabel(entry.theme)}</span>
                   <span className="skill-map-score">
                     {entry.accuracyPercent}% em {entry.attempts} tentativas
                   </span>
@@ -120,7 +121,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
                 <div
                   className="skill-map-bar"
                   role="img"
-                  aria-label={`${entry.theme}: ${String(entry.accuracyPercent)}% de acerto`}
+                  aria-label={`${lichessThemeLabel(entry.theme)}: ${String(entry.accuracyPercent)}% de acerto`}
                 >
                   <SkillMapBar percent={entry.accuracyPercent} />
                 </div>

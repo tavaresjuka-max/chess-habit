@@ -333,4 +333,47 @@ describe('Progress', () => {
       screen.getByText('Hipóteses, não diagnósticos — sinais antigos saem da conta.'),
     ).toBeInTheDocument();
   });
+
+  it('T7: exibe rótulo PT-BR do tema e não o slug camelCase cru', () => {
+    // Monta um log com resultado puzzle-dashboard contendo tema "hangingPiece"
+    const logWithDashboard = makeTrainingLog({
+      result: {
+        source: 'lichess',
+        kind: 'puzzle-dashboard',
+        fetchedAt: '2026-06-15T10:00:00.000Z',
+        since: '2026-05-16',
+        until: '2026-06-15',
+        days: 30,
+        puzzles: 40,
+        wins: 28,
+        losses: 12,
+        themes: ['hangingPiece', 'fork'],
+        themeStats: [
+          { theme: 'hangingPiece', attempts: 20, losses: 8 },
+          { theme: 'fork', attempts: 20, losses: 4 },
+        ],
+        weakThemes: ['hangingPiece'],
+        strongThemes: ['fork'],
+      },
+    });
+
+    render(
+      <Progress
+        today={TODAY}
+        allTrainingLogs={[logWithDashboard]}
+        diplomaAttempts={[]}
+        achievements={[]}
+        weaknesses={[]}
+        signals={[]}
+      />,
+    );
+
+    // Slug camelCase NÃO deve aparecer como texto visível
+    expect(screen.queryByText('hangingPiece')).not.toBeInTheDocument();
+    expect(screen.queryByText('fork')).not.toBeInTheDocument();
+
+    // Rótulos PT-BR SIM devem aparecer
+    expect(screen.getByText('Peça solta')).toBeInTheDocument();
+    expect(screen.getByText('Garfo')).toBeInTheDocument();
+  });
 });
