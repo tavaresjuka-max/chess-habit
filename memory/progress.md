@@ -320,7 +320,7 @@
   - [x] `prompts/README.md` atualizado para listar a analise ativa.
 - [ ] **P4** DESCONGELADA pelo dono em 2026-06-16: sync PC<->celular opt-in com Workers + D1,
   E2EE por passphrase, merge por registro/tombstone, testes locais; sem deploy/provisionamento pelo agente.
-- [ ] **P5** DESCONGELADA pelo dono em 2026-06-16: versao-comunidade, `APP_NAME='Rotina'` ate nome final,
+- [ ] **P5** DESCONGELADA pelo dono em 2026-06-16: versao-comunidade, `APP_NAME='Chess Habit'`,
   disclaimers, AGPL visivel, privacidade, i18n/polish e revisao publica.
 
 - [x] **Execucao Codex cortes M1-M5 para zerar pendencias (2026-06-16)**.
@@ -350,8 +350,9 @@
   - [x] Hardening aplicado: backup com limite antes da leitura, validacao de URLs Lichess, export sem token,
     OAuth pendente corrompido recuperavel, Retry-After em 429, sourcemaps desativados e CSP com
     `upgrade-insecure-requests`.
-  - [x] P5 parcial: `APP_NAME='Rotina'` centralizado, disclaimer/AGPL na UI e decisao registrada para
-    nao inventar URL de codigo-fonte antes do dono confirmar o link publico.
+  - [x] P5 parcial: `APP_NAME='Rotina'` centralizado na epoca, disclaimer/AGPL na UI e decisao registrada para
+    nao inventar URL de codigo-fonte antes do dono confirmar o link publico; supersedido em 2026-06-26 por
+    `APP_NAME='Chess Habit'` com URL publica confirmada.
   - [x] Fontes oficiais rechecadas e registradas em `docs/research/sources.md`.
   - [x] Gate final verde: `npm run lint`, `npm test` (74 arquivos / 622 testes), `npm run build`,
     `npm run coverage` 5x (85,85% statements / 80,17% branches / 90,07% funcs / 85,62% lines),
@@ -371,3 +372,51 @@
   - [x] Gate final verde: lint, `npm test` (76 arquivos/627 testes), coverage 5x (functions 90,02%),
     build, smoke PWA 34/34 e build sem sourcemaps.
   - [x] Relatorio salvo em `docs/review/relatorio-finalizacao-beta-local-first-2026-06-19.md`.
+
+- [x] **P4 M12 - Backend Cloudflare Workers + D1 (local-only, key-agnostic) (2026-06-26)**.
+  - [x] Pacote `backend/` criado: `worker.ts` (handler `fetch` puro), `store.ts` (queries D1
+    parameterizadas), `auth.ts`, `types.ts` (superficie D1 sem deps), `schema.sql`
+    (tabela `blobs`, PK `(userId, collection, clientMutationId)`, conteudo = `ciphertext` opaca),
+    `fakeD1.ts` (D1 em memoria para testes), `wrangler.toml` (runbook do dono).
+  - [x] API minima: `GET /health` (publico), `POST /blobs` (push upsert), `GET /blobs?collection=X`
+    (pull por colecao), `GET /snapshot` (pull de todas). Servidor jamais decodifica ciphertext;
+    userId vem do auth, nunca do payload.
+  - [x] Auth local-only: `SYNC_AUTH_MODE='local'` confia em header `X-Sync-User` (teste/dev);
+    qualquer outro valor/ausente => 501 apontando para M13. Worker nunca confia em header por
+    padrao. OAuth Lichess real fica para M13 (nao implementado - isola decisao KDF/passphrase).
+  - [x] Sem wrangler/miniflare instalado (preferido pelo dono): testes unitarios do worker com
+    fake D1. `npm run test:worker` + `npm run typecheck:worker` verdes; `npm test`/`lint`/`build`
+    do app inalterados e verdes.
+  - [x] `DEPLOY-BACKEND.md` ganhou secao "Estado M12 (local-only)" + roteiro opcional de wrangler.
+  - [x] Pendente M13: motor de sync no cliente, KDF/passphrase E2EE e validacao OAuth Lichess real.
+
+- [x] **P4 M13 parcial - Cliente E2EE local-only (2026-06-26)**.
+  - [x] Criado `src/infra/sync/crypto.ts`: envelope E2EE versionado com PBKDF2-SHA256 600k,
+    salt 16 bytes, IV 12 bytes, AES-GCM 256 e chave nao-extraivel. Passphrase errada ou blob
+    adulterado falha por auth tag; passphrase vazia e recusada.
+  - [x] Criado `src/infra/sync/syncClient.ts`: cliente HTTP pequeno para backend M12 (`health`,
+    `pushBlob`, `listBlobs`, `snapshot`) que envia apenas `ciphertext` opaco + metadados; nunca
+    recebe ou envia plaintext, passphrase, chave ou token.
+  - [x] Testes cobrem round-trip crypto, Unicode, aleatoriedade, no-plaintext/no-passphrase leak,
+    passphrase errada, blob corrompido, parse de envelope, push/pull opaco com mock fetch,
+    no-token/no-cookie/no-authorization e erros HTTP/rede/timeout.
+  - [x] M13 publico ainda pendente: merge Dexie, fila offline, validacao OAuth Lichess real, backend
+    provisionado e E2E de dois dispositivos. Sem deploy/secrets.
+  - [x] Fixes pos-council: teto anti-DoS de `iterations` (2.000.000), rejeicao de base64 invalido,
+    rejeicao de valores JSON nao-serializaveis, erro `SyncHttpError` para 200 nao-JSON e upsert
+    anti-rollback no backend (`updatedAt` menor/igual nao sobrescreve).
+  - [x] UI/canary local-only adicionada atras de feature flag OFF (`SYNC_UI_ENABLED=false`): painel
+    isolado de Config mostra aviso de perda de passphrase, canary local em localStorage, bloqueio sem
+    backend URL e sonda E2EE `probe` quando habilitado. Passphrase/chave/token nunca persistem.
+  - [x] Hardening residual M13: `canaryStore.clear()` retorna sucesso/falha e a UI so limpa estado se
+    remover o canary local com sucesso; validacao da sonda usa retry curto para evitar falso-negativo de
+    consistencia eventual.
+
+- [x] **P5 docs/checks beta publico - Chess Habit (2026-06-26)**.
+  - [x] `docs/privacy/privacy-and-data.md` atualizado para refletir beta publico: `APP_NAME='Chess Habit'`,
+    disclaimer, AGPL, URL publica de codigo-fonte/feedback e P4 sync E2EE por passphrase independente.
+  - [x] `src/config/appIdentity.test.ts` agora bloqueia nomes publicos rejeitados (`Lichess Tutor`,
+    `Rotina`) nos entry points publicos (`README.md`, `index.html`, `vite.config.ts`, `src/ui/App.tsx`,
+    `src/infra/lichess/study.ts`).
+  - [x] `src/app/preserveProgress.test.tsx` estabilizado: timeout explicito para Config lazy/Suspense e
+    limpeza de timers/mocks/history/IndexedDB no `afterEach`. Suite cheia repetida e verde.

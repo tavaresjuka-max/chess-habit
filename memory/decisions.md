@@ -539,4 +539,68 @@ Na mesma passada, a auditoria Codex de 2026-06-13 realinhou documentacao e gate:
   substituir `sonner` ou carregar seus estilos estaticamente.
 - Transparencia P5 local-first entra na UI: resumo de privacidade visivel, AGPL/disclaimer mantidos,
   `FEEDBACK_URL` opcional e `SOURCE_CODE_URL` ainda pendente ate o dono fornecer URL real.
-- Nome publico segue como `APP_NAME='Rotina'` placeholder centralizado; nenhuma URL/nome foi inventado.
+- Naquele fechamento, o nome publico ainda seguia como placeholder centralizado; nenhuma URL/nome foi inventado. Supersedido em 2026-06-26 por `APP_NAME='Chess Habit'`.
+
+## 2026-06-26: Governanca Fugu, Chess Habit E Professor Tavarez
+
+- O dono aprovou que fugu-ultra assuma o papel de diretor operacional do projeto: sintetiza, decide e revisa; **GLM 5.2 executa tudo por padrao**; GLM + DeepSeek formam o council; gates objetivos continuam sendo o arbitro final.
+- Nome publico aprovado: `APP_NAME='Chess Habit'`, com `SOURCE_CODE_URL` e `FEEDBACK_URL` apontando para `https://github.com/tavaresjuka-max/chess-habit` e issues do mesmo repositorio.
+- Persona/voz aprovada: **Professor Tavarez**. O nome interno da pasta/repo local pode continuar `lichess-tutor`; nomes de formato/DB de backup podem permanecer internos para compatibilidade.
+- Antes de P4 sync real, integridade de dados continua bloqueante: backup/restore, migrações, reconciliação restore↔sync e testes locais precisam estar verdes. Nenhum deploy/provisionamento/secrets pelo agente.
+
+## 2026-06-26: P4 M12 Backend Local-Only E Key-Agnostic
+
+Implementado o backend de sync (P4 M12) **local-only e key-agnostic**, isolando propositamente
+a decisao de KDF/passphrase (M13).
+
+- **Storage opaco:** o servidor so armazena `ciphertext` (blob ja cifrado pelo cliente) na tabela
+  `blobs` (PK `userId, collection, clientMutationId`). Nao ha coluna de plaintext, passphrase,
+  chave ou token. O servidor jamais decodifica/interpreta ciphertext.
+- **Auth local apenas:** `SYNC_AUTH_MODE='local'` confia no header `X-Sync-User` (teste/dev).
+  Qualquer outro valor (ou ausente) retorna **501** apontando para M13. O worker nunca confia em
+  header por padrao - producao exigira OAuth Lichess (M13), ainda nao implementado. `userId` do
+  storage vem sempre do auth, nunca do payload do cliente (isolamento entre usuarios).
+- **Sem deps pesadas / sem nuvem:** nao adicionou wrangler/miniflare. O handler `fetch` e puro e
+  os testes injetam um fake D1 em memoria com a mesma forma da API D1. Sem deploy, provisionamento
+  ou secrets pelo agente.
+- **Idempotencia:** push usa UPSERT por `(userId, collection, clientMutationId)`; reenvios do mesmo
+  mutation nao duplicam (o conteudo mais recente vence).
+- **Gate:** `npm run typecheck:worker && npm run test:worker` verdes; gates do app (`lint`, `test`,
+  `build`) inalterados e verdes. Council externo fica reservado para M13 (auth real + KDF E2EE),
+  ponto irreversivel/seguro que toca identidade e derivacao de chave.
+
+## 2026-06-26: P4 M13 Parcial - Cliente E2EE Local-Only
+
+Implementado o cliente E2EE local-only sem ativar sync de produto e sem decidir OAuth real/merge:
+
+- **Passphrase independente:** chave E2EE derivada por PBKDF2-SHA256 de uma passphrase que so o
+  usuario sabe; nunca da identidade publica do Lichess nem de token OAuth. Decisao canonica: `sync.md`
+  prevalece sobre o roadmap antigo.
+- **Envelope opaco:** `encryptJson` gera envelope versionado com salt/iv aleatorios, AES-GCM 256 e
+  chave nao-extraivel. O servidor M12 armazena apenas a string serializada em `ciphertext`.
+- **Cliente HTTP sem segredos:** `createSyncClient` so trafega `ciphertext`, `collection`,
+  `clientMutationId` e `updatedAt`; nao tem acesso a passphrase, chave, token ou plaintext.
+- **M13 publico pendente:** merge Dexie, fila offline, validacao OAuth Lichess real, backend provisionado
+  e E2E dois-dispositivos. Sem deploy/provisionamento/secrets.
+- **Hardening pos-council:** envelopes com base64 invalido, `iterations` nao-inteiro/acima de
+  2.000.000 e valores JSON nao-serializaveis agora falham antes de derivar chave; erro HTTP 200
+  com corpo nao-JSON vira `SyncHttpError`; upsert do backend bloqueia rollback/clobber com
+  `WHERE excluded.updatedAt > blobs.updatedAt`, mantendo retry com mesmo timestamp como no-op.
+- **UI/canary local-only:** painel de sync em Config existe atras de `SYNC_UI_ENABLED=false`; o canary
+  local verifica a passphrase sem persistir passphrase/chave/token. Sem backend URL o botao de sync fica
+  desabilitado. A UI avisa que perder a passphrase torna blobs sincronizados irrecuperaveis.
+- **Limpeza segura e probe robusto:** limpar a passphrase local e best-effort, mas a UI so zera canary/status
+  se `canaryStore.clear()` retornar sucesso; se falhar, mostra erro e preserva o estado. A sonda de sync
+  tem retry curto (250ms/750ms) antes de declarar falha, reduzindo falso-negativo por consistencia eventual.
+
+## 2026-06-26: P5 Docs/Checks Beta Publico
+
+- `Chess Habit` e o nome publico aprovado. `Rotina` e `Lichess Tutor` ficam rejeitados como nomes
+  publicos em entry points; `lichess-tutor` pode permanecer como nome interno de pasta/repo e artefatos
+  historicos.
+- `docs/privacy/privacy-and-data.md` deve refletir o estado beta publico: app nao oficial, AGPL,
+  codigo-fonte/feedback visiveis, tokens locais, PGN transiente, P4 sync E2EE por passphrase independente.
+- Teste `appIdentity.test.ts` e o gate que bloqueia regressao de nomes publicos; qualquer mudanca de nome
+  publico deve atualizar `APP_NAME` e o teste em conjunto.
+- Flaky `preserveProgress.test.tsx` foi estabilizado sem mudar produto: Config e lazy/Suspense agora usam
+  timeout explicito no teste e limpeza forte entre arquivos.

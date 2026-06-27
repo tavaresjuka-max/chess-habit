@@ -1,6 +1,19 @@
 # Estado Atual
 
-Data: 2026-06-19 (atualizado apos finalizacao beta local-first).
+Data: 2026-06-26 (P4 M13 parcial + P5 docs/checks beta publico alinhados, sem deploy/push).
+
+Atualizacao 2026-06-26: P4 M12 (backend Cloudflare Workers + D1) implementado **local-only e
+key-agnostic** em `backend/`. M13 parcial implementado em `src/infra/sync/`: crypto E2EE puro
+(PBKDF2-SHA256 600k + AES-GCM 256; salt/iv aleatorios; envelope versionado; chave nao-extraivel) e
+cliente HTTP que trafega apenas blobs opacos para o backend M12. A passphrase e independente e nunca
+derivada da identidade publica do Lichess nem de token OAuth. Sem UI de Config, sem merge Dexie,
+sem OAuth real, sem deploy/provisionamento/secrets. Auth continua local/test (`X-Sync-User`) ate M13
+publico implementar validacao OAuth Lichess real. UI/canary local-only existe atras de feature flag OFF,
+com aviso de perda de passphrase e sem persistir passphrase/chave/token. Hardening pos-council aplicado:
+teto anti-DoS de `iterations`, base64 invalido rejeitado, valores JSON nao-serializaveis recusados,
+erro HTTP 200 nao-JSON encapsulado e upsert anti-rollback no backend. P5 docs/checks alinhados a `Chess Habit`:
+privacy doc atualizada e teste bloqueia nomes publicos rejeitados (`Lichess Tutor`, `Rotina`) nos entry
+points publicos. Gates app + worker + smoke verdes.
 
 Atualizacao 2026-06-17: por decisao do dono registrada em `AGENTS.md` e
 `docs/review/roadmap-beta-2026-06-16.md`, P4/P5 foram descongeladas para execucao ate beta publico,
@@ -73,7 +86,7 @@ sourcemaps). Relatorio salvo em
 - Análise dos PDFs Baixados + ONDA 3 (Gemini) concluída em 2026-06-10: 67 arquivos analisados e catalogados. O relatório provou cientificamente a importância da autorreflexão de erros locais ($r=0.29$) e da verbalização ($r=0.18$), propôs a inserção de marcos de progresso baseados em "Diplomas" (Peão, Torre, Rei) de Tirado & Silva (1999), e introduziu o drill de "Tratamento de Pendências" (Christofoletti 2007) para re-resolver puzzles falhados. Detalhes em [analise-pdfs-baixados-onda3-GEMINI.md](docs/research/analise-pdfs-baixados-onda3-GEMINI.md).
 - P4/P5: descongeladas pelo dono em 2026-06-16. Sync deve ser construido/testado localmente com
   Workers + D1 e E2EE por passphrase, sem deploy/provisionamento/secrets pelo agente. P5 usa
-  `APP_NAME='Rotina'` ate nome publico final, disclaimer e AGPL visiveis.
+  `APP_NAME='Chess Habit'`, disclaimer, AGPL, URL publica de codigo-fonte e feedback visiveis.
 - Beta local-first finalizado em 2026-06-19: axe, CSP smoke, privacidade in-app, contrato E2EE doc,
   runbook P4 e gates finais verdes. `style-src 'unsafe-inline'` permanece apenas por limite do `sonner`;
   runtime/prod audit esta limpo com `npm audit --omit=dev --audit-level=high`.
@@ -149,8 +162,8 @@ sourcemaps). Relatorio salvo em
 - Adaptativo via dados publicos do Lichess + a analise que o Lichess ja fez (sem rodar engine).
 - Multi-fonte chegou ate P3. Sync (P4) e comunidade/renomeacao/disclaimers publicos (P5) estao
   descongelados para beta, mantendo local-first, E2EE e sem deploy pelo agente.
-- Renomeacao publica passa por `APP_NAME='Rotina'` ate o dono fornecer o nome final; OAuth pessoal e
-  opt-in e restrito a `puzzle:read`/`study:write`.
+- Nome publico aprovado: `APP_NAME='Chess Habit'`; OAuth pessoal e opt-in e restrito a
+  `puzzle:read`/`study:write`.
 - Tipos estritos, sync por registro, slugs por allowlist oficial/manual, erro/offline especificados, linguagem de hipotese.
 
 ## Historico Da Auditoria (insumo, ja absorvido)
