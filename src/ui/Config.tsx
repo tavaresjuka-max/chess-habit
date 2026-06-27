@@ -1,6 +1,7 @@
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { SYNC_UI_ENABLED } from '../config/syncConfig';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
 import {
   describeAutoBackupStatus,
@@ -15,6 +16,7 @@ import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthT
 import { BandaIcon } from './art/BandaIcon';
 import { Fold } from './Fold';
 import { PlacementCard } from './PlacementCard';
+import { SyncPanel } from './SyncPanel';
 
 type ConfigProps = {
   profile: LearnerProfile | undefined;
@@ -398,6 +400,12 @@ export function Config({
         </div>
         </div>
       </Fold>
+
+      {SYNC_UI_ENABLED ? (
+        <Fold concept="dados" title="Sincronização" meta="experimental">
+          <SyncPanel />
+        </Fold>
+      ) : null}
       <p className="config-version">versão {__APP_VERSION__}</p>
     </section>
   );

@@ -46,7 +46,7 @@ Stack: React 19 + TS estrito + Vite + Dexie 4 (IndexedDB v11) + PWA Workbox. Loc
 | D1 | Escopo | P4 sync + P5 comunidade + todas as features |
 | D2 | Login do sync | **Entrar com Lichess** (identidade OAuth, sem escopo de jogo) |
 | D3 | Backend | Codex **constrói + testa local** (Workers/D1, wrangler/miniflare); **dono provisiona** depois |
-| D4 | Privacidade do sync | **Cifrado ponta-a-ponta** (chave do login nunca sobe; tokens só no aparelho) |
+| D4 | Privacidade do sync | **Cifrado ponta-a-ponta por passphrase independente**; nunca derivar chave da identidade pública do Lichess nem de token OAuth; tokens só no aparelho |
 | D5 | Deploy ao fim da noite | **Só commits** — dono revisa e deploya |
 | D6 | Features liberadas | Todas, com teste máximo + jogar o fluxo + corrigir **antes de trocar de fase** |
 | D7 | Nome público | **"usar outro nome"** — PENDENTE; até lá `APP_NAME='Rotina'` roteado por 1 ponto |
@@ -158,8 +158,9 @@ Cada milestone tem **Gate objetivo** que substitui checkpoint humano. Ninguém a
 
 **M13 — Engine de sync no cliente**
 - Escopo: motor de sync no app (push/pull; resolução de conflito por `updatedAt` + merge; derivação de
-  chave **E2EE** a partir da identidade Lichess — chave nunca sai do aparelho; **tokens OAuth NÃO
-  sobem**); offline-first com reconciliação; UI de Config (status, "sincronizar agora", on/off).
+  chave **E2EE** a partir de **passphrase independente que só o usuário sabe** — nunca da identidade
+  pública do Lichess nem de token OAuth; **tokens OAuth NÃO sobem**); offline-first com reconciliação;
+  UI de Config (status, "sincronizar agora", on/off).
 - Gate: testes de conflito/merge/cifragem; E2E simulando 2 aparelhos (com print).
 
 ### Fase E — Comunidade / beta público (P5)
@@ -197,8 +198,8 @@ para FECHAR qualquer milestone:
 ## 5. Registro de riscos (da auditoria)
 
 - `addDays` GMT-3 afeta TODO o espaçamento adaptativo → prioridade máxima em M3.
-- Sync E2EE: derivação de chave a partir da identidade Lichess precisa ser determinística por usuário
-  sem expor a chave; revisar antes de M13.
+- Sync E2EE: chave deve ser derivada de passphrase independente (Argon2id/PBKDF2), nunca da identidade
+  pública do Lichess nem de token OAuth; revisar UX de perda/recuperação antes de M13 público.
 - Gate de eficácia ~2026-07-08 (n=1) pode bloquear Corte 8 → currículo 1200-2200 fica em scaffold.
 - Backup incompleto + sem migração = dataset único do dono em risco → M3 resolve antes de qualquer
   schema bump do sync (M12/M13).

@@ -864,3 +864,17 @@ privacidade e plano P4/P5 local-only.
   revalidou CSP por header HTTP, `upgrade-insecure-requests` e reducao de superficie de XSS.
 - **[MDN Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API):**
   revalidou o modelo offline/PWA usado nos smokes de service worker.
+
+## Rechecagem P4 M13 Cliente E2EE (2026-06-26)
+
+Pesquisa executada antes de implementar a camada local-only de crypto e cliente de sync.
+
+- **[MDN Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API):**
+  confirmou que WebCrypto/SubtleCrypto exige contexto seguro, esta disponivel em Workers e e primitiva
+  de baixo nivel; por isso a implementacao fica isolada, testada e sem promessa publica de seguranca.
+- **[MDN SubtleCrypto.deriveKey](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey):**
+  confirmou uso de PBKDF2 para derivar chave de material de baixa entropia como senha/passphrase e
+  derivacao de chave AES-GCM nao-extraivel.
+- **[MDN SubtleCrypto.encrypt](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt):**
+  confirmou AES-GCM como modo autenticado, com ciphertext protegido contra adulteracao via auth tag e
+  necessidade de IV/nonce unico por cifragem.

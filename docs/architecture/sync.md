@@ -47,11 +47,12 @@ Local-first com eventos:
 - 429 externo: pausar chamadas externas por no minimo 1 minuto.
 - Conflito de plano: preservar conclusoes do aluno e regenerar plano depois.
 
-## Contrato E2EE (P4 - a implementar em fase futura)
+## Contrato E2EE (P4 - M13 parcial local-only implementado)
 
 Decisao do dono (2026-06-19): criptografia ponta-a-ponta com **passphrase independente**.
 
-- A chave de cifragem e derivada (Argon2id/PBKDF2) de uma **passphrase que so o usuario sabe** -
+- A chave de cifragem e derivada (PBKDF2-SHA256 implementado no cliente local-only; Argon2id pode
+  entrar em fase futura se houver biblioteca adequada) de uma **passphrase que so o usuario sabe** -
   **nunca** da identidade publica do Lichess nem do token OAuth.
 - O servidor **nunca** recebe: token, passphrase, chave nem plaintext. Recebe so **blobs cifrados** +
   metadados minimos (`userId` opaco, `seq`, `updatedAt`, `clientId`).
