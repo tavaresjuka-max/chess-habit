@@ -580,7 +580,7 @@ Implementado o cliente E2EE local-only sem ativar sync de produto e sem decidir 
   chave nao-extraivel. O servidor M12 armazena apenas a string serializada em `ciphertext`.
 - **Cliente HTTP sem segredos:** `createSyncClient` so trafega `ciphertext`, `collection`,
   `clientMutationId` e `updatedAt`; nao tem acesso a passphrase, chave, token ou plaintext.
-- **M13 publico pendente:** merge Dexie, fila offline, validacao OAuth Lichess real, backend Cloudflare/D1
+- **M13 publico pendente:** fila offline persistente, validacao OAuth Lichess real, backend Cloudflare/D1
   provisionado e E2E dois-dispositivos. Sem provisionamento/secrets Cloudflare pelo agente.
 - **Hardening pos-council:** envelopes com base64 invalido, `iterations` nao-inteiro/acima de
   2.000.000 e valores JSON nao-serializaveis agora falham antes de derivar chave; erro HTTP 200
@@ -592,6 +592,19 @@ Implementado o cliente E2EE local-only sem ativar sync de produto e sem decidir 
 - **Limpeza segura e probe robusto:** limpar a passphrase local e best-effort, mas a UI so zera canary/status
   se `canaryStore.clear()` retornar sucesso; se falhar, mostra erro e preserva o estado. A sonda de sync
   tem retry curto (250ms/750ms) antes de declarar falha, reduzindo falso-negativo por consistencia eventual.
+
+## 2026-06-27: P4 M13b - Merge Dexie Por Mutacao De Entidade
+
+- O council rejeitou snapshot inteiro por colecao por risco de clobber em dois aparelhos. A fatia local
+  agora usa blobs cifrados por mutacao de entidade, mantendo o backend M12 existente
+  `(userId, collection, clientMutationId)`.
+- `src/infra/sync/syncRecords.ts` define allowlist deny-by-default de colecoes sincronizaveis e exclui
+  tokens OAuth, cache Chess.com, metadata de backup e handles de auto-backup. `clientMutationId` nao vaza
+  `entityId` em claro: usa hash estavel.
+- `src/infra/sync/syncStorage.ts` implementa `pull -> merge -> push` local por colecao, com LWW por
+  `updatedAt`, tombstones preservados e testes contra divergencia de dois aparelhos.
+- Ainda pendem para sync publico: fila offline persistente, OAuth real de identidade, backend Cloudflare/D1
+  provisionado, CSP `connect-src` para URL do Worker e E2E dois-dispositivos real.
 
 ## 2026-06-26: P5 Docs/Checks Beta Publico
 

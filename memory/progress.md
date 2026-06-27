@@ -400,7 +400,7 @@
   - [x] Testes cobrem round-trip crypto, Unicode, aleatoriedade, no-plaintext/no-passphrase leak,
     passphrase errada, blob corrompido, parse de envelope, push/pull opaco com mock fetch,
     no-token/no-cookie/no-authorization e erros HTTP/rede/timeout.
-  - [x] M13 publico ainda pendente: merge Dexie, fila offline, validacao OAuth Lichess real, backend
+  - [x] M13 publico ainda pendente: fila offline persistente, validacao OAuth Lichess real, backend
     Cloudflare/D1 provisionado e E2E de dois dispositivos. Sem provisionamento/secrets Cloudflare.
   - [x] Fixes pos-council: teto anti-DoS de `iterations` (2.000.000), rejeicao de base64 invalido,
     rejeicao de valores JSON nao-serializaveis, erro `SyncHttpError` para 200 nao-JSON e upsert
@@ -411,6 +411,15 @@
   - [x] Hardening residual M13: `canaryStore.clear()` retorna sucesso/falha e a UI so limpa estado se
     remover o canary local com sucesso; validacao da sonda usa retry curto para evitar falso-negativo de
     consistencia eventual.
+
+- [x] **P4 M13b - Merge Dexie por mutacao de entidade (2026-06-27)**.
+  - [x] `src/infra/sync/syncRecords.ts` criado: mutation payload versionado por entidade, allowlist
+    deny-by-default, LWW por `updatedAt`, tombstone e `clientMutationId` opaco (sem entityId claro).
+  - [x] `src/infra/sync/syncStorage.ts` criado: ciclo local `pull -> merge -> push` por colecao,
+    integrando Dexie sem sincronizar tokens OAuth, cache Chess.com, backupMeta ou autoBackup.
+  - [x] Testes cobrem allowlist anti-token/cache, divergencia de dois aparelhos preservando entidades,
+    LWW local/remoto, tombstone, passphrase errada e round-trip E2EE por mutation.
+  - [x] Decisao: nao usar snapshot inteiro por colecao; council apontou clobber entre aparelhos.
 
 - [x] **P5 docs/checks beta publico - Chess Habit (2026-06-26)**.
   - [x] `docs/privacy/privacy-and-data.md` atualizado para refletir beta publico: `APP_NAME='Chess Habit'`,
