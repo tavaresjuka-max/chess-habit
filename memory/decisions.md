@@ -580,8 +580,8 @@ Implementado o cliente E2EE local-only sem ativar sync de produto e sem decidir 
   chave nao-extraivel. O servidor M12 armazena apenas a string serializada em `ciphertext`.
 - **Cliente HTTP sem segredos:** `createSyncClient` so trafega `ciphertext`, `collection`,
   `clientMutationId` e `updatedAt`; nao tem acesso a passphrase, chave, token ou plaintext.
-- **M13 publico pendente:** merge Dexie, fila offline, validacao OAuth Lichess real, backend provisionado
-  e E2E dois-dispositivos. Sem deploy/provisionamento/secrets.
+- **M13 publico pendente:** merge Dexie, fila offline, validacao OAuth Lichess real, backend Cloudflare/D1
+  provisionado e E2E dois-dispositivos. Sem provisionamento/secrets Cloudflare pelo agente.
 - **Hardening pos-council:** envelopes com base64 invalido, `iterations` nao-inteiro/acima de
   2.000.000 e valores JSON nao-serializaveis agora falham antes de derivar chave; erro HTTP 200
   com corpo nao-JSON vira `SyncHttpError`; upsert do backend bloqueia rollback/clobber com
@@ -604,3 +604,13 @@ Implementado o cliente E2EE local-only sem ativar sync de produto e sem decidir 
   publico deve atualizar `APP_NAME` e o teste em conjunto.
 - Flaky `preserveProgress.test.tsx` foi estabilizado sem mudar produto: Config e lazy/Suspense agora usam
   timeout explicito no teste e limpeza forte entre arquivos.
+
+## 2026-06-27: Push E Deploy Vercel Do Beta Publico
+
+- `master` foi enviado para `origin/master`; CI GitHub do push ficou verde.
+- Deploy de producao feito via fluxo obrigatorio prebuilt: `vercel build --prod --yes` seguido de
+  `vercel deploy --prebuilt --prod --yes`.
+- URL estavel verificada: `https://rotina-pied.vercel.app` retorna HTTP 200, titulo
+  `Chess Habit - treino de xadrez`, `X-Robots-Tag: noindex, nofollow` e CSP esperada.
+- O deploy e apenas do PWA estatico/local-first; P4 sync Cloudflare/D1 real continua bloqueado por
+  provisionamento, secrets, OAuth de sync, merge Dexie/fila offline e E2E dois-dispositivos.

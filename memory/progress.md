@@ -401,7 +401,7 @@
     passphrase errada, blob corrompido, parse de envelope, push/pull opaco com mock fetch,
     no-token/no-cookie/no-authorization e erros HTTP/rede/timeout.
   - [x] M13 publico ainda pendente: merge Dexie, fila offline, validacao OAuth Lichess real, backend
-    provisionado e E2E de dois dispositivos. Sem deploy/secrets.
+    Cloudflare/D1 provisionado e E2E de dois dispositivos. Sem provisionamento/secrets Cloudflare.
   - [x] Fixes pos-council: teto anti-DoS de `iterations` (2.000.000), rejeicao de base64 invalido,
     rejeicao de valores JSON nao-serializaveis, erro `SyncHttpError` para 200 nao-JSON e upsert
     anti-rollback no backend (`updatedAt` menor/igual nao sobrescreve).
@@ -420,3 +420,13 @@
     `src/infra/lichess/study.ts`).
   - [x] `src/app/preserveProgress.test.tsx` estabilizado: timeout explicito para Config lazy/Suspense e
     limpeza de timers/mocks/history/IndexedDB no `afterEach`. Suite cheia repetida e verde.
+
+- [x] **Push + deploy beta publico Vercel (2026-06-27)**.
+  - [x] `master` enviado para `origin/master`; CI GitHub verde.
+  - [x] Deploy de producao feito pelo fluxo prebuilt (`vercel build --prod --yes` +
+    `vercel deploy --prebuilt --prod --yes`).
+  - [x] URL estavel `https://rotina-pied.vercel.app` verificada com HTTP 200, titulo
+    `Chess Habit - treino de xadrez` e `X-Robots-Tag: noindex, nofollow`.
+  - [x] Gates finais verdes: `npm run lint`, `npm test` (119 arquivos / 1294 testes),
+    `npm run build`, `npm run typecheck:worker`, `npm run test:worker` (22 testes) e
+    `npm run smoke:pwa` (40/40).

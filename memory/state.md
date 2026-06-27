@@ -1,13 +1,15 @@
 # Estado Atual
 
-Data: 2026-06-26 (P4 M13 parcial + P5 docs/checks beta publico alinhados, sem deploy/push).
+Data: 2026-06-27 (beta publico em producao Vercel; P4 sync segue local-only).
+
+Atualizacao 2026-06-27: commits locais foram enviados para `origin/master`, CI GitHub passou verde e o app foi publicado em producao via Vercel prebuilt. URL estavel verificada: `https://rotina-pied.vercel.app` com HTTP 200, titulo `Chess Habit - treino de xadrez` e `X-Robots-Tag: noindex, nofollow`. Gates locais finais verdes: `npm run lint`, `npm test` (119 arquivos / 1294 testes), `npm run build`, `npm run typecheck:worker`, `npm run test:worker` (22 testes) e `npm run smoke:pwa` (40/40). P4 sync em producao continua fora do deploy: backend Cloudflare/D1 real, OAuth de sync, merge Dexie e fila offline ainda dependem de fase/provisionamento proprios.
 
 Atualizacao 2026-06-26: P4 M12 (backend Cloudflare Workers + D1) implementado **local-only e
 key-agnostic** em `backend/`. M13 parcial implementado em `src/infra/sync/`: crypto E2EE puro
 (PBKDF2-SHA256 600k + AES-GCM 256; salt/iv aleatorios; envelope versionado; chave nao-extraivel) e
 cliente HTTP que trafega apenas blobs opacos para o backend M12. A passphrase e independente e nunca
-derivada da identidade publica do Lichess nem de token OAuth. Sem UI de Config, sem merge Dexie,
-sem OAuth real, sem deploy/provisionamento/secrets. Auth continua local/test (`X-Sync-User`) ate M13
+derivada da identidade publica do Lichess nem de token OAuth. Sem merge Dexie,
+sem OAuth real de sync e sem provisionamento/secrets Cloudflare. Auth continua local/test (`X-Sync-User`) ate M13
 publico implementar validacao OAuth Lichess real. UI/canary local-only existe atras de feature flag OFF,
 com aviso de perda de passphrase e sem persistir passphrase/chave/token. Hardening pos-council aplicado:
 teto anti-DoS de `iterations`, base64 invalido rejeitado, valores JSON nao-serializaveis recusados,

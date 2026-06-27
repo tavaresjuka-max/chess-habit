@@ -1,7 +1,8 @@
 # Checklist Beta-Ready (P5, versão-comunidade) — 2026-06-26
 
-Checklist local de pronto-para-beta público. Auditoria somente leitura + testes de guarda. **Sem
-commit/push/deploy/secrets.** Artefato companheiro do
+Checklist de pronto-para-beta público. Auditoria de invariantes + testes de guarda. Em 2026-06-27,
+o PWA foi publicado em produção Vercel; provisionamento/secrets Cloudflare continuam fora deste checklist.
+Artefato companheiro do
 [relatório de finalização beta local-first (2026-06-19)](relatorio-finalizacao-beta-local-first-2026-06-19.md)
 e do [roadmap beta (2026-06-16)](roadmap-beta-2026-06-16.md); difere destes por ser uma lista de
 invariantes binários (verde/vermelho), não um relatório narrativo.
@@ -68,18 +69,21 @@ exibido ao usuário como marca.
 - `src/ui/App.test.tsx`: afirma que o `LegalFooter` renderiza disclaimer (`não oficial`/`não
   afiliado`) e a nota `AGPL-3.0` no DOM.
 
-## Gates (rodar em 2026-06-26, sem deploy/push)
+## Gates e deploy (2026-06-27)
 
-Resultado preenchido na execução desta auditoria (ver relatório do agente):
+Resultado final após commit, push e deploy:
 
-| Gate | Resultado (2026-06-26) |
+| Gate | Resultado |
 | --- | --- |
-| `npm run lint` | ✅ exit 0 (clean, `--max-warnings=0` no pre-commit) |
-| `npm test` | ✅ 118 arquivos, 1275 testes |
+| GitHub CI `master` | ✅ success |
+| `npm run lint` | ✅ exit 0 |
+| `npm test` | ✅ 119 arquivos, 1294 testes |
 | `npm run build` | ✅ exit 0 (`tsc -b && vite build`); sem source maps |
 | `npm run smoke:pwa` | ✅ 40/40 (desktop + mobile) |
 | `npm run typecheck:worker` | ✅ exit 0 (`tsc -p backend/tsconfig.json`) |
 | `npm run test:worker` | ✅ 1 arquivo, 22 testes |
+| Deploy Vercel produção | ✅ `https://rotina-pied.vercel.app` HTTP 200 |
+| Anti-indexação produção | ✅ `X-Robots-Tag: noindex, nofollow` |
 
 ## Riscos/follow-ups (não bloqueantes para o checklist, mas registrar)
 
@@ -92,5 +96,6 @@ Resultado preenchido na execução desta auditoria (ver relatório do agente):
   entry point público embarcado no PWA; o teste de rejeição cobre os 5 entry points que importam.
 - **`style-src 'unsafe-inline'`** permanece na CSP por dependência do `sonner`; documentado em
   `DECISIONS.md`.
-- **Sync P4 (Cloudflare)**: implementado local-only (sem deploy/provisionamento/secrets); UI de Config
-  e merge Dexie ainda pendentes para uma fase dedicada. Não bloqueia beta local-first.
+- **Sync P4 (Cloudflare)**: implementado local-only; UI de Config existe atrás de feature flag OFF.
+  Provisionamento/secrets Cloudflare, OAuth de sync, merge Dexie, fila offline e E2E dois-dispositivos
+  ainda pendem de fase dedicada. Não bloqueia o beta público estático/local-first.
