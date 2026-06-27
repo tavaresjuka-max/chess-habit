@@ -55,3 +55,7 @@ assets/
 
 # Arquivo de contexto da IA (privado)
 CLAUDE.md
+
+# Estado local do wrangler/miniflare (P4 M12 backend local-only)
+.wrangler/
+backend/.dev.vars

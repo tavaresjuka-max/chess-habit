@@ -1,0 +1,11 @@
+name = "rotina-sync"
+main = "worker.ts"
+compatibility_date = "2026-06-01"
+
+[vars]
+SYNC_AUTH_MODE = "local"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rotina-sync"
+database_id = "REPLACE_AFTER_wrangler_d1_create"

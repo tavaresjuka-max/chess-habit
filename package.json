@@ -12,6 +12,8 @@
     "smoke:pwa": "playwright test",
     "a11y": "playwright test a11y",
     "preview": "vite preview",
+    "test:worker": "vitest run --config backend/vitest.config.ts",
+    "typecheck:worker": "tsc -p backend/tsconfig.json",
     "prepare": "husky"
   },
   "dependencies": {
