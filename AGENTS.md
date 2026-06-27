@@ -27,12 +27,12 @@ O dono, **autoridade final**, DESCONGELOU P4 (sync multi-dispositivo) e P5 (vers
 autorizou implementar TODAS as features ate um beta publico. Decisoes travadas:
 
 - **Sync (P4):** backend **Cloudflare Workers + D1**. Login = **Entrar com Lichess** (identidade via
-  OAuth, sem escopo de jogo). Dados sobem **cifrados ponta-a-ponta** (chave derivada do login, NUNCA
-  enviada ao servidor); tokens OAuth continuam **so no aparelho**. Provisionamento da nuvem fica com o
-  dono — o agente **constroi + testa local** (wrangler/miniflare), nao cria conta nem mexe em secrets
-  de producao.
-- **Comunidade (P5):** rename publico obrigatorio via **constante unica `APP_NAME`** (placeholder
-  `'Rotina'` ate o dono fornecer o nome final), disclaimers de nao-afiliacao, AGPL a mostra, doacao =
+  OAuth, sem escopo de jogo). Dados sobem **cifrados ponta-a-ponta** por **passphrase independente**
+  (NUNCA derivada da identidade publica do Lichess nem de token OAuth); tokens OAuth continuam **so no
+  aparelho**. Provisionamento da nuvem fica com o dono — o agente **constroi + testa local**
+  (wrangler/miniflare), nao cria conta nem mexe em secrets de producao.
+- **Comunidade (P5):** nome publico aprovado via **constante unica `APP_NAME`** = `'Chess Habit'`,
+  com disclaimers de nao-afiliacao, AGPL a mostra, URL publica de codigo-fonte e feedback, doacao =
   link externo.
 - Roadmap detalhado: `docs/review/roadmap-beta-2026-06-16.md`. Execucao autonoma:
   `prompts/codex-overnight-beta-2026-06-16.md`.
@@ -76,14 +76,14 @@ de privacidade/seguranca**.
   (renomeacao obrigatoria antes de qualquer comunicacao externa, por causa da feature oficial
   `lichess.org/tutor`).
 - App nao oficial, nao afiliado ao Lichess (disclaimer obrigatorio na versao-comunidade).
-- Tom: adulto, pratico, PT-BR, sem infantilizar. "Professor Lemos" e tom de voz (microcopy), nao
+- Tom: adulto, pratico, PT-BR, sem infantilizar. "Professor Tavarez" e tom de voz (microcopy), nao
   personagem central, ate haver evidencia (P5).
 
 ## Governanca Dos Agentes
 
 - O dono tem autoridade final sobre escopo, produto e arquitetura.
-- Claude planeja (escreve specs e ordens detalhadas). Codex executa (tarefas pequenas, verificaveis,
-  commits atomicos). DeepSeek/Gemini sao consultores: insumo, nao ordem.
+- Fugu dirige, sintetiza e revisa. **GLM executa tudo** por padrao, em tarefas pequenas, verificaveis
+  e com gates objetivos. DeepSeek e GLM formam o council: insumo critico, nao ordem final.
 - Nenhuma decisao de qualquer IA pode violar as Regras Inquebraveis.
 - Codex implementa exatamente o spec vigente; diante de ambiguidade ou contrato de API divergente,
   PARA e pergunta, nunca adivinha.
@@ -117,6 +117,8 @@ desperdicar tokens em todo sessao). Voce tem agencia: se achar que "nao da", est
   78 lines / 85 funcs / 72 branches, hoje em ~86% stmts / ~80% branches / ~90% funcs.
 - **tsc estrito**: o `vitest` NAO pega tudo (noUncheckedIndexedAccess, mocks tipados).
   Sempre `npm run build` (= `tsc -b && vite build`), nao so vitest, ao revisar testes.
+- **Nomes de teste Vitest**: usar `*.test.ts`/`*.test.tsx`; para integracao, usar
+  `*.integration.test.ts`. Evitar `*.test.integration.ts`, que nao entra no include do `npm test`.
 - **Pre-commit**: lint-staged roda `eslint --fix` + `tsc -b --noEmit` no commit. `--max-warnings=0`.
 - **Smoke PWA** (isolado, fora do `npm test`/CI): `npm run smoke:pwa` (Playwright, webServer 127.0.0.1:4188).
 - **Deploy (OBRIGATORIO via prebuilt)**: `vercel build --prod --yes` seguido de

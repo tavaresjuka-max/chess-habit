@@ -1,4 +1,4 @@
-﻿# Plano Mestre: Rotina (ferramenta pessoal Lichess-first)
+﻿# Plano Mestre: Chess Habit (ferramenta pessoal Lichess-first)
 
 > REVISADO em 2026-06-06: o dono escolheu a moldura **pessoal primeiro, comunidade depois**.
 > Substitui o plano anterior orientado a "validacao de mercado antes de codar" (aquele frame fica
@@ -53,7 +53,7 @@ com desenvolvimento local e E2EE por passphrase antes de qualquer ligacao de nuv
 | **P2** | Concluida: loop de valor, timer/log, feedback, roadmap, sessoes extras e Lichess secundario |
 | **P3** | Concluida: OAuth PKCE opt-in + reconciliacao de puzzles + Study Lichess privado do dia |
 | **P4** | **Descongelada em 2026-06-16:** sync local-only com Workers + D1, E2EE por passphrase, sem tokens no servidor |
-| **P5** | **Descongelada em 2026-06-16:** `APP_NAME='Rotina'` ate nome final, disclaimer, AGPL visivel, docs de privacidade |
+| **P5** | **Descongelada em 2026-06-16:** `APP_NAME='Chess Habit'`, disclaimer, AGPL visivel, docs de privacidade |
 
 ## Curriculo pessoal (0-1200 hoje; spine ate 2200 no Corte 2)
 

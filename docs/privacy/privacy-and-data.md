@@ -45,17 +45,23 @@ O MVP deve incluir:
 
 Doacao e feita por link externo. O app nao precisa saber quem pagou. Se houver reconhecimento futuro de apoiador, deve ser moral e opcional.
 
-## Estado P3
+## Estado atual (beta publico)
 
 - Backup JSON exporta perfil, planos, logs, sinais, fraquezas e links/id de Study Lichess; nao exporta token OAuth.
 - PGNs completos continuam proibidos. O PGN do Study e montado apenas para a chamada de importacao e nao e salvo.
-- P4/P5 estao congeladas; nao ha backend, sync, conta propria, sessao HTTP-only nem publicacao comunitaria.
+- P4 (sync) e P5 (versao-comunidade) foram descongeladas pelo dono em 2026-06-16. O sync usa backend
+  Cloudflare Workers + D1 com blobs cifrados ponta-a-ponta por passphrase do dono; tokens OAuth continuam
+  so no aparelho e fora do backup. O agente so constroi/testa o backend localmente (wrangler/miniflare);
+  producao, secrets e provisionamento ficam com o dono.
+- Versao-comunidade (P5): nome publico `Chess Habit` (`APP_NAME` em `src/config/appIdentity.ts`),
+  disclaimer de nao-afiliacao, AGPL-3.0 visivel, URL publica de codigo-fonte e feedback no rodape.
 
 ## Riscos A Revisar
 
-- Armazenamento de token local: aceito no marco pessoal com escopos minimos; reavaliar antes de P5.
+- Armazenamento de token local: aceito com escopos minimos; token continua fora de backup, logs e bundle.
 - OAuth callback: manter revisao quando o fluxo mudar; token continua fora de backup, logs e bundle.
-- Sessao HTTP-only: fora do escopo do marco atual (P4/P5; nao ha backend).
-- Retencao de dados apos exclusao: fora do escopo do marco atual enquanto nao ha conta/backend.
+- Sync P4 (E2EE): blobs sobem cifrados; a passphrase do dono nunca sai do aparelho; tokens OAuth nao sao enviados ao servidor.
+- Sessao HTTP-only: o sync P4 nao cria sessao propria do app; login e "Entrar com Lichess" so como identidade.
+- Retencao de dados no servidor: pendente de politica de retencao/conta em producao, a definir pelo dono.
 - Logs de erro contendo dados pessoais: risco vigente; manter mensagens sem token, PGN completo ou PII.
 - Importacao excessiva de partidas: risco vigente; Chess.com continua read-only, serial e sem persistir PGN completo.
