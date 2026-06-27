@@ -21,9 +21,13 @@ beforeEach(async () => {
   await markOnboardingCompleted();
 });
 
-afterEach(() => {
+afterEach(async () => {
+  vi.useRealTimers();
   cleanup();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  window.history.replaceState(null, '', '/');
+  await clearAll();
 });
 
 describe('preserve progress across regeneration', () => {
@@ -41,7 +45,7 @@ describe('preserve progress across regeneration', () => {
 
     // Salvar a config regenera o plano (mesmos minutos => mesmos ids de bloco).
     fireEvent.click(screen.getByRole('button', { name: 'Config' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Salvar' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Salvar' }, { timeout: 5000 }));
 
     // saveProfile volta para a tela Hoje; o bloco deve continuar "Feito".
     await waitFor(
@@ -66,7 +70,7 @@ async function completeFirstBlockWithFeedback(feedbackButtonName: string): Promi
 
   fireEvent.click(button);
 
-  const ratingGroup = await screen.findByRole('group', { name: 'Como foi o treino?' });
+  const ratingGroup = await screen.findByRole('group', { name: 'Como foi o treino?' }, { timeout: 5000 });
 
   fireEvent.click(within(ratingGroup).getByRole('button', { name: feedbackButtonName }));
 }

@@ -57,3 +57,17 @@ test('a11y: passo "Suas contas" do onboarding sem violações sérias', async ({
   await expect(page.getByRole('heading', { name: 'Suas contas' })).toBeVisible();
   await expectNoSeriousViolations(page, 'Onboarding · Suas contas');
 });
+
+test('a11y: pontos do carrossel têm alvo de pelo menos 44px no Hoje', async ({ page }) => {
+  await prepareBrowser(page);
+  await openApp(page);
+  await completeQuickStartForAudit(page);
+
+  const dots = page.locator('.block-carousel-dot');
+  await expect(dots.first()).toBeVisible({ timeout: 30_000 });
+  expect(await dots.count()).toBeGreaterThan(0);
+
+  const box = await dots.first().boundingBox();
+  expect(box?.height).toBeGreaterThanOrEqual(44);
+  expect(box?.width).toBeGreaterThanOrEqual(44);
+});

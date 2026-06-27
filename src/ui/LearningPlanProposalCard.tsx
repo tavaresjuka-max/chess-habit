@@ -90,7 +90,7 @@ export function LearningPlanProposalCard({
       </div>
 
       <div className="learning-plan-numbers">
-        <ul className="day-stats" aria-label="Estimativa da fase">
+        <ul className="day-stats" role="list" aria-label="Estimativa da fase">
           <li>
             <strong>≈{proposal.estimateHours}</strong>
             <span>horas</span>
@@ -218,7 +218,7 @@ export function LearningPlanProposalCard({
 
       <Fold concept="plano" title="Como o plano foi montado" meta={shortEvidence(proposal.evidenceLevel)}>
         <p>{proposal.methodSummary}</p>
-        <ol className="learning-plan-steps">
+        <ol className="learning-plan-steps" role="list">
           {proposal.methodSteps.map((step) => (
             <li key={step}>{step}</li>
           ))}
@@ -230,7 +230,7 @@ export function LearningPlanProposalCard({
         title="Como vamos medir progresso"
         meta={`${String(proposal.progressCriteria.length)} critérios`}
       >
-        <ul className="learning-plan-criteria">
+        <ul className="learning-plan-criteria" role="list">
           {proposal.progressCriteria.map((criterion) => (
             <li key={criterion}>{criterion}</li>
           ))}

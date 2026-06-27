@@ -36,7 +36,7 @@ export function CurriculumCard({ band, weeklyFocusTag, hideHeading = false }: Cu
             {status === 'current' ? <span className="curriculum-here">você está aqui</span> : null}
           </summary>
           {phase.weeks.length > 0 ? (
-            <ol className="curriculum-weeks">
+            <ol className="curriculum-weeks" role="list">
               {phase.weeks.map((week) => {
                 const isNow = week.number === currentWeekNumber;
 

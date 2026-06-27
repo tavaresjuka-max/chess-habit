@@ -109,7 +109,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
         {...(skillMap.length > 0 ? { meta: `${String(skillMap.length)} temas` } : {})}
       >
         {skillMap.length > 0 ? (
-          <ul className="skill-map" aria-label="Taxa de acerto por tema de puzzle">
+          <ul className="skill-map" role="list" aria-label="Taxa de acerto por tema de puzzle">
             {skillMap.map((entry) => (
               <li key={entry.theme}>
                 <div className="skill-map-row">
@@ -139,7 +139,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
         {...(trackEffort.length > 0 ? { meta: `${String(trackEffort.length)} trilhas` } : {})}
       >
         {trackEffort.length > 0 ? (
-          <ul className="track-effort" aria-label="Exercícios por trilha do método">
+          <ul className="track-effort" role="list" aria-label="Exercícios por trilha do método">
             {trackEffort.map((entry) => (
               <li key={entry.trackId}>
                 <span className="skill-map-theme">{entry.title}</span>
@@ -155,7 +155,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
       </Fold>
 
       <Fold concept="plano" title="Diplomas" meta={`${String(diplomasAchieved)}/${String(DIPLOMAS.length)}`}>
-        <ul className="diploma-progress" aria-label="Progresso nos diplomas do método">
+        <ul className="diploma-progress" role="list" aria-label="Progresso nos diplomas do método">
           {DIPLOMAS.map((diploma) => {
             const progress = getDiplomaProgress(diplomaAttempts, diploma.id);
             const achieved = progress?.overallPassed === true;
@@ -193,7 +193,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
 
       {achievements.length > 0 ? (
         <Fold concept="conquistas" title="Conquistas" meta={String(achievements.length)}>
-          <ul className="achievement-list" aria-label="Conquistas de esforço e hábito">
+          <ul className="achievement-list" role="list" aria-label="Conquistas de esforço e hábito">
             {achievements.map((achievement) => {
               const definition = getAchievementDefinition(achievement.id);
 
@@ -244,7 +244,7 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
 
       {weaknesses.length > 0 ? (
         <Fold concept="trava" title="Onde ainda trava" meta={String(Math.min(weaknesses.length, 5))}>
-          <ul className="track-effort" aria-label="Hipóteses de fraqueza atuais">
+          <ul className="track-effort" role="list" aria-label="Hipóteses de fraqueza atuais">
             {weaknesses
               .slice()
               .sort((left, right) => right.score - left.score)

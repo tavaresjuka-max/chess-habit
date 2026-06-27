@@ -8,6 +8,7 @@ import {
   APP_NAME,
   FEEDBACK_URL,
   PRIVACY_SUMMARY,
+  SOURCE_CODE_URL,
 } from './appIdentity';
 
 describe('app identity', () => {
@@ -16,14 +17,24 @@ describe('app identity', () => {
     expect(APP_MANIFEST_NAME).toBe(APP_NAME);
   });
 
-  it('blocks the rejected public name in public entry points', () => {
+  it('blocks the rejected public names in public entry points', () => {
     const publicFiles = ['README.md', 'index.html', 'vite.config.ts', 'src/ui/App.tsx', 'src/infra/lichess/study.ts'];
+    const rejectedPublicNames = [/\bLichess Tutor\b/, /\bRotina\b/];
 
     for (const file of publicFiles) {
       const content = readFileSync(join(process.cwd(), file), 'utf8');
 
-      expect(content, file).not.toMatch(/\bLichess Tutor\b/);
+      for (const pattern of rejectedPublicNames) {
+        expect(content, `${file} contém nome público rejeitado: ${String(pattern)}`).not.toMatch(pattern);
+      }
     }
+  });
+
+  it('expõe URL pública de código-fonte e feedback para o beta público', () => {
+    expect(typeof SOURCE_CODE_URL).toBe('string');
+    expect(SOURCE_CODE_URL).toMatch(/^https:\/\//);
+    expect(typeof FEEDBACK_URL).toBe('string');
+    expect(FEEDBACK_URL).toMatch(/^https:\/\//);
   });
 });
 

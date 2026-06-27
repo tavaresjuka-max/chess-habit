@@ -112,7 +112,7 @@ export async function fetchChesscomGameRatings(
 }
 
 // Utilitario de recencia (opt-in). Decisao do dono 2026-06-13: o diagnostico
-// le TODO o historico de arquivos mensais (ver AGENTS.md). O cache mensal evita
+// le o historico de arquivos mensais (ver AGENTS.md). O cache mensal evita
 // refetch. Esta funcao fica disponivel caso se queira re-limitar no futuro.
 const recencyBoundMonths = 3;
 

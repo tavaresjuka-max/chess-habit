@@ -24,6 +24,14 @@ describe('LegalFooter privacidade', () => {
     expect(screen.getByText(PRIVACY_SUMMARY[0])).toBeInTheDocument();
   });
 
+  it('renderiza o disclaimer de não-afiliação e a nota AGPL', async () => {
+    const { LegalFooter } = await import('./App');
+    render(<LegalFooter />);
+    expect(screen.getByText(/não oficial/i)).toBeInTheDocument();
+    expect(screen.getByText(/não afiliado/i)).toBeInTheDocument();
+    expect(screen.getByText(/AGPL-3\.0/i)).toBeInTheDocument();
+  });
+
   it('exibe link do código-fonte quando SOURCE_CODE_URL está definido', async () => {
     const { LegalFooter } = await import('./App');
     render(<LegalFooter />);
@@ -636,5 +644,31 @@ describe('App — onboardingStep mapping', () => {
     const { App } = await import('./App');
     render(<App />);
     expect(screen.queryByRole('navigation', { name: /navegação principal/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('App — foco ao trocar de aba', () => {
+  it('move o foco para o conteúdo principal ao voltar para Hoje', async () => {
+    let activeView: 'today' | 'progress' = 'today';
+    vi.doMock('../app/state', async (importOriginal) => {
+      const original = await importOriginal<typeof import('../app/state')>();
+      return {
+        ...original,
+        useAppState: vi.fn(() => makeReadyAppState({ activeView })),
+        createDefaultProfile: original.createDefaultProfile,
+      };
+    });
+    const { App } = await import('./App');
+    const { rerender } = render(<App />);
+    const mainContent = document.getElementById('main-content');
+    expect(mainContent).not.toBeNull();
+
+    activeView = 'progress';
+    rerender(<App />);
+
+    activeView = 'today';
+    rerender(<App />);
+
+    expect(mainContent).toHaveFocus();
   });
 });

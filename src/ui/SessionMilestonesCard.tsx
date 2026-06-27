@@ -39,7 +39,7 @@ export function SessionMilestonesCard({
       <MilestoneStats stats={summary.stats} />
       <SkillSignals signals={summary.skillSignals} nextSignalToMeasure={summary.nextSignalToMeasure} />
 
-      <ol className="session-milestone-track" aria-label="Marcos da fase">
+      <ol className="session-milestone-track" role="list" aria-label="Marcos da fase">
         {summary.milestones.map((milestone) => (
           <li className={`session-milestone-step milestone-${milestone.status}`} key={milestone.id}>
             <span>{milestone.label}</span>
@@ -154,7 +154,7 @@ function MilestoneStats({ stats }: { stats: SessionMilestoneStats }) {
   ];
 
   return (
-    <ul className="session-milestone-stats" aria-label="Estatísticas da fase">
+    <ul className="session-milestone-stats" role="list" aria-label="Estatísticas da fase">
       {items.map((item) => (
         <li key={item.id}>
           <strong>{item.value}</strong>

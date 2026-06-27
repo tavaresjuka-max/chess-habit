@@ -257,8 +257,8 @@ li {
    concluído). Seletor com .block-carousel-dots para vencer a moldura global de
    botão (que, por especificidade, transformava os pontos em quadros vazios). */
 .block-carousel-dots .block-carousel-dot {
-  min-width: 30px;
-  min-height: 30px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0 4px;
   border: 1px solid var(--line-soft);
   border-radius: 50%;
@@ -293,16 +293,6 @@ li {
   background: var(--green-900);
   color: #fff;
   border-color: var(--green-900);
-}
-
-/* Em telas de toque, os pontos do carrossel sobem para 44px (WCAG 2.5.5): o
-   seletor com .block-carousel-dots vence a regra base de botão, então precisa
-   repetir aqui. No desktop (pointer fino) o pip compacto de 30px é suficiente. */
-@media (pointer: coarse) {
-  .block-carousel-dots .block-carousel-dot {
-    min-width: 44px;
-    min-height: 44px;
-  }
 }
 
 /* Títulos com a serif do gabinete; rótulos funcionais seguem em Inter. */
@@ -654,6 +644,7 @@ button[aria-disabled='true'] {
   padding: 4px 6px;
   box-shadow: none;
   max-width: max-content;
+  position: relative;
 }
 
 .link-button:hover {
@@ -661,6 +652,16 @@ button[aria-disabled='true'] {
   color: var(--accent-text);
   transform: none;
   box-shadow: none;
+}
+
+.link-button::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 .config-back {
@@ -2784,6 +2785,10 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 
 .block-line.coach-note > svg {
   color: var(--green-300);
+}
+
+.block-line.guiding-question > svg {
+  color: var(--slate-500);
 }
 
 .block-line.stop-rule > svg {

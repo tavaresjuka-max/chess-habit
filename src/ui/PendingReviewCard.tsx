@@ -46,7 +46,7 @@ export function PendingReviewCard({ pendingItems, onOpenItem, onDeferItem }: Pen
         </div>
       </div>
 
-      <ul className="pending-review-list">
+      <ul className="pending-review-list" role="list">
         {dueItems.map((item) => (
           <li key={item.id}>
             <div>

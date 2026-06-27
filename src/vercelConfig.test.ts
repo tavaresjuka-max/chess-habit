@@ -34,4 +34,18 @@ describe('vercel security headers', () => {
     // da heranca de default-src.
     expect(headerMap.get('Content-Security-Policy')).toContain("object-src 'none'");
   });
+
+  it('allow-lists in connect-src every host the app actually fetches', () => {
+    const config: VercelConfig = vercelConfig;
+    const routeHeaders = config.headers?.find((entry) => entry.source === '/(.*)')?.headers ?? [];
+    const headerMap = new Map(routeHeaders.map((header) => [header.key, header.value]));
+    const csp = headerMap.get('Content-Security-Policy');
+    expect(csp).toBeDefined();
+    const connectSrc = (csp ?? '').split(';').find((d) => d.trim().startsWith('connect-src')) ?? '';
+    expect(connectSrc).toContain("'self'");
+    expect(connectSrc).toContain('https://lichess.org');
+    expect(connectSrc).toContain('https://api.chess.com');
+    expect(connectSrc).not.toContain('*');
+    expect(connectSrc).not.toContain('http:');
+  });
 });
