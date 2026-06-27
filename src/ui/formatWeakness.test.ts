@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { weaknessTitleByTag } from '../domain/weakness/weaknessTitles';
 import type { Weakness } from '../domain';
 import { formatWeaknessTag } from './formatWeakness';
 
@@ -32,8 +33,15 @@ describe('formatWeaknessTag', () => {
       const label = formatWeaknessTag(tag);
 
       expect(label.length).toBeGreaterThan(0);
-      // O rótulo é texto humano, nunca o slug técnico cru (ex.: "hanging-piece").
       expect(label).not.toBe(tag);
     }
+  });
+
+  it('delega ao weaknessTitleByTag do domínio para tags sem rótulo curto de UI', () => {
+    expect(formatWeaknessTag('fork')).toBe(weaknessTitleByTag.fork);
+    expect(formatWeaknessTag('hanging-piece')).toBe(weaknessTitleByTag['hanging-piece']);
+    expect(formatWeaknessTag('back-rank')).toBe(weaknessTitleByTag['back-rank']);
+    expect(formatWeaknessTag('pin')).toBe(weaknessTitleByTag.pin);
+    expect(formatWeaknessTag('conversion')).toBe(weaknessTitleByTag.conversion);
   });
 });

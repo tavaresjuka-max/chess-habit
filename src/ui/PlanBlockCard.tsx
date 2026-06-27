@@ -1,4 +1,4 @@
-import { Check, ExternalLink, Feather, Flag, Lightbulb, Loader2, Target } from 'lucide-react';
+import { Check, ExternalLink, Feather, Flag, HelpCircle, Lightbulb, Loader2, Target } from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { isAllowedExternalUrl, openExternalUrl } from '../app/externalOpen';
 import { TacticDiagram } from './art/TacticDiagram';
@@ -190,6 +190,12 @@ export function PlanBlockCard({
         <Feather aria-hidden="true" size={15} />
         {block.coachNote}
       </p>
+      {block.guidingQuestion !== undefined ? (
+        <p className="block-line guiding-question">
+          <HelpCircle aria-hidden="true" size={15} />
+          {block.guidingQuestion}
+        </p>
+      ) : null}
       <p className="block-line stop-rule">
         <Flag aria-hidden="true" size={15} />
         {block.stopRule}

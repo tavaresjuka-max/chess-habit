@@ -1,5 +1,6 @@
 import type { Diagnosis, PuzzleThemeStat, PuzzleThemeStats, Weakness, WeaknessTag } from '../types';
 import { confidenceRank } from '../confidence';
+import { puzzleThemeLabelByTheme } from './puzzleThemeLabels';
 import { weaknessTagFromPuzzleTheme } from './puzzleThemeStats';
 
 type PuzzleThemeCandidate = {
@@ -159,26 +160,3 @@ function diagnosePuzzleTheme(puzzleThemeStats: PuzzleThemeStats | undefined): Di
     procedure: cause.procedure,
   };
 }
-
-const puzzleThemeLabelByTheme: Partial<Record<string, string>> = {
-  backRankMate: 'mate na última fileira',
-  discoveredAttack: 'ataque descoberto',
-  discoveredCheck: 'xeque descoberto',
-  fork: 'garfos',
-  hangingPiece: 'peças penduradas',
-  mate: 'mates',
-  mateIn1: 'mate em 1',
-  mateIn2: 'mate em 2',
-  pin: 'cravadas',
-  skewer: 'espetos',
-  advantage: 'vantagem',
-  crushing: 'conversão de vantagem',
-  defensiveMove: 'defesa precisa',
-  capturingDefender: 'capturar defensor',
-  deflection: 'desvio',
-  pawnEndgame: 'finais de peões',
-  advancedPawn: 'peão avançado',
-  promotion: 'promoção',
-  underPromotion: 'subpromoção',
-  rookEndgame: 'finais de torre',
-};

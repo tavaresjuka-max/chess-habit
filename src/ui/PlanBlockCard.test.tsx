@@ -111,6 +111,20 @@ describe('PlanBlockCard', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
+  it('mostra a pergunta-guia quando o bloco tem guidingQuestion', () => {
+    renderPlanBlockCard(
+      makeBlock({ id: 'guiding-block', guidingQuestion: 'Quais são meus 2 candidatos?' }),
+    );
+
+    expect(screen.getByText('Quais são meus 2 candidatos?')).toBeInTheDocument();
+  });
+
+  it('não mostra a pergunta-guia quando o bloco não tem guidingQuestion', () => {
+    const { container } = renderPlanBlockCard(makeBlock({ id: 'no-guiding' }));
+
+    expect(container.querySelector('.guiding-question')).not.toBeInTheDocument();
+  });
+
   // Fase 1 (1a, 2026-06-24): seletor de taxonomia de erro aparece SÓ no fluxo
   // de feedback 'hard'. Não aparece em easy/good. Não bloqueia (há "Registrar assim").
   describe('seletor de errorType (Fase 1)', () => {

@@ -3,6 +3,7 @@ import type { PendingTrainingItem } from '../method/types';
 import type { LearnerProfile, PlanBlock, PlanBlockFeedback, PlanResourceStage, SessionMinutes, TrainingLog } from '../types';
 import { advanceThemeStage, extractThemeStages, generatePlan, getReviewRatioForPendingCount } from './generatePlan';
 import { getTimeBudget } from './timeBudget';
+import { weaknessTitleByTag } from '../weakness/weaknessTitles';
 
 describe('advanceThemeStage', () => {
   it('sem estágio anterior fica em guided (não dá para avançar do que não se sabe)', () => {
@@ -130,6 +131,23 @@ describe('generatePlan', () => {
       'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
     );
     expect(plan.blocks[0]?.methodTrackId).toBe('calculation-bridge');
+  });
+
+  it('golden: tema do dia e foco semanal usam o título acentuado canônico de weaknessTitleByTag (nunca o slug cru)', () => {
+    const plan = generatePlan(
+      baseProfile,
+      [{ tag: 'hanging-piece', score: 0.8, confidence: 'high', evidence: 'sinal real de partida' }],
+      15,
+      '2026-06-06',
+    );
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(weaknessTitleByTag['hanging-piece']).toBe('peças penduradas');
+    expect(tema?.title).toBe(`Tema do dia: ${weaknessTitleByTag['hanging-piece']}`);
+    expect(tema?.title).toBe('Tema do dia: peças penduradas');
+    expect(tema?.title).not.toBe('Tema do dia: hanging-piece');
+    expect(plan.weeklyFocus?.title).toBe(weaknessTitleByTag['hanging-piece']);
+    expect(plan.weeklyFocus?.title).toBe('peças penduradas');
   });
 
   it('treina a fraqueza secundária no bloco de transferência (decisão 1)', () => {
@@ -900,6 +918,116 @@ describe('generatePlan', () => {
     const plan = generatePlan(baseProfile, [], 15, '2026-06-10');
 
     expect(plan.blocks[0]?.guidingQuestion).toBe('Quais são meus 2 candidatos?');
+  });
+
+
+  describe('getGuidingQuestion por tema (PED-2)', () => {
+    const themeQuestions: Partial<Record<import('../types').WeaknessTag, string>> = {
+      pin: 'Qual peça está cravada e qual valor fica atrás dela?',
+      skewer: 'Qual peça valiosa está na frente e o que fica exposto quando ela foge?',
+      'back-rank': 'O rei está preso na última fileira? Qual peça dá o xeque decisivo?',
+      'mate-in-1': 'Qual o lance que dá xeque-mate agora?',
+      'endgame-pawn': 'Qual peão avança e o rei adversário chega a tempo de pará-lo?',
+      'endgame-rook': 'Como ativar seu rei e qual peão adversário vai cair?',
+      'time-trouble': 'Antes de tocar: qual peça está pendurada e qual é a ameaça?',
+    };
+
+    function temaBlockForTheme(tag: import('../types').WeaknessTag): PlanBlock {
+      const plan = generatePlan(
+        baseProfile,
+        [{ tag, score: 0.8, confidence: 'high', evidence: `Erros em ${tag}.` }],
+        15,
+        '2026-06-06',
+      );
+      const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+      if (tema === undefined) {
+        throw new Error(`Esperava um bloco tema para a fraqueza ${tag}.`);
+      }
+
+      return tema;
+    }
+
+    it.each(Object.entries(themeQuestions))(
+      'tema de %s usa a pergunta-guia do tema (não a genérica de cálculo)',
+      (tag, expected) => {
+        const tema = temaBlockForTheme(tag as import('../types').WeaknessTag);
+
+        expect(tema.weaknessTag).toBe(tag);
+        expect(tema.guidingQuestion).toBe(expected);
+        expect(tema.guidingQuestion).not.toContain('2 candidatos');
+      },
+    );
+
+    it('fork (cálculo) mantém a pergunta-guia genérica da trilha — sem regressão', () => {
+      const tema = temaBlockForTheme('fork');
+
+      expect(tema.guidingQuestion).toBe('Quais são meus 2 candidatos?');
+    });
+
+    it('errorCoach vence a pergunta-guia do tema (prioridade: erro > tema > trilha)', () => {
+      const logs: TrainingLog[] = [
+        {
+          id: '2026-06-22:tema-block',
+          date: '2026-06-22',
+          blockId: '2026-06-22-02-tema',
+          blockTitle: 'Tema do dia',
+          source: 'lichess',
+          destinationLabel: 'Lichess Puzzles',
+          logKind: 'standard',
+          plannedSeconds: 600,
+          startedAt: '2026-06-22T10:00:00.000Z',
+          completedAt: '2026-06-22T10:10:00.000Z',
+          elapsedSeconds: 600,
+          timeLimitReached: false,
+          status: 'done',
+          feedback: 'hard',
+          errorType: 'errei-conta',
+          updatedAt: '2026-06-22T10:10:00.000Z',
+        },
+        {
+          id: '2026-06-23:tema-block',
+          date: '2026-06-23',
+          blockId: '2026-06-23-02-tema',
+          blockTitle: 'Tema do dia',
+          source: 'lichess',
+          destinationLabel: 'Lichess Puzzles',
+          logKind: 'standard',
+          plannedSeconds: 600,
+          startedAt: '2026-06-23T10:00:00.000Z',
+          completedAt: '2026-06-23T10:10:00.000Z',
+          elapsedSeconds: 600,
+          timeLimitReached: false,
+          status: 'done',
+          feedback: 'hard',
+          errorType: 'errei-conta',
+          updatedAt: '2026-06-23T10:10:00.000Z',
+        },
+      ];
+      const plan = generatePlan(
+        baseProfile,
+        [{ tag: 'pin', score: 0.8, confidence: 'high', evidence: 'Erros em cravadas.' }],
+        15,
+        '2026-06-25',
+        { recentTrainingLogs: logs },
+      );
+      const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+      expect(tema?.guidingQuestion).toContain('melhor resposta do adversário');
+      expect(tema?.guidingQuestion).not.toContain('cravada');
+    });
+
+    it('nenhuma pergunta-guia de tema usa frases proibidas (BANNED_PHRASES)', async () => {
+      const { BANNED_PHRASES } = await import('../coach/sessionMessage');
+
+      for (const [tag] of Object.entries(themeQuestions)) {
+        const tema = temaBlockForTheme(tag as import('../types').WeaknessTag);
+
+        for (const banned of BANNED_PHRASES) {
+          expect((tema.guidingQuestion ?? '').toLowerCase()).not.toContain(banned);
+        }
+      }
+    });
   });
 
   it('is deterministic for the same inputs', () => {

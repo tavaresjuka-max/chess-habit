@@ -362,7 +362,8 @@ function createPlanBlock(input: {
       themeErrorCoach !== undefined ? `${baseCoachNote} ${themeErrorCoach.coachNote}` : baseCoachNote,
     status: 'pending',
     methodTrackId: input.activeTrack,
-    guidingQuestion: themeErrorCoach?.guidingQuestion ?? getGuidingQuestion(input.activeTrack),
+    guidingQuestion:
+      themeErrorCoach?.guidingQuestion ?? getGuidingQuestion(input.activeTrack, copy.weaknessTag),
     ...(isDiscrimination ? { isDiscrimination: true } : {}),
     updatedAt: input.updatedAt,
   };
@@ -465,7 +466,23 @@ function applyAdaptiveReviewRatio(
   });
 }
 
-function getGuidingQuestion(trackId: MethodTrackId): string {
+const THEME_GUIDING_QUESTIONS: Partial<Record<WeaknessTag, string>> = {
+  pin: 'Qual peça está cravada e qual valor fica atrás dela?',
+  skewer: 'Qual peça valiosa está na frente e o que fica exposto quando ela foge?',
+  'back-rank': 'O rei está preso na última fileira? Qual peça dá o xeque decisivo?',
+  'mate-in-1': 'Qual o lance que dá xeque-mate agora?',
+  'endgame-pawn': 'Qual peão avança e o rei adversário chega a tempo de pará-lo?',
+  'endgame-rook': 'Como ativar seu rei e qual peão adversário vai cair?',
+  'time-trouble': 'Antes de tocar: qual peça está pendurada e qual é a ameaça?',
+};
+
+function getGuidingQuestion(trackId: MethodTrackId, themeTag?: WeaknessTag): string {
+  const themeQuestion = themeTag === undefined ? undefined : THEME_GUIDING_QUESTIONS[themeTag];
+
+  if (themeQuestion !== undefined) {
+    return themeQuestion;
+  }
+
   const questions: Record<MethodTrackId, string> = {
     'pending-review': 'Qual sinal do tabuleiro você ignorou?',
     'calculation-bridge': 'Quais são meus 2 candidatos?',
