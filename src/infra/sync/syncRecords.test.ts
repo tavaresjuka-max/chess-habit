@@ -182,6 +182,119 @@ describe('mergeSyncRecords', () => {
   });
 });
 
+describe('mergeSyncRecords — appMeta special-merge', () => {
+  const T1 = '2026-01-01T00:00:00.000Z'; // mais antigo
+  const T2 = '2026-06-01T00:00:00.000Z';
+  const T3 = '2026-06-27T00:00:00.000Z'; // mais recente
+
+  function makeAppMetaMutation(
+    fields: Record<string, unknown>,
+    updatedAt: string = T2,
+  ): SyncRecordMutation {
+    return {
+      v: 1,
+      collection: 'appMeta',
+      entityId: 'app',
+      updatedAt,
+      record: { id: 'app', updatedAt, ...fields },
+    };
+  }
+
+  it('adoptedAt: preserva o mais antigo entre local e remoto', () => {
+    const local = [{ id: 'app', updatedAt: T1, adoptedAt: T1 }];
+    const remote = [makeAppMetaMutation({ adoptedAt: T2 }, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records).toHaveLength(1);
+    expect(merged.records[0]?.adoptedAt).toBe(T1);
+  });
+
+  it('adoptedAt: remoto com updatedAt maior mas SEM adoptedAt não apaga adoptedAt local', () => {
+    // Este é o teste-chave: prova que o carimbo write-once não é perdido
+    const local = [{ id: 'app', updatedAt: T1, adoptedAt: T1 }];
+    const remote = [makeAppMetaMutation({}, T3)]; // updatedAt mais recente, sem adoptedAt
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.adoptedAt).toBe(T1);
+    expect(merged.records[0]?.updatedAt).toBe(T3); // updatedAt é o max
+  });
+
+  it('adoptedAt: quando só o remoto tem, usa o do remoto', () => {
+    const local = [{ id: 'app', updatedAt: T1 }]; // sem adoptedAt
+    const remote = [makeAppMetaMutation({ adoptedAt: T2 }, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.adoptedAt).toBe(T2);
+  });
+
+  it('onboardingCompletedAt: mais antigo não-nulo vence', () => {
+    const local = [{ id: 'app', updatedAt: T3, onboardingCompletedAt: T1 }];
+    const remote = [makeAppMetaMutation({ onboardingCompletedAt: T2 }, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.onboardingCompletedAt).toBe(T1);
+  });
+
+  it('onboardingCompletedAt: se local não tem mas remoto tem, usa remoto', () => {
+    const local = [{ id: 'app', updatedAt: T1 }];
+    const remote = [makeAppMetaMutation({ onboardingCompletedAt: T2 }, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.onboardingCompletedAt).toBe(T2);
+  });
+
+  it('errorCaptureEnabled: vem do registro com updatedAt mais recente (remoto mais novo)', () => {
+    const local = [{ id: 'app', updatedAt: T1, errorCaptureEnabled: true }];
+    const remote = [makeAppMetaMutation({ errorCaptureEnabled: false }, T3)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.errorCaptureEnabled).toBe(false);
+  });
+
+  it('errorCaptureEnabled: vem do registro com updatedAt mais recente (local mais novo)', () => {
+    const local = [{ id: 'app', updatedAt: T3, errorCaptureEnabled: true }];
+    const remote = [makeAppMetaMutation({ errorCaptureEnabled: false }, T1)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.errorCaptureEnabled).toBe(true);
+  });
+
+  it('updatedAt: sempre o max entre local e remoto', () => {
+    const local = [{ id: 'app', updatedAt: T3 }];
+    const remote = [makeAppMetaMutation({}, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.updatedAt).toBe(T3);
+  });
+
+  it('idempotência: merge(local, remote) aplicado duas vezes produz o mesmo resultado', () => {
+    const local = [{ id: 'app', updatedAt: T1, adoptedAt: T1, errorCaptureEnabled: true }];
+    const remote = [makeAppMetaMutation({ adoptedAt: T2, errorCaptureEnabled: false }, T3)];
+
+    const first = mergeSyncRecords('appMeta', local, remote);
+    // Aplica o resultado como novo "local" e o mesmo remoto novamente
+    const second = mergeSyncRecords('appMeta', first.records, remote);
+
+    expect(second.records[0]).toEqual(first.records[0]);
+  });
+
+  it('appMeta sem current local: usa mutation.record diretamente', () => {
+    const remote = [makeAppMetaMutation({ adoptedAt: T1, errorCaptureEnabled: true }, T2)];
+
+    const merged = mergeSyncRecords('appMeta', [], remote);
+
+    expect(merged.records[0]).toMatchObject({ id: 'app', adoptedAt: T1, errorCaptureEnabled: true });
+  });
+});
+
 describe('round-trip E2EE por mutation', () => {
   it('push cifra cada entidade como blob independente e pull decifra para mutations', async () => {
     const client = makeClient();

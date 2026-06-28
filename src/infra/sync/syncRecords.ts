@@ -157,6 +157,59 @@ export async function pullRecordMutations(
   };
 }
 
+/**
+ * Field-merge para appMeta: cada campo tem semântica própria (write-once, toggle, etc.).
+ * appMeta é a exceção segura ao LWW de registro inteiro — ver docs/architecture/SYNC-HARDENING.md
+ * para entender por que SM-2/plans NÃO recebem o mesmo tratamento (campos interdependentes).
+ *
+ * Regras por campo:
+ *   - adoptedAt: min (mais antigo não-nulo) — write-once, nunca apaga se algum lado tem.
+ *   - onboardingCompletedAt: min não-nulo — mesma lógica de write-once.
+ *   - errorCaptureEnabled: do registro com updatedAt mais recente (preferência = quem decidiu por último).
+ *   - updatedAt: max.
+ *   - id: sempre 'app'.
+ */
+export function mergeAppMetaRecords(local: SyncRecord, remote: SyncRecord): SyncRecord {
+  const localUpdatedAt = readOptionalString(local, 'updatedAt') ?? '';
+  const remoteUpdatedAt = readOptionalString(remote, 'updatedAt') ?? '';
+  const localMs = localUpdatedAt ? toEpochMs(localUpdatedAt) : 0;
+  const remoteMs = remoteUpdatedAt ? toEpochMs(remoteUpdatedAt) : 0;
+  const updatedAt = localMs >= remoteMs ? localUpdatedAt : remoteUpdatedAt;
+
+  // adoptedAt — write-once: preserva o mais antigo não-nulo de qualquer lado
+  const localAdoptedAt = readOptionalString(local, 'adoptedAt');
+  const remoteAdoptedAt = readOptionalString(remote, 'adoptedAt');
+  let adoptedAt: string | undefined;
+  if (localAdoptedAt !== undefined && remoteAdoptedAt !== undefined) {
+    adoptedAt = toEpochMs(localAdoptedAt) <= toEpochMs(remoteAdoptedAt)
+      ? localAdoptedAt
+      : remoteAdoptedAt;
+  } else {
+    adoptedAt = localAdoptedAt ?? remoteAdoptedAt;
+  }
+
+  // onboardingCompletedAt — write-once: mais antigo não-nulo
+  const localOCA = readOptionalString(local, 'onboardingCompletedAt');
+  const remoteOCA = readOptionalString(remote, 'onboardingCompletedAt');
+  let onboardingCompletedAt: string | undefined;
+  if (localOCA !== undefined && remoteOCA !== undefined) {
+    onboardingCompletedAt = toEpochMs(localOCA) <= toEpochMs(remoteOCA) ? localOCA : remoteOCA;
+  } else {
+    onboardingCompletedAt = localOCA ?? remoteOCA;
+  }
+
+  // errorCaptureEnabled — do registro com updatedAt mais recente
+  const newerRecord = remoteMs > localMs ? remote : local;
+  const errorCaptureEnabled = newerRecord['errorCaptureEnabled'];
+
+  const merged: Record<string, unknown> = { id: 'app', updatedAt };
+  if (adoptedAt !== undefined) merged['adoptedAt'] = adoptedAt;
+  if (onboardingCompletedAt !== undefined) merged['onboardingCompletedAt'] = onboardingCompletedAt;
+  if (errorCaptureEnabled !== undefined) merged['errorCaptureEnabled'] = errorCaptureEnabled;
+
+  return merged;
+}
+
 export function mergeSyncRecords(
   collection: SyncableCollection,
   localRecords: readonly SyncRecord[],
@@ -180,7 +233,13 @@ export function mergeSyncRecords(
 
     const current = byId.get(mutation.entityId);
 
-    if (current === undefined || shouldApplyRemote(collection, current, mutation)) {
+    // appMeta usa field-merge sempre que há current — não depende de shouldApplyRemote,
+    // porque queremos o min do adoptedAt independentemente de qual updatedAt é maior.
+    // Ver docs/architecture/SYNC-HARDENING.md — por que appMeta é exceção segura e SM-2 não é.
+    if (collection === 'appMeta' && current !== undefined) {
+      byId.set(mutation.entityId, mergeAppMetaRecords(current, mutation.record));
+      applied += 1;
+    } else if (current === undefined || shouldApplyRemote(collection, current, mutation)) {
       byId.set(mutation.entityId, mutation.record);
       applied += 1;
     } else {

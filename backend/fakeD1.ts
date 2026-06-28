@@ -84,6 +84,18 @@ class FakeStatement implements D1PreparedStatement {
       return { success: true, results: rows as unknown as T[], meta: { changes: 0 } };
     }
 
+    if (sql.startsWith('delete from blobs where userid = ?')) {
+      const userId = stringParam(p[0]);
+      let changes = 0;
+      for (const [key, row] of this.store.entries()) {
+        if (row.userId === userId) {
+          this.store.delete(key);
+          changes += 1;
+        }
+      }
+      return { success: true, results: [], meta: { changes } };
+    }
+
     return { success: false, results: [], meta: { changes: 0 }, error: `unhandled SQL: ${sql}` };
   }
 

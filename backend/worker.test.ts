@@ -334,8 +334,54 @@ describe('rotina-sync worker (P4 M12 local-only)', () => {
     expect(res.status).toBe(404);
   });
 
-  it('retorna 405/404 para metodo nao suportado em /blobs', async () => {
-    const res = await worker.fetch(req('/blobs', { method: 'DELETE' }, 'userA'), env());
+  it('retorna 404 para metodo nao suportado em /blobs (ex: PATCH)', async () => {
+    const res = await worker.fetch(req('/blobs', { method: 'PATCH' }, 'userA'), env());
     expect(res.status).toBe(404);
+  });
+
+  describe('DELETE /blobs — exclusão de conta (direito de exclusão AGPL)', () => {
+    interface DeleteBody {
+      deleted: number;
+    }
+
+    it('apaga todos os blobs do userId autenticado e não toca nos blobs de outro userId', async () => {
+      const e = env();
+      // push 2 blobs do userA e 1 do userB
+      await push(e, 'userA', { collection: 'profiles', clientMutationId: 'a1', ciphertext: OPAQUE_A, updatedAt: 1 });
+      await push(e, 'userA', { collection: 'settings', clientMutationId: 'a2', ciphertext: OPAQUE_B, updatedAt: 2 });
+      await push(e, 'userB', { collection: 'profiles', clientMutationId: 'b1', ciphertext: OPAQUE_A, updatedAt: 3 });
+
+      const del = await worker.fetch(req('/blobs', { method: 'DELETE' }, 'userA'), e);
+      expect(del.status).toBe(200);
+      const body = await bodyOf<DeleteBody>(del);
+      expect(body.deleted).toBe(2);
+
+      // userA não tem mais nada
+      const snapA = await worker.fetch(req('/snapshot', {}, 'userA'), e);
+      expect((await bodyOf<BlobListBody>(snapA)).blobs).toHaveLength(0);
+
+      // userB intacto
+      const snapB = await worker.fetch(req('/snapshot', {}, 'userB'), e);
+      expect((await bodyOf<BlobListBody>(snapB)).blobs).toHaveLength(1);
+    });
+
+    it('DELETE /blobs sem auth retorna 401', async () => {
+      const e = env();
+      const res = await worker.fetch(req('/blobs', { method: 'DELETE' }), e);
+      expect(res.status).toBe(401);
+    });
+
+    it('DELETE /blobs idempotente: segunda chamada retorna 200 com deleted=0', async () => {
+      const e = env();
+      await push(e, 'userA', { collection: 'profiles', clientMutationId: 'a1', ciphertext: OPAQUE_A, updatedAt: 1 });
+
+      const first = await worker.fetch(req('/blobs', { method: 'DELETE' }, 'userA'), e);
+      expect(first.status).toBe(200);
+      expect((await bodyOf<DeleteBody>(first)).deleted).toBe(1);
+
+      const second = await worker.fetch(req('/blobs', { method: 'DELETE' }, 'userA'), e);
+      expect(second.status).toBe(200);
+      expect((await bodyOf<DeleteBody>(second)).deleted).toBe(0);
+    });
   });
 });

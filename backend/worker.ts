@@ -1,5 +1,5 @@
 import { authenticate } from './auth';
-import { listBlobs, ping, snapshot, upsertBlob } from './store';
+import { deleteAllBlobs, listBlobs, ping, snapshot, upsertBlob } from './store';
 import type { PushBlobRequest, SyncEnv } from './types';
 
 const SERVICE = 'rotina-sync';
@@ -110,6 +110,11 @@ async function handleSnapshot(env: SyncEnv, userId: string): Promise<Response> {
   return json(200, { userId, blobs });
 }
 
+async function handleDelete(env: SyncEnv, userId: string): Promise<Response> {
+  const deleted = await deleteAllBlobs(env.DB, userId);
+  return json(200, { ok: true, userId, deleted });
+}
+
 export default {
   async fetch(request: Request, env: SyncEnv): Promise<Response> {
     try {
@@ -132,6 +137,9 @@ export default {
       }
       if (method === 'GET' && path === '/blobs') {
         return await handleList(request, env, userId);
+      }
+      if (method === 'DELETE' && path === '/blobs') {
+        return await handleDelete(env, userId);
       }
       if (method === 'GET' && path === '/snapshot') {
         return await handleSnapshot(env, userId);

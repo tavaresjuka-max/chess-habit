@@ -25,6 +25,11 @@ const SNAPSHOT_SQL = `
   ORDER BY updatedAt ASC
 `;
 
+const DELETE_ALL_SQL = `
+  DELETE FROM blobs
+  WHERE userId = ?
+`;
+
 export async function ping(db: D1Database): Promise<boolean> {
   try {
     const row = await db.prepare(PING_SQL).first<{ ok: number }>();
@@ -53,4 +58,9 @@ export async function listBlobs(
 export async function snapshot(db: D1Database, userId: string): Promise<StoredBlob[]> {
   const result = await db.prepare(SNAPSHOT_SQL).bind(userId).all<StoredBlob>();
   return result.results ?? [];
+}
+
+export async function deleteAllBlobs(db: D1Database, userId: string): Promise<number> {
+  const result = await db.prepare(DELETE_ALL_SQL).bind(userId).run();
+  return result.meta.changes;
 }
