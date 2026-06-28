@@ -2,8 +2,13 @@
 import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createCanary } from './passphraseCanary';
-import { pushRecordMutations } from './syncRecords';
-import { loadSyncRecords, mergeRemoteMutationsIntoStorage, syncCollectionOnce } from './syncStorage';
+import { pushRecordMutations, SYNCABLE_COLLECTIONS } from './syncRecords';
+import {
+  flushPendingPushes,
+  loadSyncRecords,
+  mergeRemoteMutationsIntoStorage,
+  syncCollectionOnce,
+} from './syncStorage';
 import type { PushBlobInput, StoredBlob, SyncClient } from './syncClient';
 import { clearAll } from '../storage/appData';
 import { db } from '../storage/db';
@@ -150,5 +155,136 @@ describe('syncStorage', () => {
 
     expect(result).toEqual({ ok: false, reason: 'wrong-passphrase' });
     expect(await db.weaknesses.count()).toBe(1);
+  });
+
+  // ── Ciclo crash-safe (Item C) ───────────────────────────────────────────
+
+  it('syncCollectionOnce: pendingPush=true antes do push, =false + lastSyncedAt depois do push OK', async () => {
+    const client = makeClient();
+    const canary = await createCanary('passphrase-forte', FAST);
+    await db.weaknesses.put({
+      id: 'fork',
+      tag: 'fork',
+      score: 0.5,
+      confidence: 'medium',
+      evidence: 'local',
+      updatedAt: '2026-06-27T10:00:00.000Z',
+    });
+
+    const result = await syncCollectionOnce({
+      passphrase: 'passphrase-forte',
+      canary,
+      client,
+      collection: 'weaknesses',
+      iterations: 1_000,
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    const stateOk = await db.syncState.get('weaknesses');
+    expect(stateOk).toBeDefined();
+    expect(stateOk?.pendingPush).toBe(false);
+    expect(stateOk?.lastSyncedAt).toBeDefined();
+  });
+
+  it('syncCollectionOnce: push interrompido → pendingPush permanece true e erro é propagado', async () => {
+    const client = makeClient();
+    // sobrescreve pushBlob para lançar na primeira chamada
+    const pushError = new Error('network-killed');
+    let callCount = 0;
+    const failClient: SyncClient & { stored: StoredBlob[] } = {
+      ...client,
+      pushBlob(blobInput: PushBlobInput) {
+        void blobInput;
+        callCount += 1;
+        if (callCount === 1) return Promise.reject(pushError);
+        return Promise.resolve();
+      },
+    };
+
+    await db.weaknesses.put({
+      id: 'fork',
+      tag: 'fork',
+      score: 0.5,
+      confidence: 'medium',
+      evidence: 'local',
+      updatedAt: '2026-06-27T10:00:00.000Z',
+    });
+    const canary = await createCanary('passphrase-forte', FAST);
+
+    await expect(
+      syncCollectionOnce({
+        passphrase: 'passphrase-forte',
+        canary,
+        client: failClient,
+        collection: 'weaknesses',
+        iterations: 1_000,
+      }),
+    ).rejects.toThrow('network-killed');
+
+    const stateCrash = await db.syncState.get('weaknesses');
+    expect(stateCrash).toBeDefined();
+    expect(stateCrash?.pendingPush).toBe(true);
+    expect(stateCrash?.lastSyncedAt).toBeUndefined();
+  });
+
+  it('flushPendingPushes re-empurra coleções com pendingPush=true e limpa a flag', async () => {
+    const client = makeClient();
+    const canary = await createCanary('passphrase-forte', FAST);
+
+    // Simula estado pós-crash: pendingPush=true em weaknesses
+    await db.syncState.put({ collection: 'weaknesses', pendingPush: true });
+    await db.weaknesses.put({
+      id: 'fork',
+      tag: 'fork',
+      score: 0.5,
+      confidence: 'medium',
+      evidence: 'local',
+      updatedAt: '2026-06-27T10:00:00.000Z',
+    });
+
+    const flushed = await flushPendingPushes({
+      passphrase: 'passphrase-forte',
+      canary,
+      client,
+      iterations: 1_000,
+    });
+
+    expect(flushed).toBe(1);
+    const stateFlush = await db.syncState.get('weaknesses');
+    expect(stateFlush?.pendingPush).toBe(false);
+    // blob chegou ao cliente
+    expect(client.stored.length).toBeGreaterThan(0);
+  });
+
+  it('flushPendingPushes é idempotente: 2ª chamada não re-envia (pendingPush já é false)', async () => {
+    const client = makeClient();
+    const canary = await createCanary('passphrase-forte', FAST);
+
+    await db.syncState.put({ collection: 'weaknesses', pendingPush: true });
+    await db.weaknesses.put({
+      id: 'fork',
+      tag: 'fork',
+      score: 0.5,
+      confidence: 'medium',
+      evidence: 'local',
+      updatedAt: '2026-06-27T10:00:00.000Z',
+    });
+
+    await flushPendingPushes({ passphrase: 'passphrase-forte', canary, client, iterations: 1_000 });
+    const storedAfterFirst = client.stored.length;
+
+    const flushed2 = await flushPendingPushes({
+      passphrase: 'passphrase-forte',
+      canary,
+      client,
+      iterations: 1_000,
+    });
+
+    expect(flushed2).toBe(0);
+    expect(client.stored.length).toBe(storedAfterFirst); // nenhum novo blob
+  });
+
+  it('syncState não aparece em SYNCABLE_COLLECTIONS', () => {
+    expect(SYNCABLE_COLLECTIONS).not.toContain('syncState');
   });
 });

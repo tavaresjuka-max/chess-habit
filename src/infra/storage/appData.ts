@@ -728,6 +728,7 @@ export async function clearAll(): Promise<void> {
       db.placementResults,
       db.appMeta,
       db.errorLog,
+      db.syncState,
     ],
     async () => {
       await db.profile.clear();
@@ -746,6 +747,7 @@ export async function clearAll(): Promise<void> {
       await db.appMeta.clear();
       await db.errorLog.clear();
       await db.backupMeta.clear();
+      await db.syncState.clear();
       // Apagar tudo desliga o backup automatico: sem isso, a proxima abertura
       // gravaria um backup vazio por cima do arquivo bom do usuario.
       await db.autoBackup.clear();

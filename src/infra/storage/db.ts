@@ -120,6 +120,16 @@ export type ErrorLogRecord = {
   stack?: string;
 };
 
+// Estado local de sincronização por coleção. NÃO é sincronizável — é
+// específico do dispositivo. Não adicionar a SYNCABLE_COLLECTIONS.
+// pendingPush=true indica que houve merge mas o push foi interrompido (crash,
+// kill em background, etc.); flushPendingPushes re-empurra e limpa a flag.
+export type SyncStateRecord = {
+  collection: string;
+  pendingPush: boolean;
+  lastSyncedAt?: string;
+};
+
 export class TutorDatabase extends Dexie {
   profile!: Table<ProfileRecord, string>;
   plans!: Table<PlanRecord, string>;
@@ -138,6 +148,7 @@ export class TutorDatabase extends Dexie {
   placementResults!: Table<PlacementResultRecord, string>;
   appMeta!: Table<AppMetaRecord, string>;
   errorLog!: Table<ErrorLogRecord, number>;
+  syncState!: Table<SyncStateRecord, string>;
 
   constructor(name: string = storageDatabaseName) {
     super(name);
@@ -242,6 +253,12 @@ export class TutorDatabase extends Dexie {
     // Log mínimo de erros (opt-in, Fase 1). Tabela nova; nenhum backfill.
     this.version(13).stores({
       errorLog: '++id, at',
+    });
+
+    // Estado local de sync por coleção (Fase C — crash-safe push).
+    // NÃO sincronizável: é estado do dispositivo, não dado do usuário.
+    this.version(14).stores({
+      syncState: 'collection',
     });
   }
 }
