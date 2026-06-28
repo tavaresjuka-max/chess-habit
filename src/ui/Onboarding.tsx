@@ -14,8 +14,9 @@ import type { MethodTrackId } from '../domain/method/types';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 import { PlacementCard, type PlacementApplication } from './PlacementCard';
 import { Welcome } from './Welcome';
+import { ConsentStep } from './ConsentStep';
 
-export type OnboardingStep = 'welcome' | 'accounts' | 'importing' | 'questions' | 'plan';
+export type OnboardingStep = 'welcome' | 'consent' | 'accounts' | 'importing' | 'questions' | 'plan';
 
 type OnboardingProps = {
   step: OnboardingStep;
@@ -29,6 +30,9 @@ type OnboardingProps = {
   onStartSetup: () => void;
   onQuickStart: () => Promise<void>;
   onBackToWelcome: () => void;
+  // Grava consentedAt + researchOptIn e avança para 'accounts'. Opcional:
+  // quando ausente o passo 'consent' não é exibido (ex.: testes legados).
+  onAcceptConsent?: (researchOptIn: boolean) => Promise<void>;
   // Salva o perfil (sem auto-sync) e segue: com conta → Importando; sem conta → Avaliação.
   onContinueAccounts: (profile: LearnerProfile) => Promise<void>;
   // Salva o perfil e dispara o OAuth do Lichess (redireciona; volta na tela Importando).
@@ -49,6 +53,7 @@ const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
 // então em vez de "Passo X de N" mostramos o nome da etapa atual.
 const stepLabel: Record<OnboardingStep, string> = {
   welcome: 'Boas-vindas',
+  consent: 'Privacidade',
   accounts: 'Suas contas',
   importing: 'Importando',
   questions: 'Avaliação de entrada',
@@ -67,6 +72,8 @@ export function Onboarding(props: OnboardingProps) {
           onStart={props.onQuickStart}
           onConfigure={props.onStartSetup}
         />
+      ) : props.step === 'consent' && props.onAcceptConsent !== undefined ? (
+        <ConsentStep onAccept={props.onAcceptConsent} />
       ) : props.step === 'accounts' ? (
         <AccountsStep
           defaults={props.defaults}

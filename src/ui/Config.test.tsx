@@ -610,6 +610,60 @@ describe('Config — captura de erros (toggle + export)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Privacidade e consentimento (Fase 3) — fold + toggle researchOptIn
+// ---------------------------------------------------------------------------
+
+describe('Config — fold de privacidade e consentimento', () => {
+  it('liga o toggle de pesquisa e chama onToggleResearchOptIn(true)', async () => {
+    const onToggleResearchOptIn = vi.fn(() => Promise.resolve());
+    render(<Config {...makeProps({ researchOptIn: false, onToggleResearchOptIn })} />);
+    openFold('Privacidade e consentimento');
+
+    const checkbox = screen.getByRole('checkbox', { name: /Participar da medição de eficácia/i });
+    expect(checkbox).not.toBeChecked();
+
+    fireEvent.click(checkbox);
+    await flushPromises();
+
+    expect(onToggleResearchOptIn).toHaveBeenCalledTimes(1);
+    expect(onToggleResearchOptIn).toHaveBeenCalledWith(true);
+  });
+
+  it('desliga o toggle quando já vem ligado e chama onToggleResearchOptIn(false)', async () => {
+    const onToggleResearchOptIn = vi.fn(() => Promise.resolve());
+    render(<Config {...makeProps({ researchOptIn: true, onToggleResearchOptIn })} />);
+    openFold('Privacidade e consentimento');
+
+    const checkbox = screen.getByRole('checkbox', { name: /Participar da medição de eficácia/i });
+    expect(checkbox).toBeChecked();
+
+    fireEvent.click(checkbox);
+    await flushPromises();
+
+    expect(onToggleResearchOptIn).toHaveBeenCalledWith(false);
+  });
+
+  it('mostra a data de consentimento quando consentedAt está presente', () => {
+    render(<Config {...makeProps({ consentedAt: '2026-06-27T12:00:00.000Z' })} />);
+    openFold('Privacidade e consentimento');
+    expect(screen.getByText(/Consentimento registrado em:/)).toBeInTheDocument();
+  });
+
+  it('mostra aviso de consentimento ausente para usuário pré-existente (sem consentedAt)', () => {
+    render(<Config {...makeProps({ consentedAt: undefined })} />);
+    openFold('Privacidade e consentimento');
+    expect(screen.getByText(/Consentimento ainda não registrado/)).toBeInTheDocument();
+  });
+
+  it('desabilita o toggle quando onToggleResearchOptIn está ausente', () => {
+    render(<Config {...makeProps({ onToggleResearchOptIn: undefined })} />);
+    openFold('Privacidade e consentimento');
+    const checkbox = screen.getByRole('checkbox', { name: /Participar da medição de eficácia/i });
+    expect(checkbox).toBeDisabled();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // formatBackupMeta — invalid date branch (line 411-412)
 // ---------------------------------------------------------------------------
 

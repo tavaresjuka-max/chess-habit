@@ -26,6 +26,7 @@ import {
   importBackupFromJson,
   loadBackupMeta,
   setErrorCaptureEnabled as persistErrorCaptureEnabled,
+  saveConsent as persistConsent,
   type BackupImportResult,
   loadTrainingLogs,
   loadTrainingLogsForDate,
@@ -119,6 +120,13 @@ export type AppState = {
   readonly errorCaptureEnabled: boolean;
   readonly setErrorCapture: (enabled: boolean) => Promise<void>;
   readonly exportErrorLog: () => Promise<string>;
+  // Consentimento informado (Fase 3): carimbo write-once + opt-in de pesquisa.
+  readonly consentedAt: string | undefined;
+  readonly researchOptIn: boolean | undefined;
+  // Aceita o consentimento no onboarding (grava consentedAt write-once + opt-in).
+  readonly acceptConsent: (researchOptIn: boolean) => Promise<void>;
+  // Alterna a participação na pesquisa pela Config (mantém consentedAt write-once).
+  readonly setResearchOptIn: (enabled: boolean) => Promise<void>;
 };
 
 // Auto-sync ao Salvar reaproveita um diagnóstico recente em vez de re-puxar o
@@ -178,6 +186,10 @@ export function useAppState(): AppState {
     setOnboardingCompletedAt,
     errorCaptureEnabled,
     setErrorCaptureEnabled,
+    consentedAt,
+    setConsentedAt,
+    researchOptIn,
+    setResearchOptIn,
   } = useAppData();
 
   // Mantém o ref do plano sempre com o valor mais recente, para o auto-sync em
@@ -286,6 +298,23 @@ export function useAppState(): AppState {
     trainingLogs,
     weaknesses,
   ]);
+
+  // Consentimento (Fase 3): grava consentedAt (write-once) + researchOptIn no
+  // appMeta e espelha no estado para a UI refletir sem recarregar. Usado tanto
+  // pelo passo de onboarding quanto pelo fold de Privacidade na Config.
+  const persistAndMirrorConsent = useCallback(
+    async (nextResearchOptIn: boolean) => {
+      const now = new Date().toISOString();
+
+      await persistConsent(nextResearchOptIn, now);
+
+      // consentedAt é write-once: preserva o carimbo existente; só usa "agora"
+      // quando ainda não havia consentimento gravado.
+      setConsentedAt((current) => current ?? now);
+      setResearchOptIn(nextResearchOptIn);
+    },
+    [setConsentedAt, setResearchOptIn],
+  );
 
   const {
     savePlacementResult,
@@ -496,6 +525,10 @@ export function useAppState(): AppState {
       setErrorCaptureEnabled(enabled);
     },
     exportErrorLog: async () => exportErrorLogAsJson(),
+    consentedAt,
+    researchOptIn,
+    acceptConsent: persistAndMirrorConsent,
+    setResearchOptIn: persistAndMirrorConsent,
   };
 }
 

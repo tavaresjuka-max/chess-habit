@@ -448,7 +448,46 @@ export async function captureAdoption(nowIso = new Date().toISOString()): Promis
   });
 }
 
-// --- Captura mínima de erros (opt-in, Fase 1) -------------------------------
+// --- Consentimento informado (Fase 3) ----------------------------------------
+// consentedAt é WRITE-ONCE: só grava se ausente (igual adoptedAt).
+// researchOptIn é um toggle: sobrescreve sempre, preservando os demais campos
+// (read-merge-put).
+
+export type ConsentState = {
+  consentedAt?: string;
+  researchOptIn?: boolean;
+};
+
+export async function loadConsent(): Promise<ConsentState> {
+  const record = await db.appMeta.get('app');
+
+  return {
+    consentedAt: record?.consentedAt,
+    researchOptIn: record?.researchOptIn,
+  };
+}
+
+/**
+ * Grava consentedAt (write-once) + researchOptIn.
+ * read-merge-put: preserva adoptedAt, onboardingCompletedAt, errorCaptureEnabled.
+ */
+export async function saveConsent(
+  researchOptIn: boolean,
+  nowIso = new Date().toISOString(),
+): Promise<void> {
+  const existing = await db.appMeta.get('app');
+
+  await db.appMeta.put({
+    id: 'app',
+    ...(existing ?? {}),
+    // write-once: só grava consentedAt se ainda não existia
+    consentedAt: existing?.consentedAt ?? nowIso,
+    researchOptIn,
+    updatedAt: nowIso,
+  });
+}
+
+// --- Captura mínima de erros (opt-in, Fase 1) --------------------------------
 // Flag opt-in: default ausente = desligado. read-merge-put preserva
 // adoptedAt/onboardingCompletedAt ao ligar/desligar.
 export async function loadErrorCaptureEnabled(): Promise<boolean> {

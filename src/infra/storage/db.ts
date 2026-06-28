@@ -100,6 +100,13 @@ export type AppMetaRecord = {
   // Flag opt-in da captura mínima de erros (log local exportável). Default
   // ausente = desligado.
   errorCaptureEnabled?: boolean;
+  // Carimbo de consentimento informado (Fase 3). Write-once: só grava quando
+  // ausente; sobrevive a sync (merge usa min não-nulo, igual adoptedAt).
+  consentedAt?: string;
+  // Participação na medição de eficácia em agregado (opt-in). Pode ser
+  // alterado a qualquer momento; no merge usa o registro com updatedAt mais
+  // recente (igual errorCaptureEnabled).
+  researchOptIn?: boolean;
   updatedAt: string;
 };
 

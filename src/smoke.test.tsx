@@ -29,10 +29,17 @@ describe('App onboarding funnel (primeira vez)', () => {
     expect(screen.queryByRole('button', { name: 'Progresso' })).toBeNull();
   });
 
-  it('avança para "Suas contas" em "Vamos configurar"', async () => {
+  it('usuário NOVO vê o consentimento antes de "Suas contas" e depois avança', async () => {
     render(<App />);
 
+    // Fase 3: "Vamos configurar" leva ao consentimento informado, ANTES das contas.
     fireEvent.click(await screen.findByRole('button', { name: 'Vamos configurar' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Seus dados e sua privacidade' }),
+    ).toBeTruthy();
+
+    // Aceitar e continuar avança para "Suas contas".
+    fireEvent.click(screen.getByRole('button', { name: 'Aceitar e continuar' }));
 
     expect(await screen.findByRole('heading', { name: 'Suas contas' })).toBeTruthy();
     expect(screen.getByText('Usuário Lichess')).toBeTruthy();
@@ -43,6 +50,8 @@ describe('App onboarding funnel (primeira vez)', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Vamos configurar' }));
+    // Passa pelo consentimento (Fase 3) antes de chegar às contas.
+    fireEvent.click(await screen.findByRole('button', { name: 'Aceitar e continuar' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }));
 
     expect(await screen.findByText('A aula pode começar.')).toBeTruthy();
@@ -52,6 +61,8 @@ describe('App onboarding funnel (primeira vez)', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Vamos configurar' }));
+    // Aceita o consentimento (Fase 3) e segue para o formulário de contas.
+    fireEvent.click(await screen.findByRole('button', { name: 'Aceitar e continuar' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Continuar' }));
 
     // Sem usuário informado: cai direto nas perguntas de calibração (sem rede).
