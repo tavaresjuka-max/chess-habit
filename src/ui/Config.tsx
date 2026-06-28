@@ -37,6 +37,11 @@ type ConfigProps = {
   onExport: () => Promise<string>;
   onImportBackup: (json: string) => Promise<BackupImportResult>;
   onClear: () => Promise<void>;
+  // Captura mínima de erros (opt-in, Fase 1). Opcionais: o Config funciona
+  // também sem esses handlers (ex.: mocks de teste) — toggle segue desligado.
+  errorCaptureEnabled?: boolean;
+  onToggleErrorCapture?: (enabled: boolean) => Promise<void>;
+  onExportErrorLog?: () => Promise<string>;
   onBack?: () => void;
 };
 
@@ -62,6 +67,9 @@ export function Config({
   onExport,
   onImportBackup,
   onClear,
+  errorCaptureEnabled = false,
+  onToggleErrorCapture,
+  onExportErrorLog,
   onBack,
 }: ConfigProps) {
   const restoreInputRef = useRef<HTMLInputElement>(null);
@@ -136,6 +144,38 @@ export function Config({
   async function handleImportKnownManualSignals() {
     const count = await onImportKnownManualSignals();
     toast.success(`${String(count)} sinais manuais salvos.`);
+  }
+
+  async function handleToggleErrorCapture(nextEnabled: boolean) {
+    if (onToggleErrorCapture === undefined) {
+      return;
+    }
+    try {
+      await onToggleErrorCapture(nextEnabled);
+      toast.success(nextEnabled ? 'Registro de erros ativado.' : 'Registro de erros desligado.');
+    } catch {
+      toast.error('Não foi possível mudar o registro de erros.');
+    }
+  }
+
+  async function handleExportErrors() {
+    if (onExportErrorLog === undefined) {
+      return;
+    }
+    try {
+      const content = await onExportErrorLog();
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = `rotina-erros-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success('Erros exportados.');
+    } catch {
+      toast.error('Não foi possível exportar os erros.');
+    }
   }
 
   async function confirmClear() {
@@ -368,6 +408,27 @@ export function Config({
           <button type="button" className="secondary-button" onClick={() => void handleImportKnownManualSignals()}>
             Adicionar sinais manuais
           </button>
+          <div className="error-capture-zone">
+            <label className="field field-inline">
+              <input
+                type="checkbox"
+                checked={errorCaptureEnabled}
+                onChange={(event) => {
+                  void handleToggleErrorCapture(event.target.checked);
+                }}
+              />
+              <span>Registrar relatórios de erro (ajuda a melhorar o app)</span>
+            </label>
+            <p className="config-hint">
+              Quando ligado, erros do app ficam só neste aparelho. Você pode exportar e enviar se
+              quiser — nada é enviado automaticamente.
+            </p>
+            {errorCaptureEnabled ? (
+              <button type="button" className="secondary-button" onClick={() => void handleExportErrors()}>
+                Exportar erros
+              </button>
+            ) : null}
+          </div>
           {confirmingClear ? (
             <div className="button-row" role="group" aria-label="Confirmar apagar tudo">
               <span className="rating-prompt">Apagar todos os dados locais?</span>

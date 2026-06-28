@@ -7,15 +7,22 @@ import { db } from './db';
 import { computeBackupChecksum } from './backup';
 import {
   appendSignals,
+  captureAdoption,
   clearAll,
+  clearErrorLog,
+  appendErrorLog,
   clearLichessOAuthToken,
   exportAllAsJson,
+  exportErrorLogAsJson,
   getLatestPlanBefore,
   getLichessStudyLink,
   getPlan,
   getTrainingLog,
   importBackupFromJson,
+  loadAdoptedAt,
   loadBackupMeta,
+  loadErrorCaptureEnabled,
+  loadErrorLog,
   loadLichessOAuthToken,
   loadDiplomaAttempts,
   loadMethodTracks,
@@ -23,6 +30,8 @@ import {
   loadOpenPendingItems,
   loadProfile,
   markOnboardingCompleted,
+  setErrorCaptureEnabled,
+  recordGlobalError,
   getPurgeCutoff,
   loadSignals,
   loadTrainingLogs,
@@ -778,6 +787,148 @@ describe('getPurgeCutoff (B1: corte de purga independente de fuso)', () => {
     const days = (Date.parse(nowIso) - Date.parse(cutoff)) / 86_400_000;
 
     expect(days).toBe(90);
+  });
+});
+
+describe('adoptedAt — carimbo de adoção write-once (Fase 1, classe de risco)', () => {
+  it('captureAdoption grava UMA vez: 2ª chamada com data diferente não muda o valor', async () => {
+    await captureAdoption('2026-06-01T10:00:00.000Z');
+
+    expect(await loadAdoptedAt()).toBe('2026-06-01T10:00:00.000Z');
+
+    await captureAdoption('2099-12-31T23:59:59.000Z');
+
+    // Write-once: continua sendo a 1ª data.
+    expect(await loadAdoptedAt()).toBe('2026-06-01T10:00:00.000Z');
+  });
+
+  it('captureAdoption preserva onboardingCompletedAt existente (read-merge-put)', async () => {
+    await markOnboardingCompleted('2026-05-01T08:00:00.000Z');
+    await captureAdoption('2026-06-01T10:00:00.000Z');
+
+    const record = await db.appMeta.get('app');
+
+    expect(record?.adoptedAt).toBe('2026-06-01T10:00:00.000Z');
+    expect(record?.onboardingCompletedAt).toBe('2026-05-01T08:00:00.000Z');
+  });
+
+  it('markOnboardingCompleted preserva adoptedAt existente (guarda do put cego)', async () => {
+    // O teste-chave que pega a armadilha do put cego: antes, marcar onboarding
+    // regravava o registro inteiro e apagava adoptedAt. Agora funde.
+    await captureAdoption('2026-06-01T10:00:00.000Z');
+    await markOnboardingCompleted('2026-06-09T08:00:00.000Z');
+
+    const record = await db.appMeta.get('app');
+
+    expect(record?.onboardingCompletedAt).toBe('2026-06-09T08:00:00.000Z');
+    expect(record?.adoptedAt).toBe('2026-06-01T10:00:00.000Z');
+  });
+
+  it('adoptedAt sobrevive ao round-trip de backup (export -> clear -> import)', async () => {
+    await saveProfile(profile);
+    await captureAdoption('2026-06-01T10:00:00.000Z');
+
+    const exported = await exportAllAsJson('2026-06-10T12:00:00.000Z');
+
+    await clearAll();
+    await expect(loadAdoptedAt()).resolves.toBeUndefined();
+
+    const result = await importBackupFromJson(exported);
+
+    expect(result).toMatchObject({ ok: true });
+    await expect(loadAdoptedAt()).resolves.toBe('2026-06-01T10:00:00.000Z');
+  });
+
+  it('setErrorCaptureEnabled preserva adoptedAt e onboardingCompletedAt (read-merge-put)', async () => {
+    await captureAdoption('2026-06-01T10:00:00.000Z');
+    await markOnboardingCompleted('2026-06-09T08:00:00.000Z');
+
+    await setErrorCaptureEnabled(true);
+
+    const record = await db.appMeta.get('app');
+
+    expect(record?.errorCaptureEnabled).toBe(true);
+    expect(record?.adoptedAt).toBe('2026-06-01T10:00:00.000Z');
+    expect(record?.onboardingCompletedAt).toBe('2026-06-09T08:00:00.000Z');
+  });
+});
+
+describe('errorLog — captura mínima de erros (Fase 1, opt-in)', () => {
+  it('recordGlobalError NÃO grava quando a captura está desligada (default)', async () => {
+    await recordGlobalError({ kind: 'error', message: 'boom' });
+
+    await expect(loadErrorLog()).resolves.toEqual([]);
+  });
+
+  it('recordGlobalError grava no errorLog quando habilitado', async () => {
+    await setErrorCaptureEnabled(true);
+
+    await recordGlobalError(
+      { kind: 'unhandledrejection', message: 'promise vazou', stack: 'at foo:1' },
+      '2026-06-01T00:00:00.000Z',
+    );
+
+    const records = await loadErrorLog();
+
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      kind: 'unhandledrejection',
+      message: 'promise vazou',
+      stack: 'at foo:1',
+      at: '2026-06-01T00:00:00.000Z',
+    });
+  });
+
+  it('toggle persiste (loadErrorCaptureEnabled lê o que setErrorCaptureEnabled gravou)', async () => {
+    expect(await loadErrorCaptureEnabled()).toBe(false);
+
+    await setErrorCaptureEnabled(true);
+    expect(await loadErrorCaptureEnabled()).toBe(true);
+
+    await setErrorCaptureEnabled(false);
+    expect(await loadErrorCaptureEnabled()).toBe(false);
+  });
+
+  it('mantém só os últimos 100 registros (cap — descarta os mais antigos)', async () => {
+    await setErrorCaptureEnabled(true);
+
+    // Datas crescentes válidas (1 dia por registro): i=0 é o mais antigo.
+    for (let i = 0; i < 120; i += 1) {
+      const at = new Date(Date.UTC(2026, 0, 1 + i)).toISOString();
+      await appendErrorLog({ kind: 'error', message: `err-${String(i)}` }, at);
+    }
+
+    const records = await loadErrorLog();
+
+    expect(records).toHaveLength(100);
+    // Os 20 mais antigos (err-0..err-19) foram descartados; o mais antigo
+    // remanescente é err-20, o mais novo é err-119 (loadErrorLog ordena por `at`).
+    expect(records[0]?.message).toBe('err-20');
+    expect(records[99]?.message).toBe('err-119');
+  });
+
+  it('exportErrorLogAsJson produz JSON dedicado (fora do backup principal)', async () => {
+    await appendErrorLog({ kind: 'error', message: 'algo' }, '2026-06-01T00:00:00.000Z');
+
+    const json = await exportErrorLogAsJson('2026-06-02T00:00:00.000Z');
+    const parsed = JSON.parse(json) as { format: string; version: number; records: { message: string }[] };
+
+    expect(parsed.format).toBe('lichess-tutor-errorlog');
+    expect(parsed.version).toBe(1);
+    expect(parsed.records).toHaveLength(1);
+    expect(parsed.records[0]?.message).toBe('algo');
+
+    // errorLog NÃO entra no backup principal.
+    expect(await exportAllAsJson()).not.toContain('lichess-tutor-errorlog');
+  });
+
+  it('clearErrorLog esvazia o errorLog', async () => {
+    await appendErrorLog({ kind: 'error', message: 'x' });
+    await expect(loadErrorLog()).resolves.toHaveLength(1);
+
+    await clearErrorLog();
+
+    await expect(loadErrorLog()).resolves.toEqual([]);
   });
 });
 

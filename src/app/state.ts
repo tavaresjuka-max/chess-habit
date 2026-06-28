@@ -22,8 +22,10 @@ import { promoteBandForDiplomas } from '../domain/method/bandProgression';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import {
   exportAllAsJson,
+  exportErrorLogAsJson,
   importBackupFromJson,
   loadBackupMeta,
+  setErrorCaptureEnabled as persistErrorCaptureEnabled,
   type BackupImportResult,
   loadTrainingLogs,
   loadTrainingLogsForDate,
@@ -113,6 +115,10 @@ export type AppState = {
   readonly exportBackup: () => Promise<string>;
   readonly importBackup: (json: string) => Promise<BackupImportResult>;
   readonly clearAllData: () => Promise<void>;
+  // Captura mínima de erros (opt-in, Fase 1): toggle local + export dedicado.
+  readonly errorCaptureEnabled: boolean;
+  readonly setErrorCapture: (enabled: boolean) => Promise<void>;
+  readonly exportErrorLog: () => Promise<string>;
 };
 
 // Auto-sync ao Salvar reaproveita um diagnóstico recente em vez de re-puxar o
@@ -170,6 +176,8 @@ export function useAppState(): AppState {
     setAutoBackupFileName,
     onboardingCompletedAt,
     setOnboardingCompletedAt,
+    errorCaptureEnabled,
+    setErrorCaptureEnabled,
   } = useAppData();
 
   // Mantém o ref do plano sempre com o valor mais recente, para o auto-sync em
@@ -482,6 +490,12 @@ export function useAppState(): AppState {
     },
     importBackup: importBackupFromJson,
     clearAllData,
+    errorCaptureEnabled,
+    setErrorCapture: async (enabled: boolean) => {
+      await persistErrorCaptureEnabled(enabled);
+      setErrorCaptureEnabled(enabled);
+    },
+    exportErrorLog: async () => exportErrorLogAsJson(),
   };
 }
 

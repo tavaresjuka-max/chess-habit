@@ -138,6 +138,17 @@ describe('Onboarding — accounts step — fields', () => {
     expect(screen.getByText('Tempo padrão')).toBeInTheDocument();
   });
 
+  it('oferece só as 3 faixas elegíveis do beta no dropdown (400-1200, Fase 1 ITEM 2)', () => {
+    render(<Onboarding {...makeProps()} />);
+    const bandSelect = screen.getAllByRole('combobox')[0] as HTMLSelectElement;
+    const optionValues = Array.from(bandSelect.options).map((opt) => opt.value);
+
+    expect(optionValues).toEqual(['400-800', '800-1000', '1000-1200']);
+    // Faixas fora do beta NÃO aparecem como opção no onboarding.
+    expect(optionValues).not.toContain('0-400');
+    expect(optionValues).not.toContain('1200-1600');
+  });
+
   it('renders the Continuar and Voltar buttons', () => {
     render(<Onboarding {...makeProps()} />);
     expect(screen.getByRole('button', { name: 'Continuar' })).toBeInTheDocument();
@@ -216,7 +227,7 @@ describe('Onboarding — accounts step — submission', () => {
     render(<Onboarding {...makeProps({ onContinueAccounts })} />);
 
     const selects = screen.getAllByRole('combobox');
-    fireEvent.change(selects[0] as HTMLSelectElement, { target: { value: '1200-1600' } });
+    fireEvent.change(selects[0] as HTMLSelectElement, { target: { value: '1000-1200' } });
     fireEvent.change(selects[1] as HTMLSelectElement, { target: { value: '30' } });
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 
@@ -224,7 +235,7 @@ describe('Onboarding — accounts step — submission', () => {
       expect(onContinueAccounts).toHaveBeenCalledTimes(1);
     });
     const saved = onContinueAccounts.mock.calls[0]?.[0];
-    expect(saved?.band).toBe('1200-1600');
+    expect(saved?.band).toBe('1000-1200');
     expect(saved?.defaultSessionMinutes).toBe(30);
   });
 

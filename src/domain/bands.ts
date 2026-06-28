@@ -18,6 +18,11 @@ export const learnerBands = [
 
 export const beginnerBands = ['0-400', '400-800'] as const satisfies readonly LearnerBand[];
 
+// Stage 1 do beta: faixas com currículo denso validado. 0-400 tem rota própria
+// (orientação de iniciante absoluto, ITEM 3 da Fase 1); 1200+ é Corte 8, ainda
+// vazio — o Onboarding oferece só estas três, e o Placement avisa + clampa.
+export const betaEligibleBands = ['400-800', '800-1000', '1000-1200'] as const satisfies readonly LearnerBand[];
+
 // Ate o Corte 8 (curriculo denso 1200-2200), as bandas altas reutilizam o
 // conteudo improving existente em vez de ficarem sem recurso algum.
 export const improvingAndUpBands = [

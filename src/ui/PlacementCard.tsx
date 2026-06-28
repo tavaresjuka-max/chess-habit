@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { openExternalUrl } from '../app/externalOpen';
+import { betaEligibleBands } from '../domain';
+import { BeginnerOrientation } from './BeginnerOrientation';
 import { ConceptSeal } from './art/ConceptSeal';
 import type { Confidence, LearnerBand } from '../domain';
 import {
@@ -62,6 +64,20 @@ const calibrationOptions: { value: PlacementCalibrationReport; label: string }[]
   { value: 'quase-nenhum', label: 'Acertei quase nenhum' },
 ];
 
+// Fase 1 (beta): 0-400 tem rota própria (orientação); 1200+ ainda é Corte 8.
+// O Placement avisa e CLAMPA explicitamente para 1000-1200 (nunca silencioso).
+function isBeginnerBand(band: LearnerBand): boolean {
+  return band === '0-400';
+}
+
+function isAboveBetaBand(band: LearnerBand): boolean {
+  return !isBeginnerBand(band) && !(betaEligibleBands as readonly string[]).includes(band);
+}
+
+function effectivePlacementBand(band: LearnerBand): LearnerBand {
+  return isAboveBetaBand(band) ? '1000-1200' : band;
+}
+
 export function PlacementCard({
   currentBand,
   onApplyBand,
@@ -111,8 +127,10 @@ export function PlacementCard({
       return;
     }
 
-    await onApplyBand({ band: result.band, confidence: result.confidence, calibrated });
-    toast.success(`Faixa ${result.band} aplicada ao seu plano.`);
+    const band = effectivePlacementBand(result.band);
+
+    await onApplyBand({ band, confidence: result.confidence, calibrated });
+    toast.success(`Faixa ${band} aplicada ao seu plano.`);
     setStep('idle');
   }
 
@@ -237,10 +255,32 @@ export function PlacementCard({
   return (
     <section className="config-section" aria-live="polite" {...sectionAria}>
       {hideHeading ? null : <h2 id="placement-title">Avaliação de entrada</h2>}
-      {result !== undefined ? (
+      {result !== undefined && isBeginnerBand(result.band) ? (
         <>
+          <BeginnerOrientation />
+          <div className="button-row">
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                setStep('questions');
+              }}
+            >
+              Refazer perguntas
+            </button>
+          </div>
+        </>
+      ) : null}
+      {result !== undefined && !isBeginnerBand(result.band) ? (
+        <>
+          {isAboveBetaBand(result.band) ? (
+            <p className="config-hint" role="note">
+              Seu nível parece acima da faixa deste beta inicial (400–1200). Você pode entrar, mas o
+              conteúdo denso acima de 1200 ainda está em construção.
+            </p>
+          ) : null}
           <p>
-            Sugestão: começar na faixa <strong>{result.band}</strong> (
+            Sugestão: começar na faixa <strong>{effectivePlacementBand(result.band)}</strong> (
             {describePlacementConfidence(result.confidence)}).
           </p>
           <ul>
@@ -249,7 +289,7 @@ export function PlacementCard({
             ))}
           </ul>
 
-          {!calibrated ? (
+          {!isAboveBetaBand(result.band) && !calibrated ? (
             <>
               <p className="config-hint">
                 Opcional: resolva ~10 puzzles no Lichess e conte como foi.
@@ -284,7 +324,7 @@ export function PlacementCard({
 
           <div className="button-row">
             <button type="button" onClick={() => void handleApply()}>
-              Usar a faixa {result.band}
+              Usar a faixa {effectivePlacementBand(result.band)}
             </button>
             <button
               type="button"

@@ -87,10 +87,30 @@ export type PlacementResultRecord = {
 // Marcos do app que não pertencem ao perfil nem aos planos. Hoje só guarda a
 // conclusão do funil de onboarding (primeira vez): uma vez definido, o app
 // abre direto no Hoje e a aprovação diária volta a ser a dobra dentro do Hoje.
+//
+// adoptedAt é WRITE-ONCE e entra no backup (sobrevive a restore). QUANDO o sync
+// for ligado (D9), o merge de appMeta DEVE preservar min(adoptedAt) — o LWW
+// atual por updatedAt poderia sobrescrevê-lo; sync está desligado hoje.
 export type AppMetaRecord = {
   id: 'app';
   onboardingCompletedAt?: string;
+  // Carimbo de adoção (1ª abertura do app). Write-once: lê/existe -> nunca
+  // reescreve. Alimenta o estimador de eficácia (DiD) no futuro.
+  adoptedAt?: string;
+  // Flag opt-in da captura mínima de erros (log local exportável). Default
+  // ausente = desligado.
+  errorCaptureEnabled?: boolean;
   updatedAt: string;
+};
+
+// Log mínimo de erros (opt-in, local, exportável). Não entra no backup
+// principal — tem export dedicado ("Exportar erros") na Config.
+export type ErrorLogRecord = {
+  id?: number;
+  at: string;
+  kind: 'error' | 'unhandledrejection';
+  message: string;
+  stack?: string;
 };
 
 export class TutorDatabase extends Dexie {
@@ -110,6 +130,7 @@ export class TutorDatabase extends Dexie {
   achievements!: Table<AchievementRecord, string>;
   placementResults!: Table<PlacementResultRecord, string>;
   appMeta!: Table<AppMetaRecord, string>;
+  errorLog!: Table<ErrorLogRecord, number>;
 
   constructor(name: string = storageDatabaseName) {
     super(name);
@@ -193,6 +214,27 @@ export class TutorDatabase extends Dexie {
     // Marco do funil de onboarding (primeira vez). Registro unico 'app'.
     this.version(11).stores({
       appMeta: 'id',
+    });
+
+    // Carimbo de adoção (Fase 1): backfill do registro 'app' existente. Se houver
+    // registro e adoptedAt ausente, usa onboardingCompletedAt como melhor proxy
+    // de "quando o usuário adotou o app". NUNCA seta para "agora" — isso falsearia
+    // a data de quem já usava. Usuário sem onboarding concluído fica sem adoptedAt
+    // (undefined); captureAdoption() na init carimba a 1ª abertura daqui em diante.
+    this.version(12).upgrade(async (transaction) => {
+      await transaction
+        .table('appMeta')
+        .toCollection()
+        .modify((record: Partial<AppMetaRecord>) => {
+          if (record.adoptedAt === undefined && record.onboardingCompletedAt !== undefined) {
+            record.adoptedAt = record.onboardingCompletedAt;
+          }
+        });
+    });
+
+    // Log mínimo de erros (opt-in, Fase 1). Tabela nova; nenhum backfill.
+    this.version(13).stores({
+      errorLog: '++id, at',
     });
   }
 }
