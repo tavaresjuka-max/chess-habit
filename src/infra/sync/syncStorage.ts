@@ -12,6 +12,7 @@ import {
   type PlanRecord,
   type ProfileRecord,
   type SignalRecord,
+  type SyncStateRecord,
   type WeaknessRecord,
 } from '../storage/db';
 import type { EncryptedBlob } from './crypto';
@@ -19,6 +20,7 @@ import {
   mergeSyncRecords,
   pullRecordMutations,
   pushRecordMutations,
+  SYNCABLE_COLLECTIONS,
   type SyncRecord,
   type SyncRecordMutation,
   type SyncableCollection,
@@ -27,6 +29,13 @@ import type { SyncClient } from './syncClient';
 
 export interface SyncCollectionInput {
   readonly collection: SyncableCollection;
+  readonly passphrase: string;
+  readonly canary: EncryptedBlob;
+  readonly client: SyncClient;
+  readonly iterations?: number;
+}
+
+export interface FlushPendingPushesInput {
   readonly passphrase: string;
   readonly canary: EncryptedBlob;
   readonly client: SyncClient;
@@ -42,6 +51,40 @@ export type SyncCollectionResult =
       readonly pushed: number;
     }
   | { readonly ok: false; readonly reason: 'wrong-passphrase' };
+
+// ── Helpers de estado local de sync ─────────────────────────────────────────
+
+/** Lê o registro de estado de sync para uma coleção (undefined se inexistente). */
+export async function loadSyncState(collection: string): Promise<SyncStateRecord | undefined> {
+  return db.syncState.get(collection);
+}
+
+/**
+ * Persiste pendingPush para a coleção.
+ * Quando pendingPush=false, grava também lastSyncedAt (timestamp ISO).
+ * Quando pendingPush=true, preserva lastSyncedAt anterior (não limpa).
+ */
+export async function setPendingPush(
+  collection: string,
+  pendingPush: boolean,
+  lastSyncedAt?: string,
+): Promise<void> {
+  if (pendingPush) {
+    // Mantém lastSyncedAt anterior; só atualiza o flag.
+    const existing = await db.syncState.get(collection);
+    await db.syncState.put({
+      collection,
+      pendingPush: true,
+      lastSyncedAt: existing?.lastSyncedAt,
+    });
+  } else {
+    await db.syncState.put({
+      collection,
+      pendingPush: false,
+      lastSyncedAt,
+    });
+  }
+}
 
 export async function loadSyncRecords(collection: SyncableCollection): Promise<SyncRecord[]> {
   switch (collection) {
@@ -139,6 +182,12 @@ export async function syncCollectionOnce(input: SyncCollectionInput): Promise<Sy
   }
 
   const merged = await mergeRemoteMutationsIntoStorage(input.collection, pulled.mutations);
+
+  // Marca pendingPush ANTES do push: se o processo for interrompido (crash,
+  // kill em background) entre aqui e o fim do push, flushPendingPushes pode
+  // re-empurrar na próxima sessão.
+  await setPendingPush(input.collection, true);
+
   await pushRecordMutations({
     passphrase: input.passphrase,
     canary: input.canary,
@@ -148,6 +197,9 @@ export async function syncCollectionOnce(input: SyncCollectionInput): Promise<Sy
     iterations: input.iterations,
   });
 
+  // Push concluído com sucesso: limpa a flag e registra o horário.
+  await setPendingPush(input.collection, false, new Date().toISOString());
+
   return {
     ok: true,
     pulled: pulled.mutations.length,
@@ -155,6 +207,41 @@ export async function syncCollectionOnce(input: SyncCollectionInput): Promise<Sy
     skipped: merged.skipped,
     pushed: merged.records.length,
   };
+}
+
+/**
+ * Re-empurra todas as coleções que ficaram com pendingPush=true (interrupção
+ * anterior). Idempotente: pushRecordMutations usa clientMutationId para evitar
+ * duplicatas no backend.
+ *
+ * Não falha tudo se uma coleção falhar — registra e continua.
+ * Retorna o número de coleções que foram re-enviadas com sucesso.
+ */
+export async function flushPendingPushes(input: FlushPendingPushesInput): Promise<number> {
+  let flushed = 0;
+
+  for (const collection of SYNCABLE_COLLECTIONS) {
+    const state = await db.syncState.get(collection);
+    if (!state?.pendingPush) continue;
+
+    try {
+      const records = await loadSyncRecords(collection);
+      await pushRecordMutations({
+        passphrase: input.passphrase,
+        canary: input.canary,
+        client: input.client,
+        collection,
+        records,
+        iterations: input.iterations,
+      });
+      await setPendingPush(collection, false, new Date().toISOString());
+      flushed += 1;
+    } catch {
+      // Mantém pendingPush=true; será retentado na próxima chamada.
+    }
+  }
+
+  return flushed;
 }
 
 type SyncRecordTable =
