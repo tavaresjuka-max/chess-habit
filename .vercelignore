@@ -1,0 +1,23 @@
+# O que o deploy do app NÃO precisa (o app servido é o Vite build -> dist/).
+# Mantém src/, public/, index.html, vite/tsconfig, package.json. Exclui o resto
+# para o contexto de deploy ficar leve e não subir artefatos de pesquisa.
+
+# Artefatos de pesquisa / geração de imagens / prints (pesados, não-app)
+output/
+entrega/
+screenshots/
+LIVROS XADREZ PARA CONSULTA/
+.superpowers/
+
+# Testes e relatórios
+test-results/
+playwright-report/
+coverage/
+
+# Docs e backend (o worker Cloudflare faz deploy separado via wrangler)
+docs/
+backend/
+
+# Logs locais
+dev-server*.log
+preview-server*.log
