@@ -49,6 +49,14 @@ com union por id. **(Gate item D.)**
 - `clientMutationId` inclui hash do registro → o backend acumula 1 blob por ESTADO de cada entidade
   (cresce sem limite). **Compactação** (manter só o mais recente por entidade) precisa ser desenhada com
   cuidado (apagar o blob errado = perda). **(Gate item E.)**
+  - **BLOQUEADOR achado 2026-06-28 (revisão Opus):** a compactação tentada agrupa por
+    `collection:stableHash(entityId)`, mas `stableHash` é djb2 de **32 bits** (src/infra/sync/syncRecords.ts)
+    e, sob E2EE, o backend NÃO vê o `entityId` real — só o hash. Duas entidades que colidam no hash de 32b
+    seriam agrupadas e a mais antiga apagada = **perda silenciosa** (~0,01% a milhares de entidades por
+    coleção/usuário). Os testes passam (não exercitam colisão). Logo: **NÃO compactar** antes de trocar a
+    chave de entidade por uma resistente a colisão (ex.: hash forte truncado ≥128b no `clientMutationId`,
+    mudança coordenada cliente+backend + migração) OU adotar retenção por TTL em vez de compactação por
+    entidade. Compactação não é urgente (sync desligado, escala de beta).
 - **userId (D7):** em M13 (OAuth Lichess) o userId será o username Lichess — linkável. Hashear
   (HMAC-SHA256 com segredo server-side) antes de usar como chave do D1. **(Gate item F.)**
 
