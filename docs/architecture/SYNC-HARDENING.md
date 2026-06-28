@@ -67,4 +67,17 @@ com union por id. **(Gate item D.)**
 - **Backend `DELETE /blobs`** (direito de exclusão — D4 / privacidade / AGPL): apaga todos os blobs do
   userId autenticado.
 
+## Adjudicação 2026-06-28 (re-council A+B; GLM 5.2 respondeu, DeepSeek fora)
+- **B é PRÉ-REQUISITO de A**, não alternativa: sem relógio causal (HLC/vetor de versões), o replay de
+  eventos do A fica ambiguamente ordenado entre devices.
+- **HLC NÃO resolve clock-skew** — só corrige inversão causal. Além disso o backend ordena por `updatedAt`
+  NUMÉRICO e não distinguiria dois HLCs com mesmo wall-ms/counter diferente → descartaria um. SM-2 é cadeia
+  de Markov não-comutativa: replay sem relógio causal diverge e pode descartar o review MAIS RECENTE real.
+- **Veredito: A e B são over-engineering (YAGNI) para a escala atual** (beta pessoal, 1 usuário / 2-3
+  devices NTP, sync OFF). Caminho correto: **ligar o sync e MEDIR conflitos reais primeiro**; só então
+  decidir A/B. Mitigação barata no meio-tempo (quando o sync ligar): **aviso de clock-skew + tiebreak
+  estável por deviceId** — não muda o contrato do backend. (O tiebreak atual por `canonicalJson` já é
+  determinístico/convergente; deviceId é refinamento, não correção.)
+- Itens D, E (com chave resistente a colisão), F (M13) seguem válidos como gate, sem urgência.
+
 ## Itens A–F continuam GATE. Não ligar `SYNC_UI_ENABLED` antes deles.
