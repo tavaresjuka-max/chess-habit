@@ -38,6 +38,15 @@ function fillMinimalAnswers() {
   selectRadio('placement-endgames', 'nao-sei-mate-simples');
 }
 
+/** Respostas que produzem uma faixa elegível ao beta (400-800), p/ testar a UI
+ * de calibração — que hoje só aparece para 400-800/800-1000/1000-1200. */
+function fillEligibleAnswers() {
+  // sei-as-regras (300) + reconheco-basicos (100) + nao-sei-mate-simples (0) = 400 -> 400-800.
+  selectRadio('placement-experience', 'sei-as-regras');
+  selectRadio('placement-tactics', 'reconheco-basicos');
+  selectRadio('placement-endgames', 'nao-sei-mate-simples');
+}
+
 describe('PlacementCard — tela inicial (idle)', () => {
   it('exibe o título e a faixa atual', () => {
     renderCard();
@@ -139,12 +148,12 @@ describe('PlacementCard — resultado (perfil iniciante sem rating)', () => {
     onApplyBand.mockClear();
     renderCard();
     startQuestionnaire();
-    fillMinimalAnswers();
+    fillEligibleAnswers();
     fireEvent.click(screen.getByRole('button', { name: /Ver sugestão de faixa/i }));
   });
 
   it('exibe sugestão de faixa com nível de confiança', () => {
-    // Sem rating + respostas mínimas → banda 0-400 (score ~150) confiança baixa
+    // Sem rating + respostas elegíveis -> banda 400-800 (score 400) confiança baixa
     expect(screen.getByText(/Sugestão: começar na faixa/i)).toBeInTheDocument();
     expect(screen.getByText(/confiança baixa/i)).toBeInTheDocument();
   });
@@ -174,7 +183,7 @@ describe('PlacementCard — resultado (perfil iniciante sem rating)', () => {
 
     const arg = onApplyBand.mock.calls[0]?.[0];
     expect(arg).toBeDefined();
-    expect(arg?.band).toBe('0-400');
+    expect(arg?.band).toBe('400-800');
     expect(arg?.calibrated).toBe(false);
     expect(arg?.confidence).toBe('low');
   });
@@ -190,7 +199,7 @@ describe('PlacementCard — resultado com calibração (autorrelato)', () => {
     onApplyBand.mockClear();
     renderCard();
     startQuestionnaire();
-    fillMinimalAnswers();
+    fillEligibleAnswers();
     fireEvent.click(screen.getByRole('button', { name: /Ver sugestão de faixa/i }));
   });
 
@@ -211,6 +220,80 @@ describe('PlacementCard — resultado com calibração (autorrelato)', () => {
 
     const arg = onApplyBand.mock.calls[0]?.[0];
     expect(arg?.calibrated).toBe(true);
+  });
+});
+
+describe('PlacementCard — orientação 0-400 (iniciante absoluto, Fase 1 ITEM 3)', () => {
+  beforeEach(() => {
+    onApplyBand.mockClear();
+    renderCard();
+    startQuestionnaire();
+    fillMinimalAnswers(); // nunca-joguei + nao-sei-nomear + nao-sei-mate-simples -> 0-400
+    fireEvent.click(screen.getByRole('button', { name: /Ver sugestão de faixa/i }));
+  });
+
+  it('mostra a orientação acolhedorora em vez do CTA de puzzles', () => {
+    expect(screen.getByText(/Você está começando do zero — perfeito/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Aprender no Lichess/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Jogar no Lichess/i })).toBeInTheDocument();
+  });
+
+  it('NÃO mostra o CTA de puzzles de calibração para o iniciante absoluto', () => {
+    expect(screen.queryByRole('button', { name: /Abrir puzzles de calibração/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Usar a faixa/i })).not.toBeInTheDocument();
+  });
+
+  it('o botão "Aprender no Lichess" aponta para o Lichess Learn', () => {
+    // O handler real chama window.open; só verificamos que o botão existe e é
+    // acionável (o link é construído no onClick, não em href).
+    expect(screen.getByRole('button', { name: /Aprender no Lichess/i })).toBeInTheDocument();
+  });
+});
+
+describe('PlacementCard — clamp beta 1200+ (Fase 1 ITEM 2)', () => {
+  beforeEach(() => {
+    onApplyBand.mockClear();
+  });
+
+  it('mostra aviso honesto e clampa para 1000-1200 quando o nível é 1200+', async () => {
+    renderCard();
+    startQuestionnaire();
+    fillMinimalAnswers();
+
+    // Rating alto -> estimate ~1305 -> banda 1200-1600 (acima do beta).
+    const ratingInput = screen.getByPlaceholderText(/ex.: 850/i);
+    fireEvent.change(ratingInput, { target: { value: '1800' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Ver sugestão de faixa/i }));
+
+    // Aviso honesto visível (não silencioso).
+    expect(screen.getByText(/conteúdo denso acima de 1200/i)).toBeInTheDocument();
+    // Sugestão clampa para 1000-1200 (botão "Usar a faixa" mostra a faixa efetiva).
+    expect(screen.getByRole('button', { name: /Usar a faixa 1000-1200/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Usar a faixa/i }));
+
+    await vi.waitFor(() => {
+      expect(onApplyBand).toHaveBeenCalledTimes(1);
+    });
+
+    const arg = onApplyBand.mock.calls[0]?.[0];
+    expect(arg?.band).toBe('1000-1200');
+  });
+
+  it('NÃO mostra o CTA de puzzles de calibração quando clampa (1200+)', () => {
+    renderCard();
+    startQuestionnaire();
+    fillMinimalAnswers();
+
+    const ratingInput = screen.getByPlaceholderText(/ex.: 850/i);
+    fireEvent.change(ratingInput, { target: { value: '1900' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Ver sugestão de faixa/i }));
+
+    expect(screen.queryByRole('button', { name: /Abrir puzzles de calibração/i })).not.toBeInTheDocument();
   });
 });
 
@@ -259,7 +342,7 @@ describe('PlacementCard — caminho com rating conhecido', () => {
   it('ignora rating inválido (letras) e cai no caminho sem rating', () => {
     renderCard();
     startQuestionnaire();
-    fillMinimalAnswers();
+    fillEligibleAnswers();
 
     const ratingInput = screen.getByPlaceholderText(/ex.: 850/i);
     fireEvent.change(ratingInput, { target: { value: 'abc' } });
@@ -272,7 +355,7 @@ describe('PlacementCard — caminho com rating conhecido', () => {
   it('ignora rating zero e cai no caminho sem rating', () => {
     renderCard();
     startQuestionnaire();
-    fillMinimalAnswers();
+    fillEligibleAnswers();
 
     const ratingInput = screen.getByPlaceholderText(/ex.: 850/i);
     fireEvent.change(ratingInput, { target: { value: '0' } });

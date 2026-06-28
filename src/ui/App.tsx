@@ -376,6 +376,9 @@ export function App() {
               onExport={appState.exportBackup}
               onImportBackup={appState.importBackup}
               onClear={appState.clearAllData}
+              errorCaptureEnabled={appState.errorCaptureEnabled}
+              onToggleErrorCapture={appState.setErrorCapture}
+              onExportErrorLog={appState.exportErrorLog}
             />
           </Suspense>
         ) : shouldShowProgress ? (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   buildLearningPlanProposal,
-  learnerBands,
+  betaEligibleBands,
   type DailyPlan,
   type LearnerBand,
   type LearnerProfile,
@@ -211,7 +211,7 @@ function AccountsStep({
               setBand(event.target.value as LearnerBand);
             }}
           >
-            {learnerBands.map((bandOption) => (
+            {betaEligibleBands.map((bandOption) => (
               <option key={bandOption} value={bandOption}>
                 {bandOption}
               </option>

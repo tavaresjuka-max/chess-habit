@@ -24,9 +24,11 @@ import {
   getLatestPlanBefore,
   getLichessStudyLink,
   getPlan,
+  captureAdoption,
   loadAutoBackupConfig,
   loadBackupMeta,
   loadDiplomaAttempts,
+  loadErrorCaptureEnabled,
   loadLichessOAuthToken,
   loadOnboardingCompletedAt,
   loadOpenPendingItems,
@@ -88,6 +90,7 @@ export function useAppData() {
   );
   const [autoBackupFileName, setAutoBackupFileName] = useState<string | undefined>(undefined);
   const [onboardingCompletedAt, setOnboardingCompletedAt] = useState<string | undefined>(undefined);
+  const [errorCaptureEnabled, setErrorCaptureEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -98,10 +101,17 @@ export function useAppData() {
         const storedBackupMeta = await loadBackupMeta();
         const storedOnboardingCompletedAt = await loadOnboardingCompletedAt();
 
+        // Carimbo de adoção write-once: grava a 1ª abertura UMA vez. Usuário
+        // antigo (já com onboarding) já veio com adoptedAt via migration v12;
+        // usuário novo é carimbado aqui. Idempotente (write-once).
+        await captureAdoption();
+        const storedErrorCaptureEnabled = await loadErrorCaptureEnabled();
+
         if (isMounted) {
           setStoragePersistence(persistenceStatus);
           setBackupMeta(storedBackupMeta);
           setOnboardingCompletedAt(storedOnboardingCompletedAt);
+          setErrorCaptureEnabled(storedErrorCaptureEnabled);
         }
 
         // Backup automatico: grava na abertura do app, somente com dados presentes
@@ -304,5 +314,7 @@ export function useAppData() {
     setAutoBackupFileName,
     onboardingCompletedAt,
     setOnboardingCompletedAt,
+    errorCaptureEnabled,
+    setErrorCaptureEnabled,
   };
 }

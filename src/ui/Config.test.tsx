@@ -553,6 +553,63 @@ describe('Config — autoBackupStatus', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Error capture toggle (Fase 1 ITEM 4)
+// ---------------------------------------------------------------------------
+
+describe('Config — captura de erros (toggle + export)', () => {
+  it('mostra o checkbox desligado por padrão e sem botão "Exportar erros"', () => {
+    render(<Config {...makeProps()} />);
+    openFold('Dados locais');
+
+    const checkbox = screen.getByRole('checkbox', { name: /Registrar relatórios de erro/i });
+
+    expect(checkbox).not.toBeChecked();
+    expect(screen.queryByRole('button', { name: 'Exportar erros' })).not.toBeInTheDocument();
+  });
+
+  it('liga o toggle e chama onToggleErrorCapture(true)', async () => {
+    const onToggleErrorCapture = vi.fn(() => Promise.resolve());
+    render(<Config {...makeProps({ onToggleErrorCapture })} />);
+    openFold('Dados locais');
+
+    const checkbox = screen.getByRole('checkbox', { name: /Registrar relatórios de erro/i });
+    fireEvent.click(checkbox);
+    await flushPromises();
+
+    expect(onToggleErrorCapture).toHaveBeenCalledTimes(1);
+    expect(onToggleErrorCapture).toHaveBeenCalledWith(true);
+  });
+
+  it('desliga o toggle quando já vem ligado e chama onToggleErrorCapture(false)', async () => {
+    const onToggleErrorCapture = vi.fn(() => Promise.resolve());
+    render(<Config {...makeProps({ errorCaptureEnabled: true, onToggleErrorCapture })} />);
+    openFold('Dados locais');
+
+    const checkbox = screen.getByRole('checkbox', { name: /Registrar relatórios de erro/i });
+    expect(checkbox).toBeChecked();
+    fireEvent.click(checkbox);
+    await flushPromises();
+
+    expect(onToggleErrorCapture).toHaveBeenCalledWith(false);
+  });
+
+  it('mostra e dispara "Exportar erros" quando o toggle está ligado', async () => {
+    const onExportErrorLog = vi.fn(() => Promise.resolve('{"format":"lichess-tutor-errorlog"}'));
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
+    vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
+
+    render(<Config {...makeProps({ errorCaptureEnabled: true, onExportErrorLog })} />);
+    openFold('Dados locais');
+
+    const btn = screen.getByRole('button', { name: 'Exportar erros' });
+    fireEvent.click(btn);
+    await flushPromises();
+
+    expect(onExportErrorLog).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // formatBackupMeta — invalid date branch (line 411-412)
 // ---------------------------------------------------------------------------
 

@@ -20,6 +20,7 @@ import {
   type BackupMetaRecord,
   type DiplomaAttemptRecord,
   type AppMetaRecord,
+  type ErrorLogRecord,
   type LearningLogRecord,
   type LichessOAuthTokenRecord,
   type LichessStudyLinkRecord,
@@ -408,8 +409,151 @@ export async function loadOnboardingCompletedAt(): Promise<string | undefined> {
   return record?.onboardingCompletedAt;
 }
 
+// read-merge-put em appMeta: NUNCA um put cego. markOnboardingCompleted antes
+// fazia db.appMeta.put({ id:'app', onboardingCompletedAt, updatedAt }) — isso
+// substituía o registro inteiro e APAGAVA adoptedAt/errorCaptureEnabled. Agora
+// lê, funde preservando os campos existentes e só então grava.
 export async function markOnboardingCompleted(nowIso = new Date().toISOString()): Promise<void> {
-  await db.appMeta.put({ id: 'app', onboardingCompletedAt: nowIso, updatedAt: nowIso });
+  const existing = await db.appMeta.get('app');
+
+  await db.appMeta.put({
+    id: 'app',
+    ...(existing ?? {}),
+    onboardingCompletedAt: nowIso,
+    updatedAt: nowIso,
+  });
+}
+
+// adoptedAt é WRITE-ONCE: lê o registro 'app'; se já tem adoptedAt, retorna sem
+// reescrever (idempotente); senão grava PRESERVANDO onboardingCompletedAt e
+// errorCaptureEnabled (read-merge-put, nunca put cego).
+export async function loadAdoptedAt(): Promise<string | undefined> {
+  const record = await db.appMeta.get('app');
+
+  return record?.adoptedAt;
+}
+
+export async function captureAdoption(nowIso = new Date().toISOString()): Promise<void> {
+  const existing = await db.appMeta.get('app');
+
+  if (existing?.adoptedAt !== undefined) {
+    return;
+  }
+
+  await db.appMeta.put({
+    id: 'app',
+    ...(existing ?? {}),
+    adoptedAt: nowIso,
+    updatedAt: nowIso,
+  });
+}
+
+// --- Captura mínima de erros (opt-in, Fase 1) -------------------------------
+// Flag opt-in: default ausente = desligado. read-merge-put preserva
+// adoptedAt/onboardingCompletedAt ao ligar/desligar.
+export async function loadErrorCaptureEnabled(): Promise<boolean> {
+  const record = await db.appMeta.get('app');
+
+  return record?.errorCaptureEnabled === true;
+}
+
+export async function setErrorCaptureEnabled(
+  enabled: boolean,
+  nowIso = new Date().toISOString(),
+): Promise<void> {
+  const existing = await db.appMeta.get('app');
+
+  await db.appMeta.put({
+    id: 'app',
+    ...(existing ?? {}),
+    errorCaptureEnabled: enabled,
+    updatedAt: nowIso,
+  });
+}
+
+export const errorLogCap = 100;
+
+export type ErrorLogEntry = {
+  kind: 'error' | 'unhandledrejection';
+  message: string;
+  stack?: string;
+};
+
+// Grava uma entrada no errorLog e mantém só as últimas `errorLogCap` (descarta
+// as mais antigas pelo id auto-incremento, que é monotônico).
+export async function appendErrorLog(
+  entry: ErrorLogEntry,
+  nowIso = new Date().toISOString(),
+): Promise<number | undefined> {
+  const record: ErrorLogRecord = {
+    at: nowIso,
+    kind: entry.kind,
+    message: entry.message,
+    ...(entry.stack === undefined ? {} : { stack: entry.stack }),
+  };
+  const id = await db.errorLog.add(record);
+  const count = await db.errorLog.count();
+
+  if (count > errorLogCap) {
+    const overflow = count - errorLogCap;
+    // toCollection() itera em ordem de chave primária (id ascendente); os
+    // primeiros são os mais antigos.
+    const oldestKeys = await db.errorLog.toCollection().limit(overflow).primaryKeys();
+
+    await db.errorLog.bulkDelete(oldestKeys);
+  }
+
+  return id;
+}
+
+// Ponto de entrada dos handlers globais (main.tsx). Verifica a flag opt-in e só
+// então grava. Tudo envolvido em try/catch: falha de gravação NUNCA pode quebrar
+// o app (erro dentro de handler de erro = dupla falha silenciosa).
+export async function recordGlobalError(
+  entry: ErrorLogEntry,
+  nowIso = new Date().toISOString(),
+): Promise<void> {
+  try {
+    const enabled = await loadErrorCaptureEnabled();
+
+    if (!enabled) {
+      return;
+    }
+
+    await appendErrorLog(entry, nowIso);
+  } catch {
+    // Silencioso de propósito (ver acima).
+  }
+}
+
+export async function loadErrorLog(): Promise<ErrorLogRecord[]> {
+  return db.errorLog.orderBy('at').toArray();
+}
+
+export type ErrorLogExport = {
+  format: 'lichess-tutor-errorlog';
+  version: 1;
+  exportedAt: string;
+  records: ErrorLogRecord[];
+};
+
+export async function exportErrorLogAsJson(nowIso = new Date().toISOString()): Promise<string> {
+  const records = await loadErrorLog();
+
+  return JSON.stringify(
+    {
+      format: 'lichess-tutor-errorlog',
+      version: 1,
+      exportedAt: nowIso,
+      records,
+    } satisfies ErrorLogExport,
+    null,
+    2,
+  );
+}
+
+export async function clearErrorLog(): Promise<void> {
+  await db.errorLog.clear();
 }
 
 export async function loadAutoBackupConfig(): Promise<AutoBackupConfigRecord | undefined> {
@@ -544,6 +688,7 @@ export async function clearAll(): Promise<void> {
       db.achievements,
       db.placementResults,
       db.appMeta,
+      db.errorLog,
     ],
     async () => {
       await db.profile.clear();
@@ -560,6 +705,7 @@ export async function clearAll(): Promise<void> {
       await db.achievements.clear();
       await db.placementResults.clear();
       await db.appMeta.clear();
+      await db.errorLog.clear();
       await db.backupMeta.clear();
       // Apagar tudo desliga o backup automatico: sem isso, a proxima abertura
       // gravaria um backup vazio por cima do arquivo bom do usuario.

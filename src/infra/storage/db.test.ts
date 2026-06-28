@@ -30,6 +30,15 @@ const V7_STORES: Record<string, string> = {
   weaknesses: 'id, tag, confidence, updatedAt',
 };
 
+// Schema cumulativo até v11 (acrescenta achievements v9, placementResults v10,
+// appMeta v11). Usado para testar a migration v12 (backfill de adoptedAt).
+const V11_STORES: Record<string, string> = {
+  ...V7_STORES,
+  achievements: 'id, unlockedAt, updatedAt',
+  placementResults: 'id, updatedAt',
+  appMeta: 'id',
+};
+
 const createdDbs: string[] = [];
 
 async function seedLegacyDb(
@@ -226,6 +235,58 @@ describe('migração Dexie v8 — migrateLegacyBand', () => {
       // Sem band no input, a migração pula silenciosamente (typeof !== 'string').
       expect(profile?.band).toBeUndefined();
       expect(profile?.defaultSessionMinutes).toBe(15);
+    } finally {
+      upgraded.close();
+    }
+  });
+});
+
+describe('migração Dexie v12 — backfill de adoptedAt (Fase 1, write-once)', () => {
+  it('copia onboardingCompletedAt para adoptedAt quando adoptedAt ausente (v11 -> v13)', async () => {
+    const name = 'migracao-test-v12-backfill';
+
+    await seedLegacyDb(name, 11, V11_STORES, async (legacy) => {
+      await legacy.table('appMeta').put({
+        id: 'app',
+        onboardingCompletedAt: '2026-03-01T08:00:00.000Z',
+        updatedAt: '2026-03-01T08:00:00.000Z',
+      });
+    });
+
+    const upgraded = new TutorDatabase(name);
+    await upgraded.open();
+
+    try {
+      const app = await upgraded.appMeta.get('app');
+
+      // adoptedAt recebe o melhor proxy (onboardingCompletedAt), NUNca "agora".
+      expect(app?.adoptedAt).toBe('2026-03-01T08:00:00.000Z');
+      expect(app?.onboardingCompletedAt).toBe('2026-03-01T08:00:00.000Z');
+    } finally {
+      upgraded.close();
+    }
+  });
+
+  it('NÃO sobrescreve adoptedAt já existente nem inventa data quando onboarding ausente', async () => {
+    const name = 'migracao-test-v12-preserva';
+
+    await seedLegacyDb(name, 11, V11_STORES, async (legacy) => {
+      // Registro sem onboardingCompletedAt: adoptedAt fica undefined (não falseia).
+      await legacy.table('appMeta').put({
+        id: 'app',
+        updatedAt: '2026-03-01T08:00:00.000Z',
+        adoptedAt: '2026-02-01T00:00:00.000Z',
+      });
+    });
+
+    const upgraded = new TutorDatabase(name);
+    await upgraded.open();
+
+    try {
+      const app = await upgraded.appMeta.get('app');
+
+      expect(app?.adoptedAt).toBe('2026-02-01T00:00:00.000Z');
+      expect(app?.onboardingCompletedAt).toBeUndefined();
     } finally {
       upgraded.close();
     }
