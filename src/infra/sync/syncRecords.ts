@@ -166,6 +166,8 @@ export async function pullRecordMutations(
  *   - adoptedAt: min (mais antigo não-nulo) — write-once, nunca apaga se algum lado tem.
  *   - onboardingCompletedAt: min não-nulo — mesma lógica de write-once.
  *   - errorCaptureEnabled: do registro com updatedAt mais recente (preferência = quem decidiu por último).
+ *   - consentedAt: min não-nulo — write-once, igual adoptedAt. O consentimento mais antigo prevalece.
+ *   - researchOptIn: do registro com updatedAt mais recente (toggle, igual errorCaptureEnabled).
  *   - updatedAt: max.
  *   - id: sempre 'app'.
  */
@@ -198,14 +200,30 @@ export function mergeAppMetaRecords(local: SyncRecord, remote: SyncRecord): Sync
     onboardingCompletedAt = localOCA ?? remoteOCA;
   }
 
-  // errorCaptureEnabled — do registro com updatedAt mais recente
+  // consentedAt — write-once: mais antigo não-nulo (igual adoptedAt)
+  const localConsentedAt = readOptionalString(local, 'consentedAt');
+  const remoteConsentedAt = readOptionalString(remote, 'consentedAt');
+  let consentedAt: string | undefined;
+  if (localConsentedAt !== undefined && remoteConsentedAt !== undefined) {
+    consentedAt =
+      toEpochMs(localConsentedAt) <= toEpochMs(remoteConsentedAt)
+        ? localConsentedAt
+        : remoteConsentedAt;
+  } else {
+    consentedAt = localConsentedAt ?? remoteConsentedAt;
+  }
+
+  // errorCaptureEnabled e researchOptIn — do registro com updatedAt mais recente
   const newerRecord = remoteMs > localMs ? remote : local;
   const errorCaptureEnabled = newerRecord['errorCaptureEnabled'];
+  const researchOptIn = newerRecord['researchOptIn'];
 
   const merged: Record<string, unknown> = { id: 'app', updatedAt };
   if (adoptedAt !== undefined) merged['adoptedAt'] = adoptedAt;
   if (onboardingCompletedAt !== undefined) merged['onboardingCompletedAt'] = onboardingCompletedAt;
+  if (consentedAt !== undefined) merged['consentedAt'] = consentedAt;
   if (errorCaptureEnabled !== undefined) merged['errorCaptureEnabled'] = errorCaptureEnabled;
+  if (researchOptIn !== undefined) merged['researchOptIn'] = researchOptIn;
 
   return merged;
 }

@@ -20,13 +20,19 @@ import { Today } from './Today';
 // Fase do funil de primeira vez. Fica em sessionStorage para sobreviver ao
 // redirect do OAuth do Lichess (que recarrega o app): ao voltar conectado,
 // retomamos direto na tela "Importando" em vez de reiniciar o funil.
-type FunnelPhase = 'welcome' | 'accounts' | 'importing' | 'questions' | 'plan';
+type FunnelPhase = 'welcome' | 'consent' | 'accounts' | 'importing' | 'questions' | 'plan';
 const ONBOARDING_PHASE_KEY = 'rotina:onboarding-phase';
 
 function readStoredFunnelPhase(): FunnelPhase | undefined {
   try {
     const stored = sessionStorage.getItem(ONBOARDING_PHASE_KEY);
-    if (stored === 'accounts' || stored === 'importing' || stored === 'questions' || stored === 'plan') {
+    if (
+      stored === 'consent' ||
+      stored === 'accounts' ||
+      stored === 'importing' ||
+      stored === 'questions' ||
+      stored === 'plan'
+    ) {
       return stored;
     }
   } catch {
@@ -138,17 +144,21 @@ export function App() {
     (appState.profile.lichessUsername ?? '').trim() === '' &&
     (appState.profile.chesscomUsername ?? '').trim() === '' &&
     !appState.achievements.some((achievement) => achievement.id === 'calibrado');
-  // Sem perfil: só boas-vindas ou o formulário de contas. Com perfil: a fase
-  // guiada (importando/avaliação/plano); 'welcome' aqui é um usuário migrado
-  // sem fase salva — mostramos o plano para aprovar.
+  // Sem perfil: boas-vindas, consentimento ou o formulário de contas. Com
+  // perfil: a fase guiada (importando/avaliação/plano); 'welcome' aqui é um
+  // usuário migrado sem fase salva — mostramos o plano para aprovar.
   const onboardingStep: OnboardingStep =
     appState.profile === undefined
-      ? funnelPhase === 'accounts'
-        ? 'accounts'
-        : 'welcome'
+      ? funnelPhase === 'consent'
+        ? 'consent'
+        : funnelPhase === 'accounts'
+          ? 'accounts'
+          : 'welcome'
       : funnelPhase === 'welcome'
         ? 'plan'
-        : funnelPhase;
+        : funnelPhase === 'consent'
+          ? 'consent'
+          : funnelPhase;
 
   // Marca a conclusão quando perfil existe e o plano foi aprovado (fim do funil
   // ou migração de usuário antigo). Persiste para reabrir direto no Hoje e
@@ -234,9 +244,20 @@ export function App() {
           weaknesses={appState.weaknesses}
           learningPlanResponse={appState.todayPlan?.learningPlanResponse}
           onStartSetup={() => {
+            // Consentimento ANTES de coletar/usar dados: novo usuário passa por
+            // 'consent' logo após 'welcome'. Quem já consentiu pula direto.
+            setFunnelPhase(appState.consentedAt === undefined ? 'consent' : 'accounts');
+          }}
+          onAcceptConsent={async (researchOptIn) => {
+            await appState.acceptConsent(researchOptIn);
             setFunnelPhase('accounts');
           }}
           onQuickStart={async () => {
+            // "Começar rápido" também registra consentimento (opt-in por padrão);
+            // o usuário ajusta depois no fold de Privacidade da Config.
+            if (appState.consentedAt === undefined) {
+              await appState.acceptConsent(true);
+            }
             await appState.saveProfile(createDefaultProfile());
             setFunnelPhase('plan');
           }}
@@ -379,6 +400,9 @@ export function App() {
               errorCaptureEnabled={appState.errorCaptureEnabled}
               onToggleErrorCapture={appState.setErrorCapture}
               onExportErrorLog={appState.exportErrorLog}
+              {...(appState.consentedAt === undefined ? {} : { consentedAt: appState.consentedAt })}
+              {...(appState.researchOptIn === undefined ? {} : { researchOptIn: appState.researchOptIn })}
+              onToggleResearchOptIn={appState.setResearchOptIn}
             />
           </Suspense>
         ) : shouldShowProgress ? (

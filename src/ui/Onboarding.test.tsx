@@ -80,6 +80,60 @@ describe('Onboarding — step indicator', () => {
     render(<Onboarding {...makeProps({ step: 'plan' })} />);
     expect(screen.getByText('Seu plano')).toBeInTheDocument();
   });
+
+  it('labels the consent step', () => {
+    render(<Onboarding {...makeProps({ step: 'consent', onAcceptConsent: vi.fn(() => Promise.resolve()) })} />);
+    expect(screen.getByText('Privacidade')).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Consent step (Fase 3) — usuário NOVO vê a tela e o aceite persiste a escolha
+// ---------------------------------------------------------------------------
+
+describe('Onboarding — consent step', () => {
+  it('novo usuário VÊ a tela de consentimento no passo consent', () => {
+    render(<Onboarding {...makeProps({ step: 'consent', onAcceptConsent: vi.fn(() => Promise.resolve()) })} />);
+    expect(
+      screen.getByRole('heading', { name: 'Seus dados e sua privacidade' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Aceitar e continuar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('checkbox', { name: /Participar da medição de eficácia/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('aceitar com o opt-in ligado (padrão) chama onAcceptConsent(true)', async () => {
+    const onAcceptConsent = vi.fn<(researchOptIn: boolean) => Promise<void>>(() => Promise.resolve());
+    render(<Onboarding {...makeProps({ step: 'consent', onAcceptConsent })} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Aceitar e continuar' }));
+
+    await waitFor(() => {
+      expect(onAcceptConsent).toHaveBeenCalledTimes(1);
+    });
+    expect(onAcceptConsent).toHaveBeenCalledWith(true);
+  });
+
+  it('desmarcar o opt-in antes de aceitar chama onAcceptConsent(false)', async () => {
+    const onAcceptConsent = vi.fn<(researchOptIn: boolean) => Promise<void>>(() => Promise.resolve());
+    render(<Onboarding {...makeProps({ step: 'consent', onAcceptConsent })} />);
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /Participar da medição de eficácia/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Aceitar e continuar' }));
+
+    await waitFor(() => {
+      expect(onAcceptConsent).toHaveBeenCalledTimes(1);
+    });
+    expect(onAcceptConsent).toHaveBeenCalledWith(false);
+  });
+
+  it('sem onAcceptConsent o passo consent não trava (não renderiza a tela de consentimento)', () => {
+    // Robustez: testes/mocks legados sem o handler caem no próximo passo
+    // (accounts) em vez de quebrar.
+    render(<Onboarding {...makeProps({ step: 'consent' })} />);
+    expect(screen.queryByRole('heading', { name: 'Seus dados e sua privacidade' })).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

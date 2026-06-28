@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PRIVACY_SUMMARY } from '../config/appIdentity';
 
@@ -644,6 +644,116 @@ describe('App — onboardingStep mapping', () => {
     const { App } = await import('./App');
     render(<App />);
     expect(screen.queryByRole('navigation', { name: /navegação principal/i })).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// App — fiação do consentimento (Fase 3): usuário NOVO vê o passo de consent
+// ---------------------------------------------------------------------------
+describe('App — consentimento no onboarding (usuário novo)', () => {
+  const acceptConsent = vi.fn(() => Promise.resolve());
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    acceptConsent.mockClear();
+    vi.doMock('../app/state', async (importOriginal) => {
+      const original = await importOriginal<typeof import('../app/state')>();
+      return {
+        ...original,
+        useAppState: vi.fn(() => ({
+          loadState: 'ready',
+          activeView: 'today',
+          profile: undefined,
+          todayPlan: undefined,
+          roadmap: [],
+          lichessToken: undefined,
+          lichessStudyLink: undefined,
+          lichessConnectionState: 'disconnected',
+          lichessMessage: undefined,
+          sessionMinutes: 15,
+          trainingLogs: [],
+          allTrainingLogs: [],
+          pendingItems: [],
+          diplomaAttempts: [],
+          achievements: [],
+          weaknesses: [],
+          signals: [],
+          diagnosisState: 'idle',
+          diagnosisMessage: undefined,
+          errorMessage: undefined,
+          storagePersistence: undefined,
+          backupMeta: undefined,
+          autoBackupStatus: 'disabled',
+          autoBackupFileName: undefined,
+          onboardingCompletedAt: undefined,
+          // Fase 3: ainda não consentiu → deve ver o passo de consentimento.
+          consentedAt: undefined,
+          researchOptIn: undefined,
+          acceptConsent,
+          setResearchOptIn: vi.fn(() => Promise.resolve()),
+          setActiveView: vi.fn(),
+          saveProfile: vi.fn(() => Promise.resolve()),
+          completeOnboarding: vi.fn(() => Promise.resolve()),
+          runOnboardingImport: vi.fn(),
+          savePlacementResult: vi.fn(),
+          regeneratePlan: vi.fn(),
+          createNextSession: vi.fn(),
+          importKnownManualSignals: vi.fn(),
+          answerTutorQuestion: vi.fn(),
+          syncChesscomDiagnosis: vi.fn(),
+          connectLichess: vi.fn(),
+          disconnectLichess: vi.fn(),
+          syncLichessDiagnosis: vi.fn(),
+          reconcileLichessResults: vi.fn(),
+          importFreeActivity: vi.fn(),
+          createLichessStudy: vi.fn(),
+          approveLearningPlan: vi.fn(),
+          requestLearningPlanRevision: vi.fn(),
+          openPendingItem: vi.fn(),
+          deferPendingItem: vi.fn(),
+          savePendingFromHardFeedback: vi.fn(),
+          startBlockTraining: vi.fn(),
+          completeBlockTraining: vi.fn(),
+          skipBlockTraining: vi.fn(),
+          exportBackup: vi.fn(),
+          importBackup: vi.fn(),
+          clearAllData: vi.fn(),
+          enableAutoBackup: vi.fn(),
+          disableAutoBackup: vi.fn(),
+          errorCaptureEnabled: false,
+          setErrorCapture: vi.fn(() => Promise.resolve()),
+          exportErrorLog: vi.fn(() => Promise.resolve('{}')),
+        })),
+        createDefaultProfile: original.createDefaultProfile,
+      };
+    });
+  });
+
+  it('novo usuário VÊ a tela de consentimento ao escolher "Vamos configurar"', async () => {
+    const { App } = await import('./App');
+    render(<App />);
+
+    // Welcome → "Vamos configurar" leva ao passo de consentimento (antes de contas).
+    fireEvent.click(screen.getByRole('button', { name: 'Vamos configurar' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Seus dados e sua privacidade' }),
+    ).toBeInTheDocument();
+  });
+
+  it('aceitar o consentimento chama acceptConsent e segue para "Suas contas"', async () => {
+    const { App } = await import('./App');
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Vamos configurar' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Aceitar e continuar' }));
+
+    await waitFor(() => {
+      expect(acceptConsent).toHaveBeenCalledTimes(1);
+    });
+    expect(acceptConsent).toHaveBeenCalledWith(true);
+    // Após aceitar, o funil avança para o passo de contas.
+    expect(await screen.findByRole('heading', { name: 'Suas contas' })).toBeInTheDocument();
   });
 });
 

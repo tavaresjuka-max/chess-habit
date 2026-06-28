@@ -293,6 +293,88 @@ describe('mergeSyncRecords — appMeta special-merge', () => {
 
     expect(merged.records[0]).toMatchObject({ id: 'app', adoptedAt: T1, errorCaptureEnabled: true });
   });
+
+  // --- consentedAt (write-once, igual adoptedAt) ---
+
+  it('consentedAt: preserva o mais antigo entre local e remoto', () => {
+    const local = [{ id: 'app', updatedAt: T1, consentedAt: T1 }];
+    const remote = [makeAppMetaMutation({ consentedAt: T2 }, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.consentedAt).toBe(T1);
+  });
+
+  it('consentedAt: remoto com updatedAt maior mas SEM consentedAt não apaga consentedAt local', () => {
+    const local = [{ id: 'app', updatedAt: T1, consentedAt: T1 }];
+    const remote = [makeAppMetaMutation({}, T3)]; // updatedAt mais recente, sem consentedAt
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.consentedAt).toBe(T1);
+    expect(merged.records[0]?.updatedAt).toBe(T3);
+  });
+
+  it('consentedAt: quando só o remoto tem, usa o do remoto', () => {
+    const local = [{ id: 'app', updatedAt: T1 }]; // sem consentedAt
+    const remote = [makeAppMetaMutation({ consentedAt: T2 }, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.consentedAt).toBe(T2);
+  });
+
+  it('consentedAt: quando nenhum lado tem, resultado não contém o campo', () => {
+    const local = [{ id: 'app', updatedAt: T1 }];
+    const remote = [makeAppMetaMutation({}, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]).not.toHaveProperty('consentedAt');
+  });
+
+  // --- researchOptIn (toggle, igual errorCaptureEnabled) ---
+
+  it('researchOptIn: vem do registro com updatedAt mais recente (remoto mais novo)', () => {
+    const local = [{ id: 'app', updatedAt: T1, researchOptIn: true }];
+    const remote = [makeAppMetaMutation({ researchOptIn: false }, T3)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.researchOptIn).toBe(false);
+  });
+
+  it('researchOptIn: vem do registro com updatedAt mais recente (local mais novo)', () => {
+    const local = [{ id: 'app', updatedAt: T3, researchOptIn: true }];
+    const remote = [makeAppMetaMutation({ researchOptIn: false }, T1)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]?.researchOptIn).toBe(true);
+  });
+
+  it('researchOptIn: quando nenhum lado tem, resultado não contém o campo', () => {
+    const local = [{ id: 'app', updatedAt: T1 }];
+    const remote = [makeAppMetaMutation({}, T2)];
+
+    const merged = mergeSyncRecords('appMeta', local, remote);
+
+    expect(merged.records[0]).not.toHaveProperty('researchOptIn');
+  });
+
+  it('idempotência com consentedAt e researchOptIn: merge duplo produz o mesmo resultado', () => {
+    const local = [{ id: 'app', updatedAt: T1, consentedAt: T1, researchOptIn: false }];
+    const remote = [makeAppMetaMutation({ consentedAt: T2, researchOptIn: true }, T3)];
+
+    const first = mergeSyncRecords('appMeta', local, remote);
+    const second = mergeSyncRecords('appMeta', first.records, remote);
+
+    expect(second.records[0]).toEqual(first.records[0]);
+    // consentedAt write-once: preserva T1 (mais antigo)
+    expect(second.records[0]?.consentedAt).toBe(T1);
+    // researchOptIn: T3 > T1, remoto mais recente vence
+    expect(second.records[0]?.researchOptIn).toBe(true);
+  });
 });
 
 describe('round-trip E2EE por mutation', () => {

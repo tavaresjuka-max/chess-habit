@@ -27,6 +27,7 @@ import {
   captureAdoption,
   loadAutoBackupConfig,
   loadBackupMeta,
+  loadConsent,
   loadDiplomaAttempts,
   loadErrorCaptureEnabled,
   loadLichessOAuthToken,
@@ -91,6 +92,9 @@ export function useAppData() {
   const [autoBackupFileName, setAutoBackupFileName] = useState<string | undefined>(undefined);
   const [onboardingCompletedAt, setOnboardingCompletedAt] = useState<string | undefined>(undefined);
   const [errorCaptureEnabled, setErrorCaptureEnabled] = useState<boolean>(false);
+  // Consentimento informado (Fase 3). consentedAt write-once; researchOptIn toggle.
+  const [consentedAt, setConsentedAt] = useState<string | undefined>(undefined);
+  const [researchOptIn, setResearchOptIn] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
     let isMounted = true;
@@ -106,12 +110,15 @@ export function useAppData() {
         // usuário novo é carimbado aqui. Idempotente (write-once).
         await captureAdoption();
         const storedErrorCaptureEnabled = await loadErrorCaptureEnabled();
+        const storedConsent = await loadConsent();
 
         if (isMounted) {
           setStoragePersistence(persistenceStatus);
           setBackupMeta(storedBackupMeta);
           setOnboardingCompletedAt(storedOnboardingCompletedAt);
           setErrorCaptureEnabled(storedErrorCaptureEnabled);
+          setConsentedAt(storedConsent.consentedAt);
+          setResearchOptIn(storedConsent.researchOptIn);
         }
 
         // Backup automatico: grava na abertura do app, somente com dados presentes
@@ -316,5 +323,9 @@ export function useAppData() {
     setOnboardingCompletedAt,
     errorCaptureEnabled,
     setErrorCaptureEnabled,
+    consentedAt,
+    setConsentedAt,
+    researchOptIn,
+    setResearchOptIn,
   };
 }
