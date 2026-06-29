@@ -26,6 +26,8 @@ export interface SyncEnv {
   DB: D1Database;
   SYNC_AUTH_MODE?: string;
   SYNC_MAX_BLOB_BYTES?: string;
+  /** URL base da API do Lichess usada para validar tokens OAuth (injetável para testes). */
+  LICHESS_VALIDATE_URL?: string;
 }
 
 export interface StoredBlob {

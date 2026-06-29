@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { decryptJson, encryptJson, parseEncryptedBlob, serializeEncryptedBlob } from './crypto';
 import {
   createSyncClient,
+  SyncUnauthorizedError,
   type PushBlobInput,
   type StoredBlob,
 } from './syncClient';
@@ -248,6 +249,98 @@ describe('sync client (P4 M13 local-only)', () => {
       });
       await client.health();
       expect(calls[0]?.url.href).toBe(`${BASE}/health`);
+    });
+  });
+
+  describe('modo oauth (M13)', () => {
+    function makeOAuthClient(fetcher: typeof fetch, bearerToken = 'my-oauth-token') {
+      return createSyncClient({ mode: 'oauth', baseUrl: BASE, bearerToken, fetcher });
+    }
+
+    it('envia Authorization: Bearer em vez de x-sync-user', async () => {
+      const { fetcher, calls } = mockFetch(() => jsonResponse(200, { ok: true }));
+      const client = makeOAuthClient(fetcher);
+      await client.health();
+      expect(calls[0]?.headers.get('Authorization')).toBe('Bearer my-oauth-token');
+      expect(calls[0]?.headers.get('x-sync-user')).toBeNull();
+    });
+
+    it('NÃO envia x-sync-user em modo oauth (fronteira de segurança)', async () => {
+      const { fetcher, calls } = mockFetch(() =>
+        jsonResponse(200, { ok: true, service: 'rotina-sync', db: 'up' }),
+      );
+      const client = makeOAuthClient(fetcher, 'secret-bearer-token');
+      await client.health();
+      const headerNames = [...(calls[0]?.headers.keys() ?? [])].map((h) => h.toLowerCase());
+      expect(headerNames).not.toContain('x-sync-user');
+      expect(calls[0]?.headers.get('authorization')).toBe('Bearer secret-bearer-token');
+    });
+
+    it('401 em modo oauth lança SyncUnauthorizedError (não SyncHttpError genérico)', async () => {
+      const { fetcher } = mockFetch(() =>
+        jsonResponse(401, { error: 'token OAuth inválido ou expirado.' }),
+      );
+      const client = makeOAuthClient(fetcher);
+      await expect(client.snapshot()).rejects.toBeInstanceOf(SyncUnauthorizedError);
+      await expect(client.snapshot()).rejects.toMatchObject({
+        name: 'SyncUnauthorizedError',
+        status: 401,
+      });
+    });
+
+    it('SyncUnauthorizedError é instância de SyncHttpError (herança)', async () => {
+      const { fetcher } = mockFetch(() =>
+        jsonResponse(401, { error: 'token OAuth inválido ou expirado.' }),
+      );
+      const client = makeOAuthClient(fetcher);
+      try {
+        await client.snapshot();
+        expect.fail('deveria ter lançado erro');
+      } catch (err) {
+        expect(err).toBeInstanceOf(SyncUnauthorizedError);
+        // SyncUnauthorizedError extends SyncHttpError
+        const { SyncHttpError: SHE } = await import('./syncClient');
+        expect(err).toBeInstanceOf(SHE);
+      }
+    });
+
+    it('push em modo oauth envia Bearer e não envia userId no payload', async () => {
+      const { fetcher, calls } = mockFetch(() => jsonResponse(200, { ok: true }));
+      const client = makeOAuthClient(fetcher, 'bearer-xyz');
+      await client.pushBlob({
+        collection: 'profiles',
+        clientMutationId: 'mut-oauth-1',
+        ciphertext: 'OPACO-BLOB',
+        updatedAt: 999,
+      });
+      expect(calls[0]?.headers.get('Authorization')).toBe('Bearer bearer-xyz');
+      const body = JSON.parse(calls[0]?.body ?? '{}') as Record<string, unknown>;
+      expect(body).not.toHaveProperty('userId');
+      expect(body).toMatchObject({
+        collection: 'profiles',
+        clientMutationId: 'mut-oauth-1',
+        ciphertext: 'OPACO-BLOB',
+        updatedAt: 999,
+      });
+    });
+
+    it('modo local continua enviando x-sync-user (M12 intacto)', async () => {
+      const { fetcher, calls } = mockFetch(() => jsonResponse(200, { ok: true }));
+      const client = createSyncClient({ baseUrl: BASE, userId: 'userA', fetcher });
+      await client.health();
+      expect(calls[0]?.headers.get('x-sync-user')).toBe('userA');
+      expect(calls[0]?.headers.get('authorization')).toBeNull();
+    });
+
+    it('recusa bearerToken vazio em modo oauth', () => {
+      expect(() =>
+        createSyncClient({
+          mode: 'oauth',
+          baseUrl: BASE,
+          bearerToken: '',
+          fetcher: () => Promise.resolve(jsonResponse(200, {})),
+        }),
+      ).toThrow(/bearerToken/);
     });
   });
 

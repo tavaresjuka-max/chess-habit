@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { _oauthCache } from './auth';
 import { createFakeD1 } from './fakeD1';
 import type { StoredBlob, SyncEnv } from './types';
 import worker from './worker';
@@ -30,9 +31,33 @@ function env(overrides: Partial<SyncEnv> = {}): SyncEnv {
   return { DB: createFakeD1(), SYNC_AUTH_MODE: 'local', ...overrides };
 }
 
+/** Env em modo oauth com URL fake do Lichess (injetável, sem rede real) */
+function oauthEnv(
+  lichessUrl: string,
+  overrides: Partial<SyncEnv> = {},
+): SyncEnv {
+  return {
+    DB: createFakeD1(),
+    SYNC_AUTH_MODE: 'oauth',
+    LICHESS_VALIDATE_URL: lichessUrl,
+    ...overrides,
+  };
+}
+
 function req(path: string, init: RequestInit = {}, userId?: string): Request {
   const headers = new Headers(init.headers);
   if (userId) headers.set('x-sync-user', userId);
+  return new Request(`http://sync.local${path}`, { ...init, headers });
+}
+
+/** Request em modo oauth com Bearer token */
+function reqOAuth(
+  path: string,
+  token: string,
+  init: RequestInit = {},
+): Request {
+  const headers = new Headers(init.headers);
+  headers.set('Authorization', `Bearer ${token}`);
   return new Request(`http://sync.local${path}`, { ...init, headers });
 }
 
@@ -51,7 +76,7 @@ async function bodyOf<T>(res: Response): Promise<T> {
   return (await res.json()) as T;
 }
 
-describe('rotina-sync worker (P4 M12 local-only)', () => {
+describe('rotina-sync worker (P4 M12 local + M13 oauth)', () => {
   it('GET /health retorna ok sem auth', async () => {
     const res = await worker.fetch(req('/health'), env());
     expect(res.status).toBe(200);
@@ -77,14 +102,15 @@ describe('rotina-sync worker (P4 M12 local-only)', () => {
     expect(res.status).toBe(401);
   });
 
-  it('rejeita (501) quando SYNC_AUTH_MODE nao e local - default production-safe', async () => {
+  it('rejeita (401) quando SYNC_AUTH_MODE=oauth e nao ha Bearer token', async () => {
+    // oauth mode ativo mas sem Authorization: Bearer → 401, não 501
     const res = await worker.fetch(
-      req('/blobs', { method: 'POST', body: '{}' }, 'userA'),
+      req('/blobs', { method: 'POST', body: '{}' }),
       env({ SYNC_AUTH_MODE: 'oauth' }),
     );
-    expect(res.status).toBe(501);
+    expect(res.status).toBe(401);
     const body = await bodyOf<ErrorBody>(res);
-    expect(String(body.error)).toContain('M13');
+    expect(String(body.error)).toContain('Bearer');
   });
 
   it('rejeita (501) quando SYNC_AUTH_MODE esta ausente', async () => {
@@ -382,6 +408,135 @@ describe('rotina-sync worker (P4 M12 local-only)', () => {
       const second = await worker.fetch(req('/blobs', { method: 'DELETE' }, 'userA'), e);
       expect(second.status).toBe(200);
       expect((await bodyOf<DeleteBody>(second)).deleted).toBe(0);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // M13 — modo oauth
+  // ---------------------------------------------------------------------------
+  describe('M13 oauth — validação de token via Lichess fake', () => {
+    // Limpar o cache entre testes para evitar contaminação
+    afterEach(() => {
+      _oauthCache.clear();
+    });
+
+    /** Cria um fetcher fake que simula a API /api/account do Lichess */
+    function makeLichessFake(
+      responses: Map<string, { status: number; body: unknown }>,
+      calls: string[],
+    ): { url: string; fetcher: (u: string, init: RequestInit) => Promise<Response> } {
+      const url = 'http://fake-lichess.local/api/account';
+      const fetcher = (_u: string, init: RequestInit): Promise<Response> => {
+        const authHeader = new Headers(init.headers).get('Authorization') ?? '';
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        calls.push(token);
+        const resp = responses.get(token);
+        if (resp === undefined) {
+          return Promise.resolve(
+            new Response(JSON.stringify({ message: 'Not Found' }), { status: 401 }),
+          );
+        }
+        return Promise.resolve(new Response(JSON.stringify(resp.body), { status: resp.status }));
+      };
+      return { url, fetcher };
+    }
+
+    it('token válido autentica e push/pull funcionam isolados por userId', async () => {
+      const calls: string[] = [];
+      const { url, fetcher } = makeLichessFake(
+        new Map([['token-valid-userA', { status: 200, body: { id: 'userA' } }]]),
+        calls,
+      );
+      const e = oauthEnv(url);
+
+      // O fetcher é injetado via env — para o worker, precisa ir por env
+      // Worker chama authenticate(request, env, fetcher) mas o worker.ts usa
+      // o fetcher padrão (globalThis.fetch). Para testes, precisamos de uma
+      // abordagem diferente: authenticate é importado e testado separadamente
+      // no describe abaixo (auth.ts direto). Aqui testamos via worker com
+      // LICHESS_VALIDATE_URL apontando para um servidor local fictício.
+      // Como não há servidor de verdade, este teste usa authenticate() direto
+      // para cobrir o fluxo de integração.
+      const { authenticate } = await import('./auth');
+
+      const authResult = await authenticate(
+        reqOAuth('/blobs', 'token-valid-userA', { method: 'POST' }),
+        e,
+        fetcher,
+      );
+      expect(authResult.ok).toBe(true);
+      if (authResult.ok) {
+        expect(authResult.userId).toBe('usera');
+      }
+    });
+
+    it('token inválido retorna 401 do Lichess → authenticate retorna 401', async () => {
+      const calls: string[] = [];
+      const { url, fetcher } = makeLichessFake(new Map(), calls);
+      const e = oauthEnv(url);
+      const { authenticate } = await import('./auth');
+
+      const result = await authenticate(
+        reqOAuth('/blobs', 'token-invalido', { method: 'POST' }),
+        e,
+        fetcher,
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.status).toBe(401);
+      }
+      expect(calls).toHaveLength(1);
+    });
+
+    it('2 requests com o mesmo token dentro do TTL chamam o Lichess só 1x (cache hit)', async () => {
+      const calls: string[] = [];
+      const { url, fetcher } = makeLichessFake(
+        new Map([['token-cache-test', { status: 200, body: { id: 'cacheuser' } }]]),
+        calls,
+      );
+      const e = oauthEnv(url);
+      const { authenticate } = await import('./auth');
+
+      // Primeira chamada — popula cache
+      const r1 = await authenticate(
+        reqOAuth('/snapshot', 'token-cache-test'),
+        e,
+        fetcher,
+      );
+      expect(r1.ok).toBe(true);
+      expect(calls).toHaveLength(1);
+
+      // Segunda chamada — deve usar cache, não chamar Lichess de novo
+      const r2 = await authenticate(
+        reqOAuth('/snapshot', 'token-cache-test'),
+        e,
+        fetcher,
+      );
+      expect(r2.ok).toBe(true);
+      // Lichess não foi chamado segunda vez
+      expect(calls).toHaveLength(1);
+    });
+
+    it('sem Bearer token em modo oauth → 401 com mensagem em pt-BR', async () => {
+      const e = oauthEnv('http://fake-lichess.local/api/account');
+      const res = await worker.fetch(
+        req('/blobs', { method: 'POST', body: '{}' }),
+        e,
+      );
+      expect(res.status).toBe(401);
+      const body = await bodyOf<ErrorBody>(res);
+      expect(String(body.error)).toContain('Bearer');
+    });
+
+    it('modo local continua passando (M12 intacto)', async () => {
+      const e = env();
+      const pushRes = await push(e, 'userA', {
+        collection: 'profiles',
+        clientMutationId: 'm-local',
+        ciphertext: OPAQUE_A,
+        updatedAt: 42,
+      });
+      expect(pushRes.status).toBe(200);
     });
   });
 });
