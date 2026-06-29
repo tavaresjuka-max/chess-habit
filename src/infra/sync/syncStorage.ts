@@ -24,7 +24,7 @@ import {
   type SyncRecordMutation,
   type SyncableCollection,
 } from './syncRecords';
-import type { SyncClient } from './syncClient';
+import { SyncUnauthorizedError, type SyncClient } from './syncClient';
 
 export interface SyncCollectionInput {
   readonly collection: SyncableCollection;
@@ -42,6 +42,35 @@ export type SyncCollectionResult = {
   readonly skipped: number;
   readonly pushed: number;
 };
+
+export interface SyncAllInput {
+  readonly client: SyncClient;
+  readonly iterations?: number;
+}
+
+export interface SyncAllCollectionEntry {
+  readonly collection: SyncableCollection;
+  readonly pulled: number;
+  readonly applied: number;
+  readonly pushed: number;
+  readonly error?: string;
+}
+
+export type SyncAllResult =
+  | {
+      readonly ok: true;
+      readonly perCollection: readonly SyncAllCollectionEntry[];
+      readonly totals: {
+        readonly pushed: number;
+        readonly applied: number;
+        readonly collectionsOk: number;
+        readonly collectionsFailed: number;
+      };
+    }
+  | {
+      readonly ok: false;
+      readonly reason: 'unauthorized';
+    };
 
 // ── Helpers de estado local de sync ─────────────────────────────────────────
 
@@ -221,6 +250,59 @@ export async function flushPendingPushes(input: FlushPendingPushesInput): Promis
   }
 
   return flushed;
+}
+
+/**
+ * Sincroniza TODAS as coleções de uma vez contra o backend.
+ *
+ * - Itera SYNCABLE_COLLECTIONS chamando syncCollectionOnce para cada uma.
+ * - Se uma coleção falhar (throw ou !ok), registra o erro e continua as demais.
+ * - Se qualquer coleção lançar SyncUnauthorizedError (401), propaga imediatamente
+ *   como { ok: false, reason: 'unauthorized' } — o login precisa ser refeito.
+ * - Ao final chama flushPendingPushes para recuperar pushes interrompidos.
+ * - Retorna o agregado: totais e resultado por coleção.
+ */
+export async function syncAllCollections(input: SyncAllInput): Promise<SyncAllResult> {
+  const perCollection: SyncAllCollectionEntry[] = [];
+
+  for (const collection of SYNCABLE_COLLECTIONS) {
+    try {
+      const result = await syncCollectionOnce({ collection, client: input.client });
+      perCollection.push({
+        collection,
+        pulled: result.pulled,
+        applied: result.applied,
+        pushed: result.pushed,
+      });
+    } catch (err) {
+      // 401 propaga imediatamente — token inválido, não adianta continuar
+      if (err instanceof SyncUnauthorizedError) {
+        return { ok: false, reason: 'unauthorized' };
+      }
+      // Qualquer outro erro: registra e continua as demais coleções
+      perCollection.push({
+        collection,
+        pulled: 0,
+        applied: 0,
+        pushed: 0,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  // Flush de pendências de syncs anteriores interrompidos
+  await flushPendingPushes({ client: input.client });
+
+  const collectionsOk = perCollection.filter((c) => c.error === undefined).length;
+  const collectionsFailed = perCollection.filter((c) => c.error !== undefined).length;
+  const pushed = perCollection.reduce((sum, c) => sum + c.pushed, 0);
+  const applied = perCollection.reduce((sum, c) => sum + c.applied, 0);
+
+  return {
+    ok: true,
+    perCollection,
+    totals: { pushed, applied, collectionsOk, collectionsFailed },
+  };
 }
 
 type SyncRecordTable =

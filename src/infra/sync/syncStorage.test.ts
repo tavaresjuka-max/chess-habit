@@ -7,8 +7,10 @@ import {
   loadSyncRecords,
   mergeRemoteMutationsIntoStorage,
   syncCollectionOnce,
+  syncAllCollections,
 } from './syncStorage';
 import type { PushBlobInput, StoredBlob, SyncClient } from './syncClient';
+import { SyncUnauthorizedError } from './syncClient';
 import { clearAll } from '../storage/appData';
 import { db } from '../storage/db';
 
@@ -243,5 +245,127 @@ describe('syncStorage', () => {
 
   it('syncState não aparece em SYNCABLE_COLLECTIONS', () => {
     expect(SYNCABLE_COLLECTIONS).not.toContain('syncState');
+  });
+});
+
+// ── syncAllCollections ────────────────────────────────────────────────────────
+//
+// Estes testes usam o client mock real (sem spy de função interna) porque
+// syncAllCollections chama syncCollectionOnce por importação direta — spy via
+// módulo dinâmico não intercepta chamadas dentro do mesmo módulo em Vitest ESM.
+
+describe('syncAllCollections', () => {
+  it('processa TODAS as SYNCABLE_COLLECTIONS e retorna resultado ok', async () => {
+    // Sem dados no Dexie → cada coleção faz pull+push vazio: pulled=0, pushed=0.
+    const client = makeClient();
+
+    const result = await syncAllCollections({ client });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.perCollection).toHaveLength(SYNCABLE_COLLECTIONS.length);
+      // Cada coleção presente no resultado
+      for (const col of SYNCABLE_COLLECTIONS) {
+        expect(result.perCollection.some((c) => c.collection === col)).toBe(true);
+      }
+      expect(result.totals.collectionsOk).toBe(SYNCABLE_COLLECTIONS.length);
+      expect(result.totals.collectionsFailed).toBe(0);
+    }
+  });
+
+  it('coleção com pushBlob falhando NÃO impede as outras e aparece com error', async () => {
+    // Insere dado em 'weaknesses' para garantir que pushBlob será chamado
+    await db.weaknesses.put({
+      id: 'fork',
+      tag: 'fork',
+      score: 0.5,
+      confidence: 'medium',
+      evidence: 'teste',
+      updatedAt: '2026-06-27T10:00:00.000Z',
+    });
+
+    let pushCallCount = 0;
+    const failFirstPushClient: SyncClient & { stored: StoredBlob[] } = {
+      ...makeClient(),
+      pushBlob(input: PushBlobInput) {
+        pushCallCount += 1;
+        // Falha apenas no primeiro push (weaknesses é a primeira coleção com dado)
+        if (pushCallCount === 1) return Promise.reject(new Error('push-falhou'));
+        const stored: StoredBlob[] = [];
+        stored.push({ ...input });
+        return Promise.resolve();
+      },
+    };
+
+    const result = await syncAllCollections({ client: failFirstPushClient });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // Alguma coleção deve ter erro
+      const failed = result.perCollection.filter((c) => c.error !== undefined);
+      expect(failed.length).toBeGreaterThanOrEqual(1);
+      // As demais coleções foram processadas (total = SYNCABLE_COLLECTIONS.length)
+      expect(result.perCollection).toHaveLength(SYNCABLE_COLLECTIONS.length);
+    }
+  });
+
+  it('SyncUnauthorizedError (401) propaga como falha de auth, não como sucesso', async () => {
+    const unauthorizedClient: SyncClient = {
+      health: () => Promise.resolve({ ok: true }),
+      pushBlob: () => Promise.reject(new SyncUnauthorizedError('token inválido')),
+      listBlobs: () => Promise.reject(new SyncUnauthorizedError('token inválido')),
+      snapshot: () => Promise.reject(new SyncUnauthorizedError('token inválido')),
+    };
+
+    const result = await syncAllCollections({ client: unauthorizedClient });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toBe('unauthorized');
+    }
+  });
+
+  it('flushPendingPushes é chamado: re-empurra coleção com pendingPush=true pendente', async () => {
+    const client = makeClient();
+
+    // Simula pendência de sync anterior
+    await db.syncState.put({ collection: 'weaknesses', pendingPush: true });
+    await db.weaknesses.put({
+      id: 'fork',
+      tag: 'fork',
+      score: 0.5,
+      confidence: 'medium',
+      evidence: 'pendente',
+      updatedAt: '2026-06-27T10:00:00.000Z',
+    });
+
+    const result = await syncAllCollections({ client });
+
+    expect(result.ok).toBe(true);
+    // Após o sync, pendingPush deve estar false (flush executou)
+    const state = await db.syncState.get('weaknesses');
+    expect(state?.pendingPush).toBe(false);
+  });
+
+  it('totals somam pushed e applied de todas as coleções sem erro', async () => {
+    // Insere um registro em 'weaknesses' → pushed=1 nessa coleção, resto=0
+    await db.weaknesses.put({
+      id: 'pin',
+      tag: 'pin',
+      score: 0.8,
+      confidence: 'high',
+      evidence: 'totals-test',
+      updatedAt: '2026-06-27T10:00:00.000Z',
+    });
+    const client = makeClient();
+
+    const result = await syncAllCollections({ client });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.totals.pushed).toBeGreaterThanOrEqual(1);
+      expect(result.totals.collectionsOk).toBe(SYNCABLE_COLLECTIONS.length);
+      expect(result.totals.collectionsFailed).toBe(0);
+    }
   });
 });
