@@ -3,9 +3,10 @@ main = "worker.ts"
 compatibility_date = "2026-06-01"
 
 [vars]
-SYNC_AUTH_MODE = "local"
+# Produção: valida o token OAuth do Lichess (M13). 'local' (header) é só p/ dev/testes.
+SYNC_AUTH_MODE = "oauth"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "rotina-sync"
-database_id = "REPLACE_AFTER_wrangler_d1_create"
+database_id = "b61eade2-7b60-477c-b71f-73d87b029639"
