@@ -262,8 +262,6 @@ export function Today({
   // TodayHero: valores JÁ computados, derivados sem regra de negócio nova.
   // dueItems = fila de revisão que venceu hoje (mesma semântica do PendingReviewCard).
   const dueItems = pendingItems.filter((item) => isDueToday(item));
-  // Pose do Tavarez no herói: volta de pausa recebe "chamando de volta"; resto, "boas-vindas".
-  const heroPose = returnNote !== undefined ? 'chamando-de-volta' : 'boas-vindas';
   // O chip do herói já tem o cabeçalho "Checkpoint"; remove o prefixo redundante
   // do label do marco (ex.: "Checkpoint 6h" -> "6h") para não exibir "Checkpoint Checkpoint 6h".
   const checkpointLabel = sessionMilestoneSummary.currentMilestone.label.replace(/^checkpoint\s*/i, '');
@@ -310,7 +308,6 @@ export function Today({
         dueCount={dueItems.length}
         checkpointLabel={checkpointLabel}
         remainingSessions={remainingSessions}
-        pose={heroPose}
         onStartBlockTraining={onStartBlockTraining}
         onChangeFocus={revealFocusCarousel}
       />

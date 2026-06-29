@@ -46,7 +46,6 @@ function renderHero(overrides: Partial<Parameters<typeof TodayHero>[0]> = {}) {
       dueCount={0}
       checkpointLabel="Ciclo 6h"
       remainingSessions={2}
-      pose="boas-vindas"
       onStartBlockTraining={trainSpy}
       onChangeFocus={changeSpy}
       {...overrides}
@@ -112,7 +111,20 @@ describe('TodayHero — card de missão a partir de heroBlock', () => {
 
     const portrait = screen.getByAltText(/professor tavarez/i);
     expect(portrait).toBeInTheDocument();
-    expect(portrait).toHaveAttribute('src', '/art/tavarez-pose-boas-vindas.webp');
+    expect(portrait).toHaveAttribute('src', '/art/tavarez-hero-retrato.webp');
+  });
+
+  it('mostra o thumbnail de conceito premium quando há arte para a tag', () => {
+    renderHero({ heroBlock: makeBlock({ weaknessTag: 'fork' }) });
+    expect(document.querySelector('.today-hero-concept')).toHaveAttribute(
+      'src',
+      '/art/conceito-fork.webp',
+    );
+  });
+
+  it('não mostra thumbnail premium para tag sem arte (o SVG segue no cartão de treino)', () => {
+    renderHero({ heroBlock: makeBlock({ weaknessTag: 'pin' }) });
+    expect(document.querySelector('.today-hero-concept')).toBeNull();
   });
 
   it('mostra estado "concluído" e SEM botão Treinar quando heroBlock undefined', () => {

@@ -1215,18 +1215,32 @@ textarea {
 
 .today-hero-body {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 112px 1fr;
   gap: 16px;
   align-items: start;
   padding: 16px;
 }
 
+/* Retrato premium do Professor: crop circular com moldura de latão (medalhão). */
 .today-hero-portrait {
-  width: 120px;
-  height: 140px;
-  object-fit: contain;
-  object-position: bottom center;
-  filter: drop-shadow(0 2px 4px rgba(18, 42, 34, 0.18));
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;
+  border: 2px solid var(--gold-300);
+  box-shadow: 0 0 0 4px var(--surface-raised), 0 4px 12px rgba(18, 42, 34, 0.22);
+}
+
+/* Thumbnail de conceito (arte premium) ao lado da missão; o texto flui ao redor. */
+.today-hero-concept {
+  float: right;
+  width: 72px;
+  height: 72px;
+  margin: 0 0 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gold-300);
+  box-shadow: var(--shadow-sm);
 }
 
 .today-hero-mission {
@@ -1314,13 +1328,13 @@ textarea {
 
 @media (max-width: 430px) {
   .today-hero-body {
-    grid-template-columns: 110px 1fr;
+    grid-template-columns: 100px 1fr;
     gap: 12px;
     padding: 14px;
   }
   .today-hero-portrait {
-    width: 110px;
-    height: 130px;
+    width: 100px;
+    height: 100px;
   }
   .today-hero-title {
     font-size: 1.22rem;
