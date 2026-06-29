@@ -93,7 +93,10 @@ describe('training flow', () => {
   it('shows a simple Professor Tavarez introduction before the guided fork lesson', async () => {
     render(<App />);
 
-    expect(await screen.findByText(/Garfo é uma peça sua atacando dois alvos ao mesmo tempo/)).toBeTruthy();
+    // Redesign action-first: o enquadramento do conceito aparece no herói (TodayHero)
+    // E no cartão de treino (PlanBlockCard). O contrato do teste é "o intro está presente
+    // antes da lição", não unicidade — alinhado às asserções getAllByText abaixo.
+    expect((await screen.findAllByText(/Garfo é uma peça sua atacando dois alvos ao mesmo tempo/)).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/cavalo, bispo, peão e dama/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/prepara o garfo alguns lances antes/).length).toBeGreaterThan(0);
   });

@@ -43,6 +43,7 @@ import type { BackupMeta } from '../app/backupStatus';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { ORGANIZER_CEILING_MESSAGE } from '../domain/curriculum/curriculum';
 import { buildRoutingWhy } from '../domain/method/errorRouting';
+import { isDueToday } from '../domain/method/pendingItems';
 import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
 import { BlockCarousel } from './BlockCarousel';
@@ -50,6 +51,7 @@ import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 import { PendingReviewCard } from './PendingReviewCard';
 import { PlanBlockCard } from './PlanBlockCard';
 import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
+import { TodayHero } from './TodayHero';
 import { TutorCard } from './TutorCard';
 import { formatWeaknessTag } from './formatWeakness';
 
@@ -124,11 +126,9 @@ export function Today({
   backupMeta,
   onSessionMinutesChange,
   onCreateNextSession,
-  onAnswerTutorQuestion,
   onImportFreeActivity,
   onSyncChesscomDiagnosis,
   onSyncLichessDiagnosis,
-  onReconcileLichessResults,
   onCreateLichessStudy,
   onConnectLichess,
   onApproveLearningPlan,
@@ -139,6 +139,8 @@ export function Today({
   onStartBlockTraining,
   onCompleteBlockTraining,
   onSkipBlockTraining,
+  onAnswerTutorQuestion,
+  onReconcileLichessResults,
   showCalibrationInvite = false,
   onStartCalibration,
 }: TodayProps) {
@@ -286,6 +288,28 @@ export function Today({
   const planApproved = plan.learningPlanResponse?.status === 'approved';
   const backupReminder = getBackupReminder(backupMeta, plan.date, allTrainingLogs.length > 0);
 
+  // TodayHero: valores JÁ computados, derivados sem regra de negócio nova.
+  // dueItems = fila de revisão que venceu hoje (mesma semântica do PendingReviewCard).
+  const dueItems = pendingItems.filter((item) => isDueToday(item));
+  // Pose do Tavarez no herói: volta de pausa recebe "chamando de volta"; resto, "boas-vindas".
+  const heroPose = returnNote !== undefined ? 'chamando-de-volta' : 'boas-vindas';
+  const checkpointLabel = sessionMilestoneSummary.currentMilestone.label;
+  const remainingSessions = Math.max(
+    0,
+    sessionMilestoneSummary.currentMilestone.targetSessions -
+      sessionMilestoneSummary.currentMilestone.completedSessions,
+  );
+  // "Trocar o foco de hoje": revela o carrossel existente (modo foco + "Ver lista").
+  const focusCarouselId = 'foco-do-dia';
+  const revealFocusCarousel = (): void => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    document
+      .getElementById(focusCarouselId)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <section aria-labelledby="today-title" className="panel today-panel">
       <div className="today-columns">
@@ -298,11 +322,25 @@ export function Today({
             {sessionSummaries.length === 1 ? 'sessão' : 'sessões'} - {totalPlannedMinutes} min
           </p>
           {plan.weeklyFocus !== undefined ? (
-            // O porquê do foco já chega pelo TutorCard e pelo próprio bloco.
+            // O porquê do foco já chega pelo TodayHero e pelo próprio bloco.
             <p className="weekly-focus">Foco da semana: {plan.weeklyFocus.title}</p>
           ) : null}
         </div>
       </div>
+
+      <TodayHero
+        heroBlock={heroBlock}
+        doneBlockCount={doneBlockCount}
+        totalBlocks={allBlocksOrdered.length}
+        currentStreakDays={consistency.currentStreakDays}
+        learnerBand={learnerBand}
+        dueCount={dueItems.length}
+        checkpointLabel={checkpointLabel}
+        remainingSessions={remainingSessions}
+        pose={heroPose}
+        onStartBlockTraining={onStartBlockTraining}
+        onChangeFocus={revealFocusCarousel}
+      />
 
       {showCalibrationInvite && !calibrationInviteDismissed ? (
         <div className="calibration-invite" role="note" aria-label="Convite para calibrar o nível">
@@ -388,23 +426,12 @@ export function Today({
         </p>
       ) : null}
 
-      {/* Contexto primeiro (feedback do dono 2026-06-19, invertendo o action-first
-          do Corte D1): o professor enquadra o dia — mentalidade, foco e o que falta
-          calibrar — ANTES da ação, para o aluno ler a orientação antes de abrir o
-          primeiro bloco. */}
-      <TutorCard
-        plan={plan}
-        weaknesses={weaknesses}
-        trainingLogs={trainingLogs}
-        allTrainingLogs={allTrainingLogs}
-        today={plan.date}
-        onAnswerTutorQuestion={onAnswerTutorQuestion}
-        onReconcileLichessResults={onReconcileLichessResults}
-      />
-
-      {/* A ação (próximo passo / "treinando agora") vem logo após o enquadramento. */}
+      {/* A ação (próximo passo / "treinando agora") — carrossel em modo foco,
+          um bloco grande por vez. O TodayHero já abre a missão de agora acima;
+          aqui fica o fluxo real de treino (timer/rating via PlanBlockCard). */}
       {allBlocksOrdered.length > 0 ? (
         <section
+          id={focusCarouselId}
           className={`hero-now${isDayComplete ? ' plan-archived' : ''}`}
           aria-labelledby="hero-now-title"
         >
@@ -444,6 +471,22 @@ export function Today({
           />
         </section>
       ) : null}
+
+      {/* O acompanhamento do Professor vem APÓS a ação (não compete com o herói
+          action-first no topo): intro pré-sessão, Q&A pós-sessão (sinal manual de
+          fraqueza) e "Conferir puzzles" (reconciliação Lichess). Realocado do topo
+          para cá no redesign action-first — ver docs/design/spec-today-action-first.md. */}
+      <TutorCard
+        plan={plan}
+        weaknesses={weaknesses}
+        trainingLogs={trainingLogs}
+        allTrainingLogs={allTrainingLogs}
+        today={plan.date}
+        onAnswerTutorQuestion={onAnswerTutorQuestion}
+        onReconcileLichessResults={onReconcileLichessResults}
+        suppressPreSessionMessage
+      />
+
       {isDayComplete ? (
         <section className="hero-now day-complete-moment" aria-labelledby="hero-done-title">
           <h2 id="hero-done-title" className="hero-now-label">

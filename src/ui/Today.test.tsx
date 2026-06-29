@@ -148,7 +148,7 @@ describe('Today — hero "Agora"', () => {
     expect(within(hero).getByText('Lição guiada de garfos')).toBeInTheDocument();
   });
 
-  it('não repete o bloco do hero na lista de sessões', () => {
+  it('mostra o bloco do hero no TodayHero e no carrossel (sem lista de sessões dedicada)', () => {
     renderToday({
       blocks: [
         makeBlock({ id: 'bloco-1', title: 'Lição guiada de garfos' }),
@@ -156,7 +156,11 @@ describe('Today — hero "Agora"', () => {
       ],
     });
 
-    expect(screen.getAllByText('Lição guiada de garfos')).toHaveLength(1);
+    // O título do hero aparece agora no cabeçalho action-first (TodayHero) e no
+    // carrossel de treino (fluxo real preservado). Não há mais uma "lista de
+    // sessões" separada que duplicasse o bloco.
+    expect(screen.getAllByText('Lição guiada de garfos')).toHaveLength(2);
+    // O bloco que NÃO é hero aparece só no carrossel.
     expect(screen.getAllByText('Puzzles de garfo')).toHaveLength(1);
   });
 
@@ -677,9 +681,12 @@ describe("Today — nota de transparência do roteamento (A1')", () => {
   it('mostra o porquê quando plan.routingEmphasis está setado (detection-volume)', () => {
     renderToday({ blocks: [makeBlock({ id: 'b1' })], routingEmphasis: 'detection-volume' });
 
-    // Linhas curadas do buildRoutingWhy para detection-volume.
-    expect(screen.getByText(/à vista/i)).toBeInTheDocument();
-    expect(screen.getByText(/foco de hoje/i)).toBeInTheDocument();
+    // Linhas curadas do buildRoutingWhy para detection-volume, scoped à nota de
+    // roteamento (o botão "Trocar o foco de hoje" do TodayHero também contém
+    // "foco de hoje", então consultamos dentro da nota, não no documento todo).
+    const note = screen.getByRole('note');
+    expect(note).toHaveTextContent(/à vista/i);
+    expect(note).toHaveTextContent(/foco de hoje/i);
   });
 
   it('mostra o porquê para calculation', () => {
@@ -691,7 +698,8 @@ describe("Today — nota de transparência do roteamento (A1')", () => {
   it('não mostra a nota quando routingEmphasis está ausente (default)', () => {
     renderToday({ blocks: [makeBlock({ id: 'b1' })] });
 
-    expect(screen.queryByText(/foco de hoje/i)).not.toBeInTheDocument();
+    // Sem routingEmphasis a nota de roteamento (role="note") não existe.
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
   });
 
   it('a nota tem role="note" (acessibilidade)', () => {
