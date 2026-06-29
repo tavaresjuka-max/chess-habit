@@ -49,19 +49,26 @@ preciso/pedagógico); este lote é a **camada artística premium** por cima/ao l
    precisely within a single board square, sitting flat on it".
 3. **Setas.** Seta dourada parte do CENTRO da peça atacante até o CENTRO da casa alvo,
    seguindo a linha/coluna/diagonal real do movimento.
+4. **Legibilidade em miniatura (o thumbnail é exibido ~74px).** O desenho TEM de ler
+   pequeno: tabuleiro **3x3 ou 4x4 no máximo**, peças GRANDES e bold preenchendo as
+   casas, alto contraste, **sem a moldura ornamentada** (a moldura parchment verde/ouro
+   é para arte GRANDE de recompensa/capa, NÃO para estes thumbnails pequenos). "minimal
+   border, large bold pieces, high contrast, reads clearly at thumbnail size".
+   Se a intenção for uma ilustração GRANDE (capa/recompensa), aí sim pode 5x5 + moldura.
 
 Template-mestre (aplique a TODOS os conceitos, sempre com as 3 regras acima):
 
 > [estética Tavarez, sem o personagem] Small premium illustration of a single chess
-> tactic concept, painterly storybook style, soft paper grain. A clean wooden chessboard
-> fragment (5x5 squares) with finely rendered chess pieces showing the motif, each piece
-> centered precisely within a single board square, sitting flat on it. The attacking pieces
-> are light cream/ivory; the enemy king and any target piece are dark/black — never give an
-> attacking piece the same color as the piece it attacks. An elegant hand-drawn gold arrow
-> from the center of the attacking piece to the center of the target square, following the
-> real line of movement. Palette: warm wood board, parchment `#f5f3ec` background,
-> forest-green and muted-gold accents. Composition: centered, generous margins, square.
-> No text, no UI, no numbers. Mood: a beautiful diagram from an antique chess manual.
+> tactic concept, painterly storybook style, soft paper grain, designed to read clearly at
+> thumbnail size. A clean wooden chessboard fragment, only **3x3 or 4x4 squares**, with
+> **large bold pieces** filling their squares, each piece centered precisely within a single
+> board square and sitting flat on it, high contrast. The attacking pieces are light
+> cream/ivory; the enemy king and any target piece are dark/black — never give an attacking
+> piece the same color as the piece it attacks. An elegant hand-drawn gold arrow from the
+> center of the attacking piece to the center of the target square, following the real line
+> of movement. Palette: warm wood board, parchment `#f5f3ec` background, muted-gold accents.
+> **Minimal or no decorative border.** No text, no UI, no numbers, no coordinates. Mood: a
+> clean motif from an antique chess manual, legible when small.
 
 Gerar um por conceito do set `TacticDiagram` (ver `src/ui/art/TacticDiagram.tsx`
 para a lista canônica). Saída quadrada, fundo transparente ou parchment. **Sempre
