@@ -1156,33 +1156,34 @@ textarea {
 
 /* ---------- TodayHero (cabeçalho action-first da tela Hoje) ---------- */
 
+/* Card da missão: VERDE elevado (sem creme). Hierarquia por profundidade —
+   tom um pouco mais claro que os painéis + glow sage + sombra: salta sem virar
+   ilha de cor. (Paleta verde-elevação, council 2026-06-30.) */
 .today-hero {
   display: grid;
   gap: 0;
   min-width: 0;
   margin-bottom: 16px;
-  border: 1px solid var(--line-soft);
+  border: 1px solid #3b5446;
   border-radius: var(--radius-lg);
-  background: var(--surface-raised);
-  background-image: url('/art/textura-papel.webp');
-  background-size: 256px auto;
+  background: #22322b;
   overflow: hidden;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 0 1px rgba(116, 176, 142, 0.18), 0 8px 22px rgba(0, 0, 0, 0.38);
 }
 
 .today-hero > * {
   min-width: 0;
 }
 
-/* Faixa do topo: verde profundo, sempre visível, nunca atrás de clique. */
+/* Faixa do topo: verde médio (não a sage clara), sempre visível. */
 .today-hero-strip {
   display: flex;
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
   padding: 12px 16px;
-  background: var(--green-900);
-  color: var(--surface);
+  background: #26352d;
+  color: #cdd9cf;
 }
 
 .today-hero-streak {
@@ -1274,21 +1275,20 @@ textarea {
   min-width: 0;
 }
 
+/* Card do herói agora é VERDE elevado → texto CLARO (sage no eyebrow, branco-gesso
+   no título, verde-claro no corpo). */
 .today-hero-eyebrow {
   margin: 0;
-  color: var(--green-700);
+  color: #7fb594;
   font-size: 0.74rem;
   font-weight: 760;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
-/* O card do herói é textura de papel CREME fixa (não tematiza); por isso o texto
-   usa tons ESCUROS literais — os tokens --ink ficam claros no tema verde-noite e
-   sumiam sobre o creme (o título estava invisível). */
 .today-hero-title {
   margin: 0;
-  color: #16271d;
+  color: #f4f1ea;
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 700;
@@ -1297,15 +1297,15 @@ textarea {
 
 .today-hero-meta {
   margin: 0;
-  color: #586a5e;
+  color: #aebfb2;
   font-size: 0.9rem;
 }
 
 .today-hero-coach-note {
   margin: 0;
-  color: #34453b;
+  color: #c6d3c8;
   font-size: 0.94rem;
-  border-left: 3px solid var(--green-600);
+  border-left: 3px solid #7fb594;
   padding-left: 10px;
 }
 
@@ -2665,28 +2665,31 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
    muda no tema escuro, então a cor do texto também não pode mudar. */
 .secondary-button,
 .secondary-link {
-  border: 12px solid transparent;
-  border-image: url('/art/moldura-botao-secundario-slice.webp') 48 fill / 12px stretch;
-  background-color: #e8dfc8;
-  color: #2b3a33;
-  padding: 2px 8px;
+  /* Secundário = CONTORNO verde (fim da placa creme): hierarquia por peso, não por
+     cor destoante. Primário é preenchido; secundário é outline. */
+  border: 1px solid #4a6b58;
+  border-image: none;
+  background: transparent;
+  color: var(--ink-700);
+  padding: 9px 16px;
   box-shadow: none;
-  filter: drop-shadow(0 1px 2px rgba(22, 32, 28, 0.22));
+  filter: none;
   max-width: max-content;
 }
 
 .secondary-button:hover,
 .secondary-link:hover {
-  background: none;
-  color: #1f3f36;
+  background: var(--green-100);
+  color: var(--ink-900);
+  border-color: #6fae8a;
   box-shadow: none;
-  filter: drop-shadow(0 3px 6px rgba(22, 32, 28, 0.26));
+  filter: none;
   transform: translateY(-1px);
 }
 
 .secondary-button:active,
 .secondary-link:active {
-  filter: drop-shadow(0 1px 2px rgba(22, 32, 28, 0.24)) brightness(0.97);
+  filter: none;
   transform: translateY(0);
   box-shadow: none;
 }
