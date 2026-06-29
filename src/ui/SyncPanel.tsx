@@ -4,12 +4,7 @@ import { loadLichessOAuthToken } from '../infra/storage/appData';
 import { SYNC_BACKEND_URL } from '../config/syncConfig';
 import { pullBlobs, pushBlob } from '../infra/sync/syncEngine';
 import { createSyncClient, type SyncClient } from '../infra/sync/syncClient';
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+import { syncAllCollections } from '../infra/sync/syncStorage';
 
 export interface SyncPanelOperations {
   pushBlob: typeof pushBlob;
@@ -46,7 +41,6 @@ export function SyncPanel({
   operations = defaultSyncPanelOperations,
   createClient = defaultCreateSyncClient,
   backendUrl: initialBackendUrl = SYNC_BACKEND_URL ?? '',
-  probeRetryDelaysMs = [250, 750],
 }: SyncPanelProps) {
   const [backendUrl, setBackendUrl] = useState(initialBackendUrl);
   const [status, setStatus] = useState<string>('Pronto para sincronizar.');
@@ -71,52 +65,30 @@ export function SyncPanel({
         return;
       }
 
-      const probe = { kind: 'sync-probe', at: Date.now() };
-      await operations.pushBlob({
-        client,
-        collection: 'probe',
-        clientMutationId: `probe-${Date.now().toString(36)}`,
-        value: probe,
-        updatedAt: Date.now(),
-      });
+      const result = await syncAllCollections({ client });
 
-      const probeAt = probe.at;
-      const maxAttempts = 1 + probeRetryDelaysMs.length;
-      let confirmed = false;
-      let lastItemsLength = 0;
-
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        if (attempt > 0) {
-          await sleep(probeRetryDelaysMs[attempt - 1] ?? 0);
-        }
-        const pullResult = await operations.pullBlobs({
-          client,
-          collection: 'probe',
-        });
-        lastItemsLength = pullResult.items.length;
-        const echoed = pullResult.items.find((item) => {
-          const value = item.value;
-          return (
-            value !== null &&
-            typeof value === 'object' &&
-            (value as { kind?: unknown }).kind === 'sync-probe' &&
-            (value as { at?: unknown }).at === probeAt
-          );
-        });
-        if (echoed !== undefined) {
-          confirmed = true;
-          break;
-        }
-      }
-
-      if (!confirmed) {
-        setStatus('Sincronização não confirmada: a sonda enviada não voltou do servidor.');
-        toast.error('Sincronização não confirmada.');
+      if (!result.ok) {
+        // result.reason === 'unauthorized'
+        setStatus('Sua sessão do Lichess expirou — entre de novo.');
+        toast.error('Sessão expirada. Faça login novamente.');
         return;
       }
 
-      setStatus(`Sincronizado: ${String(lastItemsLength)} blob(s) no servidor.`);
-      toast.success('Sincronização concluída.');
+      const { totals, perCollection } = result;
+      const failedCollections = perCollection
+        .filter((c) => c.error !== undefined)
+        .map((c) => c.collection);
+
+      const summary = `Sincronizado: ${String(totals.pushed)} registros enviados em ${String(totals.collectionsOk)} coleções.`;
+
+      if (failedCollections.length > 0) {
+        const failList = failedCollections.join(', ');
+        setStatus(`${summary} Falha em: ${failList}.`);
+        toast.warning(`Sync concluído com erros em: ${failList}`);
+      } else {
+        setStatus(summary);
+        toast.success('Sincronização concluída.');
+      }
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Falha na sincronização.');
       toast.error('Falha na sincronização.');

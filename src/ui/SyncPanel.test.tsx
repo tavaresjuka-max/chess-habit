@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock, type MockInstance } from 'vitest';
 import type {
   PullBlobsInput,
   PullBlobsResult,
@@ -9,6 +9,8 @@ import type {
 } from '../infra/sync/syncEngine';
 import type { SyncClient } from '../infra/sync/syncClient';
 import { SyncPanel } from './SyncPanel';
+import * as syncStorageMod from '../infra/sync/syncStorage';
+import type { SyncAllResult, SyncAllInput } from '../infra/sync/syncStorage';
 
 afterEach(() => {
   cleanup();
@@ -49,10 +51,6 @@ function makeOpsWithToken(tokenValue: string | undefined): OpsMocks {
 }
 
 const noopClient = (): SyncClient => ({}) as unknown as SyncClient;
-
-function flush(): Promise<void> {
-  return Promise.resolve().then().then().then();
-}
 
 describe('SyncPanel — estrutura sem passphrase', () => {
   it('NÃO exibe campo de passphrase', () => {
@@ -111,140 +109,14 @@ describe('SyncPanel — sem token Lichess', () => {
   });
 });
 
-describe('SyncPanel — round-trip da sonda de sincronização', () => {
-  it('mostra "Sincronizado" quando o pull devolve a sonda atual (kind e at iguais)', async () => {
-    const ops = makeOps();
-    render(
-      <SyncPanel
-        operations={ops}
-        createClient={noopClient}
-        backendUrl="http://127.0.0.1:8787"
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
+// Testes da sonda antiga removidos — a sonda foi substituída pelo sync real
+// (syncAllCollections). Os testes relevantes estão em
+// "SyncPanel — sync real chama syncAllCollections" abaixo.
 
-    await waitFor(() => {
-      expect(ops.pushBlob).toHaveBeenCalledTimes(1);
-    });
-    expect(await screen.findByText(/sincronizado:/i)).toBeInTheDocument();
-  });
+// Testes de retry da sonda removidos — sonda substituída pelo sync real.
 
-  it('mostra falha quando o pull não devolve a sonda atual (at divergente)', async () => {
-    const ops = makeOps();
-    ops.pullBlobs.mockResolvedValue({
-      ok: true,
-      items: [{ collection: 'probe', clientMutationId: 'm', updatedAt: 1, value: { kind: 'sync-probe', at: 1 } }],
-    });
-    render(
-      <SyncPanel
-        operations={ops}
-        createClient={noopClient}
-        backendUrl="http://127.0.0.1:8787"
-        probeRetryDelaysMs={[0, 0]}
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
-
-    await waitFor(() => {
-      expect(ops.pushBlob).toHaveBeenCalledTimes(1);
-    });
-    expect(await screen.findByText(/não confirmada/i)).toBeInTheDocument();
-    expect(screen.queryByText(/sincronizado:/i)).not.toBeInTheDocument();
-  });
-
-  it('mostra falha quando o pull devolve lista vazia (sonda não voltou)', async () => {
-    const ops = makeOps();
-    ops.pullBlobs.mockResolvedValue({ ok: true, items: [] });
-    render(
-      <SyncPanel
-        operations={ops}
-        createClient={noopClient}
-        backendUrl="http://127.0.0.1:8787"
-        probeRetryDelaysMs={[0, 0]}
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
-
-    await waitFor(() => {
-      expect(ops.pushBlob).toHaveBeenCalledTimes(1);
-    });
-    expect(await screen.findByText(/não confirmada/i)).toBeInTheDocument();
-  });
-});
-
-describe('SyncPanel — retry da sonda (consistência eventual)', () => {
-  it('recupera quando o primeiro pull não devolve a sonda mas o segundo sim', async () => {
-    const ops = makeOps();
-    let pushedValue: unknown;
-    ops.pushBlob = vi.fn((input: PushBlobEngineInput) => {
-      pushedValue = input.value;
-      return Promise.resolve();
-    });
-    let pullCount = 0;
-    ops.pullBlobs = vi.fn(() => {
-      pullCount += 1;
-      if (pullCount === 1) {
-        return Promise.resolve<PullBlobsResult>({ ok: true, items: [] });
-      }
-      return Promise.resolve<PullBlobsResult>({
-        ok: true,
-        items: [{ collection: 'probe', clientMutationId: 'm', updatedAt: 1, value: pushedValue }],
-      });
-    });
-    render(
-      <SyncPanel
-        operations={ops}
-        createClient={noopClient}
-        backendUrl="http://127.0.0.1:8787"
-        probeRetryDelaysMs={[0, 0]}
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
-
-    expect(await screen.findByText(/sincronizado:/i)).toBeInTheDocument();
-    expect(ops.pullBlobs).toHaveBeenCalledTimes(2);
-  });
-
-  it('falha quando todos os pulls não devolvem a sonda (esgota retries)', async () => {
-    const ops = makeOps();
-    ops.pullBlobs = vi.fn(() => Promise.resolve<PullBlobsResult>({ ok: true, items: [] }));
-    render(
-      <SyncPanel
-        operations={ops}
-        createClient={noopClient}
-        backendUrl="http://127.0.0.1:8787"
-        probeRetryDelaysMs={[0, 0]}
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
-
-    expect(await screen.findByText(/não confirmada/i)).toBeInTheDocument();
-    expect(ops.pullBlobs).toHaveBeenCalledTimes(3);
-    expect(ops.pushBlob).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('SyncPanel — payload da sonda não contém o token', () => {
-  it('o valor entregue ao pushBlob é a sonda pública (kind+at), sem conter o token', async () => {
-    const secretToken = 'meu-token-secreto-lichess-9999';
-    const ops = makeOpsWithToken(secretToken);
-    render(
-      <SyncPanel
-        operations={ops}
-        createClient={noopClient}
-        backendUrl="http://127.0.0.1:8787"
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
-    await flush();
-
-    expect(ops.pushBlob).toHaveBeenCalledTimes(1);
-    const sent = ops.pushBlob.mock.calls[0]?.[0];
-    expect(sent).toBeDefined();
-    expect(JSON.stringify(sent?.value)).not.toContain(secretToken);
-    expect(sent?.value).toEqual(expect.objectContaining({ kind: 'sync-probe' }));
-  });
-});
+// Teste de payload da sonda removido — sonda substituída pelo sync real.
+// O token Lichess não é exposto no syncAllCollections (usado apenas no client).
 
 describe('SyncPanel — token Lichess via loadToken', () => {
   it('chama loadToken (não pede passphrase) e usa o token no cliente', async () => {
@@ -264,5 +136,126 @@ describe('SyncPanel — token Lichess via loadToken', () => {
     });
     // createClient recebe (backendUrl, bearerToken)
     expect(createClientSpy).toHaveBeenCalledWith('http://127.0.0.1:8787', 'bearer-xyz');
+  });
+});
+
+// ── Novos testes: sync real (syncAllCollections) ──────────────────────────────
+
+describe('SyncPanel — sync real chama syncAllCollections', () => {
+  let syncAllSpy: MockInstance<(input: SyncAllInput) => Promise<SyncAllResult>>;
+
+  beforeEach(() => {
+    syncAllSpy = vi.spyOn(syncStorageMod, 'syncAllCollections');
+  });
+
+  afterEach(() => {
+    syncAllSpy.mockRestore();
+  });
+
+  function makeSuccessResult(pushed = 7, applied = 3, collectionsOk = 12): SyncAllResult {
+    return {
+      ok: true,
+      perCollection: [],
+      totals: { pushed, applied, collectionsOk, collectionsFailed: 0 },
+    };
+  }
+
+  it('chama syncAllCollections ao clicar "Sincronizar agora" com token válido', async () => {
+    syncAllSpy.mockResolvedValue(makeSuccessResult());
+    const ops = makeOps('token-ok');
+    render(
+      <SyncPanel
+        operations={ops}
+        createClient={noopClient}
+        backendUrl="http://127.0.0.1:8787"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
+
+    await waitFor(() => {
+      expect(syncAllSpy).toHaveBeenCalledOnce();
+    });
+  });
+
+  it('exibe resumo com registros enviados e coleções após sync bem-sucedido', async () => {
+    syncAllSpy.mockResolvedValue(makeSuccessResult(7, 3, 12));
+    const ops = makeOps('token-ok');
+    render(
+      <SyncPanel
+        operations={ops}
+        createClient={noopClient}
+        backendUrl="http://127.0.0.1:8787"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
+
+    // O resumo exibido é: "Sincronizado: 7 registros enviados em 12 coleções."
+    await waitFor(() => {
+      expect(screen.getByText(/sincronizado:.*7 registros enviados em 12 coleções/i)).toBeInTheDocument();
+    });
+  });
+
+  it('sem token → mensagem de login, NÃO chama syncAllCollections', async () => {
+    syncAllSpy.mockResolvedValue(makeSuccessResult());
+    const ops = makeOpsNoToken();
+    render(
+      <SyncPanel
+        operations={ops}
+        createClient={noopClient}
+        backendUrl="http://127.0.0.1:8787"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
+
+    await waitFor(() => {
+      expect(ops.loadToken).toHaveBeenCalledTimes(1);
+    });
+    expect(syncAllSpy).not.toHaveBeenCalled();
+    expect(await screen.findByText(/faça login/i)).toBeInTheDocument();
+  });
+
+  it('SyncUnauthorizedError → mensagem de re-login, NÃO trava a UI', async () => {
+    syncAllSpy.mockResolvedValue({ ok: false, reason: 'unauthorized' });
+    const ops = makeOps('token-expirado');
+    render(
+      <SyncPanel
+        operations={ops}
+        createClient={noopClient}
+        backendUrl="http://127.0.0.1:8787"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/sessão.*expirou|entre de novo/i)).toBeInTheDocument();
+    });
+    // Botão deve voltar a ficar habilitado (não travou)
+    expect(screen.getByRole('button', { name: /sincronizar agora/i })).toBeEnabled();
+  });
+
+  it('falha parcial em coleções mostra aviso de quais falharam', async () => {
+    const partialResult: SyncAllResult = {
+      ok: true,
+      perCollection: [
+        { collection: 'weaknesses', pulled: 0, applied: 0, pushed: 0, error: 'timeout' },
+        { collection: 'plans', pulled: 1, applied: 1, pushed: 1 },
+      ],
+      totals: { pushed: 1, applied: 1, collectionsOk: 1, collectionsFailed: 1 },
+    };
+    syncAllSpy.mockResolvedValue(partialResult);
+    const ops = makeOps('token-ok');
+    render(
+      <SyncPanel
+        operations={ops}
+        createClient={noopClient}
+        backendUrl="http://127.0.0.1:8787"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /sincronizar agora/i }));
+
+    await waitFor(() => {
+      // Avisa sobre coleções com erro
+      expect(screen.getByText(/weaknesses/i)).toBeInTheDocument();
+    });
   });
 });
