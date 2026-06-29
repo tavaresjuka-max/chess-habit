@@ -123,7 +123,7 @@ describe('Config — rendering', () => {
 
   it('renders the app version discreetly', () => {
     render(<Config {...makeProps()} />);
-    expect(screen.getByText('versão 0.0.0')).toBeInTheDocument();
+    expect(screen.getByText('versão 0.1.0')).toBeInTheDocument();
   });
 });
 

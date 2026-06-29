@@ -35,7 +35,7 @@ type StudyDateOptions = {
 
 function toDateKey(date: Date, timeZone?: string): string {
   if (timeZone !== undefined) {
-    const parts = new Intl.DateTimeFormat('en-US', {
+    const parts = new Intl.DateTimeFormat('pt-BR', {
       timeZone,
       year: 'numeric',
       month: '2-digit',

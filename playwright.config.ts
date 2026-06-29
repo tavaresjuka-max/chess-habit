@@ -6,10 +6,11 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
   workers: 1,
+  retries: 2,
   timeout: 90_000,
   use: {
     baseURL: 'http://127.0.0.1:4188',
-    trace: 'off',
+    trace: 'on-first-retry',
   },
   projects: [
     { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },

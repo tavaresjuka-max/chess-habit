@@ -1,0 +1,17 @@
+# Variáveis do Cloudflare Worker (rotina-sync) — copie para backend/.dev.vars
+# e preencha os valores reais. NUNCA versione backend/.dev.vars com segredos.
+#
+# Gerado a partir de backend/wrangler.toml + backend/types.ts (SyncEnv).
+
+# Modo de autenticação: "oauth" (produção) ou "local" (dev/testes com header Authorization: Bearer local-dev).
+SYNC_AUTH_MODE="oauth"
+
+# Tamanho máximo de blob em bytes (opcional; padrão interno: 262144 = 256 KB).
+SYNC_MAX_BLOB_BYTES="262144"
+
+# URL base usada para validar tokens OAuth do Lichess (injetável; padrão: https://lichess.org).
+# Só sobrescreva em testes de integração apontando para um mock local.
+LICHESS_VALIDATE_URL="https://lichess.org"
+
+# O binding DB (D1) é provisionado pelo wrangler/miniflare via wrangler.toml —
+# não precisa de variável aqui para dev local com `wrangler dev`.
