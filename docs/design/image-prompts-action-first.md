@@ -37,30 +37,47 @@ missão/tema ganha um thumbnail premium do conceito, ao lado do texto no herói 
 no cartão de bloco. Hoje o conceito é um diagrama SVG de tabuleiro (`TacticDiagram`,
 preciso/pedagógico); este lote é a **camada artística premium** por cima/ao lado dele.
 
-Template-mestre (aplique a TODOS os conceitos):
+### ⚠️ Regras CRÍTICAS de cor e posição (o gerador erra isto — repita em todo prompt)
+
+1. **Cor = lado.** As peças ATACANTES (as que executam o golpe) são TODAS de uma cor
+   clara (cream/ivory/light wood). As peças do OPONENTE — sempre o rei alvo, e
+   qualquer peça defendida/atacada — são TODAS escuras (dark/black). **Nunca** pinte
+   uma peça atacante da mesma cor da peça que ela ataca. Uma frase explícita no
+   prompt: "the attacking pieces are light/cream; the enemy king and targets are dark".
+2. **Centralização.** Cada peça fica EXATAMENTE no centro de UMA casa do tabuleiro —
+   nunca entre casas, nunca sobre a linha, nunca flutuando. "each piece centered
+   precisely within a single board square, sitting flat on it".
+3. **Setas.** Seta dourada parte do CENTRO da peça atacante até o CENTRO da casa alvo,
+   seguindo a linha/coluna/diagonal real do movimento.
+
+Template-mestre (aplique a TODOS os conceitos, sempre com as 3 regras acima):
 
 > [estética Tavarez, sem o personagem] Small premium illustration of a single chess
 > tactic concept, painterly storybook style, soft paper grain. A clean wooden chessboard
-> fragment (3x3 to 5x5 squares) with 2–3 finely rendered chess pieces showing the motif,
-> plus an elegant hand-drawn gold arrow indicating the key move. Palette: warm wood board,
-> parchment `#f5f3ec` background, forest-green and muted-gold accents. Composition: centered,
-> generous margins, square. No text, no UI, no numbers. Mood: a beautiful diagram from an
-> antique chess manual.
+> fragment (5x5 squares) with finely rendered chess pieces showing the motif, each piece
+> centered precisely within a single board square, sitting flat on it. The attacking pieces
+> are light cream/ivory; the enemy king and any target piece are dark/black — never give an
+> attacking piece the same color as the piece it attacks. An elegant hand-drawn gold arrow
+> from the center of the attacking piece to the center of the target square, following the
+> real line of movement. Palette: warm wood board, parchment `#f5f3ec` background,
+> forest-green and muted-gold accents. Composition: centered, generous margins, square.
+> No text, no UI, no numbers. Mood: a beautiful diagram from an antique chess manual.
 
 Gerar um por conceito do set `TacticDiagram` (ver `src/ui/art/TacticDiagram.tsx`
-para a lista canônica). Saída quadrada, fundo transparente ou parchment.
+para a lista canônica). Saída quadrada, fundo transparente ou parchment. **Sempre
+conferir cor (atacante claro / rei escuro) e centralização antes de aceitar — regerar se errar.**
 
 ### `conceito-garfo.webp` — 512x512
-> [template conceito] Motif: FORK — a knight attacking two pieces at once (e.g. king and rook). Two gold arrows from the knight to both targets.
+> [template conceito] Motif: FORK — a single LIGHT (cream) knight attacking two DARK pieces at once: a dark king and a dark rook. Two gold arrows from the light knight to each dark target. The knight is light; both targets are dark.
 
 ### `conceito-cravada.webp` — 512x512
-> [template conceito] Motif: PIN — a bishop pinning a knight against the king on a diagonal. Gold line along the diagonal.
+> [template conceito] Motif: PIN — a LIGHT (cream) bishop pinning a DARK knight against the DARK king on one diagonal. Gold line along the diagonal from the light bishop through the dark knight to the dark king. Attacker light; knight and king dark.
 
 ### `conceito-espeto.webp` — 512x512
-> [template conceito] Motif: SKEWER — a rook/queen forcing a valuable piece to move and exposing the piece behind it. Gold arrow through both along the line.
+> [template conceito] Motif: SKEWER — a LIGHT (cream) rook on a file; in front a DARK king, behind it a DARK queen on the same file. Gold arrow along the file from the light rook through the dark king to the dark queen. Attacker light; king and queen dark.
 
 ### `conceito-descoberto.webp` — 512x512
-> [template conceito] Motif: DISCOVERED ATTACK — a piece moves and unveils an attack from the piece behind it. Two subtle arrows: the moving piece and the revealed line.
+> [template conceito] Motif: DISCOVERED ATTACK — a LIGHT (cream) bishop and a LIGHT (cream) rook are the SAME side (both light). The light bishop steps off the file, unveiling the light rook's attack on the DARK king at the top of the file. The rook and bishop are BOTH light (they attack together); the king is dark. One gold arrow up the file from the light rook to the dark king (the revealed attack) and one short gold arrow showing the light bishop stepping aside. Do NOT color the rook dark — it is on the attacking side with the bishop.
 
 > Demais conceitos (espeto duplo, ataque duplo, desvio, atração, raio-x, peão
 > passado, mate do corredor, etc.): mesmo template, trocando o motif. Manter a lista
