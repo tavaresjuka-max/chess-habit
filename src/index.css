@@ -1255,14 +1255,15 @@ textarea {
   padding: 16px;
 }
 
-/* Retrato premium do Professor: moldura RETANGULAR arredondada (o círculo cortava
-   a cena e perdia detalhe). Mostra a pintura inteira; aro verde (uniforme com o app). */
+/* Retrato premium do Professor: box VERTICAL na proporção da pintura (1161x1355)
+   + object-fit:contain → mostra a imagem INTEIRA, sem cortar nada. Aro verde. */
 .today-hero-portrait {
   width: 112px;
-  height: 116px;
+  height: 131px;
   border-radius: var(--radius-md);
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
+  background: var(--paper-deep);
   border: 2px solid var(--green-300);
   box-shadow: 0 2px 8px rgba(18, 42, 34, 0.28);
 }
@@ -1322,8 +1323,7 @@ textarea {
   align-self: center;
 }
 
-/* CTA primária do herói: já usa a moldura 9-slice pintada (.button-link:not(.secondary-link),
-   /art/moldura-botao-primario-slice.webp) — aqui só a fazemos crescer para ser a ação dominante. */
+/* CTA primária do herói: herda o botão verde global; aqui só cresce para dominar a linha. */
 .today-hero-train {
   flex: 1 1 auto;
 }
@@ -1373,7 +1373,7 @@ textarea {
   }
   .today-hero-portrait {
     width: 100px;
-    height: 100px;
+    height: 117px;
   }
   .today-hero-title {
     font-size: 1.22rem;
@@ -2629,34 +2629,32 @@ li.diploma-row {
   object-position: bottom center;
 }
 
-/* Botões com placa pintada em 9-slice: cantos chanfrados ficam nítidos em
-   qualquer largura/altura (o asset recortado tem alpha nos chanfros, então a
-   placa assenta sobre qualquer superfície, clara ou escura). A sombra usa
-   drop-shadow — box-shadow retangular vazaria nos cantos transparentes. */
+/* Botão primário VERDE (decisão do dono 2026-06-30: a placa pintada era dourada
+   e destoava — verde é a identidade e fica uniforme). Gradiente + sombra CSS. */
 button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):not(.block-carousel-dot),
 .button-link:not(.secondary-link) {
-  border: 12px solid transparent;
-  border-image: url('/art/moldura-botao-primario-slice.webp') 48 fill / 12px stretch;
-  background: none;
+  border: 1px solid var(--green-800);
+  border-image: none;
+  background: linear-gradient(180deg, var(--green-600), var(--green-700));
   color: #fff;
-  padding: 2px 8px;
-  box-shadow: none;
-  filter: drop-shadow(0 2px 3px rgba(18, 42, 34, 0.28));
+  padding: 9px 16px;
+  box-shadow: var(--shadow-btn);
+  filter: none;
 }
 
 button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):not(.block-carousel-dot):hover,
 .button-link:not(.secondary-link):hover {
-  background: none;
-  box-shadow: none;
-  filter: drop-shadow(0 4px 8px rgba(18, 42, 34, 0.32)) brightness(1.05);
+  background: linear-gradient(180deg, var(--green-700), var(--green-800));
+  box-shadow: var(--shadow-btn-hover);
+  filter: none;
   transform: translateY(-1px);
 }
 
 button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):active,
 .button-link:not(.secondary-link):active {
-  filter: drop-shadow(0 1px 2px rgba(18, 42, 34, 0.3)) brightness(0.97);
+  filter: none;
   transform: translateY(0);
-  box-shadow: none;
+  box-shadow: var(--shadow-btn);
 }
 
 button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-button):disabled {
