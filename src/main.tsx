@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { APP_NAME } from './config/appIdentity';
 import { recordGlobalError } from './infra/storage/appData';
 import { App } from './ui/App';
+import { ErrorBoundary } from './ui/ErrorBoundary';
 import './index.css';
 
 document.title = `${APP_NAME} - treino de xadrez`;
@@ -46,6 +47,8 @@ if (rootElement === null) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );

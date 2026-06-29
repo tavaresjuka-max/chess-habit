@@ -241,7 +241,7 @@ async function readErrorMessage(response: Response): Promise<string> {
     if (typeof body.error === 'string' && body.error.length > 0) {
       return body.error;
     }
-  } catch {
-  }
+  // eslint-disable-next-line no-empty -- parse do corpo de erro é best-effort; falha de parse não deve mascarar o status HTTP original
+  } catch {}
   return `erro HTTP ${String(response.status)} do backend de sync.`;
 }

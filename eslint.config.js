@@ -43,4 +43,10 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    rules: {
+      'no-empty': ['error', { allowEmptyCatch: false }],
+      'no-useless-catch': 'error',
+    },
+  },
 );

@@ -560,9 +560,8 @@ export async function recordGlobalError(
     }
 
     await appendErrorLog(entry, nowIso);
-  } catch {
-    // Silencioso de propósito (ver acima).
-  }
+  // eslint-disable-next-line no-empty -- falha de gravação de log NUNCA pode quebrar o app (erro dentro de handler de erro = dupla falha silenciosa)
+  } catch {}
 }
 
 export async function loadErrorLog(): Promise<ErrorLogRecord[]> {

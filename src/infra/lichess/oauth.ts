@@ -97,6 +97,9 @@ export async function exchangeLichessOAuthCode(input: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body,
+    // timeout: esta chamada não passa pelo createSerialQueue; sem signal, um Lichess
+    // pendurado travaria o login para sempre (C1/C-5).
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (!response.ok) {
@@ -125,6 +128,8 @@ export async function revokeLichessOAuthToken(input: { token: string; fetcher?: 
     headers: {
       Authorization: `Bearer ${input.token}`,
     },
+    // timeout: idem exchangeLichessOAuthCode — sem signal, revogação travaria (C1/C-5).
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (!response.ok && response.status !== 401) {
