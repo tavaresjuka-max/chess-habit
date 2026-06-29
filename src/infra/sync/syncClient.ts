@@ -14,12 +14,28 @@ export interface HealthResponse {
   readonly time?: number;
 }
 
-export interface SyncClientConfig {
-  readonly baseUrl: string;
-  readonly userId: string;
-  readonly fetcher?: typeof fetch;
-  readonly timeoutMs?: number;
-}
+/**
+ * Modo local (dev/test): userId obrigatório, envia x-sync-user.
+ * Modo oauth (produção): bearerToken obrigatório, envia Authorization: Bearer.
+ *   userId não é enviado pelo cliente — vem do servidor via validação Lichess.
+ */
+export type SyncClientConfig =
+  | {
+      readonly mode?: 'local';
+      readonly baseUrl: string;
+      /** Obrigatório em modo local. */
+      readonly userId: string;
+      readonly fetcher?: typeof fetch;
+      readonly timeoutMs?: number;
+    }
+  | {
+      readonly mode: 'oauth';
+      readonly baseUrl: string;
+      /** Token OAuth Lichess (accessToken). */
+      readonly bearerToken: string;
+      readonly fetcher?: typeof fetch;
+      readonly timeoutMs?: number;
+    };
 
 export interface PushBlobInput {
   readonly collection: string;
@@ -34,6 +50,17 @@ export class SyncHttpError extends Error {
     super(message, options);
     this.name = 'SyncHttpError';
     this.status = status;
+  }
+}
+
+/**
+ * Erro tipado para 401 em modo oauth.
+ * A UI pode capturar este tipo específico para pedir re-login sem travar o app.
+ */
+export class SyncUnauthorizedError extends SyncHttpError {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(401, message, options);
+    this.name = 'SyncUnauthorizedError';
   }
 }
 
@@ -81,7 +108,18 @@ export interface SyncClient {
 
 export function createSyncClient(config: SyncClientConfig): SyncClient {
   const baseUrl = normalizeBaseUrl(config.baseUrl);
-  requireUserId(config.userId);
+  const isOAuth = config.mode === 'oauth';
+
+  // Validações por modo
+  if (isOAuth) {
+    const bearerToken = (config as { bearerToken: string }).bearerToken;
+    if (typeof bearerToken !== 'string' || bearerToken.trim().length === 0) {
+      throw new Error('bearerToken é obrigatório em modo oauth.');
+    }
+  } else {
+    requireUserId((config as { userId: string }).userId);
+  }
+
   const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const fetcher: typeof fetch | undefined =
     config.fetcher ?? (globalThis as { fetch?: typeof fetch }).fetch;
@@ -91,6 +129,15 @@ export function createSyncClient(config: SyncClientConfig): SyncClient {
   }
   const doFetch: typeof fetch = fetcher;
 
+  function buildHeaders(): Headers {
+    if (isOAuth) {
+      const bearerToken = (config as { bearerToken: string }).bearerToken;
+      return new Headers({ Authorization: `Bearer ${bearerToken}` });
+    }
+    const userId = (config as { userId: string }).userId;
+    return new Headers({ [LOCAL_USER_HEADER]: userId });
+  }
+
   async function request<T>(options: RequestOptions): Promise<T> {
     const url = new URL(baseUrl + options.path);
     if (options.query !== undefined) {
@@ -99,7 +146,7 @@ export function createSyncClient(config: SyncClientConfig): SyncClient {
       }
     }
 
-    const headers = new Headers({ [LOCAL_USER_HEADER]: config.userId });
+    const headers = buildHeaders();
     let bodyText: string | undefined;
     if (options.body !== undefined) {
       bodyText = JSON.stringify(options.body);
@@ -128,6 +175,10 @@ export function createSyncClient(config: SyncClientConfig): SyncClient {
 
     if (!response.ok) {
       const message = await readErrorMessage(response);
+      // Em modo oauth, 401 vira SyncUnauthorizedError para a UI pedir re-login
+      if (isOAuth && response.status === 401) {
+        throw new SyncUnauthorizedError(message);
+      }
       throw new SyncHttpError(response.status, message);
     }
 

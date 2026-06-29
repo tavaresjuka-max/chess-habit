@@ -126,7 +126,7 @@ export default {
         return await handleHealth(env);
       }
 
-      const auth = authenticate(request, env);
+      const auth = await authenticate(request, env);
       if (!auth.ok) {
         return json(auth.status, { error: auth.error });
       }
