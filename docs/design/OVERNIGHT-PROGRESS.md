@@ -18,7 +18,7 @@ O processo da sessão foi reiniciado por volta das 00:5x e o job do GLM foi ence
 - [x] **F1 — Today action-first**: `TodayHero.tsx` + CSS + testes + integração. GATES VERDES (test 1340/1340, build, lint). Decisão de escopo do GLM resolvida = **Opção B** (TutorCard re-montado ABAIXO do carrossel, preservando Q&A pós-sessão + "Conferir puzzles"; pré-sessão suprimido pois o herói já enquadra). Achado: `coachNote` aparece no herói E no PlanBlockCard → ver follow-up F3.
 - [ ] **F2 — Separar administração de ação**: enxugar sidebar do Today que duplica `Progress.tsx` (Metas/Trilha/Ritmo/Diagnóstico) → garantir cobertura em Progress; plano aprovado não re-exibe proposta inteira.
 - [ ] **F3 — Hierarquia, não accordions**: `Progress.tsx` e telas densas → ≤1 `<details>` onde fizer sentido, hierarquia tipográfica; sem wizard.
-- [ ] **F4 — Polish premium**: contraste do rodapé legal sobre a mesa; profundidade/elevação; estados hover/focus. (form-controls já feito)
+- [~] **F4 — Polish premium**: ✅ contraste do rodapé legal (folha translúcida + blur + ink-700, legível sobre a mesa) — commitado. ✅ form-controls (accent verde). Pendente: profundidade/elevação fina, hover/focus extras.
 - [ ] **F5 — Preparação de imagem (sem gerar)**: slots de imagem onde ajuda leitura + pacote de prompts dos novos elementos (retrato grande do herói, thumbnails de conceito) em docs/design.
 
 ## Decisões pré-fixadas (dono dormindo, sem perguntas)
