@@ -1,6 +1,5 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { createCanary } from './passphraseCanary';
 import {
   isSyncableCollection,
   mergeSyncRecords,
@@ -14,8 +13,6 @@ import {
   type SyncRecordMutation,
 } from './syncRecords';
 import type { PushBlobInput, StoredBlob, SyncClient } from './syncClient';
-
-const FAST = { iterations: 1_000 };
 
 function makeClient(): SyncClient & { stored: StoredBlob[] } {
   const stored: StoredBlob[] = [];
@@ -377,51 +374,41 @@ describe('mergeSyncRecords — appMeta special-merge', () => {
   });
 });
 
-describe('round-trip E2EE por mutation', () => {
-  it('push cifra cada entidade como blob independente e pull decifra para mutations', async () => {
+describe('round-trip plaintext por mutation (B5a)', () => {
+  it('push serializa cada entidade como JSON legível e pull retorna mutations', async () => {
     const client = makeClient();
-    const canary = await createCanary('passphrase-forte', FAST);
 
     await pushRecordMutations({
-      passphrase: 'passphrase-forte',
-      canary,
       client,
       collection: 'weaknesses',
       records: [
         { id: 'fork', tag: 'fork', updatedAt: '2026-06-27T10:00:00.000Z', score: 0.5 },
         { id: 'pin', tag: 'pin', updatedAt: '2026-06-27T10:01:00.000Z', score: 0.7 },
       ],
-      iterations: 1_000,
     });
 
     expect(client.stored).toHaveLength(2);
-    expect(JSON.stringify(client.stored)).not.toContain('fork');
-    expect(JSON.stringify(client.stored)).not.toContain('pin');
+    // plaintext: conteúdo VISÍVEL no blob
+    const allCiphertext = JSON.stringify(client.stored);
+    expect(allCiphertext).toContain('fork');
+    expect(allCiphertext).toContain('pin');
+    // formato: cada ciphertext é JSON de uma SyncRecordMutation
+    for (const blob of client.stored) {
+      const parsed = JSON.parse(blob.ciphertext) as Record<string, unknown>;
+      expect(parsed['v']).toBe(1);
+      expect(parsed['collection']).toBe('weaknesses');
+    }
 
-    const pulled = await pullRecordMutations({
-      passphrase: 'passphrase-forte',
-      canary,
-      client,
-      collection: 'weaknesses',
-    });
+    const pulled = await pullRecordMutations({ client, collection: 'weaknesses' });
 
     expect(pulled.ok).toBe(true);
-    if (pulled.ok) {
-      expect(pulled.mutations.map((mutation) => mutation.entityId).sort()).toEqual(['fork', 'pin']);
-    }
+    expect(pulled.mutations.map((mutation) => mutation.entityId).sort()).toEqual(['fork', 'pin']);
   });
 
-  it('passphrase errada barra pull antes de aplicar merge', async () => {
+  it('pull sem registros retorna mutations vazias', async () => {
     const client = makeClient();
-    const canary = await createCanary('passphrase-correta', FAST);
-
-    const pulled = await pullRecordMutations({
-      passphrase: 'errada',
-      canary,
-      client,
-      collection: 'weaknesses',
-    });
-
-    expect(pulled).toEqual({ ok: false, reason: 'wrong-passphrase' });
+    const pulled = await pullRecordMutations({ client, collection: 'weaknesses' });
+    expect(pulled.ok).toBe(true);
+    expect(pulled.mutations).toHaveLength(0);
   });
 });

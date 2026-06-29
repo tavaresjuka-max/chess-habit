@@ -1,34 +1,17 @@
-import {
-  decryptJson,
-  encryptJson,
-  parseEncryptedBlob,
-  serializeEncryptedBlob,
-  type EncryptedBlob,
-} from './crypto';
-import { verifyCanary } from './passphraseCanary';
 import type { PushBlobInput, StoredBlob, SyncClient } from './syncClient';
 
-export interface PushEncryptedInput {
-  readonly passphrase: string;
-  readonly canary: EncryptedBlob;
+export interface PushBlobEngineInput {
   readonly client: SyncClient;
   readonly collection: string;
   readonly clientMutationId: string;
   readonly value: unknown;
   readonly updatedAt: number;
-  readonly iterations?: number;
 }
 
-export interface PullDecryptedInput {
-  readonly passphrase: string;
-  readonly canary: EncryptedBlob;
+export interface PullBlobsInput {
   readonly client: SyncClient;
   readonly collection?: string;
 }
-
-export type SyncPassphraseResult =
-  | { readonly ok: true }
-  | { readonly ok: false; readonly reason: 'wrong-passphrase' };
 
 export interface PulledItem {
   readonly collection: string;
@@ -37,25 +20,13 @@ export interface PulledItem {
   readonly value: unknown;
 }
 
-export type PullResult =
-  | { readonly ok: true; readonly items: readonly PulledItem[] }
-  | { readonly ok: false; readonly reason: 'wrong-passphrase' };
-
-async function ensurePassphraseMatchesCanary(
-  canary: EncryptedBlob,
-  passphrase: string,
-): Promise<boolean> {
-  return verifyCanary(canary, passphrase);
+export interface PullBlobsResult {
+  readonly ok: true;
+  readonly items: readonly PulledItem[];
 }
 
-export async function pushEncrypted(input: PushEncryptedInput): Promise<SyncPassphraseResult> {
-  if (!(await ensurePassphraseMatchesCanary(input.canary, input.passphrase))) {
-    return { ok: false, reason: 'wrong-passphrase' };
-  }
-  const envelope = await encryptJson(input.value, input.passphrase, {
-    iterations: input.iterations,
-  });
-  const ciphertext = serializeEncryptedBlob(envelope);
+export async function pushBlob(input: PushBlobEngineInput): Promise<void> {
+  const ciphertext = JSON.stringify(input.value);
   const pushInput: PushBlobInput = {
     collection: input.collection,
     clientMutationId: input.clientMutationId,
@@ -63,13 +34,9 @@ export async function pushEncrypted(input: PushEncryptedInput): Promise<SyncPass
     updatedAt: input.updatedAt,
   };
   await input.client.pushBlob(pushInput);
-  return { ok: true };
 }
 
-export async function pullAndDecrypt(input: PullDecryptedInput): Promise<PullResult> {
-  if (!(await ensurePassphraseMatchesCanary(input.canary, input.passphrase))) {
-    return { ok: false, reason: 'wrong-passphrase' };
-  }
+export async function pullBlobs(input: PullBlobsInput): Promise<PullBlobsResult> {
   const stored: StoredBlob[] =
     input.collection === undefined
       ? await input.client.snapshot()
@@ -77,18 +44,21 @@ export async function pullAndDecrypt(input: PullDecryptedInput): Promise<PullRes
 
   const items: PulledItem[] = [];
   for (const entry of stored) {
+    let value: unknown;
     try {
-      const envelope = parseEncryptedBlob(entry.ciphertext);
-      const value = await decryptJson(envelope, input.passphrase);
-      items.push({
-        collection: entry.collection,
-        clientMutationId: entry.clientMutationId,
-        updatedAt: entry.updatedAt,
-        value,
-      });
+      value = JSON.parse(entry.ciphertext);
     } catch {
-      return { ok: false, reason: 'wrong-passphrase' };
+      // Blob malformado (corrupção/escrita parcial/dado antigo): pula este item em
+      // vez de derrubar o pull inteiro — um blob ruim não pode bricar o sync.
+      continue;
     }
+    items.push({
+      collection: entry.collection,
+      clientMutationId: entry.clientMutationId,
+      updatedAt: entry.updatedAt,
+      value,
+    });
   }
+
   return { ok: true, items };
 }
