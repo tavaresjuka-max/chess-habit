@@ -1,22 +1,31 @@
+import { ExternalLink, RefreshCw } from 'lucide-react';
 import {
   buildEfficacyBaseline,
   buildProgressTrend,
+  buildSessionMilestoneSummary,
   buildSkillMap,
   buildTrackEffort,
   buildWeeklyDigest,
   getAchievementDefinition,
   type Achievement,
+  type LearnerBand,
+  type LichessStudyLink,
+  type SessionMinutes,
   type Signal,
   type TrainingLog,
   type Weakness,
+  type WeaknessTag,
 } from '../domain';
 import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
-import type { DiplomaAttempt } from '../domain/method/types';
+import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
+import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { lichessThemeLabel } from '../domain/lichessThemeLabels';
 import { DiplomaSeal } from './art/DiplomaSeal';
 import { formatWeaknessTag } from './formatWeakness';
 import { MedalhaIcon } from './art/MedalhaIcon';
+import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
+import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
 
 type ProgressProps = {
   today: string;
@@ -25,6 +34,20 @@ type ProgressProps = {
   achievements: Achievement[];
   weaknesses: Weakness[];
   signals: Signal[];
+  sessionMinutes: SessionMinutes;
+  learnerBand: LearnerBand | undefined;
+  weeklyFocusTag: WeaknessTag | undefined;
+  pendingItems: PendingTrainingItem[];
+  diagnosisState: DiagnosisState;
+  diagnosisMessage: string | undefined;
+  lichessConnectionState: LichessConnectionState;
+  lichessConnected: boolean;
+  lichessMessage: string | undefined;
+  lichessStudyLink: LichessStudyLink | undefined;
+  onConnectLichess: () => Promise<void>;
+  onSyncChesscomDiagnosis: () => Promise<void>;
+  onSyncLichessDiagnosis: () => Promise<void>;
+  onCreateLichessStudy: () => Promise<void>;
 };
 
 function formatAchievementDate(unlockedAt: string): string {
@@ -47,12 +70,57 @@ function clampPercent(percent: number): number {
   return Math.max(0, Math.min(100, percent));
 }
 
-export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements, weaknesses, signals }: ProgressProps) {
+function getNextDiplomaSummary(attempts: DiplomaAttempt[]): NextDiplomaSummary | undefined {
+  for (const diploma of DIPLOMAS) {
+    const progress = getDiplomaProgress(attempts, diploma.id);
+
+    if (progress === null) {
+      continue;
+    }
+
+    const passedSections = progress.sections.filter((section) => section.passed).length;
+    const progressPercent = Math.round((passedSections / progress.sections.length) * 100);
+
+    if (!progress.overallPassed) {
+      return {
+        title: progress.diploma.title,
+        progressPercent,
+      };
+    }
+  }
+
+  return undefined;
+}
+
+export function Progress({
+  today,
+  allTrainingLogs,
+  diplomaAttempts,
+  achievements,
+  weaknesses,
+  signals,
+  sessionMinutes,
+  learnerBand,
+  weeklyFocusTag,
+  pendingItems,
+  diagnosisState,
+  diagnosisMessage,
+  lichessConnectionState,
+  lichessConnected,
+  lichessMessage,
+  lichessStudyLink,
+  onConnectLichess,
+  onSyncChesscomDiagnosis,
+  onSyncLichessDiagnosis,
+  onCreateLichessStudy,
+}: ProgressProps) {
   const trend = buildProgressTrend(allTrainingLogs, today);
   const weeklyDigest = buildWeeklyDigest(allTrainingLogs, today);
   const skillMap = buildSkillMap(allTrainingLogs).slice(0, maxSkillRows);
   const trackEffort = buildTrackEffort(allTrainingLogs);
   const baseline = buildEfficacyBaseline({ allLogs: allTrainingLogs, signals, today });
+  const sessionMilestoneSummary = buildSessionMilestoneSummary({ logs: allTrainingLogs, sessionMinutes });
+  const nextDiploma = getNextDiplomaSummary(diplomaAttempts);
   const diplomasAchieved = DIPLOMAS.filter(
     (diploma) => getDiplomaProgress(diplomaAttempts, diploma.id)?.overallPassed === true,
   ).length;
@@ -65,6 +133,23 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
           <p>Dados reais: o que você já sabe, onde melhora, onde ainda trava.</p>
         </div>
       </div>
+
+      <Fold
+        concept="metas"
+        title={sessionMilestoneSummary.heading}
+        meta={`${String(sessionMilestoneSummary.currentMilestone.progressPercent)}%`}
+      >
+        <SessionMilestonesCard
+          summary={sessionMilestoneSummary}
+          openPendingCount={pendingItems.length}
+          nextDiploma={nextDiploma}
+          hideHeading
+        />
+      </Fold>
+
+      <Fold concept="trilha" title="O que você vai aprender">
+        <CurriculumCard band={learnerBand} weeklyFocusTag={weeklyFocusTag} hideHeading />
+      </Fold>
 
       {/* Tudo recolhido: o aluno abre só o que quer ver — mesma lógica do Hoje. */}
       <Fold
@@ -259,6 +344,100 @@ export function Progress({ today, allTrainingLogs, diplomaAttempts, achievements
           <p className="config-hint">Hipóteses, não diagnósticos — sinais antigos saem da conta.</p>
         </Fold>
       ) : null}
+
+      <Fold
+        concept="lichess"
+        title="Sincronizar e estudar"
+        {...(lichessConnected ? {} : { meta: 'conectar' })}
+      >
+        <div className="diagnosis-strip" aria-live="polite">
+          {!lichessConnected ? (
+            <div className="diagnosis-group diagnosis-connect">
+              <p className="config-hint">
+                Conecte sua conta do Lichess para criar o Study do dia e conferir o resultado dos seus
+                puzzles. O diagnóstico das partidas já funciona sem conectar.
+              </p>
+              <div className="diagnosis-actions">
+                <button
+                  type="button"
+                  disabled={lichessConnectionState === 'syncing'}
+                  onClick={() => {
+                    void onConnectLichess();
+                  }}
+                >
+                  <ExternalLink aria-hidden="true" size={16} />
+                  Conectar Lichess
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="diagnosis-group">
+            <p className="config-hint">
+              Puxa suas partidas recentes — o professor usa para achar onde você trava.
+            </p>
+            <div className="diagnosis-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={diagnosisState === 'syncing'}
+                onClick={() => {
+                  void onSyncChesscomDiagnosis();
+                }}
+              >
+                <RefreshCw aria-hidden="true" size={16} />
+                {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={lichessConnectionState === 'syncing'}
+                onClick={() => {
+                  void onSyncLichessDiagnosis();
+                }}
+              >
+                <RefreshCw aria-hidden="true" size={16} />
+                {lichessConnectionState === 'syncing' ? 'Lichess...' : 'Atualizar Lichess'}
+              </button>
+            </div>
+          </div>
+
+          <div className="diagnosis-group">
+            <p className="config-hint">
+              Reúne os exercícios do dia num tabuleiro só, dentro do Lichess. Útil para treinar sem
+              pular entre links.
+            </p>
+            <div className="diagnosis-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={lichessConnectionState === 'syncing'}
+                onClick={() => {
+                  void onCreateLichessStudy();
+                }}
+              >
+                Gerar Study do dia
+              </button>
+              {lichessStudyLink !== undefined ? (
+                <a
+                  className="button-link secondary-link"
+                  href={lichessStudyLink.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Abrir Study do dia no Lichess (abre em nova aba)"
+                >
+                  Abrir Study do dia
+                </a>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="diagnosis-messages">
+            {diagnosisMessage !== undefined ? <p>{diagnosisMessage}</p> : null}
+            {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
+          </div>
+        </div>
+      </Fold>
     </section>
   );
 }

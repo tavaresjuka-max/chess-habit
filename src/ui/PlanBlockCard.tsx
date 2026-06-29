@@ -23,6 +23,9 @@ type PlanBlockCardProps = {
   onSkipBlockTraining: (blockId: string) => Promise<void>;
   // Progresso do tema do bloco rumo ao diploma (PROD-5); ausente = bloco sem tema mensurável.
   diplomaProgress?: { label: string; attempts: number; target: number };
+  // O herói action-first (TodayHero) já mostra o coachNote do bloco atual; suprime
+  // aqui para não duplicar a mesma frase na tela. Default false p/ outros usos.
+  hideCoachNote?: boolean;
 };
 
 export function PlanBlockCard({
@@ -35,6 +38,7 @@ export function PlanBlockCard({
   onCompleteBlockTraining,
   onSkipBlockTraining,
   diplomaProgress,
+  hideCoachNote = false,
 }: PlanBlockCardProps) {
   const [isRating, setIsRating] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
@@ -186,10 +190,12 @@ export function PlanBlockCard({
         <Target aria-hidden="true" size={15} />
         {block.task}
       </p>
-      <p className="block-line coach-note">
-        <Feather aria-hidden="true" size={15} />
-        {block.coachNote}
-      </p>
+      {hideCoachNote ? null : (
+        <p className="block-line coach-note">
+          <Feather aria-hidden="true" size={15} />
+          {block.coachNote}
+        </p>
+      )}
       {block.guidingQuestion !== undefined ? (
         <p className="block-line guiding-question">
           <HelpCircle aria-hidden="true" size={15} />

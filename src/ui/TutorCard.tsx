@@ -24,6 +24,9 @@ type TutorCardProps = {
   today: string;
   onAnswerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
   onReconcileLichessResults: () => Promise<void>;
+  // O hero action-first (TodayHero) já mostra o enquadramento pré-sessão (coachNote).
+  // Montado abaixo do carrossel, o TutorCard suprime o pré para não duplicar.
+  suppressPreSessionMessage?: boolean;
 };
 
 const POSE: Record<CoachMessagePhase, string> & { close_hard: string; close_cause: string } = {
@@ -72,6 +75,7 @@ export function TutorCard({
   today,
   onAnswerTutorQuestion,
   onReconcileLichessResults,
+  suppressPreSessionMessage = false,
 }: TutorCardProps) {
   const consistency = computeConsistency(allTrainingLogs, today);
   const primaryWeakness = weaknesses[0];
@@ -85,6 +89,9 @@ export function TutorCard({
   const lastDone = doneToday[0];
 
   if (lastDone === undefined) {
+    if (suppressPreSessionMessage) {
+      return null;
+    }
     const message = buildSessionMessage({ phase: 'pre', primaryWeakness, consistency });
     const pose = poseFor(message.phase);
     return (

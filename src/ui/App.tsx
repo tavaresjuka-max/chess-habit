@@ -414,6 +414,20 @@ export function App() {
               achievements={appState.achievements}
               weaknesses={appState.weaknesses}
               signals={appState.signals}
+              sessionMinutes={appState.sessionMinutes}
+              learnerBand={appState.profile.band}
+              weeklyFocusTag={appState.todayPlan?.weeklyFocus?.tag}
+              pendingItems={appState.pendingItems}
+              diagnosisState={appState.diagnosisState}
+              diagnosisMessage={appState.diagnosisMessage}
+              lichessConnectionState={appState.lichessConnectionState}
+              lichessConnected={appState.lichessToken !== undefined}
+              lichessMessage={appState.lichessMessage}
+              lichessStudyLink={appState.lichessStudyLink}
+              onConnectLichess={appState.connectLichess}
+              onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
+              onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
+              onCreateLichessStudy={appState.createLichessStudy}
             />
           </Suspense>
         ) : (
@@ -425,25 +439,15 @@ export function App() {
             trainingLogs={appState.trainingLogs}
             allTrainingLogs={appState.allTrainingLogs}
             pendingItems={appState.pendingItems}
-            diplomaAttempts={appState.diplomaAttempts}
             achievements={appState.achievements}
             weaknesses={appState.weaknesses}
-            diagnosisState={appState.diagnosisState}
-            diagnosisMessage={appState.diagnosisMessage}
             lichessConnectionState={appState.lichessConnectionState}
-            lichessConnected={appState.lichessToken !== undefined}
-            lichessMessage={appState.lichessMessage}
-            lichessStudyLink={appState.lichessStudyLink}
             backupMeta={appState.backupMeta}
             onSessionMinutesChange={appState.regeneratePlan}
             onCreateNextSession={appState.createNextSession}
             onAnswerTutorQuestion={appState.answerTutorQuestion}
             onImportFreeActivity={appState.importFreeActivity}
-            onSyncChesscomDiagnosis={appState.syncChesscomDiagnosis}
-            onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
             onReconcileLichessResults={appState.reconcileLichessResults}
-            onCreateLichessStudy={appState.createLichessStudy}
-            onConnectLichess={appState.connectLichess}
             onApproveLearningPlan={appState.approveLearningPlan}
             onRequestLearningPlanRevision={appState.requestLearningPlanRevision}
             onOpenPendingItem={appState.openPendingItem}

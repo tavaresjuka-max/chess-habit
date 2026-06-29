@@ -93,7 +93,10 @@ describe('training flow', () => {
   it('shows a simple Professor Tavarez introduction before the guided fork lesson', async () => {
     render(<App />);
 
-    expect(await screen.findByText(/Garfo é uma peça sua atacando dois alvos ao mesmo tempo/)).toBeTruthy();
+    // Redesign action-first: o enquadramento do conceito aparece no herói (TodayHero)
+    // E no cartão de treino (PlanBlockCard). O contrato do teste é "o intro está presente
+    // antes da lição", não unicidade — alinhado às asserções getAllByText abaixo.
+    expect((await screen.findAllByText(/Garfo é uma peça sua atacando dois alvos ao mesmo tempo/)).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/cavalo, bispo, peão e dama/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/prepara o garfo alguns lances antes/).length).toBeGreaterThan(0);
   });
@@ -163,12 +166,11 @@ describe('training flow', () => {
   it('updates accumulated phase milestones after completing a block', async () => {
     render(<App />);
 
-    expect(await screen.findByText('Metas da fase')).toBeTruthy();
-
     await completeFirstBlockWithFeedback('Bom');
 
+    // Os marcos da fase (Metas) vivem na tela Progresso desde a Fase 2.
+    fireEvent.click(await screen.findByRole('button', { name: 'Progresso' }));
     expect(await screen.findByText('0h de 6h - 1 de 72 sessões.', {}, { timeout: 5000 })).toBeTruthy();
-    expect(screen.getByText('sessão')).toBeTruthy();
   });
 
   it('records zero elapsed seconds honestly when completing without starting first', async () => {
@@ -411,6 +413,9 @@ describe('training flow', () => {
     vi.stubGlobal('fetch', fetchMock);
     render(<App />);
 
+    // O bloco de sincronização (Sincronizar e estudar) vive na tela Progresso
+    // desde a Fase 2 — o Hoje só tem ação.
+    fireEvent.click(await screen.findByRole('button', { name: 'Progresso' }));
     fireEvent.click(await screen.findByText('Sincronizar e estudar'));
     fireEvent.click(screen.getByRole('button', { name: 'Atualizar Lichess' }));
 
@@ -550,6 +555,8 @@ describe('training flow', () => {
   it('asks for Lichess connection before creating a Study', async () => {
     render(<App />);
 
+    // O bloco de sincronização vive na tela Progresso (Fase 2).
+    fireEvent.click(await screen.findByRole('button', { name: 'Progresso' }));
     fireEvent.click(await screen.findByText('Sincronizar e estudar'));
     fireEvent.click(screen.getByRole('button', { name: 'Gerar Study do dia' }));
 

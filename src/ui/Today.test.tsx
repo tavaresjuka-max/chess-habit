@@ -58,7 +58,6 @@ function renderToday({
   blocks,
   trainingLogs = [],
   achievements = [],
-  lichessConnected = false,
   backupMeta = recentBackupMeta,
   emptyState = false,
   onCreateNextSession = noop,
@@ -70,7 +69,6 @@ function renderToday({
   blocks: PlanBlock[];
   trainingLogs?: TrainingLog[];
   achievements?: Achievement[];
-  lichessConnected?: boolean;
   backupMeta?: BackupMeta | null;
   emptyState?: boolean;
   onCreateNextSession?: typeof noop;
@@ -95,25 +93,15 @@ function renderToday({
       trainingLogs={trainingLogs}
       allTrainingLogs={trainingLogs}
       pendingItems={[]}
-      diplomaAttempts={[]}
       achievements={achievements}
       weaknesses={[]}
-      diagnosisState="idle"
-      diagnosisMessage={undefined}
       lichessConnectionState="disconnected"
-      lichessConnected={lichessConnected}
-      lichessMessage={undefined}
-      lichessStudyLink={undefined}
       backupMeta={backupMeta ?? undefined}
       onSessionMinutesChange={noop}
       onCreateNextSession={onCreateNextSession}
       onAnswerTutorQuestion={noop}
       onImportFreeActivity={noop}
-      onSyncChesscomDiagnosis={noop}
-      onSyncLichessDiagnosis={noop}
       onReconcileLichessResults={noop}
-      onCreateLichessStudy={noop}
-      onConnectLichess={noop}
       onApproveLearningPlan={noop}
       onRequestLearningPlanRevision={noop}
       onOpenPendingItem={noop}
@@ -148,7 +136,7 @@ describe('Today — hero "Agora"', () => {
     expect(within(hero).getByText('Lição guiada de garfos')).toBeInTheDocument();
   });
 
-  it('não repete o bloco do hero na lista de sessões', () => {
+  it('mostra o bloco do hero no TodayHero e no carrossel (sem lista de sessões dedicada)', () => {
     renderToday({
       blocks: [
         makeBlock({ id: 'bloco-1', title: 'Lição guiada de garfos' }),
@@ -156,7 +144,11 @@ describe('Today — hero "Agora"', () => {
       ],
     });
 
-    expect(screen.getAllByText('Lição guiada de garfos')).toHaveLength(1);
+    // O título do hero aparece agora no cabeçalho action-first (TodayHero) e no
+    // carrossel de treino (fluxo real preservado). Não há mais uma "lista de
+    // sessões" separada que duplicasse o bloco.
+    expect(screen.getAllByText('Lição guiada de garfos')).toHaveLength(2);
+    // O bloco que NÃO é hero aparece só no carrossel.
     expect(screen.getAllByText('Puzzles de garfo')).toHaveLength(1);
   });
 
@@ -260,20 +252,6 @@ describe('Today — números do dia', () => {
     });
 
     expect(screen.queryByText('dias seguidos')).not.toBeInTheDocument();
-  });
-});
-
-describe('Today — convite para conectar o Lichess', () => {
-  it('mostra "Conectar Lichess" quando ainda não conectado', () => {
-    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], lichessConnected: false });
-
-    expect(screen.getByRole('button', { name: /Conectar Lichess/ })).toBeInTheDocument();
-  });
-
-  it('esconde o convite quando o Lichess já está conectado', () => {
-    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], lichessConnected: true });
-
-    expect(screen.queryByRole('button', { name: /Conectar Lichess/ })).not.toBeInTheDocument();
   });
 });
 
@@ -439,25 +417,15 @@ describe('Today — roadmap status labels', () => {
         trainingLogs={[]}
         allTrainingLogs={[]}
         pendingItems={[]}
-        diplomaAttempts={[]}
         achievements={[]}
         weaknesses={[]}
-        diagnosisState="idle"
-        diagnosisMessage={undefined}
         lichessConnectionState="disconnected"
-        lichessConnected={false}
-        lichessMessage={undefined}
-        lichessStudyLink={undefined}
         backupMeta={undefined}
         onSessionMinutesChange={noop}
         onCreateNextSession={noop}
         onAnswerTutorQuestion={noop}
         onImportFreeActivity={noop}
-        onSyncChesscomDiagnosis={noop}
-        onSyncLichessDiagnosis={noop}
         onReconcileLichessResults={noop}
-        onCreateLichessStudy={noop}
-        onConnectLichess={noop}
         onApproveLearningPlan={noop}
         onRequestLearningPlanRevision={noop}
         onOpenPendingItem={noop}
@@ -573,20 +541,6 @@ describe('Today — timer beep (prefers-reduced-motion)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// getNextDiplomaSummary — undefined return path (line 826)
-// ---------------------------------------------------------------------------
-
-describe('Today — next diploma summary (undefined path)', () => {
-  it('renders without a diploma chip when diplomaAttempts is empty', () => {
-    renderToday({
-      blocks: [makeBlock({ id: 'b1' })],
-    });
-    // The SessionMilestonesCard renders without crashing; no diploma chip shown
-    expect(screen.getByRole('heading', { name: 'Hoje' })).toBeInTheDocument();
-  });
-});
-
-// ---------------------------------------------------------------------------
 // getBackupReminder — NaN date branch (line 744)
 // ---------------------------------------------------------------------------
 
@@ -625,25 +579,15 @@ describe('Today — formatFriendlyDate invalid date', () => {
         trainingLogs={[]}
         allTrainingLogs={[]}
         pendingItems={[]}
-        diplomaAttempts={[]}
         achievements={[]}
         weaknesses={[]}
-        diagnosisState="idle"
-        diagnosisMessage={undefined}
         lichessConnectionState="disconnected"
-        lichessConnected={false}
-        lichessMessage={undefined}
-        lichessStudyLink={undefined}
         backupMeta={undefined}
         onSessionMinutesChange={noop}
         onCreateNextSession={noop}
         onAnswerTutorQuestion={noop}
         onImportFreeActivity={noop}
-        onSyncChesscomDiagnosis={noop}
-        onSyncLichessDiagnosis={noop}
         onReconcileLichessResults={noop}
-        onCreateLichessStudy={noop}
-        onConnectLichess={noop}
         onApproveLearningPlan={noop}
         onRequestLearningPlanRevision={noop}
         onOpenPendingItem={noop}
@@ -677,9 +621,12 @@ describe("Today — nota de transparência do roteamento (A1')", () => {
   it('mostra o porquê quando plan.routingEmphasis está setado (detection-volume)', () => {
     renderToday({ blocks: [makeBlock({ id: 'b1' })], routingEmphasis: 'detection-volume' });
 
-    // Linhas curadas do buildRoutingWhy para detection-volume.
-    expect(screen.getByText(/à vista/i)).toBeInTheDocument();
-    expect(screen.getByText(/foco de hoje/i)).toBeInTheDocument();
+    // Linhas curadas do buildRoutingWhy para detection-volume, scoped à nota de
+    // roteamento (o botão "Trocar o foco de hoje" do TodayHero também contém
+    // "foco de hoje", então consultamos dentro da nota, não no documento todo).
+    const note = screen.getByRole('note');
+    expect(note).toHaveTextContent(/à vista/i);
+    expect(note).toHaveTextContent(/foco de hoje/i);
   });
 
   it('mostra o porquê para calculation', () => {
@@ -691,7 +638,8 @@ describe("Today — nota de transparência do roteamento (A1')", () => {
   it('não mostra a nota quando routingEmphasis está ausente (default)', () => {
     renderToday({ blocks: [makeBlock({ id: 'b1' })] });
 
-    expect(screen.queryByText(/foco de hoje/i)).not.toBeInTheDocument();
+    // Sem routingEmphasis a nota de roteamento (role="note") não existe.
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
   });
 
   it('a nota tem role="note" (acessibilidade)', () => {
