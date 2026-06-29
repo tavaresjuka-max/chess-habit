@@ -33,3 +33,21 @@ O processo da sessão foi reiniciado por volta das 00:5x e o job do GLM foi ence
 ## Diário (append-only)
 - 2026-06-29 ~23:5x — branch criada; SPEC F1 escrito; GLM despachado p/ F1. Fix de form-controls (accent-color verde + checkbox + .field-inline) já no working tree.
 - 2026-06-30 ~08:1x — retomada pós-restart. GLM tinha feito F1 (build/lint ok, 3 testes falhando por remoção do TutorCard). Adjudicado Opção B + suprimido pré-sessão duplicado + relaxado 1 asserção. GATES VERDES. Commit F1.
+
+## ESTADO AO SAIR — 2026-06-30 ~11:35 (leia isto ao voltar)
+
+Tudo em `master`, **gates verdes (vitest 1348/1348, build, lint)**, **NADA pushado/deployado**.
+
+FEITO (commits recentes, do mais novo ao F1):
+- Resiliência: ErrorBoundary global + timeout 30s nos fetches OAuth (era WIP solto no tree; commitado).
+- Paleta VERDE-ELEVAÇÃO: fim das ilhas beges — card do herói verde elevado, faixa verde médio, secundários = contorno verde, título branco-gesso. Barra do dia + borda do bloco: ouro→verde.
+- Retrato do Professor: sem corte (vertical, contain). Botão primário: verde (sem placa dourada). Rodapé escuro translúcido. Ritmo não abre mais sozinho.
+- Arte: retrato do herói integrado (webp leve). Conceitos = SVG TacticDiagram repaginado (madeira/setas/sombra), não imagem gerada.
+- Redesign action-first (F1–F5) já mergeado em master no início do dia.
+
+PRECISA DE VOCÊ (não dá pra eu fazer):
+1. **PUSH + DEPLOY**: `master` está ~20 commits à frente de origin. Publicar = seu passo manual (export prebuilt → Vercel).
+2. **Sistema de acento QUENTE pervasivo** (`--gold-050/300` em ~35 cards: fundos creme + bordas) do design original — NÃO purgei por risco de contraste em telas que não consigo ver (screenshot trava no ambiente). Decida no device se quer tudo verde; aí eu recoloro com você validando.
+3. **Cards "papel" intencionais** (`.plan-block`, `.tutor-card`): textura creme com texto escuro adaptado — funcionam; deixei. Unifico se quiser.
+
+VERIFICADO: app renderiza no preview (localhost:5180); hero/botões/Progresso ok. (Um erro de HMR do vite no log era stale — build e runtime ok.)
