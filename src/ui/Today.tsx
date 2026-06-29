@@ -1,4 +1,4 @@
-import { ExternalLink, RefreshCw } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   buildLearningPlanProposal,
@@ -7,7 +7,6 @@ import {
   buildPuzzleThemeStats,
   buildReturnRecalibrationNote,
   buildSessionMilestoneSummary,
-  buildWeeklyDigest,
   computeConsistency,
   elapsedSecondsBetween,
   getAchievementDefinition,
@@ -17,7 +16,6 @@ import {
   type DailyPlan,
   type DayCompletionSummary,
   type LearnerBand,
-  type LichessStudyLink,
   type ErrorType,
   type PlanBlock,
   type PlanBlockFeedback,
@@ -31,29 +29,24 @@ import { computeRecentActivity } from '../domain/metrics/recentActivity';
 import { buildMilestoneLine, buildFactualFooter, buildSupportBaseLine } from '../domain/coach/retentionCopy';
 import { AccumulationStrip } from './AccumulationStrip';
 import {
-  DIPLOMAS,
   findDiplomaSectionForTheme,
-  getDiplomaProgress,
   SECTION_MIN_ATTEMPTS,
 } from '../domain/method/diplomas';
 import { buildSkillMap } from '../domain/metrics/progressOverview';
 import { getMethodTrackTitle } from '../domain/method/methodTracks';
-import type { DiplomaAttempt, MethodTrackId, PendingTrainingItem } from '../domain/method/types';
+import type { MethodTrackId, PendingTrainingItem } from '../domain/method/types';
 import type { BackupMeta } from '../app/backupStatus';
-import type { DiagnosisState, LichessConnectionState } from '../app/state';
+import type { LichessConnectionState } from '../app/state';
 import { ORGANIZER_CEILING_MESSAGE } from '../domain/curriculum/curriculum';
 import { buildRoutingWhy } from '../domain/method/errorRouting';
 import { isDueToday } from '../domain/method/pendingItems';
-import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
 import { BlockCarousel } from './BlockCarousel';
 import { LearningPlanProposalCard } from './LearningPlanProposalCard';
 import { PendingReviewCard } from './PendingReviewCard';
 import { PlanBlockCard } from './PlanBlockCard';
-import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
 import { TodayHero } from './TodayHero';
 import { TutorCard } from './TutorCard';
-import { formatWeaknessTag } from './formatWeakness';
 
 type TodayProps = {
   plan: DailyPlan | undefined;
@@ -63,25 +56,15 @@ type TodayProps = {
   trainingLogs: TrainingLog[];
   allTrainingLogs: TrainingLog[];
   pendingItems: PendingTrainingItem[];
-  diplomaAttempts: DiplomaAttempt[];
   achievements: Achievement[];
   weaknesses: Weakness[];
-  diagnosisState: DiagnosisState;
-  diagnosisMessage: string | undefined;
   lichessConnectionState: LichessConnectionState;
-  lichessConnected: boolean;
-  lichessMessage: string | undefined;
-  lichessStudyLink: LichessStudyLink | undefined;
   backupMeta?: BackupMeta;
   onSessionMinutesChange: (minutes: SessionMinutes) => Promise<void>;
   onCreateNextSession: (minutes: SessionMinutes) => Promise<void>;
   onAnswerTutorQuestion: (answer: TutorQuestionAnswer) => Promise<void>;
   onImportFreeActivity: () => Promise<void>;
-  onSyncChesscomDiagnosis: () => Promise<void>;
-  onSyncLichessDiagnosis: () => Promise<void>;
   onReconcileLichessResults: () => Promise<void>;
-  onCreateLichessStudy: () => Promise<void>;
-  onConnectLichess: () => Promise<void>;
   onApproveLearningPlan: () => Promise<void>;
   onRequestLearningPlanRevision: (note: string) => Promise<void>;
   onOpenPendingItem: (item: PendingTrainingItem) => Promise<void>;
@@ -114,23 +97,13 @@ export function Today({
   trainingLogs,
   allTrainingLogs,
   pendingItems,
-  diplomaAttempts,
   achievements,
   weaknesses,
-  diagnosisState,
-  diagnosisMessage,
   lichessConnectionState,
-  lichessConnected,
-  lichessMessage,
-  lichessStudyLink,
   backupMeta,
   onSessionMinutesChange,
   onCreateNextSession,
   onImportFreeActivity,
-  onSyncChesscomDiagnosis,
-  onSyncLichessDiagnosis,
-  onCreateLichessStudy,
-  onConnectLichess,
   onApproveLearningPlan,
   onRequestLearningPlanRevision,
   onOpenPendingItem,
@@ -253,10 +226,8 @@ export function Today({
       .reduce((total, log) => total + (log.elapsedSeconds ?? 0), 0) / 60,
   );
   const returnNote = buildReturnRecalibrationNote(consistency.daysSinceLastSession);
-  const weeklyDigest = buildWeeklyDigest(allTrainingLogs, plan.date);
   const sessionMilestoneSummary = buildSessionMilestoneSummary({ logs: allTrainingLogs, sessionMinutes });
   const activeTrackId = getActiveTrackId(plan);
-  const nextDiploma = getNextDiplomaSummary(diplomaAttempts);
   // PROD-5: progresso do tema do bloco rumo ao diploma (números visíveis no treino).
   const skillMap = buildSkillMap(allTrainingLogs);
   const diplomaChipForBlock = (
@@ -620,157 +591,6 @@ export function Today({
         ) : null}
       </Fold>
       </div>
-
-      <section className="today-aside" aria-label="Resumo e contexto">
-
-      <Fold
-        concept="metas"
-        title={sessionMilestoneSummary.heading}
-        meta={`${String(sessionMilestoneSummary.currentMilestone.progressPercent)}%`}
-      >
-        <SessionMilestonesCard
-          summary={sessionMilestoneSummary}
-          openPendingCount={pendingItems.length}
-          nextDiploma={nextDiploma}
-          hideHeading
-        />
-      </Fold>
-
-      <Fold concept="trilha" title="O que você vai aprender">
-        <CurriculumCard band={learnerBand} weeklyFocusTag={plan.weeklyFocus?.tag} hideHeading />
-      </Fold>
-
-      {weeklyDigest !== undefined ? (
-        <Fold concept="ritmo" title={weeklyDigest.heading}>
-          <div className="weekly-report" aria-label={weeklyDigest.heading}>
-            <div className="weekly-report-metrics">
-              {weeklyDigest.metrics.map((metric) => (
-                <span key={metric} className="metric-chip">
-                  {metric}
-                </span>
-              ))}
-            </div>
-            {weeklyDigest.lines.map((line) => (
-              <p key={line}>{line}</p>
-            ))}
-          </div>
-        </Fold>
-      ) : null}
-
-      {weaknesses.length > 0 ? (
-        <Fold
-          concept="diagnostico"
-          title="O que seus jogos revelam"
-          meta={String(weaknesses.length)}
-        >
-          <div className="weakness-row">
-            {weaknesses
-              .slice()
-              .sort((left, right) => right.score - left.score)
-              .slice(0, 3)
-              .map((weakness) => (
-                <span className="weakness-chip" key={weakness.tag}>
-                  {formatWeaknessTag(weakness.tag)} ({Math.round(weakness.score * 100)}%)
-                </span>
-              ))}
-          </div>
-        </Fold>
-      ) : null}
-
-      <Fold
-        concept="lichess"
-        title="Sincronizar e estudar"
-        {...(lichessConnected ? {} : { meta: 'conectar' })}
-      >
-        <div className="diagnosis-strip" aria-live="polite">
-          {!lichessConnected ? (
-            <div className="diagnosis-group diagnosis-connect">
-              <p className="config-hint">
-                Conecte sua conta do Lichess para criar o Study do dia e conferir o resultado dos seus
-                puzzles. O diagnóstico das partidas já funciona sem conectar.
-              </p>
-              <div className="diagnosis-actions">
-                <button
-                  type="button"
-                  disabled={lichessConnectionState === 'syncing'}
-                  onClick={() => {
-                    void onConnectLichess();
-                  }}
-                >
-                  <ExternalLink aria-hidden="true" size={16} />
-                  Conectar Lichess
-                </button>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="diagnosis-group">
-            <p className="config-hint">
-              Puxa suas partidas recentes — o professor usa para achar onde você trava.
-            </p>
-            <div className="diagnosis-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={diagnosisState === 'syncing'}
-                onClick={() => {
-                  void onSyncChesscomDiagnosis();
-                }}
-              >
-                <RefreshCw aria-hidden="true" size={16} />
-                {diagnosisState === 'syncing' ? 'Atualizando...' : 'Atualizar Chess.com'}
-              </button>
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={lichessConnectionState === 'syncing'}
-                onClick={() => {
-                  void onSyncLichessDiagnosis();
-                }}
-              >
-                <RefreshCw aria-hidden="true" size={16} />
-                {lichessConnectionState === 'syncing' ? 'Lichess...' : 'Atualizar Lichess'}
-              </button>
-            </div>
-          </div>
-
-          <div className="diagnosis-group">
-            <p className="config-hint">
-              Reúne os exercícios do dia num tabuleiro só, dentro do Lichess. Útil para treinar sem
-              pular entre links.
-            </p>
-            <div className="diagnosis-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={lichessConnectionState === 'syncing'}
-                onClick={() => {
-                  void onCreateLichessStudy();
-                }}
-              >
-                Gerar Study do dia
-              </button>
-              {lichessStudyLink !== undefined ? (
-                <a
-                  className="button-link secondary-link"
-                  href={lichessStudyLink.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Abrir Study do dia no Lichess (abre em nova aba)"
-                >
-                  Abrir Study do dia
-                </a>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="diagnosis-messages">
-            {diagnosisMessage !== undefined ? <p>{diagnosisMessage}</p> : null}
-            {lichessMessage !== undefined ? <p>{lichessMessage}</p> : null}
-          </div>
-        </div>
-      </Fold>
-      </section>
       </div>
     </section>
   );
@@ -875,28 +695,6 @@ function RoadmapList({ items }: { items: TrainingRoadmapItem[] }) {
 
 function getActiveTrackId(plan: DailyPlan): MethodTrackId | undefined {
   return plan.blocks.find((block) => block.methodTrackId !== undefined)?.methodTrackId;
-}
-
-function getNextDiplomaSummary(attempts: DiplomaAttempt[]): NextDiplomaSummary | undefined {
-  for (const diploma of DIPLOMAS) {
-    const progress = getDiplomaProgress(attempts, diploma.id);
-
-    if (progress === null) {
-      continue;
-    }
-
-    const passedSections = progress.sections.filter((section) => section.passed).length;
-    const progressPercent = Math.round((passedSections / progress.sections.length) * 100);
-
-    if (!progress.overallPassed) {
-      return {
-        title: progress.diploma.title,
-        progressPercent,
-      };
-    }
-  }
-
-  return undefined;
 }
 
 function playTimerBeep(): void {

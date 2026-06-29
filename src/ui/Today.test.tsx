@@ -58,7 +58,6 @@ function renderToday({
   blocks,
   trainingLogs = [],
   achievements = [],
-  lichessConnected = false,
   backupMeta = recentBackupMeta,
   emptyState = false,
   onCreateNextSession = noop,
@@ -70,7 +69,6 @@ function renderToday({
   blocks: PlanBlock[];
   trainingLogs?: TrainingLog[];
   achievements?: Achievement[];
-  lichessConnected?: boolean;
   backupMeta?: BackupMeta | null;
   emptyState?: boolean;
   onCreateNextSession?: typeof noop;
@@ -95,25 +93,15 @@ function renderToday({
       trainingLogs={trainingLogs}
       allTrainingLogs={trainingLogs}
       pendingItems={[]}
-      diplomaAttempts={[]}
       achievements={achievements}
       weaknesses={[]}
-      diagnosisState="idle"
-      diagnosisMessage={undefined}
       lichessConnectionState="disconnected"
-      lichessConnected={lichessConnected}
-      lichessMessage={undefined}
-      lichessStudyLink={undefined}
       backupMeta={backupMeta ?? undefined}
       onSessionMinutesChange={noop}
       onCreateNextSession={onCreateNextSession}
       onAnswerTutorQuestion={noop}
       onImportFreeActivity={noop}
-      onSyncChesscomDiagnosis={noop}
-      onSyncLichessDiagnosis={noop}
       onReconcileLichessResults={noop}
-      onCreateLichessStudy={noop}
-      onConnectLichess={noop}
       onApproveLearningPlan={noop}
       onRequestLearningPlanRevision={noop}
       onOpenPendingItem={noop}
@@ -264,20 +252,6 @@ describe('Today — números do dia', () => {
     });
 
     expect(screen.queryByText('dias seguidos')).not.toBeInTheDocument();
-  });
-});
-
-describe('Today — convite para conectar o Lichess', () => {
-  it('mostra "Conectar Lichess" quando ainda não conectado', () => {
-    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], lichessConnected: false });
-
-    expect(screen.getByRole('button', { name: /Conectar Lichess/ })).toBeInTheDocument();
-  });
-
-  it('esconde o convite quando o Lichess já está conectado', () => {
-    renderToday({ blocks: [makeBlock({ id: 'bloco-1' })], lichessConnected: true });
-
-    expect(screen.queryByRole('button', { name: /Conectar Lichess/ })).not.toBeInTheDocument();
   });
 });
 
@@ -443,25 +417,15 @@ describe('Today — roadmap status labels', () => {
         trainingLogs={[]}
         allTrainingLogs={[]}
         pendingItems={[]}
-        diplomaAttempts={[]}
         achievements={[]}
         weaknesses={[]}
-        diagnosisState="idle"
-        diagnosisMessage={undefined}
         lichessConnectionState="disconnected"
-        lichessConnected={false}
-        lichessMessage={undefined}
-        lichessStudyLink={undefined}
         backupMeta={undefined}
         onSessionMinutesChange={noop}
         onCreateNextSession={noop}
         onAnswerTutorQuestion={noop}
         onImportFreeActivity={noop}
-        onSyncChesscomDiagnosis={noop}
-        onSyncLichessDiagnosis={noop}
         onReconcileLichessResults={noop}
-        onCreateLichessStudy={noop}
-        onConnectLichess={noop}
         onApproveLearningPlan={noop}
         onRequestLearningPlanRevision={noop}
         onOpenPendingItem={noop}
@@ -577,20 +541,6 @@ describe('Today — timer beep (prefers-reduced-motion)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// getNextDiplomaSummary — undefined return path (line 826)
-// ---------------------------------------------------------------------------
-
-describe('Today — next diploma summary (undefined path)', () => {
-  it('renders without a diploma chip when diplomaAttempts is empty', () => {
-    renderToday({
-      blocks: [makeBlock({ id: 'b1' })],
-    });
-    // The SessionMilestonesCard renders without crashing; no diploma chip shown
-    expect(screen.getByRole('heading', { name: 'Hoje' })).toBeInTheDocument();
-  });
-});
-
-// ---------------------------------------------------------------------------
 // getBackupReminder — NaN date branch (line 744)
 // ---------------------------------------------------------------------------
 
@@ -629,25 +579,15 @@ describe('Today — formatFriendlyDate invalid date', () => {
         trainingLogs={[]}
         allTrainingLogs={[]}
         pendingItems={[]}
-        diplomaAttempts={[]}
         achievements={[]}
         weaknesses={[]}
-        diagnosisState="idle"
-        diagnosisMessage={undefined}
         lichessConnectionState="disconnected"
-        lichessConnected={false}
-        lichessMessage={undefined}
-        lichessStudyLink={undefined}
         backupMeta={undefined}
         onSessionMinutesChange={noop}
         onCreateNextSession={noop}
         onAnswerTutorQuestion={noop}
         onImportFreeActivity={noop}
-        onSyncChesscomDiagnosis={noop}
-        onSyncLichessDiagnosis={noop}
         onReconcileLichessResults={noop}
-        onCreateLichessStudy={noop}
-        onConnectLichess={noop}
         onApproveLearningPlan={noop}
         onRequestLearningPlanRevision={noop}
         onOpenPendingItem={noop}
