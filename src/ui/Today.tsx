@@ -436,6 +436,7 @@ export function Today({
                   onCompleteBlockTraining={onCompleteBlockTraining}
                   onSkipBlockTraining={onSkipBlockTraining}
                   diplomaProgress={diplomaChipForBlock(block)}
+                  hideCoachNote={heroBlock !== undefined && block.id === heroBlock.id}
                 />
               );
             }}
