@@ -14,9 +14,11 @@ test-results/
 playwright-report/
 coverage/
 
-# Docs e backend (o worker Cloudflare faz deploy separado via wrangler)
+# Docs não fazem parte do bundle do app.
 docs/
-backend/
+# ATENÇÃO: backend/ NÃO pode ser excluído aqui. O teste E2E src/infra/sync/syncE2E.test.ts importa
+# backend/worker|fakeD1|types, e o `tsc -b` do build do Vercel type-checa os testes → sem backend/ o
+# build quebra com TS2307 (Cannot find module). O worker continua sendo deployado à parte (wrangler).
 
 # Logs locais
 dev-server*.log
