@@ -350,6 +350,21 @@ li {
   pointer-events: none;
 }
 
+/* Fleurons de canto (4-point star dourado, simétrico): assentam nos cantos da
+   regra inset, fechando o ar de "documento". SVG inline → nítido e leve. */
+.panel::after {
+  --panel-fleuron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16'%3E%3Cpath d='M8 1 L9.4 6.6 L15 8 L9.4 9.4 L8 15 L6.6 9.4 L1 8 L6.6 6.6 Z' fill='none' stroke='%239f8540' stroke-width='1.1'/%3E%3C/svg%3E");
+  content: '';
+  position: absolute;
+  inset: 4px;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: var(--panel-fleuron), var(--panel-fleuron), var(--panel-fleuron), var(--panel-fleuron);
+  background-repeat: no-repeat;
+  background-position: top left, top right, bottom left, bottom right;
+  background-size: 13px 13px;
+}
+
 .panel h1 {
   margin: 0 0 12px;
   font-size: 1.9rem;
@@ -1295,6 +1310,12 @@ textarea {
   gap: 10px;
   align-items: center;
   margin-top: 2px;
+}
+
+/* CTA primária do herói: já usa a moldura 9-slice pintada (.button-link:not(.secondary-link),
+   /art/moldura-botao-primario-slice.webp) — aqui só a fazemos crescer para ser a ação dominante. */
+.today-hero-train {
+  flex: 1 1 auto;
 }
 
 .today-hero-warning {
