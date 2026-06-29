@@ -1,5 +1,4 @@
-import { pullAndDecrypt, pushEncrypted, type PulledItem } from './syncEngine';
-import type { EncryptedBlob } from './crypto';
+import { pullBlobs, pushBlob, type PulledItem } from './syncEngine';
 import type { SyncClient } from './syncClient';
 
 export const SYNCABLE_COLLECTIONS = [
@@ -33,17 +32,12 @@ export interface SyncRecordMutation {
 }
 
 export interface PushRecordMutationsInput {
-  readonly passphrase: string;
-  readonly canary: EncryptedBlob;
   readonly client: SyncClient;
   readonly collection: SyncableCollection;
   readonly records: readonly SyncRecord[];
-  readonly iterations?: number;
 }
 
 export interface PullRecordMutationsInput {
-  readonly passphrase: string;
-  readonly canary: EncryptedBlob;
   readonly client: SyncClient;
   readonly collection?: SyncableCollection;
 }
@@ -53,9 +47,7 @@ export interface PullRecordMutationsOk {
   readonly mutations: readonly SyncRecordMutation[];
 }
 
-export type PullRecordMutationsResult =
-  | PullRecordMutationsOk
-  | { readonly ok: false; readonly reason: 'wrong-passphrase' };
+export type PullRecordMutationsResult = PullRecordMutationsOk;
 
 export interface MergeResult {
   readonly records: readonly SyncRecord[];
@@ -129,15 +121,12 @@ export async function pushRecordMutations(input: PushRecordMutationsInput): Prom
   const mutations = recordsToSyncMutations(input.collection, input.records);
 
   for (const mutation of mutations) {
-    await pushEncrypted({
-      passphrase: input.passphrase,
-      canary: input.canary,
+    await pushBlob({
       client: input.client,
       collection: input.collection,
       clientMutationId: mutationClientId(mutation),
       value: mutation,
       updatedAt: toEpochMs(mutation.updatedAt),
-      iterations: input.iterations,
     });
   }
 }
@@ -145,11 +134,7 @@ export async function pushRecordMutations(input: PushRecordMutationsInput): Prom
 export async function pullRecordMutations(
   input: PullRecordMutationsInput,
 ): Promise<PullRecordMutationsResult> {
-  const pulled = await pullAndDecrypt(input);
-
-  if (!pulled.ok) {
-    return pulled;
-  }
+  const pulled = await pullBlobs(input);
 
   return {
     ok: true,

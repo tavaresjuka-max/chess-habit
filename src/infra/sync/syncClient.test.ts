@@ -1,7 +1,6 @@
 // @vitest-environment node
 
 import { describe, expect, it } from 'vitest';
-import { decryptJson, encryptJson, parseEncryptedBlob, serializeEncryptedBlob } from './crypto';
 import {
   createSyncClient,
   SyncUnauthorizedError,
@@ -344,16 +343,11 @@ describe('sync client (P4 M13 local-only)', () => {
     });
   });
 
-  describe('FRONTEIRA DE SEGURANCA: payload nunca leva plaintext/passphrase/token', () => {
-    it('push de blob cifrado: corpo so tem a string opaca, nenhum segredo', async () => {
-      const plaintext = 'PLAINTEXT-TOKEN-SECRET-999';
-      const passphrase = 'SUPER-PASSPHRASE-MARKER';
+  describe('FRONTEIRA DE SEGURANCA: payload transporta ciphertext como string opaca', () => {
+    it('push de blob: corpo contém a string ciphertext exatamente como enviada (content-agnostic)', async () => {
       const bearer = 'oauth-bearer-TOKEN-VALUE';
-
-      const blob = await encryptJson({ token: plaintext, profile: 'Tavarez' }, passphrase, {
-        iterations: 1_000,
-      });
-      const wire = serializeEncryptedBlob(blob);
+      // No modelo plaintext, o ciphertext é JSON puro — o cliente não interpreta nem modifica
+      const wire = JSON.stringify({ v: 1, collection: 'profiles', entityId: 'u1' });
 
       const { fetcher, calls } = mockFetch(() => jsonResponse(200, { ok: true }));
       const client = makeClient(fetcher);
@@ -365,26 +359,22 @@ describe('sync client (P4 M13 local-only)', () => {
       });
 
       const sent = calls[0]?.body ?? '';
-      expect(sent).not.toContain(plaintext);
-      expect(sent).not.toContain(passphrase);
-      expect(sent).not.toContain('Tavarez');
       expect(sent).not.toContain(bearer);
       const parsed = JSON.parse(sent) as { ciphertext: string };
+      // Cliente devolve o wire intacto — content-agnostic
       expect(parsed.ciphertext).toBe(wire);
       const headerNames = [...(calls[0]?.headers.keys() ?? [])].map((h) => h.toLowerCase());
       expect(headerNames).not.toContain('authorization');
       expect(headerNames).not.toContain('cookie');
     });
 
-    it('roundtrip opaco ponta-a-ponta com mock fetch recupera o valor original', async () => {
+    it('roundtrip opaco ponta-a-ponta: ciphertext chega ao listBlobs idêntico ao enviado', () => {
       const original = { name: 'Juka', band: '800-1200', theme: 'fork' };
-      const passphrase = 'minha-pass-independente';
-
-      const blob = await encryptJson(original, passphrase, { iterations: 1_000 });
-      const wire = serializeEncryptedBlob(blob);
+      // plaintext: ciphertext = JSON.stringify do valor
+      const wire = JSON.stringify(original);
 
       const store = new Map<string, StoredBlob>();
-      const { fetcher, calls } = mockFetch((call) => {
+      const { fetcher } = mockFetch((call) => {
         if (call.method === 'POST' && call.url.pathname === '/blobs') {
           const body = JSON.parse(call.body ?? '{}') as PushBlobInput;
           const row: StoredBlob = {
@@ -406,28 +396,16 @@ describe('sync client (P4 M13 local-only)', () => {
 
       const client = makeClient(fetcher);
 
-      await client.pushBlob({
-        collection: 'profiles',
-        clientMutationId: 'm1',
-        ciphertext: wire,
-        updatedAt: 123,
-      });
-
-      const pulled = await client.listBlobs('profiles');
-      expect(pulled).toHaveLength(1);
-      const recovered = pulled[0];
-      expect(recovered?.ciphertext).toBe(wire);
-
-      const parsedBlob = parseEncryptedBlob(recovered?.ciphertext ?? '');
-      const back = await decryptJson<typeof original>(parsedBlob, passphrase);
-      expect(back).toEqual(original);
-
-      for (const call of calls) {
-        if (call.body !== undefined) {
-          expect(call.body).not.toContain('Juka');
-          expect(call.body).not.toContain(passphrase);
-        }
-      }
+      return client
+        .pushBlob({ collection: 'profiles', clientMutationId: 'm1', ciphertext: wire, updatedAt: 123 })
+        .then(() => client.listBlobs('profiles'))
+        .then((pulled) => {
+          expect(pulled).toHaveLength(1);
+          // ciphertext chega intacto — o cliente não transforma
+          expect(pulled[0]?.ciphertext).toBe(wire);
+          // e o conteúdo é JSON parseável no recetor
+          expect(JSON.parse(pulled[0]?.ciphertext ?? '{}')).toEqual(original);
+        });
     });
   });
 });

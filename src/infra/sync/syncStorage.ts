@@ -15,7 +15,6 @@ import {
   type SyncStateRecord,
   type WeaknessRecord,
 } from '../storage/db';
-import type { EncryptedBlob } from './crypto';
 import {
   mergeSyncRecords,
   pullRecordMutations,
@@ -29,28 +28,20 @@ import type { SyncClient } from './syncClient';
 
 export interface SyncCollectionInput {
   readonly collection: SyncableCollection;
-  readonly passphrase: string;
-  readonly canary: EncryptedBlob;
   readonly client: SyncClient;
-  readonly iterations?: number;
 }
 
 export interface FlushPendingPushesInput {
-  readonly passphrase: string;
-  readonly canary: EncryptedBlob;
   readonly client: SyncClient;
-  readonly iterations?: number;
 }
 
-export type SyncCollectionResult =
-  | {
-      readonly ok: true;
-      readonly pulled: number;
-      readonly applied: number;
-      readonly skipped: number;
-      readonly pushed: number;
-    }
-  | { readonly ok: false; readonly reason: 'wrong-passphrase' };
+export type SyncCollectionResult = {
+  readonly ok: true;
+  readonly pulled: number;
+  readonly applied: number;
+  readonly skipped: number;
+  readonly pushed: number;
+};
 
 // ── Helpers de estado local de sync ─────────────────────────────────────────
 
@@ -171,15 +162,9 @@ export async function mergeRemoteMutationsIntoStorage(
 
 export async function syncCollectionOnce(input: SyncCollectionInput): Promise<SyncCollectionResult> {
   const pulled = await pullRecordMutations({
-    passphrase: input.passphrase,
-    canary: input.canary,
     client: input.client,
     collection: input.collection,
   });
-
-  if (!pulled.ok) {
-    return pulled;
-  }
 
   const merged = await mergeRemoteMutationsIntoStorage(input.collection, pulled.mutations);
 
@@ -189,12 +174,9 @@ export async function syncCollectionOnce(input: SyncCollectionInput): Promise<Sy
   await setPendingPush(input.collection, true);
 
   await pushRecordMutations({
-    passphrase: input.passphrase,
-    canary: input.canary,
     client: input.client,
     collection: input.collection,
     records: merged.records,
-    iterations: input.iterations,
   });
 
   // Push concluído com sucesso: limpa a flag e registra o horário.
@@ -227,12 +209,9 @@ export async function flushPendingPushes(input: FlushPendingPushesInput): Promis
     try {
       const records = await loadSyncRecords(collection);
       await pushRecordMutations({
-        passphrase: input.passphrase,
-        canary: input.canary,
         client: input.client,
         collection,
         records,
-        iterations: input.iterations,
       });
       await setPendingPush(collection, false, new Date().toISOString());
       flushed += 1;
