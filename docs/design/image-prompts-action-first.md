@@ -37,13 +37,24 @@ missão/tema ganha um thumbnail premium do conceito, ao lado do texto no herói 
 no cartão de bloco. Hoje o conceito é um diagrama SVG de tabuleiro (`TacticDiagram`,
 preciso/pedagógico); este lote é a **camada artística premium** por cima/ao lado dele.
 
+### Estratégia (validada no lote de teste 2026-06-30)
+
+O gerador é confiável para: **retratos** e **motivos de 1 atacante** (garfo = cavalo branco
+atacando 2 alvos pretos — saiu perfeito). É NÃO-confiável para táticas de **3 peças numa
+linha** (cravada, espeto, descoberto, mate do corredor): inverte cor ou borra a composição,
+mesmo com prompt apertado. Recomendação:
+- **Garfo + qualquer motivo de 1 atacante:** pode usar imagem gerada (conferir cor/centralização).
+- **Cravada / espeto / descoberto / corredor:** usar o **SVG `TacticDiagram`** (preciso, sempre
+  certo) como o diagrama; imagem gerada só como ilustração GRANDE decorativa, não como o diagrama exato.
+
 ### ⚠️ Regras CRÍTICAS de cor e posição (o gerador erra isto — repita em todo prompt)
 
-1. **Cor = lado.** As peças ATACANTES (as que executam o golpe) são TODAS de uma cor
-   clara (cream/ivory/light wood). As peças do OPONENTE — sempre o rei alvo, e
-   qualquer peça defendida/atacada — são TODAS escuras (dark/black). **Nunca** pinte
-   uma peça atacante da mesma cor da peça que ela ataca. Uma frase explícita no
-   prompt: "the attacking pieces are light/cream; the enemy king and targets are dark".
+1. **Cor = lado.** Use o vocabulário de xadrez **"white" e "black"** (o gerador mapeia
+   muito melhor que "claro/escuro"). As peças ATACANTES (as que executam o golpe) são
+   TODAS **white (ivory)**. As peças do OPONENTE — sempre o rei alvo, e qualquer peça
+   defendida/atacada — são TODAS **black**. **Nunca** pinte uma peça atacante da mesma cor
+   da peça que ela ataca. Atribua a cor PEÇA POR PEÇA no prompt, ex.: "a white rook and a
+   white bishop attacking a black king" — e repita "the rook is white, NOT black".
 2. **Centralização.** Cada peça fica EXATAMENTE no centro de UMA casa do tabuleiro —
    nunca entre casas, nunca sobre a linha, nunca flutuando. "each piece centered
    precisely within a single board square, sitting flat on it".
