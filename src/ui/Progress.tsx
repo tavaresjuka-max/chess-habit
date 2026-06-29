@@ -155,7 +155,6 @@ export function Progress({
       <Fold
         concept="ritmo"
         title="Ritmo"
-        defaultOpen
         {...(trend !== undefined ? { meta: `${String(trend.thisWeekExercises)} exercícios` } : {})}
       >
         {trend !== undefined ? (
