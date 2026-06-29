@@ -1,73 +1,51 @@
-# Fase 5 — Sync multi-aparelho (plano de execução)
+# Fase 5 — Sync multi-aparelho (plano de execução, versão enxuta)
 
-Status: **DESENHO FECHADO** (decisões do dono 2026-06-28, pós-council). Aguardando OK pra executar.
-Origem: [[launch-readiness-council-2026-06-27]]; council GLM (achou o split-brain de passphrase) +
-DeepSeek (achou a responsabilidade de dado legível → manter E2EE; sugeriu frase de recuperação).
+Status: **DESENHO FECHADO** (dono 2026-06-28). Modelo NORMAL de app de estudo (Anki/Duolingo/Chess.com/
+Lichess): loga e sincroniza. **Sem E2EE, sem passphrase, sem frase de recuperação** — isso era cerimônia
+de carteira de cripto, exagero pra um app de xadrez (dado de baixa sensibilidade). Decisão do dono.
 
-## Decisões do dono (fechadas)
-- **Privacidade: E2EE MANTIDO** — o operador NÃO lê dado individual. A promessa de privacidade do app
-  NÃO muda (continua "nem nós lemos").
-- **Segredo: frase de recuperação de 12 palavras (BIP39)** GERADA pelo app (não senha escolhida pelo
-  usuário) — alta entropia + UX "anote estas palavras". Substitui a passphrase digitada.
-- **Análise: métricas AGREGADAS/anônimas opt-in** — o dono melhora o app sem guardar dado legível por
-  usuário. (Resolve o "quero analisar" sem a responsabilidade LGPD de dado legível.)
-- **Marketing: NÃO agora** (pode entrar depois com opt-in de contato separado).
-- **Login/identidade: Lichess OAuth** — sem login/senha próprio do app.
-
-## Por que NÃO o Caminho B (dado legível): council
-DeepSeek: dado de progresso É dado pessoal; guardá-lo legível no servidor colide com LGPD (segurança
-desde a concepção, art. 46) e a legibilidade é só conveniência (sync funciona E2EE; análise via agregado).
-"Isolamento por userId" é filtro de query, não barreira de segurança. → Mantido E2EE.
+## Decisões do dono
+- **Login:** só "Entrar com Lichess" (OAuth). Sem login/senha próprio. Esqueceu? Loga de novo, está tudo lá.
+- **Dados:** ficam no servidor (Cloudflare D1), **legíveis pelo operador** — modelo de conta normal.
+- **Privacidade:** política HONESTA ("seus dados ficam no nosso servidor pra sincronizar; usados só pra
+  operar o app; apague quando quiser") + consentimento (já existe) + botão de apagar (já existe).
+- **Marketing:** não agora (opt-in de contato pode entrar depois).
+- **Sobre o council:** ele apontou risco técnico real (dado legível), mas a PROPORÇÃO é decisão de
+  produto — pra um app de estudo com dado de baixa sensibilidade, conta-normal é o padrão da indústria e
+  é LGPD-ok com medidas proporcionais (não exige E2EE). Regra: council valida raciocínio, não realidade.
 
 ## Blocos
-**B0 — Frase de recuperação + protocolo de passphrase no servidor [gate de dados]**
-- Gerar BIP39 (12 palavras) na 1ª configuração; derivar a chave (PBKDF2 600k já existe em crypto.ts;
-  a entropia agora vem da frase, não de senha fraca humana). O checksum do BIP39 pega erro de digitação
-  no próprio aparelho.
-- **Canary NO SERVIDOR:** o 2º aparelho valida a frase contra o servidor ANTES de subir qualquer coisa;
-  frase divergente = bloqueia push + recuperação guiada → mata o split-brain (achado do GLM: hoje o
-  canary é só local, 2 frases diferentes corromperiam o servidor em silêncio).
-- "Esqueceu a frase" = dados de sync irrecuperáveis (preço do E2EE) → avisos fortes + "anote". Rotação de
-  frase = fora do escopo do beta (documentado, com o caveat "aparelho perdido").
-
-**B1 — Auth Lichess (M13) + cache de token + ciclo de vida [gate segurança]**
-- Worker valida o token Lichess COM cache (TTL ~30s) → evita 429 por IP compartilhado (egress único do
-  Worker, achado do GLM). 401 (token expira/revoga) → pede re-login, mas o app segue funcionando LOCAL
-  (grace), nunca trava.
-- userId derivado do Lichess. Como é E2EE, vazamento do D1 expõe só identidade/metadados, NÃO o conteúdo
-  (que é ilegível). Documentar essa exposição residual.
-
-**B2 — Deploy do backend**
-- `wrangler d1 create` → database_id real; secrets; SYNC_AUTH_MODE='oauth'; SYNC_BACKEND_URL no front;
-  script de deploy. Dono: criar conta Cloudflare (grátis) + aprovar.
-
-**B3 — Conflito LWW "bom o suficiente"** + aviso de clock-skew. (Council 2026-06-28: HLC/log-de-reviews =
-YAGNI p/ 2-3 aparelhos NTP do mesmo usuário. Ver [[launch-readiness-council-2026-06-27]] / SYNC-HARDENING.)
-
-**B4 — Prova E2E real [gate de qualidade]**
-- wrangler dev/Miniflare: push aparelho A → pull aparelho B; **frase errada é REJEITADA sem corromper**;
-  **"pull vazio NÃO apaga o local"**; 1º sync grande (tamanho). Depois: dogfood do dono em 2 aparelhos.
-
-**B5 — Métricas agregadas opt-in + UX + política + flip**
-- Métricas anônimas/agregadas (opt-in, com consentimento) p/ o dono analisar/melhorar — SEM dado legível
-  por usuário.
-- UX: "Entrar com Lichess" + tela da frase de recuperação ("anote estas 12 palavras"). Remover o campo de
-  "digite uma passphrase" do SyncPanel.
-- Política de privacidade: E2EE mantido (promessa intacta); ACRESCENTAR o opt-in de métricas. Atualizar
-  ANTES de qualquer métrica fluir (sequenciamento, achado do DeepSeek).
-- Flip SYNC_UI_ENABLED=true só no fim.
-
-**B6 — Custo:** Cloudflare Workers + D1 + Vercel no free tier → ~R$0 no beta.
+**B1 — Login Lichess de verdade no backend (M13) [gate segurança]**
+- Hoje o backend confia no header `x-sync-user` (M12) = sem auth real → em produção qualquer um se passa
+  por qualquer um. Trocar por: cliente manda o token OAuth Lichess; o worker VALIDA (chama a API do
+  Lichess) → obtém o usuário → userId. CACHE da validação por token (TTL ~30s) p/ não estourar rate-limit
+  por IP. Token expirado/revogado (401) → pede re-login, mas o app segue funcionando LOCAL (nunca trava).
+- Mantém o modo 'local' (header) só pra dev/testes.
+**B2 — Deploy do backend** `wrangler d1 create` → database_id; SYNC_AUTH_MODE='oauth'; SYNC_BACKEND_URL;
+script de deploy. Dono: criar conta Cloudflare (grátis) + aprovar.
+**B3 — Conflito simples** último a salvar vence (LWW), + merge do carimbo de adoção (já feito). Council:
+HLC = exagero p/ 2-3 aparelhos do mesmo usuário.
+**B4 — Prova E2E real [gate]** push aparelho A → pull aparelho B; teste "pull vazio NÃO apaga o local"; 1º
+sync grande. Depois: dogfood do dono em 2 aparelhos.
+**B5 — Conteúdo legível + política + UX + flip** cliente manda o JSON por HTTPS (sem cifrar p/ o servidor;
+remover a etapa de E2EE/passphrase do fluxo de sync); reescrever política de privacidade (honesta sobre
+servidor) ANTES de qualquer dado subir; remover a UI de passphrase do SyncPanel; UX = "Entrar com Lichess"
+→ sincroniza; flip SYNC_UI_ENABLED no fim.
+**B6 — Custo** Cloudflare + Vercel free tier → ~R$0 no beta.
 
 ## Ordem
-B0 + B1 (gates) → B2 (deploy) → B4 (E2E + dogfood) → B5 (métricas/UX/política/flip). Política/consentimento
-de métricas antes de qualquer métrica subir. NÃO ligar a flag sem B0+B1+B4 verdes.
+B1 (auth) → B2 (deploy) → B4 (E2E + dogfood) → B5 (legível + política + flip). Política antes de qualquer
+dado subir. NÃO ligar a flag sem B1 + B4 verdes.
 
-## Execução (padrão do projeto)
-Council fechou o desenho → Opus revisa risco (B0/B1 = classe dado/segurança) → subagente in-boundary
-implementa test-first → gates (lint/test/build/worker + E2E) → Opus commita. Dono só: conta Cloudflare +
-aprovar deploy + dogfood em 2 aparelhos. Gate objetivo (E2E) = árbitro final, não o voto.
+## Execução
+Opus revisa risco (B1 = segurança) → subagente in-boundary implementa test-first → gates (lint/test/build/
+worker + E2E) → Opus commita. Dono: conta Cloudflare + aprovar deploy + dogfood. Gate objetivo = árbitro.
 
 ## Estimativa
-~2-3 semanas de trabalho (pipeline), infra ~R$0. Reaproveita muito do que já existe (crypto E2EE,
-SyncClient, backend, merge, ciclo crash-safe).
+~1-1,5 semana (bem mais curto sem E2EE/passphrase). Reaproveita SyncClient, backend, merge, ciclo
+crash-safe. Infra ~R$0.
+
+## Descartado (e por quê)
+E2EE + passphrase + frase de recuperação BIP39: exagero pra app de estudo (decisão do dono 2026-06-28).
+O backend já guardava "ciphertext opaco"; no modelo enxuto, o cliente manda o conteúdo legível (HTTPS +
+at-rest do Cloudflare + isolamento por userId + acesso restrito ao banco).
