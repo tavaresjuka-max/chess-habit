@@ -1106,7 +1106,7 @@ textarea {
   border-radius: var(--radius-pill);
   appearance: none;
   background: transparent;
-  color: var(--gold-600);
+  color: var(--green-600);
 }
 
 .day-progress-fill::-webkit-progress-bar {
@@ -1116,12 +1116,12 @@ textarea {
 
 .day-progress-fill::-webkit-progress-value {
   border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, var(--gold-300), var(--gold-600));
+  background: linear-gradient(90deg, var(--green-700), var(--green-600));
 }
 
 .day-progress-fill::-moz-progress-bar {
   border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, var(--gold-300), var(--gold-600));
+  background: linear-gradient(90deg, var(--green-700), var(--green-600));
 }
 
 /* ---------- Layout do Hoje (coluna única em todas as larguras) ---------- */
@@ -1519,7 +1519,7 @@ textarea {
 }
 
 .hero-now .plan-block {
-  border: 2px solid var(--gold-300);
+  border: 2px solid var(--green-600);
   background-image: url('/art/textura-papel.webp');
   background-size: 256px auto;
   box-shadow: var(--shadow-md);
@@ -1527,7 +1527,7 @@ textarea {
 }
 
 .hero-now .plan-block:hover {
-  border-color: var(--gold-600);
+  border-color: var(--green-300);
 }
 
 .hero-now .block-header h3 {
