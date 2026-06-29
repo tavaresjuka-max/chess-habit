@@ -42,7 +42,8 @@ describe('privacidade e feedback', () => {
   it('resumo de privacidade cobre os pontos essenciais', () => {
     const text = PRIVACY_SUMMARY.join(' ');
 
-    expect(text).toMatch(/local/i);
+    expect(text).toMatch(/aparelho/i); // dado fica no aparelho por padrão
+    expect(text).toMatch(/sincroniz|servidor/i); // transparência: sync opcional vai ao servidor
     expect(text).toMatch(/token/i);
     expect(text).toMatch(/Lichess|Chess\.com/);
     expect(PRIVACY_SUMMARY.length).toBeGreaterThanOrEqual(3);

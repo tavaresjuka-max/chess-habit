@@ -60,10 +60,12 @@ Doacao e feita por link externo. O app nao precisa saber quem pagou. Se houver r
 
 - Backup JSON exporta perfil, planos, logs, sinais, fraquezas e links/id de Study Lichess; nao exporta token OAuth.
 - PGNs completos continuam proibidos. O PGN do Study e montado apenas para a chamada de importacao e nao e salvo.
-- P4 (sync) e P5 (versao-comunidade) foram descongeladas pelo dono em 2026-06-16. O sync usa backend
-  Cloudflare Workers + D1 com blobs cifrados ponta-a-ponta por passphrase do dono; tokens OAuth continuam
-  so no aparelho e fora do backup. O agente so constroi/testa o backend localmente (wrangler/miniflare);
-  producao, secrets e provisionamento ficam com o dono.
+- Sincronizacao multi-aparelho (OPCIONAL, decisao do dono 2026-06-28): login via Lichess; o progresso e
+  enviado ao backend Cloudflare Workers + D1, onde fica LEGIVEL pelo operador (modelo de conta normal,
+  tipo Anki/Duolingo — NAO e E2EE, pois e app de estudo com dado de baixa sensibilidade). Usado so para
+  operar o app. O usuario pode DESLIGAR o sync, exportar (backup) ou apagar (local + `DELETE /blobs` no
+  servidor) a qualquer momento. Tokens OAuth continuam so no aparelho, fora do backup. Cifrado em transito
+  (HTTPS) e em repouso (Cloudflare); acesso por login do Lichess + isolamento por usuario.
 - Versao-comunidade (P5): nome publico `Chess Habit` (`APP_NAME` em `src/config/appIdentity.ts`),
   disclaimer de nao-afiliacao, AGPL-3.0 visivel, URL publica de codigo-fonte e feedback no rodape.
 
@@ -71,11 +73,14 @@ Doacao e feita por link externo. O app nao precisa saber quem pagou. Se houver r
 
 - Armazenamento de token local: aceito com escopos minimos; token continua fora de backup, logs e bundle.
 - OAuth callback: manter revisao quando o fluxo mudar; token continua fora de backup, logs e bundle.
-- Sync P4 (E2EE): blobs sobem cifrados; a passphrase do dono nunca sai do aparelho; tokens OAuth nao sao enviados ao servidor.
-- Sessao HTTP-only: o sync P4 nao cria sessao propria do app; login e "Entrar com Lichess" so como identidade.
-- Retencao de dados no servidor: direito de exclusao ja atendido (`DELETE /blobs`). Politica de
-  retencao automatica (TTL) + compactacao de blobs superados continua pendente — gated em
-  `docs/architecture/SYNC-HARDENING.md` (itens E/F), antes de ligar `SYNC_UI_ENABLED`.
+- Sync (modelo conta normal, NAO E2EE): o dado de progresso fica LEGIVEL no servidor. Mitigacao: auth
+  real (token Lichess validado no /api/account), isolamento por userId, HTTPS + at-rest do Cloudflare,
+  acesso restrito ao console. Risco residual aceito conscientemente: vazamento do servidor expoe dado de
+  progresso real (baixa sensibilidade p/ app de estudo). Marketing exige opt-in de contato separado (nao existe hoje).
+- Sessao: o sync nao cria sessao propria do app; "Entrar com Lichess" e a identidade (token validado no servidor).
+- Retencao de dados no servidor: direito de exclusao atendido (`DELETE /blobs`). Politica de retencao
+  automatica (TTL) + compactacao de blobs superados continua pendente em
+  `docs/architecture/SYNC-HARDENING.md`.
 - Captura de erro: opt-in, **desligada por padrao**, somente local (tabela `errorLog`, cap 100), com
   export dedicado manual. Nada e enviado automaticamente. Mensagens devem ficar sem token/PGN/PII.
 - Carimbo de adocao (`adoptedAt`): write-once, entra no backup; usado so para medir eficacia (data de
