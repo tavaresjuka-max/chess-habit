@@ -2,10 +2,6 @@ import { useState, type MouseEvent } from 'react';
 import { isAllowedExternalUrl, openExternalUrl } from '../app/externalOpen';
 import type { LearnerBand, PlanBlock } from '../domain';
 
-// Conceitos com arte premium gerada em public/art/conceito-<tag>.webp. Os demais
-// continuam com o diagrama SVG preciso (TacticDiagram) no cartão de treino abaixo.
-const CONCEPT_IMAGE_TAGS = new Set<string>(['fork']);
-
 // Cabeçalho action-first da tela Hoje. Componente PRESENTACIONAL: recebe valores
 // já computados por Today.tsx e NÃO recalcula regra de negócio. O botão "Treinar
 // agora" reusa o MESMO handler de abrir/treinar (onStartBlockTraining +
@@ -144,16 +140,6 @@ export function TodayHero({
               <p className="today-hero-eyebrow">Missão de agora</p>
               <h2 className="today-hero-title">{heroBlock.title}</h2>
               <p className="today-hero-meta">{`≈ ${String(heroBlock.estimatedMinutes)} min · ${heroBlock.destination.label}`}</p>
-              {heroBlock.weaknessTag !== undefined && CONCEPT_IMAGE_TAGS.has(heroBlock.weaknessTag) ? (
-                <img
-                  className="today-hero-concept"
-                  src={`/art/conceito-${heroBlock.weaknessTag}.webp`}
-                  alt=""
-                  aria-hidden="true"
-                  width={72}
-                  height={72}
-                />
-              ) : null}
               <p className="today-hero-coach-note">{heroBlock.coachNote}</p>
               <div className="today-hero-actions">
                 {safeUrl !== undefined ? (

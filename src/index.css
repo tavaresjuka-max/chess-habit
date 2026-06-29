@@ -168,8 +168,13 @@ li {
 .tactic-diagram-svg {
   width: min(184px, 72%);
   height: auto;
+  /* Moldura de madeira (nogueira) + cantos arredondados: o diagrama vira uma peça
+     do gabinete, unificada com a estética premium do app (não um board "padrão"). */
+  border: 3px solid #6b4f33;
   border-radius: var(--radius-sm);
-  box-shadow: 0 1px 3px rgba(22, 32, 28, 0.18);
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 1px 2px rgba(22, 32, 28, 0.12), 0 6px 16px rgba(22, 32, 28, 0.18);
 }
 
 /* Modo foco: carrossel de blocos do dia (Embla) — arrastar para o lado. */
@@ -1230,17 +1235,6 @@ textarea {
   object-position: center top;
   border: 2px solid var(--gold-300);
   box-shadow: 0 0 0 4px var(--surface-raised), 0 4px 12px rgba(18, 42, 34, 0.22);
-}
-
-/* Thumbnail de conceito (arte premium) ao lado da missão; o texto flui ao redor. */
-.today-hero-concept {
-  float: right;
-  width: 72px;
-  height: 72px;
-  margin: 0 0 6px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--gold-300);
-  box-shadow: var(--shadow-sm);
 }
 
 .today-hero-mission {

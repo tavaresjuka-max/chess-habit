@@ -3,9 +3,8 @@ import type { WeaknessTag } from '../../domain';
 import { getTacticDiagram } from './tacticDiagrams';
 
 const CELL = 40;
-const LIGHT = '#f0d9b5';
-const DARK = '#b58863';
-const ARROW = '#e0701a';
+// Estética "Gabinete": madeira quente + seta dourada (casa com o tema papel/tabuleiro).
+const ARROW = '#c08a2a';
 
 type TacticDiagramProps = { tag: WeaknessTag | undefined };
 
@@ -68,6 +67,18 @@ export function TacticDiagram({ tag }: TacticDiagramProps) {
               <marker id="tactic-arrowhead" markerWidth="6" markerHeight="6" refX="4.5" refY="3" orient="auto">
                 <path d="M0,0 L6,3 L0,6 Z" fill={ARROW} />
               </marker>
+              {/* Madeira pintada: gradiente sutil dá profundidade (vs. cor chapada). */}
+              <linearGradient id="tactic-sq-light" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#ecdcbb" />
+                <stop offset="1" stopColor="#e0cda3" />
+              </linearGradient>
+              <linearGradient id="tactic-sq-dark" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#a78458" />
+                <stop offset="1" stopColor="#8d6d47" />
+              </linearGradient>
+              <filter id="tactic-piece-shadow" x="-25%" y="-25%" width="150%" height="150%">
+                <feDropShadow dx="0" dy="1.2" stdDeviation="1.1" floodColor="#241606" floodOpacity="0.45" />
+              </filter>
             </defs>
 
             {Array.from({ length: spec.size }, (_, row) =>
@@ -78,7 +89,7 @@ export function TacticDiagram({ tag }: TacticDiagramProps) {
                   y={row * CELL}
                   width={CELL}
                   height={CELL}
-                  fill={(col + row) % 2 === 0 ? LIGHT : DARK}
+                  fill={(col + row) % 2 === 0 ? 'url(#tactic-sq-light)' : 'url(#tactic-sq-dark)'}
                 />
               )),
             )}
@@ -117,13 +128,14 @@ export function TacticDiagram({ tag }: TacticDiagramProps) {
                 key={`piece-${piece.glyph}-${String(piece.at.col)}-${String(piece.at.row)}`}
                 x={center(piece.at.col)}
                 y={center(piece.at.row) + CELL * 0.06}
-                fontSize={CELL * 0.82}
+                fontSize={CELL * 0.84}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill={piece.side === 'white' ? '#f7f4ee' : '#26221d'}
-                stroke={piece.side === 'white' ? '#26221d' : '#f7f4ee'}
-                strokeWidth={1.1}
+                fill={piece.side === 'white' ? '#f7f1e3' : '#241d15'}
+                stroke={piece.side === 'white' ? '#5c4a35' : '#0f0b07'}
+                strokeWidth={1.2}
                 paintOrder="stroke"
+                filter="url(#tactic-piece-shadow)"
               >
                 {piece.glyph}
               </text>

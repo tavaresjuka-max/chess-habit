@@ -114,19 +114,6 @@ describe('TodayHero — card de missão a partir de heroBlock', () => {
     expect(portrait).toHaveAttribute('src', '/art/tavarez-hero-retrato.webp');
   });
 
-  it('mostra o thumbnail de conceito premium quando há arte para a tag', () => {
-    renderHero({ heroBlock: makeBlock({ weaknessTag: 'fork' }) });
-    expect(document.querySelector('.today-hero-concept')).toHaveAttribute(
-      'src',
-      '/art/conceito-fork.webp',
-    );
-  });
-
-  it('não mostra thumbnail premium para tag sem arte (o SVG segue no cartão de treino)', () => {
-    renderHero({ heroBlock: makeBlock({ weaknessTag: 'pin' }) });
-    expect(document.querySelector('.today-hero-concept')).toBeNull();
-  });
-
   it('mostra estado "concluído" e SEM botão Treinar quando heroBlock undefined', () => {
     renderHero({ heroBlock: undefined });
 
