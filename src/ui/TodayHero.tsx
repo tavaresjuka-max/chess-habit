@@ -91,7 +91,7 @@ export function TodayHero({
           <div
             className="today-hero-progress-track"
             role="progressbar"
-            aria-label="Progresso do dia"
+            aria-label="Resumo do progresso do dia"
             aria-valuemin={0}
             aria-valuemax={totalBlocks}
             aria-valuenow={doneBlockCount}

@@ -2418,7 +2418,7 @@ li.diploma-row {
   border: 1px solid var(--line-soft);
   border-radius: var(--radius-sm);
   background: var(--surface);
-  color: var(--ink);
+  color: var(--ink-900);
   font: inherit;
 }
 
@@ -2428,15 +2428,15 @@ li.diploma-row {
 }
 
 .self-explanation-input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--green-600);
   outline-offset: 1px;
 }
 
 /* Seletor de 1 toque: o botão ativo ganha um contorno sóbrio (sem confete).
    A transição de cor é suave SÓ sem prefers-reduced-motion. */
 .error-type-selector .secondary-button.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent) inset;
+  border-color: var(--green-600);
+  box-shadow: 0 0 0 1px var(--green-600) inset;
 }
 
 @media (prefers-reduced-motion: no-preference) {
