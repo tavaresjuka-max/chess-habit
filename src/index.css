@@ -3068,7 +3068,14 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 }
 
 .fold-body {
-  padding: 0 14px 14px;
+  padding: 6px 14px 14px;
+}
+
+/* O respiro do topo do fold vem do padding acima; conteudo no topo (ex.: o
+   .form-grid, cujo margin-top foi pensado para o form solto do onboarding) nao
+   deve somar outro vao morto entre o titulo da secao e o primeiro item. */
+.fold-body > :first-child {
+  margin-top: 0;
 }
 
 /* Cards embutidos numa dobra perdem a própria moldura — a dobra já é o card. */
