@@ -1,4 +1,14 @@
-import { Check, ExternalLink, Feather, Flag, HelpCircle, Lightbulb, Loader2, Target } from 'lucide-react';
+import {
+  Check,
+  ExternalLink,
+  Feather,
+  Flag,
+  HelpCircle,
+  Lightbulb,
+  Loader2,
+  RefreshCw,
+  Target,
+} from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { isAllowedExternalUrl, openExternalUrl } from '../app/externalOpen';
 import { TacticDiagram } from './art/TacticDiagram';
@@ -245,7 +255,7 @@ export function PlanBlockCard({
                 void openTrainingDestination(event);
               }}
             >
-              <ExternalLink aria-hidden="true" size={16} />
+              <RefreshCw aria-hidden="true" size={16} />
               Abrir de novo
             </a>
           ) : null}

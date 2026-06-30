@@ -565,11 +565,20 @@ li {
 .nav-button-active:hover {
   background: var(--green-700);
   color: #fff;
-  box-shadow: var(--shadow-btn);
+  /* Aro interno claro além da sombra: dá definição à aba ativa também no
+     tema-noite, onde a sombra escura (--shadow-btn) some sobre fundo quase-preto. */
+  box-shadow: 0 1px 2px rgba(18, 42, 34, 0.25), inset 0 0 0 1.5px rgba(255, 255, 255, 0.22);
 }
 
 .nav-button > svg {
   margin-right: 6px;
+}
+
+/* Telas muito estreitas: aperta a margem do ícone para as 3 abas respirarem. */
+@media (max-width: 430px) {
+  .nav-button > svg {
+    margin-right: 2px;
+  }
 }
 
 /* ---------- Botões ---------- */
@@ -2700,7 +2709,7 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   background: var(--green-100);
   color: var(--ink-900);
   border-color: #6fae8a;
-  box-shadow: none;
+  box-shadow: var(--shadow-sm);
   filter: none;
   transform: translateY(-1px);
 }
@@ -3360,9 +3369,36 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
   z-index: 1000;
   display: grid;
   place-items: center;
-  padding: 24px;
+  /* Overlay cobre a tela inteira, mas o padding respeita o notch (safe-area)
+     para o card nunca ficar atrás da barra de status. */
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
   background: rgba(18, 42, 34, 0.72);
   animation: diploma-fade var(--speed) var(--ease);
+}
+
+/* Status do SyncPanel: ícone + cor por resultado (ok / aviso / erro). Tokens
+   claros no tema-noite forçado (--green-900, --gold-900, --danger-soft). */
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sync-status svg {
+  flex-shrink: 0;
+}
+
+.sync-status--ok {
+  color: var(--green-900);
+}
+
+.sync-status--warn {
+  color: var(--gold-900);
+}
+
+.sync-status--error {
+  color: var(--danger-soft);
 }
 
 .diploma-celebration-card {
