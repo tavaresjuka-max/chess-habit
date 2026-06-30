@@ -1374,8 +1374,8 @@ textarea {
   color: var(--ink-900);
 }
 
-@media (max-width: 430px) {
-  /* No celular as duas colunas espremem o texto num corredor estreito (o retrato
+@media (max-width: 519px) {
+  /* Ate ~520px as duas colunas espremem o texto num corredor estreito (o retrato
      "bagunça tudo"). Empilha: retrato centralizado EM CIMA, texto com a largura
      inteira do card — fim das quebras de linha a cada 2-3 palavras. */
   .today-hero-body {
