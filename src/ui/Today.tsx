@@ -1,5 +1,6 @@
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import {
   buildLearningPlanProposal,
   buildDayCompletionSummary,
@@ -80,6 +81,11 @@ type TodayProps = {
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
 
+// O convite de calibração é opcional. Quando o usuário escolhe "Agora não", o
+// dispensar PERSISTE neste aparelho (antes era estado de componente e voltava a
+// cada reload/troca de aba). Pode recalibrar quando quiser em Configurações.
+const CALIBRATION_INVITE_DISMISSED_KEY = 'chesshabit:calibration-invite-dismissed';
+
 // Extrai o tema do puzzle (ex.: 'fork') do destino /training/<tema> do bloco.
 function themeFromTrainingUrl(url: string | undefined): string | undefined {
   if (url === undefined) {
@@ -119,7 +125,14 @@ export function Today({
 }: TodayProps) {
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
-  const [calibrationInviteDismissed, setCalibrationInviteDismissed] = useState(false);
+  const [calibrationInviteDismissed, setCalibrationInviteDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(CALIBRATION_INVITE_DISMISSED_KEY) === 'true';
+    } catch {
+      // Sem localStorage (modo privado/iframe): o convite só não persiste o dispensar.
+      return false;
+    }
+  });
   const alertedLogs = useRef<Set<string>>(new Set());
   const hasActiveTraining = trainingLogs.some((log) => log.status === 'active');
 
@@ -329,6 +342,12 @@ export function Today({
               className="link-button"
               onClick={() => {
                 setCalibrationInviteDismissed(true);
+                try {
+                  localStorage.setItem(CALIBRATION_INVITE_DISMISSED_KEY, 'true');
+                } catch {
+                  // Sem localStorage o dispensar vale só nesta sessão; não quebra nada.
+                }
+                toast('Quando quiser ajustar seu nível, é só ir em Configurações.');
               }}
             >
               Agora não

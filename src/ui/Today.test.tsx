@@ -3,7 +3,11 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  // Isola a preferência persistida do convite de calibração entre testes.
+  localStorage.clear();
+});
 import type { BackupMeta } from '../app/backupStatus';
 import type { Achievement, DailyPlan, PlanBlock, TrainingLog } from '../domain';
 import { Today } from './Today';
@@ -219,6 +223,17 @@ describe('Today — convite de calibração', () => {
     expect(onStartCalibration).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByRole('button', { name: 'Agora não' }));
+    expect(screen.queryByText(/Quer ajustar seu nível/)).not.toBeInTheDocument();
+  });
+
+  it('o dispensar PERSISTE: o convite não volta após remontar a tela', () => {
+    renderToday({ blocks: [makeBlock({ id: 'b1' })], showCalibrationInvite: true });
+    fireEvent.click(screen.getByRole('button', { name: 'Agora não' }));
+    expect(screen.queryByText(/Quer ajustar seu nível/)).not.toBeInTheDocument();
+
+    // Remonta (como um reload/troca de aba): antes voltava; agora persiste.
+    cleanup();
+    renderToday({ blocks: [makeBlock({ id: 'b1' })], showCalibrationInvite: true });
     expect(screen.queryByText(/Quer ajustar seu nível/)).not.toBeInTheDocument();
   });
 
