@@ -1415,7 +1415,7 @@ textarea {
   grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 8px;
   list-style: none;
-  margin: 0 0 20px;
+  margin: 0 0 12px;
   padding: 0;
 }
 
@@ -1478,7 +1478,7 @@ textarea {
 .accumulation-footer {
   font-size: 0.78rem;
   color: var(--ink-600);
-  margin: 0 0 20px;
+  margin: 0 0 12px;
   font-weight: 500;
 }
 
@@ -1486,7 +1486,7 @@ textarea {
 .support-base-note {
   font-size: 0.82rem;
   color: var(--ink-700);
-  margin: -8px 0 20px;
+  margin: -8px 0 12px;
   line-height: 1.45;
 }
 
@@ -1494,7 +1494,7 @@ textarea {
 .routing-why-note {
   font-size: 0.82rem;
   color: var(--ink-600);
-  margin: -8px 0 20px;
+  margin: -8px 0 12px;
   line-height: 1.45;
 }
 
@@ -1506,7 +1506,7 @@ textarea {
   border-left: 3px solid var(--ink-400, #1f3f36);
   border-radius: 6px;
   padding: 12px 14px;
-  margin: 0 0 20px;
+  margin: 0 0 12px;
   line-height: 1.5;
 }
 
@@ -1515,7 +1515,7 @@ textarea {
 .hero-now {
   display: grid;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .hero-now > * {
