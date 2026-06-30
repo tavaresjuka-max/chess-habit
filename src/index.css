@@ -1989,6 +1989,22 @@ textarea {
 
 /* ---------- Tela Progresso ---------- */
 
+/* Status compacto no topo: banda + vencidas hoje + próximo checkpoint, sempre
+   visíveis sem abrir fold (foco TDAH: números à mostra, sem sobrecarregar). */
+.progress-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.metric-chip-due {
+  background: var(--green-100);
+  border-color: var(--green-300);
+  color: var(--green-900);
+  font-weight: 700;
+}
+
 /* Seções do Progresso como cards de estudo (mesma família dos cards do dia). */
 .progress-section {
   border: 1px solid var(--line-soft);
@@ -2490,14 +2506,16 @@ li.diploma-row {
 }
 
 .curriculum-phase-current {
-  border-color: var(--gold-300);
-  background: var(--gold-050);
+  border-color: var(--green-300);
+  background: var(--green-050);
 }
 
+/* "você está aqui" (nível fase) usa a MESMA paleta verde do badge "agora"
+   (nível semana) — antes era dourado e destoava (decisão de paleta 2026-06). */
 .curriculum-here {
   border-radius: var(--radius-pill);
-  background: var(--gold-100);
-  color: var(--gold-900);
+  background: var(--green-100);
+  color: var(--green-800);
   font-size: 0.72rem;
   font-weight: 650;
   padding: 2px 8px;

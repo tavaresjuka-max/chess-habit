@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { DailyPlan, TrainingLog, TutorQuestionAnswer, Weakness } from '../domain';
 import { TutorCard } from './TutorCard';
@@ -209,6 +209,36 @@ describe('TutorCard', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Conferir puzzles' }));
+
+    expect(onReconcile).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks a second "Conferir puzzles" click while the first reconcile is still in flight', () => {
+    const onReconcile = vi.fn<() => Promise<void>>(
+      () =>
+        new Promise<void>(() => {
+          // Nunca resolve: simula uma reconciliação ainda em andamento.
+        }),
+    );
+
+    const { container } = render(
+      <TutorCard
+        plan={plan}
+        weaknesses={[]}
+        trainingLogs={[{ ...doneLog(), destinationLabel: 'Puzzles Lichess: Fork', logKind: 'puzzle' }]}
+        allTrainingLogs={[{ ...doneLog(), destinationLabel: 'Puzzles Lichess: Fork', logKind: 'puzzle' }]}
+        today="2026-06-08"
+        onAnswerTutorQuestion={answerTutorQuestion}
+        onReconcileLichessResults={onReconcile}
+      />,
+    );
+    const view = within(container);
+
+    fireEvent.click(view.getByRole('button', { name: 'Conferir puzzles' }));
+
+    const busyButton = view.getByRole('button', { name: 'Conferindo…' });
+    expect(busyButton).toBeDisabled();
+    fireEvent.click(busyButton);
 
     expect(onReconcile).toHaveBeenCalledTimes(1);
   });

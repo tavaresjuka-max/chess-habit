@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Brain, Clock, ShieldAlert } from 'lucide-react';
 import {
   buildSessionMessage,
@@ -77,6 +78,7 @@ export function TutorCard({
   onReconcileLichessResults,
   suppressPreSessionMessage = false,
 }: TutorCardProps) {
+  const [isReconciling, setIsReconciling] = useState(false);
   const consistency = computeConsistency(allTrainingLogs, today);
   const primaryWeakness = weaknesses[0];
   const evidenceLine = getEvidenceLine(plan, weaknesses);
@@ -126,11 +128,19 @@ export function TutorCard({
           <button
             type="button"
             className="secondary-button"
+            disabled={isReconciling}
             onClick={() => {
-              void onReconcileLichessResults();
+              if (isReconciling) {
+                return;
+              }
+
+              setIsReconciling(true);
+              void onReconcileLichessResults().finally(() => {
+                setIsReconciling(false);
+              });
             }}
           >
-            Conferir puzzles
+            {isReconciling ? 'Conferindo…' : 'Conferir puzzles'}
           </button>
         </div>
       ) : null}

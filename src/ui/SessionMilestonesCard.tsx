@@ -4,6 +4,9 @@ import type { SessionMilestone, SessionMilestoneStats, SessionMilestoneSummary }
 type SessionMilestonesCardProps = {
   summary: SessionMilestoneSummary;
   openPendingCount?: number;
+  // Subconjunto de openPendingCount vencido hoje — mesmo critério (isDueToday)
+  // do badge da tela Hoje, para os dois números nunca se contradizerem.
+  dueTodayCount?: number;
   nextDiploma?: NextDiplomaSummary;
   // Dentro de um Fold o título vem do summary da dobra — sem h2 duplicado.
   hideHeading?: boolean;
@@ -17,6 +20,7 @@ export type NextDiplomaSummary = {
 export function SessionMilestonesCard({
   summary,
   openPendingCount = 0,
+  dueTodayCount = 0,
   nextDiploma,
   hideHeading = false,
 }: SessionMilestonesCardProps) {
@@ -35,7 +39,11 @@ export function SessionMilestonesCard({
       )}
 
       <CurrentMilestone milestone={summary.currentMilestone} nextCheckpoint={summary.nextCheckpoint} />
-      <MethodProgressBadges openPendingCount={openPendingCount} nextDiploma={nextDiploma} />
+      <MethodProgressBadges
+        openPendingCount={openPendingCount}
+        dueTodayCount={dueTodayCount}
+        nextDiploma={nextDiploma}
+      />
       <MilestoneStats stats={summary.stats} />
       <SkillSignals signals={summary.skillSignals} nextSignalToMeasure={summary.nextSignalToMeasure} />
 
@@ -61,9 +69,11 @@ export function SessionMilestonesCard({
 
 function MethodProgressBadges({
   openPendingCount,
+  dueTodayCount,
   nextDiploma,
 }: {
   openPendingCount: number;
+  dueTodayCount: number;
   nextDiploma: NextDiplomaSummary | undefined;
 }) {
   if (openPendingCount === 0 && nextDiploma === undefined) {
@@ -74,8 +84,8 @@ function MethodProgressBadges({
     <div className="method-progress-badges" aria-label="Pendências e diplomas">
       {openPendingCount > 0 ? (
         <span>
-          <Clock aria-hidden="true" size={13} /> {openPendingCount} pendência
-          {openPendingCount > 1 ? 's' : ''}
+          <Clock aria-hidden="true" size={13} /> {openPendingCount} em aberto
+          {dueTodayCount > 0 ? ` · ${String(dueTodayCount)} vencida${dueTodayCount > 1 ? 's' : ''} hoje` : ''}
         </span>
       ) : null}
       {nextDiploma !== undefined ? (

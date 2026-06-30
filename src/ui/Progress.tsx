@@ -17,6 +17,7 @@ import {
   type WeaknessTag,
 } from '../domain';
 import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
+import { isDueToday } from '../domain/method/pendingItems';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
 import { lichessThemeLabel } from '../domain/lichessThemeLabels';
@@ -121,6 +122,9 @@ export function Progress({
   const baseline = buildEfficacyBaseline({ allLogs: allTrainingLogs, signals, today });
   const sessionMilestoneSummary = buildSessionMilestoneSummary({ logs: allTrainingLogs, sessionMinutes });
   const nextDiploma = getNextDiplomaSummary(diplomaAttempts);
+  // Mesmo critério (isDueToday) do badge "vencidas" da tela Hoje — os dois números
+  // contam exatamente a mesma coisa, então nunca se contradizem entre as telas.
+  const dueTodayCount = pendingItems.filter((item) => isDueToday(item)).length;
   const diplomasAchieved = DIPLOMAS.filter(
     (diploma) => getDiplomaProgress(diplomaAttempts, diploma.id)?.overallPassed === true,
   ).length;
@@ -134,6 +138,23 @@ export function Progress({
         </div>
       </div>
 
+      {/* Status compacto: banda atual + vencidas hoje + próximo checkpoint visíveis
+          em 1 segundo, SEM abrir nenhum fold. O council alertou que escancarar tudo
+          vira sobrecarga — então é só este resumo no topo, não os folds abertos. */}
+      <div className="progress-status-strip" aria-label="Resumo rápido">
+        {learnerBand !== undefined ? <span className="metric-chip">Faixa {learnerBand}</span> : null}
+        <span className={dueTodayCount > 0 ? 'metric-chip metric-chip-due' : 'metric-chip'}>
+          {dueTodayCount > 0
+            ? `${String(dueTodayCount)} ${dueTodayCount === 1 ? 'revisão vencida' : 'revisões vencidas'} hoje`
+            : 'Nada vencido hoje'}
+        </span>
+        {nextDiploma !== undefined ? (
+          <span className="metric-chip">
+            Próximo: {nextDiploma.title} · {String(nextDiploma.progressPercent)}%
+          </span>
+        ) : null}
+      </div>
+
       <Fold
         concept="metas"
         title={sessionMilestoneSummary.heading}
@@ -142,6 +163,7 @@ export function Progress({
         <SessionMilestonesCard
           summary={sessionMilestoneSummary}
           openPendingCount={pendingItems.length}
+          dueTodayCount={dueTodayCount}
           nextDiploma={nextDiploma}
           hideHeading
         />

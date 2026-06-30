@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { SessionMilestoneSummary } from '../domain';
 import { SessionMilestonesCard } from './SessionMilestonesCard';
@@ -80,5 +80,23 @@ describe('SessionMilestonesCard', () => {
     expect(screen.getByText(/repetir Pin/)).toBeInTheDocument();
     expect(screen.getByText('Puzzles reconciliados: 15/20 acertos (75%).')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Progresso de Checkpoint 6h' })).toHaveAttribute('value', '25');
+  });
+
+  it('shows the open-pending total plus the due-today subset (coerência com a tela Hoje)', () => {
+    const { container } = render(
+      <SessionMilestonesCard summary={summary} openPendingCount={3} dueTodayCount={1} />,
+    );
+
+    expect(within(container).getByText(/3 em aberto · 1 vencida hoje/)).toBeInTheDocument();
+  });
+
+  it('omits the due-today clause when nothing is due today', () => {
+    const { container } = render(
+      <SessionMilestonesCard summary={summary} openPendingCount={2} dueTodayCount={0} />,
+    );
+    const view = within(container);
+
+    expect(view.getByText(/2 em aberto/)).toBeInTheDocument();
+    expect(view.queryByText(/vencida/)).not.toBeInTheDocument();
   });
 });
