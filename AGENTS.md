@@ -27,10 +27,13 @@ O dono, **autoridade final**, DESCONGELOU P4 (sync multi-dispositivo) e P5 (vers
 autorizou implementar TODAS as features ate um beta publico. Decisoes travadas:
 
 - **Sync (P4):** backend **Cloudflare Workers + D1**. Login = **Entrar com Lichess** (identidade via
-  OAuth, sem escopo de jogo). Dados sobem **cifrados ponta-a-ponta** por **passphrase independente**
-  (NUNCA derivada da identidade publica do Lichess nem de token OAuth); tokens OAuth continuam **so no
-  aparelho**. Provisionamento da nuvem fica com o dono — o agente **constroi + testa local**
-  (wrangler/miniflare), nao cria conta nem mexe em secrets de producao.
+  OAuth, sem escopo de jogo). Dados sobem como **conteudo legivel** (blob JSON, **sem E2EE/passphrase**
+  — decisao `d92aeb4` "sync conta-normal"; a variante E2EE com passphrase de `309e558` foi removida de
+  proposito). O servidor le o conteudo, isolado por `userId` derivado do OAuth Lichess; tokens OAuth
+  continuam **so no aparelho**. ⚠️ Implicacao: dados sincronizados sao legiveis no servidor — se quiser
+  privacidade no servidor de volta, e decisao de produto (reintroduzir cifragem antes do `pushBlob`).
+  Provisionamento da nuvem fica com o dono — o agente **constroi + testa local** (wrangler/miniflare),
+  nao cria conta nem mexe em secrets de producao.
 - **Comunidade (P5):** nome publico aprovado via **constante unica `APP_NAME`** = `'Chess Habit'`,
   com disclaimers de nao-afiliacao, AGPL a mostra, URL publica de codigo-fonte e feedback, doacao =
   link externo.

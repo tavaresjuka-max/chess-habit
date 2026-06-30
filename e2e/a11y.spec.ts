@@ -54,6 +54,10 @@ test('a11y: passo "Suas contas" do onboarding sem violações sérias', async ({
   await prepareBrowser(page, { lichess: { joaninha: 'many' } });
   await openApp(page);
   await page.getByRole('button', { name: 'Vamos configurar' }).click();
+  // Fase 3 (62932c4) inseriu o consentimento informado antes das contas.
+  await expect(page.getByRole('heading', { name: 'Seus dados e sua privacidade' })).toBeVisible();
+  await expectNoSeriousViolations(page, 'Onboarding · Consentimento');
+  await page.getByRole('button', { name: 'Aceitar e continuar' }).click();
   await expect(page.getByRole('heading', { name: 'Suas contas' })).toBeVisible();
   await expectNoSeriousViolations(page, 'Onboarding · Suas contas');
 });
