@@ -46,5 +46,5 @@ exporta é analisável (N baixo); **SUTVA** (early vs not-yet jogam no mesmo poo
 4. Sinal de eficácia positivo no formato primário (rapid) acima do limiar pré-registrado → só então S2.3.
 
 ## Pré-requisitos operacionais (fora de código, do dono)
-- D11 AGPL: repo público (conformidade §13). D8: canal/critério de recrutamento escalonado. Deploy.
+- D8: canal/critério de recrutamento escalonado. Deploy. (D11 AGPL removido — app é proprietário/fechado desde 2026-06-30.)
 - Antes de ligar sync multi-dispositivo: itens A–F de `docs/architecture/SYNC-HARDENING.md`.

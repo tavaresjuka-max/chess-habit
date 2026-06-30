@@ -67,7 +67,7 @@ Doacao e feita por link externo. O app nao precisa saber quem pagou. Se houver r
   servidor) a qualquer momento. Tokens OAuth continuam so no aparelho, fora do backup. Cifrado em transito
   (HTTPS) e em repouso (Cloudflare); acesso por login do Lichess + isolamento por usuario.
 - Versao-comunidade (P5): nome publico `Chess Habit` (`APP_NAME` em `src/config/appIdentity.ts`),
-  disclaimer de nao-afiliacao, AGPL-3.0 visivel, URL publica de codigo-fonte e feedback no rodape.
+  disclaimer de nao-afiliacao e aviso de copyright (proprietario, codigo fechado) no rodape.
 
 ## Riscos A Revisar
 

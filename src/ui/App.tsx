@@ -4,12 +4,12 @@ import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
 import { createDefaultProfile, useAppState } from '../app/state';
 import {
+  APP_COPYRIGHT,
   APP_LEGAL_DISCLAIMER,
   APP_NAME,
   DONATION_URL,
   FEEDBACK_URL,
   PRIVACY_SUMMARY,
-  SOURCE_CODE_URL,
 } from '../config/appIdentity';
 import { TavarezAvatar } from './art/TavarezAvatar';
 import { DiplomaCelebration } from './DiplomaCelebration';
@@ -73,19 +73,7 @@ export function LegalFooter() {
   return (
     <footer className="legal-footer" aria-label={`Avisos legais de ${APP_NAME}`}>
       <span>{APP_LEGAL_DISCLAIMER}</span>
-      <span>Software livre AGPL-3.0.</span>
-      {SOURCE_CODE_URL === undefined ? (
-        <span>Código-fonte: URL pública pendente.</span>
-      ) : (
-        <a
-          href={SOURCE_CODE_URL}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Abrir código-fonte do app (abre em nova aba)"
-        >
-          Código-fonte
-        </a>
-      )}
+      <span>{APP_COPYRIGHT}</span>
       <details className="privacy-disclosure">
         <summary>Privacidade e seus dados</summary>
         <ul>

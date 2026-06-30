@@ -27,6 +27,9 @@
 - **Alternativa:** preencher uma URL de GitHub presumida.
 - **Por que:** o repositorio local nao tem `git remote`; um link falso pioraria a conformidade AGPL e a
   confianca do beta. A troca ficou em uma constante unica para o dono preencher antes do beta publico.
+- **SUPERSEDED 2026-06-30:** decisao revertida pelo dono — o app passa a ser **proprietario/fechado**
+  (sem AGPL). `SOURCE_CODE_URL` removido; o rodape exibe aviso de copyright em vez de link de
+  codigo-fonte. `FEEDBACK_URL` fica indefinido ate o e-mail oficial (criado junto com o dominio proprio).
 
 ## 2026-06-19 - CSP style-src e limite do sonner
 

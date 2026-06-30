@@ -64,7 +64,7 @@ com union por id. **(Gate item D.)**
 - **appMeta special-merge** (campos independentes, seguro): `adoptedAt` = mais antigo (min, write-once),
   `onboardingCompletedAt` = mais antigo não-nulo, `errorCaptureEnabled` = do `updatedAt` mais recente,
   `updatedAt` = max. Protege o carimbo de adoção de ser apagado por LWW quando o sync ligar.
-- **Backend `DELETE /blobs`** (direito de exclusão — D4 / privacidade / AGPL): apaga todos os blobs do
+- **Backend `DELETE /blobs`** (direito de exclusão — D4 / privacidade): apaga todos os blobs do
   userId autenticado.
 
 ## Adjudicação 2026-06-28 (re-council A+B; GLM 5.2 respondeu, DeepSeek fora)

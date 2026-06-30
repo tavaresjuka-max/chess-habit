@@ -24,21 +24,19 @@ describe('LegalFooter privacidade', () => {
     expect(screen.getByText(PRIVACY_SUMMARY[0])).toBeInTheDocument();
   });
 
-  it('renderiza o disclaimer de não-afiliação e a nota AGPL', async () => {
+  it('renderiza o disclaimer de não-afiliação e o aviso de copyright', async () => {
     const { LegalFooter } = await import('./App');
     render(<LegalFooter />);
     expect(screen.getByText(/não oficial/i)).toBeInTheDocument();
     expect(screen.getByText(/não afiliado/i)).toBeInTheDocument();
-    expect(screen.getByText(/AGPL-3\.0/i)).toBeInTheDocument();
-  });
-
-  it('exibe link do código-fonte quando SOURCE_CODE_URL está definido', async () => {
-    const { LegalFooter } = await import('./App');
-    render(<LegalFooter />);
-    expect(screen.getByRole('link', { name: /código-fonte/i })).toBeInTheDocument();
+    expect(screen.getByText(/direitos reservados/i)).toBeInTheDocument();
   });
 
   it('exibe link de feedback quando FEEDBACK_URL está definido', async () => {
+    vi.doMock('../config/appIdentity', async (importOriginal) => {
+      const original = await importOriginal<typeof import('../config/appIdentity')>();
+      return { ...original, FEEDBACK_URL: 'https://exemplo.test/feedback' };
+    });
     const { LegalFooter } = await import('./App');
     render(<LegalFooter />);
     expect(screen.getByRole('link', { name: /feedback/i })).toBeInTheDocument();
@@ -48,17 +46,6 @@ describe('LegalFooter privacidade', () => {
     const { LegalFooter } = await import('./App');
     render(<LegalFooter />);
     expect(screen.queryByRole('link', { name: /apoiar/i })).not.toBeInTheDocument();
-  });
-
-  it('exibe fallback de código-fonte quando SOURCE_CODE_URL é undefined', async () => {
-    vi.doMock('../config/appIdentity', async (importOriginal) => {
-      const original = await importOriginal<typeof import('../config/appIdentity')>();
-      return { ...original, SOURCE_CODE_URL: undefined };
-    });
-    const { LegalFooter } = await import('./App');
-    render(<LegalFooter />);
-    expect(screen.getByText(/URL pública pendente/i)).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /código-fonte/i })).not.toBeInTheDocument();
   });
 
   it('não exibe link de feedback quando FEEDBACK_URL é undefined', async () => {

@@ -4,7 +4,7 @@ Status: ferramenta pessoal funcional (P0-P3 concluídas + Método Professor Lemo
 P4 (sync) e P5 (versão-comunidade) foram descongeladas pelo dono em 2026-06-16. Nome público
 definido: `APP_NAME = 'Chess Habit'` (decidido pelo dono em 2026-06-19, em `src/config/appIdentity.ts`).
 
-Chess Habit é uma PWA gratuita, local-first e open-source (AGPL-3.0) que ajuda o aluno a treinar melhor
+Chess Habit é uma PWA gratuita e local-first que ajuda o aluno a treinar melhor
 usando o Lichess. O app não substitui o Lichess nem cria outro tabuleiro:
 ele diagnostica fraquezas a partir do histórico real (Chess.com/Lichess), monta o plano do dia,
 abre o treino certo no Lichess, registra progresso e adapta as próximas sessões.
@@ -45,13 +45,13 @@ App não oficial. Não é afiliado, endossado ou mantido pelo Lichess. O nome p�
 
 - `chessking-tutor` / `chessking-assets`: app pago anterior e seus materiais. **Nada** de lá
   entra aqui (clean-room).
-- `lichess-tutor`: este projeto, aberto, gratuito e Lichess-first.
+- `lichess-tutor`: este projeto, gratuito e Lichess-first.
 
 ## Licença
 
-Copyright (C) 2026 Juka Tavarez.
+Copyright © 2026 Juka Tavarez. Todos os direitos reservados.
 
-Este programa é software livre sob a [GNU Affero General Public License v3.0](LICENSE)
-(AGPL-3.0). Você pode redistribuí-lo e/ou modificá-lo nos termos da licença; se oferecer o
-app modificado como serviço pela rede, a cláusula 13 exige disponibilizar o código-fonte
-correspondente aos usuários. Sem garantia; veja a LICENSE para os termos completos.
+Software proprietário e de código fechado. Nenhuma permissão de cópia, modificação,
+redistribuição ou uso do código é concedida sem autorização prévia e por escrito do
+titular. O acesso ao serviço hospedado não concede direito algum sobre o código-fonte.
+Sem garantia; veja a [LICENSE](LICENSE) para os termos completos.

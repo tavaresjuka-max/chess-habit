@@ -35,13 +35,13 @@ autorizou implementar TODAS as features ate um beta publico. Decisoes travadas:
   Provisionamento da nuvem fica com o dono — o agente **constroi + testa local** (wrangler/miniflare),
   nao cria conta nem mexe em secrets de producao.
 - **Comunidade (P5):** nome publico aprovado via **constante unica `APP_NAME`** = `'Chess Habit'`,
-  com disclaimers de nao-afiliacao, AGPL a mostra, URL publica de codigo-fonte e feedback, doacao =
+  com disclaimers de nao-afiliacao, aviso de copyright (proprietario), canal de feedback, doacao =
   link externo.
 - Roadmap detalhado: `docs/review/roadmap-beta-2026-06-16.md`. Execucao autonoma:
   `prompts/codex-overnight-beta-2026-06-16.md`.
 
 TODAS as outras Regras Inquebraveis abaixo permanecem (clean-room, sem scraping, sem tabuleiro, tokens
-locais, sem PGN/PII, AGPL, sem promessa de rating, etc.). Descongelar fase **NAO afrouxa nenhuma regra
+locais, sem PGN/PII, sem promessa de rating, etc.). Descongelar fase **NAO afrouxa nenhuma regra
 de privacidade/seguranca**.
 
 ## Regras Inquebraveis
@@ -70,7 +70,7 @@ de privacidade/seguranca**.
   de recencia do achado Codex 2026-06-10; cache mensal evita refetch). O filtro de recencia fica como
   utilitario opt-in. Destinos de treino seguem no Lichess.
 - Nao armazenar PGNs completos, tokens ou dados sensiveis por padrao. Nada de PII em logs.
-- App gratuito e open-source. Sem anuncios, sem paywall, sem venda de dados. Doacao (se houver) e link
+- App gratuito e proprietario (codigo fechado). Sem anuncios, sem paywall, sem venda de dados. Doacao (se houver) e link
   externo, so na versao-comunidade; apoiador nao recebe vantagem funcional.
 
 ## Identidade Do Produto

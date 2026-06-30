@@ -49,7 +49,7 @@ Autorizado para P4/P5, ainda pendente de implementacao completa:
 - Worker/D1 local-only.
 - Exclusao de conta/servidor, se houver conta futura.
 - Proxy apenas se uma fase futura justificar por privacidade/CORS/rate limit e o dono aprovar.
-- Versao-comunidade, renomeacao publica via `APP_NAME`, disclaimers publicos, AGPL visivel e docs de privacidade.
+- Renomeacao publica via `APP_NAME`, disclaimers publicos, aviso de copyright (proprietario) e docs de privacidade.
 
 Fora da ferramenta pessoal atual:
 

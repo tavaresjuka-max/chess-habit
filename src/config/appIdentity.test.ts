@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  APP_COPYRIGHT,
   APP_DESCRIPTION,
   APP_LEGAL_DISCLAIMER,
   APP_MANIFEST_NAME,
   APP_NAME,
   FEEDBACK_URL,
   PRIVACY_SUMMARY,
-  SOURCE_CODE_URL,
 } from './appIdentity';
 
 describe('app identity', () => {
@@ -30,11 +30,11 @@ describe('app identity', () => {
     }
   });
 
-  it('expõe URL pública de código-fonte e feedback para o beta público', () => {
-    expect(typeof SOURCE_CODE_URL).toBe('string');
-    expect(SOURCE_CODE_URL).toMatch(/^https:\/\//);
-    expect(typeof FEEDBACK_URL).toBe('string');
-    expect(FEEDBACK_URL).toMatch(/^https:\/\//);
+  it('é proprietário: exibe aviso de copyright e não expõe URL de código-fonte', () => {
+    expect(APP_COPYRIGHT).toMatch(/direitos reservados/i);
+    expect(APP_COPYRIGHT).toMatch(/Juka Tavarez/);
+    // FEEDBACK_URL fica indefinido ate o e-mail oficial existir.
+    expect(FEEDBACK_URL === undefined || typeof FEEDBACK_URL === 'string').toBe(true);
   });
 });
 
@@ -55,7 +55,7 @@ describe('privacidade e feedback', () => {
 });
 
 describe('acentuação dos textos visíveis', () => {
-  const userFacing: readonly string[] = [APP_DESCRIPTION, APP_LEGAL_DISCLAIMER, ...PRIVACY_SUMMARY];
+  const userFacing: readonly string[] = [APP_COPYRIGHT, APP_DESCRIPTION, APP_LEGAL_DISCLAIMER, ...PRIVACY_SUMMARY];
 
   // Formas sem acento que já apareceram em produção (rodapé + resumo de privacidade).
   const forbidden = [

@@ -365,7 +365,7 @@ describe('rotina-sync worker (P4 M12 local + M13 oauth)', () => {
     expect(res.status).toBe(404);
   });
 
-  describe('DELETE /blobs — exclusão de conta (direito de exclusão AGPL)', () => {
+  describe('DELETE /blobs — exclusão de conta (direito de exclusão / privacidade)', () => {
     interface DeleteBody {
       deleted: number;
     }

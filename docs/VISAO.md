@@ -15,8 +15,8 @@ ativo por decisão explícita do dono registrada em `memory/decisions.md`.
    questionário + histórico Lichess e Chess.com.
 3. **Pesquisa pedagógica contínua.** Continuar baixando livros/teses legais e integrando
    deltas ao método, buscando a melhor lógica de ensino de xadrez possível.
-4. **Plataforma simples e colaborativa.** Futuramente disponível para a comunidade;
-   open-source aceitando melhorias de outros desenvolvedores (processo a definir).
+4. **Plataforma simples e bem cuidada.** App proprietário, mantido pelo autor; melhorias
+   vêm do próprio dono, não de contribuição externa de código.
 5. **UX parecida com Lichess e Chess.com.** Familiar para quem já joga online.
 6. **Grátis com opção de doação.** (Já é regra inquebrável em `AGENTS.md`.)
 7. **Sistema de recompensa incentivador por ESFORÇO, não por rating.** Metas de horas de
@@ -32,13 +32,13 @@ ativo por decisão explícita do dono registrada em `memory/decisions.md`.
     nas últimas horas/dias e credita no plano de estudo.
 11. **Análise ampla de progresso.** Visão clara do que o aluno sabe, como está melhorando,
     onde ainda tem dificuldade e como vai melhorar isso.
-12. **Testar bastante** e analisar como virar open-source com contribuições externas.
+12. **Testar bastante** com usuários reais e iterar o método.
 
 ## O que a visão NÃO muda
 
 - Regras inquebráveis de `AGENTS.md` continuam valendo: clean-room, sem scraping, APIs
   oficiais, sem tabuleiro próprio, sem ajuda em partida ao vivo, sem engine, privacidade
-  local-first, sem PGN persistido, grátis e open-source.
+  local-first, sem PGN persistido e grátis.
 - "Metas de horas, não de rating" CONFIRMA a política existente de não prometer rating.
 - P4 (sync) e P5 (comunidade) continuam congeladas até decisão explícita do dono; a visão
   sinaliza a direção, não descongela fases.
