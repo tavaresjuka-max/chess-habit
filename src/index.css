@@ -1375,17 +1375,21 @@ textarea {
 }
 
 @media (max-width: 430px) {
+  /* No celular as duas colunas espremem o texto num corredor estreito (o retrato
+     "bagunça tudo"). Empilha: retrato centralizado EM CIMA, texto com a largura
+     inteira do card — fim das quebras de linha a cada 2-3 palavras. */
   .today-hero-body {
-    grid-template-columns: 100px 1fr;
+    grid-template-columns: 1fr;
     gap: 12px;
     padding: 14px;
   }
   .today-hero-portrait {
-    width: 100px;
-    height: 117px;
+    justify-self: center;
+    width: 132px;
+    height: 154px;
   }
   .today-hero-title {
-    font-size: 1.22rem;
+    font-size: 1.28rem;
   }
 }
 
