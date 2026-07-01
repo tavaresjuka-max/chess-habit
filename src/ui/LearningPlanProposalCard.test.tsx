@@ -15,7 +15,7 @@ const proposal: LearningPlanProposal = {
   focusItems: ['Garfos: cavalo, bispo, peão, dama.', 'Puzzles variados de garfo.'],
   progressCriteria: ['Mais garfos certos na 1ª tentativa.', 'Registrar: fácil / bom / difícil.'],
   estimate: '≈30h · 60 sessões de 30 min · ~2 semanas',
-  checkpoint: 'Checkpoint: 6h · 12 sessões — teste curto, plano ajustado.',
+  checkpoint: 'Marco: 6h · 12 sessões — teste curto, plano ajustado.',
   caveat: 'Não é promessa de rating.',
   reviewPrompt: 'Aprove o plano ou peça revisão.',
   estimateHours: 30,
@@ -52,7 +52,7 @@ describe('LearningPlanProposalCard', () => {
     // Números da estimativa renderizados como destaque, não como frase.
     expect(screen.getByText('≈30')).toBeInTheDocument();
     expect(screen.getByText('60')).toBeInTheDocument();
-    expect(screen.getByText(/Checkpoint: 6h · 12 sessões/)).toBeInTheDocument();
+    expect(screen.getByText(/Marco: 6h · 12 sessões/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Aprovar plano' }));
 

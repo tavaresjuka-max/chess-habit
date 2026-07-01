@@ -142,7 +142,7 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
-      label: 'Lichess Practice: The Fork',
+      label: 'Lichess Practice: O garfo',
       url: 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
     });
     expect(normalizedBlock?.task).toBe(
@@ -216,7 +216,7 @@ describe('normalizePlanDestinations', () => {
 
     expect(normalizedBlock?.destination).toEqual({
       source: 'lichess',
-      label: 'Puzzles Lichess: Fork',
+      label: 'Puzzles Lichess: Garfo',
       url: 'https://lichess.org/training/fork',
     });
     expect(normalizedBlock?.task).toBe('Resolva puzzles de garfos e confirme a ideia antes do primeiro lance.');

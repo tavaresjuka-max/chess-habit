@@ -89,7 +89,7 @@ export function buildSessionMilestoneSummary(input: {
 
   return {
     heading: 'Metas da fase',
-    intro: 'Vamos medir a fase por sessões e horas concluídas, com checkpoints para ajustar o plano.',
+    intro: 'Vamos medir a fase por sessões e horas concluídas, com marcos para ajustar o plano.',
     currentMilestone,
     milestones,
     stats,
@@ -155,11 +155,11 @@ function getMilestoneStatus(target: number, completedHours: number, foundCurrent
 
 function formatMilestoneLabel(targetHours: number): string {
   if (targetHours === 6) {
-    return 'Checkpoint 6h';
+    return 'Marco 6h';
   }
 
   if (targetHours === 12) {
-    return 'Checkpoint 12h';
+    return 'Marco 12h';
   }
 
   if (targetHours === 24) {
@@ -427,7 +427,7 @@ function buildNextSignalToMeasure(stats: SessionMilestoneStats): string {
     return 'Próximo sinal: reduzir carga e ver se o feedback difícil diminui.';
   }
 
-  return 'Próximo sinal: manter o tema até o checkpoint e comparar acerto, feedback e constância.';
+  return 'Próximo sinal: manter o tema até o marco e comparar acerto, feedback e constância.';
 }
 
 function buildNextCheckpoint(currentMilestone: SessionMilestone, completedHours: number): string {
@@ -437,7 +437,7 @@ function buildNextCheckpoint(currentMilestone: SessionMilestone, completedHours:
     return `${currentMilestone.label} concluído. O próximo ciclo usa as mesmas métricas, sem promessa de rating.`;
   }
 
-  return `Próximo checkpoint: ${currentMilestone.label}. Faltam cerca de ${formatHours(remainingHours)} para revisar.`;
+  return `Próximo marco: ${currentMilestone.label}. Faltam cerca de ${formatHours(remainingHours)} para revisar.`;
 }
 
 function formatSessionCount(count: number): string {

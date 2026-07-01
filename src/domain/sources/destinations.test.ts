@@ -99,7 +99,7 @@ describe('lichessDestinationsByWeakness', () => {
   it('keeps tactical transfer and review on concrete training resources', () => {
     expect(getDestinationForWeakness('fork', 'transfer')).toEqual({
       source: 'lichess',
-      label: 'Puzzles Lichess: Fork',
+      label: 'Puzzles Lichess: Garfo',
       url: 'https://lichess.org/training/fork',
     });
     expect(getDestinationForWeakness('fork', 'review').url).toBe('https://lichess.org/training/fork');

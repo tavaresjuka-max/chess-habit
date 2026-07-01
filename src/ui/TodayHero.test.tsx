@@ -169,7 +169,7 @@ describe('TodayHero — chips glanceable (sempre visíveis)', () => {
     const chips = screen.getByRole('list', { name: /sinais de hoje/i });
     expect(chips).toHaveTextContent('Recuperar');
     expect(chips).toHaveTextContent('2');
-    expect(chips).toHaveTextContent('Checkpoint');
+    expect(chips).toHaveTextContent('Marco');
     expect(chips).toHaveTextContent('Ciclo 6h');
     expect(chips).toHaveTextContent('Sessões');
     expect(chips).toHaveTextContent('3');

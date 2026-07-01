@@ -184,7 +184,7 @@ export function TodayHero({
               <strong>{String(dueCount)}</strong>
             </li>
             <li>
-              <span>Checkpoint</span>
+              <span>Marco</span>
               <strong>{checkpointLabel}</strong>
             </li>
             <li>

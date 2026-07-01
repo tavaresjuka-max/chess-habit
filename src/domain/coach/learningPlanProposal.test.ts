@@ -47,7 +47,7 @@ describe('buildLearningPlanProposal', () => {
     expect(proposal.progressCriteria).toContain('Mais garfos certos na 1ª tentativa.');
     expect(proposal.estimate).toContain('≈30h');
     expect(proposal.estimate).toContain('60 sessões de 30 min');
-    expect(proposal.checkpoint).toContain('Checkpoint: 6h');
+    expect(proposal.checkpoint).toContain('Marco: 6h');
     expect(proposal.checkpoint).toContain('12 sessões');
     expect(proposal.estimateHours).toBe(30);
     expect(proposal.estimateSessions).toBe(60);

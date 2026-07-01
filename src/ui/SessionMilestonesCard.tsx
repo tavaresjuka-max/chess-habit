@@ -90,7 +90,7 @@ function MethodProgressBadges({
       ) : null}
       {nextDiploma !== undefined ? (
         <span>
-          Checkpoint: {nextDiploma.title} — {String(nextDiploma.progressPercent)}%
+          Marco: {nextDiploma.title} — {String(nextDiploma.progressPercent)}%
         </span>
       ) : null}
     </div>

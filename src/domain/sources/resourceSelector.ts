@@ -89,7 +89,9 @@ export function selectLichessResource(input: SelectLichessResourceInput): Liches
       (left, right) =>
         right.score - left.score ||
         right.resource.priority - left.resource.priority ||
-        left.resource.title.localeCompare(right.resource.title),
+        // Desempate por id (estável, não-traduzido) em vez de title (rótulo
+        // PT-BR pode mudar sem relação com prioridade pedagógica).
+        left.resource.id.localeCompare(right.resource.id),
     );
 
   return scored[0]?.resource ?? getPrimaryLichessResourceForWeakness(input.weaknessTag);

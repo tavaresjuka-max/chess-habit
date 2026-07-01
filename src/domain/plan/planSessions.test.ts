@@ -97,20 +97,20 @@ describe('plan sessions', () => {
       date: '2026-06-07',
       label: 'Amanhã',
       title: 'Repetição: garfos',
-      destinationLabel: 'Puzzles Lichess: Fork',
+      destinationLabel: 'Puzzles Lichess: Garfo',
       status: 'future',
     });
     expect(roadmap[2]).toMatchObject({
       date: '2026-06-08',
       label: 'Em 2 dias',
       title: 'Transferência: garfos em partida',
-      destinationLabel: 'Puzzles Lichess: Fork',
+      destinationLabel: 'Puzzles Lichess: Garfo',
     });
     expect(roadmap[3]).toMatchObject({
       date: '2026-06-09',
       label: 'Em 3 dias',
       title: 'Revisão: garfos sem pressa',
-      destinationLabel: 'Puzzles Lichess: Fork',
+      destinationLabel: 'Puzzles Lichess: Garfo',
     });
   });
 });

@@ -550,7 +550,7 @@ describe('generatePlan', () => {
       resourceStage: 'review',
       destination: {
         source: 'lichess',
-        label: 'Puzzles Lichess: Fork',
+        label: 'Puzzles Lichess: Garfo',
         url: 'https://lichess.org/training/fork',
       },
     });
@@ -572,7 +572,7 @@ describe('generatePlan', () => {
       resourceStage: 'review',
       destination: {
         source: 'lichess',
-        label: 'Lichess Replay: revisar erros recentes em Fork',
+        label: 'Lichess Replay: revisar erros recentes em Garfo',
         url: 'https://lichess.org/training/fork',
       },
     });
@@ -705,7 +705,7 @@ describe('generatePlan', () => {
     expect(previousPlan.blocks[0]?.feedback).toBeUndefined();
     expect(plan.blocks[0]?.resourceStage).toBe('retrieval');
     expect(plan.blocks[0]?.destination).toMatchObject({
-      label: 'Puzzles Lichess: Fork',
+      label: 'Puzzles Lichess: Garfo',
       url: 'https://lichess.org/training/fork',
     });
     expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');

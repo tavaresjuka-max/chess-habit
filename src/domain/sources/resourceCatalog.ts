@@ -4,6 +4,7 @@ import {
   learnerBands,
 } from '../bands';
 import { assertNever } from '../assertNever';
+import { lichessThemeLabel } from '../lichessThemeLabels';
 import type { Destination, LearnerBand, LichessOAuthScope, WeaknessTag } from '../types';
 
 export type LichessResourceKind =
@@ -103,6 +104,40 @@ const defaultVerifiedAt = '2026-06-08';
 const allBands = learnerBands;
 const beginnerBands = spineBeginnerBands;
 const improvingBands = improvingAndUpBands;
+
+// Rótulos PT-BR dos estudos "Lichess Practice" (só para exibição; o slug/URL
+// segue derivado do título original em inglês). Sem entrada = mantém original.
+const PRACTICE_TITLE_PT: Readonly<Record<string, string>> = {
+  'Piece Checkmates I': 'Mates com peças I',
+  'Piece Checkmates II': 'Mates com peças II',
+  'Checkmate Patterns I': 'Padrões de mate I',
+  'Checkmate Patterns II': 'Padrões de mate II',
+  'Checkmate Patterns III': 'Padrões de mate III',
+  'Checkmate Patterns IV': 'Padrões de mate IV',
+  'Knight & Bishop Mate': 'Mate de cavalo e bispo',
+  'The Pin': 'A cravada',
+  'The Skewer': 'O espeto',
+  'The Fork': 'O garfo',
+  'Discovered Attacks': 'Ataques descobertos',
+  'Double Check': 'Xeque duplo',
+  'Overloaded Pieces': 'Peças sobrecarregadas',
+  'Zwischenzug': 'Lance intermediário',
+  'X-Ray': 'Ataque raio-X',
+  'Interference': 'Interferência',
+  'Greek Gift': 'Sacrifício grego',
+  'Deflection': 'Desvio',
+  'Attraction': 'Atração',
+  'Underpromotion': 'Subpromoção',
+  'Counter Check': 'Contra-xeque',
+  'Undermining': 'Solapamento',
+  'Clearance': 'Limpeza de linha',
+  'Key Squares': 'Casas-chave',
+  'Opposition': 'Oposição',
+  '7th-Rank Rook Pawn': 'Peão de torre na 7ª',
+  'Basic Rook Endgames': 'Finais de torre básicos',
+  'Intermediate Rook Endings': 'Finais de torre intermediários',
+  'Practical Rook Endings': 'Finais de torre práticos',
+};
 
 export const lichessPracticeStudies = [
   practiceStudy({
@@ -912,12 +947,13 @@ export function destinationFromResource(resourceItem: LichessResource): Destinat
 
 function practiceStudy(input: PracticeStudyInput): LichessResource {
   const slug = slugify(input.title);
+  const displayTitle = PRACTICE_TITLE_PT[input.title] ?? input.title;
 
   return resource({
     id: `practice:${input.sectionId}:${slug}`,
     kind: 'practice-study',
-    title: input.title,
-    label: `Lichess Practice: ${input.title}`,
+    title: displayTitle,
+    label: `Lichess Practice: ${displayTitle}`,
     description: input.description,
     url: `https://lichess.org/practice/${input.sectionId}/${slug}/${input.studyId}`,
     source: 'lichess-practice-source',
@@ -931,8 +967,8 @@ function puzzleTheme(input: PuzzleThemeInput): LichessResource {
   return resource({
     id: `puzzle:${input.slug}`,
     kind: 'puzzle-theme',
-    title: input.title,
-    label: `Puzzles Lichess: ${input.title}`,
+    title: lichessThemeLabel(input.slug),
+    label: `Puzzles Lichess: ${lichessThemeLabel(input.slug)}`,
     description: `Tema oficial de puzzle Lichess (${input.group}).`,
     url: `https://lichess.org/training/${input.slug}`,
     source: 'lichess-puzzle-theme-xml',
@@ -973,7 +1009,9 @@ function compareLichessResources(left: LichessResource, right: LichessResource):
     right.priority - left.priority ||
     getQualityRank(right.qualityStatus) - getQualityRank(left.qualityStatus) ||
     getKindRank(left.kind) - getKindRank(right.kind) ||
-    left.title.localeCompare(right.title)
+    // Desempate por id (estável, não-traduzido) em vez de title (rótulo PT-BR
+    // pode mudar sem relação com prioridade pedagógica; id é a chave estável).
+    left.id.localeCompare(right.id)
   );
 }
 

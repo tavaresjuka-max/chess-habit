@@ -488,7 +488,7 @@ describe('training flow', () => {
       const transferBlock = plan?.blocks.find((block) => block.resourceStage === 'transfer');
 
       expect(transferBlock?.destination).toMatchObject({
-        label: 'Puzzles Lichess: Fork',
+        label: 'Puzzles Lichess: Garfo',
         url: 'https://lichess.org/training/fork',
       });
     });

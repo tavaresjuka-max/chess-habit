@@ -258,9 +258,9 @@ export function Today({
   // TodayHero: valores JÁ computados, derivados sem regra de negócio nova.
   // dueItems = fila de revisão que venceu hoje (mesma semântica do PendingReviewCard).
   const dueItems = pendingItems.filter((item) => isDueToday(item));
-  // O chip do herói já tem o cabeçalho "Checkpoint"; remove o prefixo redundante
-  // do label do marco (ex.: "Checkpoint 6h" -> "6h") para não exibir "Checkpoint Checkpoint 6h".
-  const checkpointLabel = sessionMilestoneSummary.currentMilestone.label.replace(/^checkpoint\s*/i, '');
+  // O chip do herói já tem o cabeçalho "Marco"; remove o prefixo redundante
+  // do label do marco (ex.: "Marco 6h" -> "6h") para não exibir "Marco Marco 6h".
+  const checkpointLabel = sessionMilestoneSummary.currentMilestone.label.replace(/^marco\s*/i, '');
   const remainingSessions = Math.max(
     0,
     sessionMilestoneSummary.currentMilestone.targetSessions -

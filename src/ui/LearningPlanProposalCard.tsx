@@ -106,7 +106,7 @@ export function LearningPlanProposalCard({
         </ul>
         <span className="metric-chip learning-plan-chip-icon">
           <Flag aria-hidden="true" size={13} />
-          Checkpoint: {proposal.checkpointHours}h · {proposal.checkpointSessions} sessões
+          Marco: {proposal.checkpointHours}h · {proposal.checkpointSessions} sessões
         </span>
       </div>
     </>
@@ -240,7 +240,7 @@ export function LearningPlanProposalCard({
       {response?.status === 'approved' ? (
         <p className="learning-plan-status">
           <Check aria-hidden="true" size={16} />
-          Plano aprovado. Começamos por este caminho e revisamos no checkpoint.
+          Plano aprovado. Começamos por este caminho e revisamos no marco.
         </p>
       ) : null}
 

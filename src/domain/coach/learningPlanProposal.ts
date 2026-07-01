@@ -60,7 +60,7 @@ export function buildLearningPlanProposal(input: BuildLearningPlanProposalInput)
     focusItems: getFocusItems(focusTag, roadmapFocusItems),
     progressCriteria: getProgressCriteria(focusTag),
     estimate: `≈${String(firstPhaseHours)}h · ${String(sessions)} sessões de ${String(input.sessionMinutes)} min · ~${String(weeksAtDailyPace)} semana${weeksAtDailyPace === 1 ? '' : 's'}`,
-    checkpoint: `Checkpoint: ${String(checkpointHours)}h · ${String(checkpointSessions)} sessões — teste curto, plano ajustado.`,
+    checkpoint: `Marco: ${String(checkpointHours)}h · ${String(checkpointSessions)} sessões — teste curto, plano ajustado.`,
     caveat:
       'Não é promessa de rating. É uma janela de treino para medir se os sinais melhoraram e se o plano precisa mudar.',
     reviewPrompt:
@@ -115,7 +115,7 @@ function getFocusItems(focusTag: WeaknessTag, roadmapFocusItems: readonly string
 }
 
 function getProgressCriteria(focusTag: WeaknessTag): string[] {
-  const base = ['Chegar ao checkpoint de 6h.', 'Registrar: fácil / bom / difícil.'];
+  const base = ['Chegar ao marco de 6h.', 'Registrar: fácil / bom / difícil.'];
   const themeCriteria = progressCriteriaByWeakness[focusTag];
 
   return [...base, ...themeCriteria];

@@ -107,12 +107,12 @@ describe('lichessResourceCatalog', () => {
   it('prefers guided Practice lessons where Lichess has a matching lesson', () => {
     expect(getPrimaryLichessResourceForWeakness('fork')).toMatchObject({
       kind: 'practice-study',
-      title: 'The Fork',
+      title: 'O garfo',
       url: 'https://lichess.org/practice/fundamental-tactics/the-fork/Qj281y1p',
     });
     expect(getPrimaryLichessResourceForWeakness('endgame-pawn')).toMatchObject({
       kind: 'practice-study',
-      title: 'Key Squares',
+      title: 'Casas-chave',
     });
   });
 

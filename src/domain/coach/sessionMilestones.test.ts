@@ -6,7 +6,7 @@ describe('buildSessionMilestoneSummary', () => {
   it('starts with a 6h checkpoint and no fake progress', () => {
     const summary = buildSessionMilestoneSummary({ logs: [], sessionMinutes: 30 });
 
-    expect(summary.currentMilestone.label).toBe('Checkpoint 6h');
+    expect(summary.currentMilestone.label).toBe('Marco 6h');
     expect(summary.currentMilestone.targetSessions).toBe(12);
     expect(summary.currentMilestone.progressPercent).toBe(0);
     expect(summary.stats.completedSessions).toBe(0);
@@ -60,8 +60,8 @@ describe('buildSessionMilestoneSummary', () => {
     });
 
     expect(summary.milestones.map((milestone) => [milestone.label, milestone.status])).toEqual([
-      ['Checkpoint 6h', 'done'],
-      ['Checkpoint 12h', 'done'],
+      ['Marco 6h', 'done'],
+      ['Marco 12h', 'done'],
       ['Primeiro ciclo 24h', 'done'],
       ['Ciclo 48h', 'current'],
     ]);
