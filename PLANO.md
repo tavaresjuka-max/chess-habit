@@ -71,7 +71,7 @@ slugs Lichess por allowlist oficial/manual; erro/offline especificados; linguage
 
 Relatorio: `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md`.
 
-Resolvido naquela passada historica: spec de badges marcada como aprovada, arquitetura entao realinhada e lint vermelho em `Fold` corrigido. Estado vigente supersede esse paragrafo: P4/P5 beta estao ativos, com sync opt-in Worker/D1 conta-normal. Documentado em 2026-07-01: politica de retencao/compactacao (`docs/adr/ADR-010`), ADR do `vite-plugin-pwa` (`docs/adr/ADR-009`) e ledger de assets gerados (`docs/design/asset-ledger.md`). Backlog remanescente: dogfood dois-aparelhos (teste manual do dono) e reducao gradual de estado/componente grande (refactor, com risco de regressao — nao e housekeeping puro).
+Resolvido naquela passada historica: spec de badges marcada como aprovada, arquitetura entao realinhada e lint vermelho em `Fold` corrigido. Estado vigente supersede esse paragrafo: P4/P5 beta estao ativos, com sync opt-in Worker/D1 conta-normal. Documentado em 2026-07-01: politica de retencao/compactacao (`docs/adr/ADR-010`), ADR do `vite-plugin-pwa` (`docs/adr/ADR-009`) e ledger de assets gerados (`docs/design/asset-ledger.md`). Reducao de componente grande FEITA 2026-07-01 (test-gated, 1372 testes verdes): 6 arquivos >500 linhas decompostos em modulos focados — Today.tsx 758->523 (helpers/subcomponentes + CalibrationInvite/TodayDayStatus), Config.tsx 588->284 (ConfigDataFold/ConfigPrivacyFold/configHelpers), PlanBlockCard.tsx 622->487, state.ts 546->450 (stateTypes.ts), useDiagnosisActions.ts 704->622 (diagnosisHelpers.ts). Backlog remanescente: dogfood dois-aparelhos (teste manual do dono).
 
 ## Criterio De Pronto Por Fase
 
