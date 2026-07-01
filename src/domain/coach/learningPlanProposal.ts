@@ -136,7 +136,7 @@ const focusItemsByWeakness = {
   'endgame-pawn': ['Ativar o rei.', 'Contar peões e casas-chave.'],
   'endgame-rook': ['Ativar a torre.', 'Final básico, sem complicar.'],
   conversion: ['Vantagem vira plano simples.', 'Trocar peças, reduzir contra-jogo.'],
-  'blunder-rate': ['Checar peças soltas.', 'Rotina anti-blunder antes de mover.'],
+  'blunder-rate': ['Checar peças soltas.', 'Rotina de segurança antes de mover.'],
 } satisfies Record<WeaknessTag, readonly string[]>;
 
 const progressCriteriaByWeakness = {
@@ -153,6 +153,6 @@ const progressCriteriaByWeakness = {
   'endgame-pawn': ['Rei ativo, oposição, promoção.', 'Reconstruir a linha sem olhar.'],
   'endgame-rook': ['Torre ativa primeiro.', 'Manter o plano no final.'],
   conversion: ['Vantagem vira plano simples.', 'Explicar como reduzir contra-jogo.'],
-  'blunder-rate': ['Varredura anti-blunder antes de mover.', 'Menos erros de peça solta e defesa.'],
+  'blunder-rate': ['Varredura de segurança antes de mover.', 'Menos erros de peça solta e defesa.'],
 } satisfies Record<WeaknessTag, readonly string[]>;
 

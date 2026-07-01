@@ -69,7 +69,7 @@ export const CURRICULUM: readonly CurriculumPhase[] = [
       },
       {
         number: 3,
-        title: 'Checagem anti-blunder',
+        title: 'Checagem de segurança',
         summary: 'Conferir segurança antes de confirmar cada lance.',
         tag: 'blunder-rate',
       },

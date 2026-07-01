@@ -35,7 +35,7 @@ export const catalogSkillNodes = [
   {
     id: 'anti-blunder-scan',
     weaknessTag: 'blunder-rate',
-    title: 'Varredura anti-blunder',
+    title: 'Varredura de segurança',
     themeSlugs: ['hangingPiece', 'defensiveMove', 'mix', 'short'],
     bands: allBands,
     stageFit: ['explain', 'retrieval', 'review', 'transfer'],

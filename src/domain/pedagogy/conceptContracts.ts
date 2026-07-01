@@ -39,7 +39,7 @@ export const conceptContracts = [
   },
   {
     id: 'blunder-rate',
-    title: 'Segurança anti-blunder',
+    title: 'Segurança tática',
     prerequisiteTags: ['hanging-piece'],
     typicalError: 'Confirmar um lance sem checar ameaça, captura ou peça solta.',
     observableGoal: 'Aplicar uma varredura mínima antes de cada decisão simples.',

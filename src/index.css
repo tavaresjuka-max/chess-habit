@@ -2491,6 +2491,7 @@ li.diploma-row {
   margin: 0;
   font-weight: 650;
   color: var(--ink-700);
+  text-align: center;
 }
 
 /* Fase 1 — seletor de errorType (taxonomia de erro em 1 toque).

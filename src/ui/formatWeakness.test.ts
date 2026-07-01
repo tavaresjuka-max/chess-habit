@@ -25,7 +25,7 @@ describe('formatWeaknessTag', () => {
     expect(formatWeaknessTag('fork')).toBe('garfos');
     expect(formatWeaknessTag('hanging-piece')).toBe('peças penduradas');
     expect(formatWeaknessTag('back-rank')).toBe('mate na última fileira');
-    expect(formatWeaknessTag('blunder-rate')).toBe('anti-blunder');
+    expect(formatWeaknessTag('blunder-rate')).toBe('segurança');
   });
 
   it('devolve um rótulo não-vazio e sem hífen-de-slug para toda WeaknessTag', () => {

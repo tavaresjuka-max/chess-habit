@@ -39,7 +39,7 @@ describe('weaknessTitleByTag', () => {
       'endgame-pawn': 'finais de peões',
       'endgame-rook': 'finais de torres',
       conversion: 'conversão',
-      'blunder-rate': 'segurança anti-blunder',
+      'blunder-rate': 'segurança',
     });
   });
 

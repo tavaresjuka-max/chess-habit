@@ -6,7 +6,7 @@ const UI_SHORT_LABEL: Partial<Record<Weakness['tag'], string>> = {
   'time-trouble': 'tempo',
   'endgame-pawn': 'final de peões',
   'endgame-rook': 'final de torres',
-  'blunder-rate': 'anti-blunder',
+  'blunder-rate': 'segurança',
 };
 
 export function formatWeaknessTag(tag: Weakness['tag']): string {
