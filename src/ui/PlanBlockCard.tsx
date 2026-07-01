@@ -13,9 +13,6 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { isAllowedExternalUrl, openExternalUrl } from '../app/externalOpen';
 import { TacticDiagram } from './art/TacticDiagram';
 import {
-  elapsedSecondsBetween,
-  formatElapsedMinutes,
-  getConceptContract,
   type ErrorType,
   type PatternRecognition,
   type PlanBlock,
@@ -23,6 +20,8 @@ import {
   type TrainingLog,
 } from '../domain';
 import { ERROR_TYPE_LABELS, SELF_EXPLANATION_PROMPT } from '../domain/method/errorRouting';
+import { formatResourceStage, formatStatus, formatTimerStatus, getFeedbackCelebration } from './planBlockHelpers';
+import { PatternRecognitionPrompt } from './PatternRecognitionPrompt';
 
 type PlanBlockCardProps = {
   block: PlanBlock;
@@ -486,137 +485,3 @@ export function PlanBlockCard({
   );
 }
 
-function PatternRecognitionPrompt({
-  block,
-  isSubmitting,
-  onAnswer,
-  onSkip,
-}: {
-  block: PlanBlock;
-  isSubmitting: boolean;
-  onAnswer: (answer: PatternRecognition) => void;
-  onSkip: () => void;
-}) {
-  const question =
-    block.conceptContractId === undefined
-      ? 'Você reconheceu o padrão antes de calcular?'
-      : getConceptContract(block.conceptContractId).postAttemptReflection;
-
-  return (
-    <div className="rating-row" role="group" aria-label="Reconhecimento do padrão">
-      <p className="rating-prompt" role="status" aria-live="polite">
-        {isSubmitting ? (
-          <>
-            <Loader2 className="rating-spinner" aria-hidden="true" size={15} /> Anotando seu resultado…
-          </>
-        ) : (
-          question
-        )}
-      </p>
-      {!isSubmitting ? <p className="rating-subprompt">Opcional. Isso ajuda o professor a calibrar a revisão.</p> : null}
-      <div className="button-row" aria-busy={isSubmitting}>
-        <button type="button" className="secondary-button" disabled={isSubmitting} onClick={() => { onAnswer('yes'); }}>
-          Sim
-        </button>
-        <button type="button" className="secondary-button" disabled={isSubmitting} onClick={() => { onAnswer('partial'); }}>
-          Mais ou menos
-        </button>
-        <button type="button" className="secondary-button" disabled={isSubmitting} onClick={() => { onAnswer('no'); }}>
-          Não
-        </button>
-        <button type="button" className="link-button" disabled={isSubmitting} onClick={onSkip}>
-          Pular
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function formatTimerStatus(
-  log: TrainingLog,
-  nowIso: string,
-): { kind: 'timer-running' | 'timer-done' | 'timer-over' | 'timer-skipped'; label: string } {
-  const elapsedSeconds = log.status === 'active' ? elapsedSecondsBetween(log.startedAt, nowIso) : (log.elapsedSeconds ?? 0);
-
-  if (log.status === 'done') {
-    // Métrica honesta: nº de exercícios feitos (real, do Lichess) em vez do
-    // relógio de parede. Tempo, quando há, é a estimativa por timestamp.
-    const result = log.result;
-
-    if (result !== undefined && result.puzzles > 0) {
-      const plural = result.puzzles === 1 ? '' : 's';
-      const seconds = result.kind === 'puzzle-activity' ? (result.activeSeconds ?? 0) : 0;
-      const time = seconds > 0 ? ` · ~${formatElapsedMinutes(seconds)}` : '';
-
-      return {
-        kind: 'timer-done',
-        label: `${String(result.puzzles)} exercício${plural} feito${plural}${time}.`,
-      };
-    }
-
-    return {
-      kind: 'timer-done',
-      label: 'Concluído.',
-    };
-  }
-
-  if (log.status === 'skipped') {
-    return {
-      kind: 'timer-skipped',
-      label: `Pulou após ${formatElapsedMinutes(elapsedSeconds)}.`,
-    };
-  }
-
-  if (elapsedSeconds >= log.plannedSeconds) {
-    return {
-      kind: 'timer-over',
-      label: 'Tempo atingido. Conclua quando terminar.',
-    };
-  }
-
-  return {
-    kind: 'timer-running',
-    label: `Treinando há ${formatElapsedMinutes(elapsedSeconds)}. Faltam ${formatElapsedMinutes(log.plannedSeconds - elapsedSeconds)}.`,
-  };
-}
-
-function formatResourceStage(stage: PlanBlock['resourceStage']): string {
-  switch (stage) {
-    case 'explain':
-      return 'explicação';
-    case 'guided':
-      return 'guiado';
-    case 'retrieval':
-      return 'repetição';
-    case 'transfer':
-      return 'transferência';
-    case 'review':
-      return 'revisão';
-    case undefined:
-      return 'treino';
-  }
-}
-
-// Sem prefixo "Professor Tavarez:" — o card do tutor já carrega retrato e nome;
-// repetir a assinatura em cada fala era ruído.
-function getFeedbackCelebration(feedback: PlanBlockFeedback): string {
-  switch (feedback) {
-    case 'easy':
-      return 'Está ficando mais fácil — sinal de progresso real.';
-    case 'good':
-      return 'Bom desafio. O peso certo para evoluir.';
-    case 'hard':
-      return 'Esse foi difícil. Dá para guardar para revisar amanhã.';
-  }
-}
-
-function formatStatus(status: PlanBlock['status']): string {
-  switch (status) {
-    case 'pending':
-      return 'Pendente';
-    case 'done':
-      return 'Feito';
-    case 'skipped':
-      return 'Pulado';
-  }
-}
