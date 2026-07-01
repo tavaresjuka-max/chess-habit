@@ -6,6 +6,43 @@
 
 ---
 
+## ✅ STATUS 2026-07-01 — SUBSTANCIALMENTE ENTREGUE (loop já fechado)
+
+> Council VERIFICAR (DeepSeek Pro + GLM) + verificação no código real, 2026-07-01.
+> Maestro: Opus (Fugu sem quota). Decisão do dono: **loop considerado fechado; não
+> adicionar mais fricção pós-puzzle.** Esta seção supersede o desenho original abaixo.
+
+**O loop de retrieval JÁ está fechado em `master`** (commit `1aae7dd` + fluxo de feedback):
+
+| Peça do loop | Onde | Status |
+|---|---|---|
+| Cegueira por estágio (`isBlindAttempt`) + mitigação honor-system (`platformThemeLeakRisk`) | `generatePlan.ts:616-628` (`getBlindAttemptMetadata`) | ✅ feito, em uso |
+| Visibilidade da dica por estágio | `PlanBlockCard.tsx:151` | ✅ feito |
+| Sinal de retenção cega (sem congelar SM-2) | `blindEvidence.ts` (consumido em diplomas/Progress/diagnóstico) | ✅ feito |
+| Autorrelato de retrieval | `patternRecognition` = `yes/partial/no` (`PlanBlockCard.tsx:162`) | ✅ feito |
+| Autoexplicação de 1 frase | `TrainingLog.selfExplanation` | ✅ feito |
+| Taxonomia de erro (quando `hard`) | `TrainingLog.errorType` | ✅ feito |
+
+**DROPADO do desenho original (refutado pela verificação no código):**
+- ❌ **"Congelar SM-2 quando estágio ∈ {explain,guided}" (§4.5)** — o `blindEvidence.ts` já mede
+  retenção cega SEM congelar spacing/ease; congelar criaria estado paralelo confuso. O estágio
+  avança por FEEDBACK (`getThemeResourceStage`, generatePlan.ts:685-707), não por `attempts` —
+  logo o "deadlock" temido pelo council NÃO existe.
+- ❌ **Alegar que isto faz o DIPLOMA medir cegueira** — o diploma gate (80%/30) usa acurácia
+  EXTERNA do Lichess (`evaluateDiplomas.ts:59-60`), que não sabe se mostramos a dica. O loop
+  melhora o sinal INTERNO (blindEvidence), não o gate do diploma.
+
+**DIFERIDO como polimento opcional (NÃO no escopo agora — decisão do dono 2026-07-01):**
+- 🔸 `conceptTag` / `ConceptTagPicker` (múltipla escolha "qual conceito?"). Seria um 5º micro-passo
+  pós-puzzle (já há feedback + patternRecognition + errorType + selfExplanation). Custo de fricção
+  TDAH > valor incremental do diagnóstico. Reavaliar só se surgir necessidade de medir "o aluno
+  sabe NOMEAR o conceito".
+- 🔸 Injetar `tavarezCue` do catálogo nos blocos explain/guided (hoje mostra `coachNote` genérico).
+
+_O desenho original abaixo fica como contexto histórico — não implementar §4.5 nem o tagging._
+
+---
+
 ## 1. Contexto — onde paramos
 
 ### Git
