@@ -15,7 +15,6 @@ import {
   getPlanTotalMinutes,
   type Achievement,
   type DailyPlan,
-  type DayCompletionSummary,
   type LearnerBand,
   type ErrorType,
   type PlanBlock,
@@ -35,7 +34,7 @@ import {
 } from '../domain/method/diplomas';
 import { buildSkillMap } from '../domain/metrics/progressOverview';
 import { getMethodTrackTitle } from '../domain/method/methodTracks';
-import type { MethodTrackId, PendingTrainingItem } from '../domain/method/types';
+import type { PendingTrainingItem } from '../domain/method/types';
 import type { BackupMeta } from '../app/backupStatus';
 import type { LichessConnectionState } from '../app/state';
 import { ORGANIZER_CEILING_MESSAGE } from '../domain/curriculum/curriculum';
@@ -48,6 +47,14 @@ import { PendingReviewCard } from './PendingReviewCard';
 import { PlanBlockCard } from './PlanBlockCard';
 import { TodayHero } from './TodayHero';
 import { TutorCard } from './TutorCard';
+import {
+  formatFriendlyDate,
+  getActiveTrackId,
+  getBackupReminder,
+  playTimerBeep,
+  themeFromTrainingUrl,
+} from './todayHelpers';
+import { DayCompletionCard, DayProgressFill, RoadmapList } from './TodayParts';
 
 type TodayProps = {
   plan: DailyPlan | undefined;
@@ -85,15 +92,6 @@ const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
 // dispensar PERSISTE neste aparelho (antes era estado de componente e voltava a
 // cada reload/troca de aba). Pode recalibrar quando quiser em Configurações.
 const CALIBRATION_INVITE_DISMISSED_KEY = 'chesshabit:calibration-invite-dismissed';
-
-// Extrai o tema do puzzle (ex.: 'fork') do destino /training/<tema> do bloco.
-function themeFromTrainingUrl(url: string | undefined): string | undefined {
-  if (url === undefined) {
-    return undefined;
-  }
-
-  return /\/training\/([^/?#]+)/.exec(url)?.[1];
-}
 
 export function Today({
   plan,
@@ -613,146 +611,4 @@ export function Today({
       </div>
     </section>
   );
-}
-
-function formatFriendlyDate(date: string): string {
-  const parsed = new Date(`${date}T12:00:00`);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return date;
-  }
-
-  const formatted = parsed.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
-
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-}
-
-function DayProgressFill({ percent }: { percent: number }) {
-  return <progress aria-hidden="true" className="day-progress-fill" max={100} value={clampPercent(percent)} />;
-}
-
-function clampPercent(percent: number): number {
-  return Math.max(0, Math.min(100, percent));
-}
-
-function getBackupReminder(
-  meta: BackupMeta | undefined,
-  today: string,
-  hasData: boolean,
-): string | undefined {
-  if (meta === undefined) {
-    // Sem dado a perder ainda (usuário no dia 1, antes de treinar): não cobra backup —
-    // é ruído administrativo. O lembrete só aparece quando há progresso real.
-    return hasData ? 'Backup local: ainda não há export JSON registrado para este aparelho.' : undefined;
-  }
-
-  const todayDate = new Date(`${today}T12:00:00.000Z`);
-  const exportedAt = new Date(meta.exportedAt);
-
-  if (Number.isNaN(todayDate.getTime()) || Number.isNaN(exportedAt.getTime())) {
-    return 'Backup local: a data do último export não pôde ser lida.';
-  }
-
-  const daysSinceBackup = Math.floor((todayDate.getTime() - exportedAt.getTime()) / 86_400_000);
-
-  if (daysSinceBackup < 7) {
-    return undefined;
-  }
-
-  return `Backup local: último export há ${String(daysSinceBackup)} dias.`;
-}
-
-function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefined }) {
-  if (summary === undefined) {
-    return null;
-  }
-
-  return (
-    <section className="day-completion-card" aria-labelledby="day-completion-title">
-      <div>
-        <h2 id="day-completion-title">{summary.heading}</h2>
-        <ul className="completion-metrics" role="list" aria-label="Resumo do treino">
-          {summary.metrics.map((metric) => (
-            <li key={metric}>{metric}</li>
-          ))}
-        </ul>
-      </div>
-      {summary.lines.map((line) => (
-        <p key={line}>{line}</p>
-      ))}
-    </section>
-  );
-}
-
-// O título "Próximos passos" vem do Fold que embrulha a lista.
-function RoadmapList({ items }: { items: TrainingRoadmapItem[] }) {
-  if (items.length === 0) {
-    return null;
-  }
-
-  return (
-    <ol className="roadmap-list" role="list" aria-label="Próximos passos do roteiro">
-      {items.map((item) => (
-        <li className={`roadmap-item roadmap-${item.status}`} key={item.id}>
-          <div>
-            <strong>{item.label}</strong>
-            <span>{item.minutes} min</span>
-          </div>
-          <p>{item.title}</p>
-          <small>
-            {formatRoadmapStatus(item.status)} - {item.destinationLabel}
-          </small>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-function getActiveTrackId(plan: DailyPlan): MethodTrackId | undefined {
-  return plan.blocks.find((block) => block.methodTrackId !== undefined)?.methodTrackId;
-}
-
-function playTimerBeep(): void {
-  // Respeita prefers-reduced-motion: evita o susto sonoro (TDAH); o timer visual
-  // continua marcando o fim do tempo. (B4, council)
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    return;
-  }
-
-  try {
-    const audioContext = new AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 880;
-    gain.gain.setValueAtTime(0.001, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4);
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.42);
-
-    window.setTimeout(() => {
-      void audioContext.close();
-    }, 600);
-  } catch {
-    // Audio can be blocked by the browser; the visible timer message still carries the warning.
-  }
-}
-
-function formatRoadmapStatus(status: TrainingRoadmapItem['status']): string {
-  switch (status) {
-    case 'current':
-      return 'Planejado';
-    case 'done':
-      return 'Feito';
-    case 'future':
-      return 'Próximo';
-  }
 }
