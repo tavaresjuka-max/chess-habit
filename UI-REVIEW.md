@@ -6,6 +6,24 @@
 
 ---
 
+## ⏱️ Resolution status — 2026-07-01 (verified against `master`)
+
+> This is a point-in-time audit. The **Top 3 Priority Fixes below were all actioned** and are
+> merged into `master`. Do **not** re-open them.
+
+| # | Finding | Status | Where |
+|---|---------|--------|-------|
+| 1 | Undefined tokens `--accent`, `--ink`, `--ink-400`, `--surface-2` | ✅ Resolved — phantom refs removed (no defs **and** no uses remain) | `69506c8` |
+| 2 | TodayHero breakpoint collapses 430–560px | ✅ Resolved — media query now `@media (max-width: 519px)` | `63e96d7` (`src/index.css:1407`) |
+| 3 | Hardcoded hex in `.today-hero` block | ✅ Resolved — hero palette tokenized + type scale declared | `6e4875f` |
+| — | "Config" tab label = jargon | ✅ Resolved — renamed to "Ajustes" | `e707411` (`src/ui/App.tsx:345`) |
+| — | Duplicate progressbar ARIA | ✅ Resolved — aria differentiated | `69506c8` |
+
+**Still open (minor, backlog):** "Salvar" → "Salvar configuração" label; TutorCard showing 5+ buttons
+at once; spacing not yet on a token scale; a few icon-only buttons. None block beta.
+
+---
+
 ## Pillar Scores
 
 | Pillar | Score | Key Finding |

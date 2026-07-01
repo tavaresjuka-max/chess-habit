@@ -141,9 +141,10 @@ completo em `memory/plano-nota-95-estado.md`. Refutados por codigo:
 - **Purge de signals** (`replaceSignalsForSource`, cutoff 90d) e GC global intencional, nao bug por fonte.
 - **`hard` -> `explain`** (nao avanca o estagio) e intencional: dificuldade pede mais suporte.
 - **Deps de `useCallback`** com setters do React sao estaveis; lint passa em `--max-warnings=0`.
-- **`addDays`**: o de `planSessions.ts` usa UTC (ok). ATENCAO: `pendingItems.ts` tem um `addDays`
-  PARALELO com `setDate` (hora local) — a auditoria de 2026-06-16 aponta off-by-one em GMT-3 (nao so
-  DST). NAO refutar: investigar com teste que reproduz GMT-3 antes de concluir; corrigir se confirmado.
+- **`addDays`**: RESOLVIDO (2026-06-23). Ambos (`planSessions.ts` e `pendingItems.ts`) usam
+  aritmetica UTC pura (`Date.UTC` + `setUTCDate` + `toISOString`), timezone-safe. O off-by-one em
+  GMT-3 apontado pela auditoria de 2026-06-16 era codigo antigo com `setDate` local, ja substituido
+  e coberto por teste. NAO reabrir sem um teste que reproduza a falha.
 - **"Suite quebrada"/"sem dark mode"**: falso — suite verde; dark em `index.css`.
 
 ## Resposta Final Dos Agentes
