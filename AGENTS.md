@@ -75,12 +75,9 @@ de privacidade/seguranca**.
 
 ## Identidade Do Produto
 
-- Nome de trabalho interno: `lichess-tutor` (pasta/repo). Nome publico fica para a Fase P5
-  (renomeacao obrigatoria antes de qualquer comunicacao externa, por causa da feature oficial
-  `lichess.org/tutor`).
+- Nome de trabalho interno: `lichess-tutor` (pasta/repo). Nome publico aprovado: `Chess Habit` via `APP_NAME`. O app continua não oficial e não afiliado ao Lichess.
 - App nao oficial, nao afiliado ao Lichess (disclaimer obrigatorio na versao-comunidade).
-- Tom: adulto, pratico, PT-BR, sem infantilizar. "Professor Tavarez" e tom de voz (microcopy), nao
-  personagem central, ate haver evidencia (P5).
+- Tom: adulto, pratico, PT-BR, sem infantilizar. "Professor Tavarez" e a identidade pedagógica/tom de voz visível do tutor, sem virar personagem infantilizado.
 
 ## Governanca Dos Agentes
 
@@ -131,8 +128,7 @@ desperdicar tokens em todo sessao). Voce tem agencia: se achar que "nao da", est
   conta `tavaresjuka-2166`). Anti-indexacao: `robots.txt` + `X-Robots-Tag` no `vercel.json`.
 - **Preview/dev** (`.claude/launch.json`): `rotina-dev` na **porta 5173** — o OAuth do Lichess
   precisa dessa porta (redirectUri = origin+pathname); se ocupada pelo dev do dono, verificar por teste.
-- **Dados local-first por aparelho** (sem sync, P4 congelada): ponte entre aparelhos = export/import
-  de backup. Backup automatico (File System Access) nao funciona no Android — export manual ~1x/semana.
+- **Dados local-first por padrao + sync opt-in:** sem sync, ponte entre aparelhos = export/import de backup. Com sync ligado, progresso sobe ao Worker/D1 legivel pelo operador para sincronizar dispositivos; tokens OAuth seguem so no aparelho. Backup automatico (File System Access) nao funciona no Android — export manual continua recomendado.
 
 ## Falsos Positivos Refutados (NAO Reabrir)
 

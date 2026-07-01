@@ -6,6 +6,7 @@ import {
   clearAutoBackupConfig,
   exportAllAsJson,
   loadBackupMeta,
+  loadLichessOAuthToken,
   saveAutoBackupConfig,
 } from '../infra/storage/appData';
 import {
@@ -13,13 +14,15 @@ import {
   pickAutoBackupFile,
   writeAutoBackup,
 } from '../infra/storage/autoBackup';
-import { useBackupActions, type UseBackupActionsInput } from './useBackupActions';
+import { createSyncClient } from '../infra/sync/syncClient';
+import { clearRemoteSyncData, useBackupActions, type UseBackupActionsInput } from './useBackupActions';
 
 vi.mock('../infra/storage/appData', () => ({
   clearAll: vi.fn(),
   clearAutoBackupConfig: vi.fn(),
   exportAllAsJson: vi.fn(),
   loadBackupMeta: vi.fn(),
+  loadLichessOAuthToken: vi.fn(),
   saveAutoBackupConfig: vi.fn(),
 }));
 
@@ -27,6 +30,12 @@ vi.mock('../infra/storage/autoBackup', () => ({
   isAutoBackupSupported: vi.fn(),
   pickAutoBackupFile: vi.fn(),
   writeAutoBackup: vi.fn(),
+}));
+
+vi.mock('../infra/sync/syncClient', () => ({
+  createSyncClient: vi.fn(() => ({
+    deleteAllBlobs: vi.fn(() => Promise.resolve(0)),
+  })),
 }));
 
 // operationEpoch is a side-effect module — mock to keep tests isolated
@@ -44,6 +53,7 @@ beforeEach(() => {
     checksum: 'abc123',
     recordCount: 5,
   });
+  vi.mocked(loadLichessOAuthToken).mockResolvedValue(undefined);
   vi.mocked(saveAutoBackupConfig).mockResolvedValue(undefined);
   vi.mocked(clearAutoBackupConfig).mockResolvedValue(undefined);
   vi.mocked(clearAll).mockResolvedValue(undefined);
@@ -51,6 +61,36 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+describe('clearRemoteSyncData', () => {
+  it('apaga blobs remotos quando há backend e token', async () => {
+    const deleteAllBlobs = vi.fn(() => Promise.resolve(4));
+
+    await expect(
+      clearRemoteSyncData({
+        backendUrl: 'https://rotina-sync.chesshabit.workers.dev',
+        loadToken: () => Promise.resolve('token-ok'),
+        deleteAllBlobs,
+      }),
+    ).resolves.toBe(4);
+
+    expect(deleteAllBlobs).toHaveBeenCalledWith('https://rotina-sync.chesshabit.workers.dev', 'token-ok');
+  });
+
+  it('não tenta apagar servidor sem token', async () => {
+    const deleteAllBlobs = vi.fn(() => Promise.resolve(4));
+
+    await expect(
+      clearRemoteSyncData({
+        backendUrl: 'https://rotina-sync.chesshabit.workers.dev',
+        loadToken: () => Promise.resolve(undefined),
+        deleteAllBlobs,
+      }),
+    ).resolves.toBe(0);
+
+    expect(deleteAllBlobs).not.toHaveBeenCalled();
+  });
 });
 
 describe('useBackupActions', () => {
@@ -126,6 +166,30 @@ describe('useBackupActions', () => {
   });
 
   describe('clearAllData', () => {
+    it('preserva aviso quando apagamento remoto falha', async () => {
+      vi.mocked(loadLichessOAuthToken).mockResolvedValue({
+        accessToken: 'token-ok',
+        tokenType: 'Bearer',
+        scopes: ['puzzle:read'],
+        obtainedAt: '2026-06-20T00:00:00.000Z',
+        expiresAt: '2026-06-21T00:00:00.000Z',
+      });
+      vi.mocked(createSyncClient).mockReturnValueOnce({
+        deleteAllBlobs: vi.fn(() => Promise.reject(new Error('remote down'))),
+      } as never);
+      const input = createInput();
+      const { result } = renderHook(() => useBackupActions(input));
+
+      await act(async () => {
+        await result.current.clearAllData();
+      });
+
+      expect(clearAll).toHaveBeenCalled();
+      expect(input.setLichessMessage).toHaveBeenCalledWith(
+        'Não foi possível apagar os dados do servidor agora; os dados locais foram apagados.',
+      );
+    });
+
     it('calls clearAll and resets all state setters to initial values', async () => {
       const input = createInput();
       const { result } = renderHook(() => useBackupActions(input));

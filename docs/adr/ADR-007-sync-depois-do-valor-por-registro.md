@@ -2,8 +2,7 @@
 
 ## Status
 
-Aceito (2026-06-06). Atualiza `docs/architecture/sync.md` (que passa a ser a referencia de modelo de
-eventos para esta fase).
+Aceito (2026-06-06). Parcialmente supersedido em 2026-06-30 pelo modelo conta-normal descrito em `docs/architecture/sync.md`.
 
 ## Contexto
 
@@ -14,13 +13,11 @@ sync e conveniencia e nao deve preceder o valor (loop de adaptacao).
 
 ## Decisao
 
-- **Sync entra na Fase P3**, depois do loop de valor (P2). Conveniencia nao precede valor.
-- **Opt-in**, por **codigo de sync** forte (>= 24 chars; chave = `hash(codigo)`), sem conta e sem OAuth.
-- **Merge por registro**: sincronizar itens individuais com `updatedAt`; comparar timestamp por item;
-  nunca sobrescrever secao inteira; **preservar sempre `status:'done'`**.
-- **Cloudflare D1** preferido a KV para o estado sincronizavel (consistencia imediata). Reutilizar o
-  modelo de eventos de `docs/architecture/sync.md`.
-- **Nunca** sincronizar imagens/screenshots. Codigo de sync tratado como senha (sem log).
+- Sync opt-in via "Entrar com Lichess" como identidade; sem codigo de sync, sem senha propria e sem passphrase.
+- Backend Cloudflare Workers + D1.
+- Cliente envia mutacoes/JSON de progresso por HTTPS; progresso fica legivel no servidor por decisao de produto.
+- Tokens OAuth ficam somente no aparelho e nao sao sincronizados.
+- Mantido: merge por registro/tombstone, D1 em vez de KV, e nunca sincronizar imagens/screenshots.
 
 ## Consequencias
 

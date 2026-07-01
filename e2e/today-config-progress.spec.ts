@@ -27,7 +27,7 @@ test('Hoje: iniciar bloco, timer, feedback e Progresso', async ({ page }, testIn
   await page.getByRole('button', { name: 'Concluir' }).first().click();
   await saveScreenshot(page, testInfo, 'hoje-feedback-prompt');
   await page.getByRole('button', { name: 'Bom' }).click();
-  await expect(page.getByRole('progressbar', { name: 'Progresso do dia' })).toHaveAttribute(
+  await expect(page.getByRole('progressbar', { name: 'Progresso do dia', exact: true })).toHaveAttribute(
     'aria-valuenow',
     /[1-9]/,
     { timeout: 30_000 },
@@ -61,6 +61,8 @@ test('Hoje: conferir puzzles com OAuth atualiza sinais agregados', async ({ page
   await saveScreenshot(page, testInfo, 'puzzle-pendente-de-conferencia');
 
   await reconcileButton.click();
+  await page.getByRole('button', { name: 'Progresso' }).click();
+  await expect(page.getByRole('heading', { name: 'Progresso' })).toBeVisible({ timeout: 30_000 });
   await page.locator('summary').filter({ hasText: 'Sincronizar e estudar' }).click();
   await expect(page.getByText(/sinais agregados de puzzle|Nenhum resultado novo/)).toBeVisible({ timeout: 30_000 });
   await saveScreenshot(page, testInfo, 'puzzle-reconciliado');
@@ -71,7 +73,7 @@ test('Config: exportar/restaurar backup e apagar dados locais', async ({ page },
   await openApp(page);
   await completeQuickStart(page, testInfo);
 
-  await page.getByRole('button', { name: 'Config' }).click();
+  await page.getByRole('button', { name: 'Ajustes' }).click();
   await expect(page.getByRole('heading', { name: 'Configuração' })).toBeVisible({ timeout: 30_000 });
   await page.locator('summary').filter({ hasText: 'Dados locais' }).click();
   await saveScreenshot(page, testInfo, 'config-inicial');
@@ -91,7 +93,7 @@ test('Config: exportar/restaurar backup e apagar dados locais', async ({ page },
   await expect(page.getByRole('heading', { name: 'Hoje' })).toBeVisible({ timeout: 30_000 });
   await saveScreenshot(page, testInfo, 'config-backup-restaurado');
 
-  await page.getByRole('button', { name: 'Config' }).click();
+  await page.getByRole('button', { name: 'Ajustes' }).click();
   await expect(page.getByRole('heading', { name: 'Configuração' })).toBeVisible({ timeout: 30_000 });
   await page.locator('summary').filter({ hasText: 'Dados locais' }).click();
   await page.getByRole('button', { name: /Apagar tudo/ }).click();

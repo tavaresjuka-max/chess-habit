@@ -4,7 +4,7 @@
 
 - [x] Escopo definido (ferramenta pessoal Lichess-first, adaptativa).
 - [x] Separacao do app pago anterior (clean-room reafirmado).
-- [x] Modelo gratuito/aberto definido.
+- [x] Modelo gratuito definido; abertura do codigo supersedida em 2026-06-30 por proprietario/codigo fechado.
 - [x] Auditoria estrategica por outras IAs — concluida.
 - [x] Revisao do spec unificado por tres IAs — concluida; correcoes aceitas.
 - [x] Decisao do dono: moldura **pessoal primeiro, comunidade depois**.
@@ -318,10 +318,8 @@
   - [x] Plano por cortes N95 criado em `docs/review/relatorio-codex-plano-nota-95-para-claude-2026-06-13.md`.
   - [x] Prompt operacional criado em `prompts/claude-analise-nota-95-2026-06-13.md`.
   - [x] `prompts/README.md` atualizado para listar a analise ativa.
-- [ ] **P4** DESCONGELADA pelo dono em 2026-06-16: sync PC<->celular opt-in com Workers + D1,
-  E2EE por passphrase, merge por registro/tombstone, testes locais; sem deploy/provisionamento pelo agente.
-- [ ] **P5** DESCONGELADA pelo dono em 2026-06-16: versao-comunidade, `APP_NAME='Chess Habit'`,
-  disclaimers, AGPL visivel, privacidade, i18n/polish e revisao publica.
+- [x] **P4** DESCONGELADA pelo dono em 2026-06-16 e simplificada em 2026-06-30: sync PC<->celular opt-in com Workers + D1, login Lichess, dados de progresso legiveis no servidor, merge por registro/tombstone e testes locais. Pendente antes de uso amplo: E2E real dois-aparelhos e politica de retencao/compactacao.
+- [x] **P5** DESCONGELADA pelo dono em 2026-06-16: versao-comunidade beta com `APP_NAME='Chess Habit'`, disclaimer, privacidade e aviso de copyright proprietario. Pendente: canal de feedback/dominio proprio/divulgacao ampla.
 
 - [x] **Execucao Codex cortes M1-M5 para zerar pendencias (2026-06-16)**.
   - [x] Prompt `prompts/codex-cortes-M1-M5-zerar-pendencias-2026-06-15.md` executado.
@@ -351,15 +349,14 @@
     OAuth pendente corrompido recuperavel, Retry-After em 429, sourcemaps desativados e CSP com
     `upgrade-insecure-requests`.
   - [x] P5 parcial: `APP_NAME='Rotina'` centralizado na epoca, disclaimer/AGPL na UI e decisao registrada para
-    nao inventar URL de codigo-fonte antes do dono confirmar o link publico; supersedido em 2026-06-26 por
-    `APP_NAME='Chess Habit'` com URL publica confirmada.
+    nao inventar URL de codigo-fonte antes do dono confirmar o link publico; supersedido por
+    `APP_NAME='Chess Habit'` e, em 2026-06-30, por licenca proprietaria/codigo fechado.
   - [x] Fontes oficiais rechecadas e registradas em `docs/research/sources.md`.
   - [x] Gate final verde: `npm run lint`, `npm test` (74 arquivos / 622 testes), `npm run build`,
     `npm run coverage` 5x (85,85% statements / 80,17% branches / 90,07% funcs / 85,62% lines),
     `npm run smoke:pwa` (26/26) e build sem `*.map`.
   - [x] Relatorio final salvo em `docs/review/relatorio-final-app-2026-06-17.md`.
-  - [ ] Pendentes para beta publico amplo: P4 sync Workers/D1 + E2EE local, URL real de codigo-fonte,
-    docs publicas de privacidade/sync, axe formal e remocao de `style-src 'unsafe-inline'` se priorizada.
+  - [ ] Pendentes para beta publico amplo: teste real de sync dois-aparelhos, politica de retencao/compactacao, canal de feedback/dominio proprio, axe formal e remocao de `style-src 'unsafe-inline'` se priorizada.
 
 - [x] **Finalizacao beta local-first (2026-06-19)**.
   - [x] Prompt `prompts/codex-finalizar-beta-local-first-2026-06-19.md` executado sem deploy/push.
@@ -367,8 +364,7 @@
   - [x] Inline styles proprios auditados/limpos; CSP smoke adicionado; `style-src 'unsafe-inline'`
     mantido apenas por limite real do `sonner`, documentado em `DECISIONS.md`.
   - [x] Privacidade local-first exibida no footer; `FEEDBACK_URL` preparado como constante opcional.
-  - [x] Contrato P4 E2EE por passphrase independente documentado em `docs/architecture/sync.md` e
-    runbook do dono criado em `DEPLOY-BACKEND.md`.
+  - [x] Na epoca, contrato P4 E2EE por passphrase independente foi documentado; supersedido em 2026-06-30 por sync conta-normal sem E2EE/passphrase. Runbook do dono atualizado em `DEPLOY-BACKEND.md`.
   - [x] Gate final verde: lint, `npm test` (76 arquivos/627 testes), coverage 5x (functions 90,02%),
     build, smoke PWA 34/34 e build sem sourcemaps.
   - [x] Relatorio salvo em `docs/review/relatorio-finalizacao-beta-local-first-2026-06-19.md`.
@@ -423,7 +419,7 @@
 
 - [x] **P5 docs/checks beta publico - Chess Habit (2026-06-26)**.
   - [x] `docs/privacy/privacy-and-data.md` atualizado para refletir beta publico: `APP_NAME='Chess Habit'`,
-    disclaimer, AGPL, URL publica de codigo-fonte/feedback e P4 sync E2EE por passphrase independente.
+    disclaimer, codigo fechado/proprietario, feedback pendente e P4 sync opt-in legivel no servidor.
   - [x] `src/config/appIdentity.test.ts` agora bloqueia nomes publicos rejeitados (`Lichess Tutor`,
     `Rotina`) nos entry points publicos (`README.md`, `index.html`, `vite.config.ts`, `src/ui/App.tsx`,
     `src/infra/lichess/study.ts`).
@@ -439,3 +435,15 @@
   - [x] Gates finais verdes: `npm run lint`, `npm test` (119 arquivos / 1294 testes),
     `npm run build`, `npm run typecheck:worker`, `npm run test:worker` (22 testes) e
     `npm run smoke:pwa` (40/40).
+
+- [x] **Overnight hardening docs/sync/smoke (2026-07-01)**.
+  - [x] Documentacao canonica reconciliada para estado vigente: `Chess Habit`, app proprietario/codigo fechado, Professor Tavarez, sync opt-in conta-normal legivel no servidor, sem E2EE/passphrase.
+  - [x] CSP Vite/Vercel alinhada com `https://rotina-sync.chesshabit.workers.dev` em `connect-src`.
+  - [x] Smoke Playwright corrigido apos drift de UI: `Config` -> `Ajustes`, consentimento antes de contas, progressbar exact e secao "Sincronizar e estudar" movida para Progresso.
+  - [x] Bug CORS do Worker corrigido: `OPTIONS` preflight sem auth e headers `Access-Control-*` nas respostas.
+  - [x] Direito de exclusao remoto conectado: `SyncClient.deleteAllBlobs()` chama `DELETE /blobs`; `Apagar tudo` tenta apagar servidor antes do clear local e preserva aviso se falhar.
+  - [x] URL maliciosa via sync em `lichessStudies` bloqueada: merge filtra URL fora do Lichess e UI Progress nao renderiza Study link invalido.
+  - [x] Chess.com docs reconciliadas para historico completo serial/cacheado; recencia e peso/utilitario opt-in, nao cutoff fixo.
+  - [x] Caça-bugs repetido: segunda rodada achou apenas aviso remoto apagado e docs stale; ambos corrigidos.
+  - [x] Gates finais verdes: `npm run lint`, `npm test` (120 arquivos / 1359 testes), `npm run build`, `npm run typecheck:worker`, `npm run test:worker` (32 testes), `$env:CI="1"; npm run smoke:pwa` (40/40).
+  - [ ] Proximos passos: dogfood real de sync em dois aparelhos, revisar retencao/compactacao de blobs, configurar canal de feedback/dominio proprio e decidir novo deploy prebuilt.

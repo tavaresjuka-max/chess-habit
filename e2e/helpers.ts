@@ -45,7 +45,13 @@ export async function configureAccounts(input: {
   const { page, lichessUsername, chesscomUsername, band, minutes } = input;
 
   await page.getByRole('button', { name: 'Vamos configurar' }).click();
-  await expect(page.getByRole('heading', { name: 'Suas contas' })).toBeVisible();
+
+  const consent = page.getByRole('heading', { name: 'Seus dados e sua privacidade' });
+  if (await consent.isVisible().catch(() => false)) {
+    await page.getByRole('button', { name: 'Aceitar e continuar' }).click();
+  }
+
+  await expect(page.getByRole('heading', { name: 'Suas contas' })).toBeVisible({ timeout: 30_000 });
 
   if (lichessUsername !== undefined) {
     await page.getByLabel(/Usuário Lichess/).fill(lichessUsername);
@@ -89,7 +95,7 @@ export async function startAndCompleteFirstBlock(page: Page): Promise<void> {
   const ratingGroup = page.getByRole('group', { name: 'Como foi o treino?' });
   await expect(ratingGroup).toBeVisible();
   await ratingGroup.getByRole('button', { name: 'Bom' }).click();
-  await expect(page.getByRole('progressbar', { name: 'Progresso do dia' })).toHaveAttribute(
+  await expect(page.getByRole('progressbar', { name: 'Progresso do dia', exact: true })).toHaveAttribute(
     'aria-valuenow',
     /[1-9]/,
     { timeout: 30_000 },

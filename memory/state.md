@@ -1,8 +1,12 @@
 # Estado Atual
 
-Data: 2026-06-27 (beta publico em producao Vercel; P4 sync segue local-only).
+Data: 2026-07-01 (beta publico em producao Vercel; sync opt-in Cloudflare/D1 ligado no codigo e hardening local verde).
 
-Atualizacao 2026-06-27: commits locais foram enviados para `origin/master`, CI GitHub passou verde e o app foi publicado em producao via Vercel prebuilt. URL estavel verificada: `https://rotina-pied.vercel.app` com HTTP 200, titulo `Chess Habit - treino de xadrez` e `X-Robots-Tag: noindex, nofollow`. Gates locais finais verdes: `npm run lint`, `npm test` (119 arquivos / 1294 testes), `npm run build`, `npm run typecheck:worker`, `npm run test:worker` (22 testes) e `npm run smoke:pwa` (40/40). P4 M13b local/testavel adicionou merge Dexie por mutacoes de entidade cifradas (`syncRecords`/`syncStorage`), allowlist deny-by-default e testes para LWW/tombstone/divergencia 2-aparelhos. P4 sync em producao continua fora do deploy: backend Cloudflare/D1 real, OAuth de sync, fila offline persistente e E2E dois-dispositivos ainda dependem de fase/provisionamento proprios.
+Atualizacao 2026-07-01: rodada autonoma de organizacao, hardening e caca-bugs concluida. Documentacao canonica reconciliada com o estado atual: app proprietario/codigo fechado, `Chess Habit`, Professor Tavarez, sync opt-in conta-normal legivel no servidor, sem E2EE/passphrase. Corrigidos bugs reproduzidos: CORS/preflight do Worker, delete remoto via `DELETE /blobs` conectado ao "Apagar tudo", filtragem de URL invalida em `lichessStudies` vindo do sync, guard defensivo do link de Study em Progresso e preservacao do aviso quando apagar servidor falha. Smoke Playwright corrigido apos drift de UI. Gates finais verdes: `npm run lint`, `npm test` (120 arquivos / 1359 testes), `npm run build`, `npm run typecheck:worker`, `npm run test:worker` (32 testes), `$env:CI="1"; npm run smoke:pwa` (40/40). Council externo inicial/final via `council.py` ficou sem resposta dentro dos timeouts; gates objetivos e subagentes de caca-bugs foram usados como arbitro.
+
+Atualizacao 2026-06-30: documentacao canonica reconciliada com o estado atual do codigo. O app e proprietario/codigo fechado (`LICENSE` proprietaria, `package.json` `UNLICENSED`). Sync P4 foi simplificado por decisao do dono para modelo conta-normal: backend Cloudflare Workers + D1, login Lichess como identidade, progresso legivel no servidor, sem E2EE/passphrase e sem tokens OAuth no servidor. `SYNC_UI_ENABLED=true` e `SYNC_BACKEND_URL='https://rotina-sync.chesshabit.workers.dev'`; CSP de Vite/Vercel foi alinhada para permitir esse Worker em `connect-src`.
+
+Atualizacao 2026-06-27: commits locais foram enviados para `origin/master`, CI GitHub passou verde e o app foi publicado em producao via Vercel prebuilt. URL estavel verificada: `https://rotina-pied.vercel.app` com HTTP 200, titulo `Chess Habit - treino de xadrez` e `X-Robots-Tag: noindex, nofollow`. Gates locais finais verdes: `npm run lint`, `npm test` (119 arquivos / 1294 testes), `npm run build`, `npm run typecheck:worker`, `npm run test:worker` (22 testes) e `npm run smoke:pwa` (40/40). P4 M13b local/testavel adicionou merge Dexie por mutacoes de entidade, allowlist deny-by-default e testes para LWW/tombstone/divergencia 2-aparelhos.
 
 Atualizacao 2026-06-26: P4 M12 (backend Cloudflare Workers + D1) implementado **local-only e
 key-agnostic** em `backend/`. M13 parcial implementado em `src/infra/sync/`: crypto E2EE puro
@@ -86,9 +90,7 @@ sourcemaps). Relatorio salvo em
   Lazzarotto, Capablanca PT-BR e Movimento Forcado ficaram registrados com escopo limitado e lacunas
   remanescentes explicitas.
 - Análise dos PDFs Baixados + ONDA 3 (Gemini) concluída em 2026-06-10: 67 arquivos analisados e catalogados. O relatório provou cientificamente a importância da autorreflexão de erros locais ($r=0.29$) e da verbalização ($r=0.18$), propôs a inserção de marcos de progresso baseados em "Diplomas" (Peão, Torre, Rei) de Tirado & Silva (1999), e introduziu o drill de "Tratamento de Pendências" (Christofoletti 2007) para re-resolver puzzles falhados. Detalhes em [analise-pdfs-baixados-onda3-GEMINI.md](docs/research/analise-pdfs-baixados-onda3-GEMINI.md).
-- P4/P5: descongeladas pelo dono em 2026-06-16. Sync deve ser construido/testado localmente com
-  Workers + D1 e E2EE por passphrase, sem deploy/provisionamento/secrets pelo agente. P5 usa
-  `APP_NAME='Chess Habit'`, disclaimer, AGPL, URL publica de codigo-fonte e feedback visiveis.
+- P4/P5: descongeladas pelo dono em 2026-06-16. Sync P4 vigente usa Workers + D1 em modelo conta-normal, opt-in, com progresso legivel no servidor e tokens OAuth sempre locais. P5 usa `APP_NAME='Chess Habit'`, disclaimer, aviso de copyright proprietario e privacidade honesta.
 - Beta local-first finalizado em 2026-06-19: axe, CSP smoke, privacidade in-app, contrato E2EE doc,
   runbook P4 e gates finais verdes. `style-src 'unsafe-inline'` permanece apenas por limite do `sonner`;
   runtime/prod audit esta limpo com `npm audit --omit=dev --audit-level=high`.
@@ -99,7 +101,7 @@ sourcemaps). Relatorio salvo em
   (`docs/review/relatorio-claude-arbitragem-contestacoes-2026-06-10.md`, secao 4) + trilha
   paralela de validacao de eficacia (revisao ~2026-07-08).
 - **Corte 0 (Higiene) CONCLUIDO em 2026-06-10**: nota stale corrigida, spec as-built do metodo,
-  adendo ADR-006, LICENSE AGPL-3.0 (Juka Tavarez), PLANO/VISAO alinhados a "0->autonomia".
+  adendo ADR-006, LICENSE na epoca AGPL-3.0 (Juka Tavarez), supersedida em 2026-06-30 por LICENSE proprietaria/codigo fechado, PLANO/VISAO alinhados a "0->autonomia".
 - **Corte 1 (Data Safety v1) CONCLUIDO em 2026-06-10**: storage.persist() com status honesto na
   Config; export versionado v1 com checksum sha256 + backupMeta visivel; restore validado
   (formato/versao/checksum/shape, transacional, com confirm destrutivo); backup automatico
@@ -121,8 +123,7 @@ sourcemaps). Relatorio salvo em
     vence para nao duplicar), esforco por trilha (`TrainingLog.methodTrackId` novo), diplomas,
     tendencia semana vs semana, decay de sinais >90 dias no diagnostico (`filterFreshSignals`).
   - Corte 6: botao "Importar atividade livre" (puzzle:read, janela 48h/ultima importacao,
-    dedup contra janelas de blocos, sem tempo inventado) + bound de recencia de 3 meses
-    enforced no chesscomClient (achado Codex).
+    dedup contra janelas de blocos, sem tempo inventado). Chess.com vigente usa historico completo serial/cacheado; recencia e peso/utilitario opt-in, nao cutoff fixo.
   - Trilha paralela: linha de base de eficacia na tela Progresso (4 metricas aprovadas;
     revisao ~2026-07-08).
   - Corte 7 / Badges v1 aprovado pelo dono em 2026-06-13:
@@ -146,8 +147,7 @@ sourcemaps). Relatorio salvo em
 - **Auditoria Codex geral e estabilizacao documental em 2026-06-13**:
   - Relatorio salvo em `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md`.
   - Badge spec aprovada pelo dono e sincronizada com implementacao existente.
-  - `docs/architecture/system.md` corrigido para refletir a arquitetura ativa: PWA local-first;
-    Worker/D1/sync seguem local-only ate provisionamento futuro pelo dono.
+  - `docs/architecture/system.md` corrigido para refletir a arquitetura da epoca: PWA local-first. Estado vigente supersede isso: Worker/D1 sync opt-in conta-normal esta configurado/publicado.
   - Lint vermelho em `src/ui/Fold.tsx` corrigido removendo comentario de regra inexistente.
   - Backlog tecnico registrado sem abrir fase nova: fila/cooldown central de API, smoke PWA
     producao/offline, ADR sobre `vite-plugin-pwa`, validacao profunda de backup, ledger de assets e
@@ -163,9 +163,9 @@ sourcemaps). Relatorio salvo em
 - Sem engine na ferramenta pessoal.
 - Adaptativo via dados publicos do Lichess + a analise que o Lichess ja fez (sem rodar engine).
 - Multi-fonte chegou ate P3. Sync (P4) e comunidade/renomeacao/disclaimers publicos (P5) estao
-  descongelados para beta, mantendo local-first, E2EE e sem deploy pelo agente.
+  descongelados para beta; sync e opt-in, conta-normal, legivel no servidor e sem tokens OAuth no servidor.
 - Nome publico aprovado: `APP_NAME='Chess Habit'`; OAuth pessoal e opt-in e restrito a
-  `puzzle:read`/`study:write`.
+  `puzzle:read`/`study:write`. Sync usa login Lichess como identidade quando ativado.
 - Tipos estritos, sync por registro, slugs por allowlist oficial/manual, erro/offline especificados, linguagem de hipotese.
 
 ## Historico Da Auditoria (insumo, ja absorvido)
@@ -197,8 +197,8 @@ sourcemaps). Relatorio salvo em
 P0, P1, P2 e P3 foram fechadas em 2026-06-06; a rodada de polish UX/UI foi fechada em 2026-06-08;
 Professor Lemos Etapa 1, Etapa 2A e Etapa 2B foram fechadas em 2026-06-08. A curadoria profunda de
 recursos Lichess e o Catalogo Premium Lichess tambem foram concluidos em 2026-06-08. P4 e P5 foram
-descongeladas em 2026-06-16; a proxima etapa valida e estabilizar beta, preparar P4 local-only e
-corrigir dores pequenas observadas no uso, sem deploy/provisionamento pelo agente. Diagnostico por tema agora usa resultados de puzzle
+descongeladas em 2026-06-16; a proxima etapa valida e estabilizar o beta publico, testar sync real em
+dois aparelhos, fechar canal de feedback/dominio proprio e corrigir dores pequenas observadas no uso. Diagnostico por tema agora usa resultados de puzzle
 reconciliados quando houver `themeStats`; sem resultado real por tema, o tutor pergunta e permite
 registrar a resposta como sinal manual local.
 

@@ -4,27 +4,29 @@
 
 Sincronizar progresso do tutor entre dispositivos.
 
-## Componentes Planejados
+## Componentes
 
 - Cloudflare Workers para API.
 - Cloudflare D1 para dados.
-- Sessao segura do app.
+- Identidade via "Entrar com Lichess" (OAuth validado no Worker), sem sessao propria do app.
 
 ## Dados
 
-Salvar eventos pequenos e sinais derivados.
+Salvar mutacoes de entidades allowlist de progresso do tutor. Conteudo fica legivel no servidor em modelo conta-normal, sem E2EE/passphrase.
 
 Nao salvar por padrao:
 
 - PGN completo;
-- token long-lived;
+- token OAuth como dado de sync;
+- cache Chess.com bruto;
+- backups locais;
 - dados financeiros;
 - senha.
 
 ## APIs
 
-- `POST /api/sync/push`
-- `GET /api/sync/pull`
-- `GET /api/export`
-- `POST /api/delete-account`
-
+- `GET /health`
+- `POST /blobs`
+- `GET /blobs?collection=<nome>`
+- `GET /snapshot`
+- `DELETE /blobs`

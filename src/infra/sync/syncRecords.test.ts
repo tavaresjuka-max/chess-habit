@@ -32,6 +32,11 @@ function makeClient(): SyncClient & { stored: StoredBlob[] } {
     snapshot() {
       return Promise.resolve([...stored]);
     },
+    deleteAllBlobs() {
+      const deleted = stored.length;
+      stored.splice(0, stored.length);
+      return Promise.resolve(deleted);
+    },
   };
 }
 

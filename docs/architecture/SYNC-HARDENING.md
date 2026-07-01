@@ -1,13 +1,11 @@
-# Sync Hardening — gate antes de ligar `SYNC_UI_ENABLED`
+# Sync Hardening — riscos e follow-ups do sync
 
-Status: **DESENHO / GATE**. `SYNC_UI_ENABLED = false` (src/config/syncConfig.ts). Este documento lista o que
-PRECISA estar resolvido antes de ligar o sync para multi-dispositivo real. Origem: council 2026-06-27
-(DeepSeek V4 Pro + GLM 5.2, modo VERIFICAR sobre o desenho de política de conflito).
+Status: **HISTORICO + FOLLOW-UP**. `SYNC_UI_ENABLED = true` (src/config/syncConfig.ts) no modelo conta-normal definido pelo dono: sem E2EE/passphrase, progresso legivel no servidor. Este documento preserva riscos tecnicos identificados antes do flip e lista o que precisa ser revisado antes de ampliar uso. Origem: council 2026-06-27 (DeepSeek V4 Pro + GLM 5.2, modo VERIFICAR sobre o desenho de politica de conflito).
 
 ## Por que isto é um gate (não "mais uma feature")
 Sync escreve em dados que alimentam o estimador de eficácia (coorte irrepetível). Merge errado corrompe
 silenciosa e cumulativamente. Uma vez que usuários reais têm dados conflitantes, o estrago é
-quase-irreversível. Logo: nada de ligar o sync antes dos itens abaixo.
+quase-irreversível. Logo: estes itens devem ser considerados antes de ampliar o sync para uso publico amplo.
 
 ## Achados do council (convergência dos dois, sem combinar)
 
@@ -51,12 +49,12 @@ com union por id. **(Gate item D.)**
   cuidado (apagar o blob errado = perda). **(Gate item E.)**
   - **BLOQUEADOR achado 2026-06-28 (revisão Opus):** a compactação tentada agrupa por
     `collection:stableHash(entityId)`, mas `stableHash` é djb2 de **32 bits** (src/infra/sync/syncRecords.ts)
-    e, sob E2EE, o backend NÃO vê o `entityId` real — só o hash. Duas entidades que colidam no hash de 32b
+    e o backend agrupa por esse hash. Duas entidades que colidam no hash de 32b
     seriam agrupadas e a mais antiga apagada = **perda silenciosa** (~0,01% a milhares de entidades por
     coleção/usuário). Os testes passam (não exercitam colisão). Logo: **NÃO compactar** antes de trocar a
     chave de entidade por uma resistente a colisão (ex.: hash forte truncado ≥128b no `clientMutationId`,
     mudança coordenada cliente+backend + migração) OU adotar retenção por TTL em vez de compactação por
-    entidade. Compactação não é urgente (sync desligado, escala de beta).
+    entidade. Compactação não é urgente para o beta, mas sync ja esta ligado; antes de escala/divulgacao ampla, resolver retencao/compactacao sem hash fraco ou adotar TTL seguro.
 - **userId (D7):** em M13 (OAuth Lichess) o userId será o username Lichess — linkável. Hashear
   (HMAC-SHA256 com segredo server-side) antes de usar como chave do D1. **(Gate item F.)**
 
@@ -80,4 +78,6 @@ com union por id. **(Gate item D.)**
   determinístico/convergente; deviceId é refinamento, não correção.)
 - Itens D, E (com chave resistente a colisão), F (M13) seguem válidos como gate, sem urgência.
 
-## Itens A–F continuam GATE. Não ligar `SYNC_UI_ENABLED` antes deles.
+## Estado atual
+
+`SYNC_UI_ENABLED` foi ligado depois da decisao de produto pelo modelo conta-normal. Os itens A–F deixam de ser gate absoluto para beta pessoal, mas continuam follow-ups antes de escala/publicidade ampla, principalmente E2E dois-aparelhos, retencao/compactacao segura e revisao de conflito em colecoes path-dependent.

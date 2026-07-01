@@ -93,7 +93,7 @@ function requireCollection(collection: string): void {
 }
 
 interface RequestOptions {
-  readonly method: 'GET' | 'POST';
+  readonly method: 'GET' | 'POST' | 'DELETE';
   readonly path: string;
   readonly query?: Record<string, string>;
   readonly body?: unknown;
@@ -104,6 +104,7 @@ export interface SyncClient {
   pushBlob(input: PushBlobInput): Promise<void>;
   listBlobs(collection: string): Promise<StoredBlob[]>;
   snapshot(): Promise<StoredBlob[]>;
+  deleteAllBlobs(): Promise<number>;
 }
 
 export function createSyncClient(config: SyncClientConfig): SyncClient {
@@ -231,6 +232,11 @@ export function createSyncClient(config: SyncClientConfig): SyncClient {
         path: '/snapshot',
       });
       return body.blobs;
+    },
+
+    async deleteAllBlobs(): Promise<number> {
+      const body = await request<{ deleted: number }>({ method: 'DELETE', path: '/blobs' });
+      return body.deleted;
     },
   };
 }

@@ -1,107 +1,66 @@
-# Interfaces Planejadas
+# Interfaces
 
-Este documento descreve contratos futuros. Nao e implementacao.
-
-## Tipos
+## Dominio
 
 ```ts
-type LearnerProfile = {
-  userId: string;
-  lichessUsername: string;
-  chesscomUsername?: string;
-  targetBand: "0-800" | "800-1200" | "1200-1600" | "1600-2000";
-  weeklyMinutes: number;
-  goals: string[];
-  difficulties: string[];
-  createdAt: string;
+type TrainingSignal = {
+  id: string;
+  source: 'lichess' | 'chesscom' | 'manual' | 'outro';
+  kind: string;
+  value: unknown;
+  observedAt: string;
   updatedAt: string;
 };
 ```
 
 ```ts
-type AccountConnection = {
-  platform: "lichess" | "chesscom";
-  username: string;
-  mode: "oauth" | "public-import";
-  connectedAt: string;
-  lastImportedAt?: string;
-};
-```
-
-```ts
-type TrainingSignal = {
-  source: "lichess" | "chesscom" | "manual" | "tutor";
-  kind: "rating" | "puzzle" | "game" | "streak" | "weakness" | "completion";
-  value: unknown;
-  confidence: "low" | "medium" | "high";
-  observedAt: string;
-};
-```
-
-```ts
-type TrainingPlan = {
+type Weakness = {
   id: string;
-  userId: string;
-  weekStart: string;
-  focus: string[];
-  missions: DailyMission[];
-  generatedFromSignalsAt: string;
+  tag: string;
+  score: number;
+  confidence: number;
+  evidence: string[];
+  updatedAt: string;
+  deletedAt?: string;
 };
 ```
 
 ```ts
-type DailyMission = {
+type PlanBlock = {
   id: string;
-  date: string;
+  kind: 'warmup' | 'explain' | 'guided' | 'retrieval' | 'review' | 'transfer';
   title: string;
-  estimatedMinutes: number;
-  lichessUrl: string;
-  reason: string;
-  status: "pending" | "done" | "skipped";
+  destinationUrl: string;
+  minutes: number;
+  status: 'pending' | 'done' | 'skipped';
+  feedback?: 'easy' | 'good' | 'hard';
+  updatedAt: string;
 };
 ```
 
+## Sync
+
 ```ts
-type MissionCompletion = {
-  missionId: string;
-  status: "done" | "skipped";
-  note?: string;
-  completedAt: string;
+type SyncMutation = {
+  collection: string;
+  clientMutationId: string;
+  updatedAt: number;
+  value: unknown;
 };
 ```
 
-```ts
-type CoachMessage = {
-  id: string;
-  tone: "welcome" | "correction" | "return" | "progress" | "warning";
-  body: string;
-  createdAt: string;
-};
-```
-
-```ts
-type SyncEvent = {
-  id: string;
-  userId: string;
-  clientId: string;
-  type: string;
-  payload: unknown;
-  createdAt: string;
-  seq?: number;
-};
-```
+O campo legado `ciphertext` no backend guarda JSON legivel no modelo vigente de conta-normal.
 
 ## APIs Do App
 
-- `GET /api/session`: retorna usuario atual ou `null`.
-- `GET /api/auth/lichess/start`: inicia OAuth PKCE.
-- `GET /api/auth/lichess/callback`: conclui login, cria sessao do app e descarta token se nao houver opt-in futuro.
-- `POST /api/sync/push`: recebe eventos locais.
-- `GET /api/sync/pull`: envia eventos remotos desde `seq`.
-- `GET /api/export`: exporta dados do usuario.
-- `POST /api/delete-account`: remove conta e dados sincronizados.
+- `GET /health`: healthcheck publico do Worker.
+- `POST /blobs`: recebe mutacao local.
+- `GET /blobs?collection=<nome>`: envia mutacoes remotas por colecao.
+- `GET /snapshot`: envia snapshot de todas as colecoes sincronizaveis.
+- `DELETE /blobs`: remove todos os dados sincronizados do usuario autenticado.
+
+Auth: `Authorization: Bearer <token Lichess>` validado no Worker contra `https://lichess.org/api/account`; sem sessao propria do app. Token OAuth nao e armazenado como dado de sync.
 
 ## Politica De Tokens
 
-No MVP, nao armazenar token long-lived por padrao. Caso uma futura versao exija atualizacao em background, isso precisa de ADR propria, opt-in explicito e revisao de seguranca.
-
+Tokens OAuth ficam apenas no aparelho, fora de backup/export/logs/bundle e fora dos blobs de sync. Qualquer mudanca nessa politica exige decisao propria e revisao de seguranca.

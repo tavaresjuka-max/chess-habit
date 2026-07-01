@@ -10,7 +10,7 @@ revisao do spec unificado.
 Um spec anterior propos "evoluir o app existente em `chessking-tutor`" e manter "ChessKing" como
 fonte (`SourceId`) com nomes de curso/secao. Os relatorios Codex, Claude/DeepSeek e Antigravity
 apontaram, corretamente, que isso reintroduz risco de contaminacao de propriedade intelectual de um
-app pago de terceiros e fragiliza a licenca open-source planejada.
+app pago de terceiros e fragiliza a distribuicao proprietaria limpa e reintroduz risco de contaminacao de propriedade intelectual.
 
 ## Decisao
 
@@ -23,7 +23,7 @@ app pago de terceiros e fragiliza a licenca open-source planejada.
 
 ## Consequencias
 
-- O app nasce limpo e publicavel sob AGPL-3.0 sem heranca proprietaria.
+- O app nasce limpo e distribuivel como software proprietario/codigo fechado, sem heranca de codigo, assets ou taxonomia de terceiros.
 - `SourceId` = `'lichess' | 'chesscom' | 'outro'`.
 - Qualquer registro de estudo externo e texto livre informado pelo usuario, nunca uma indexacao de
   produto pago.

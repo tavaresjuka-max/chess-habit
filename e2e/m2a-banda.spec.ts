@@ -69,6 +69,9 @@ test('M2a: sync manual Lichess promove banda quando rating de jogo é maior', as
   // Na próxima chamada ao runLichessSync, o token será lido e /api/account será chamado.
   await injectLichessToken(page);
 
+  await page.getByRole('button', { name: 'Progresso' }).click();
+  await expect(page.getByRole('heading', { name: 'Progresso' })).toBeVisible({ timeout: 30_000 });
+
   // Abre o fold "Sincronizar e estudar" que contém o botão de sync do Lichess.
   const syncFold = page.locator('summary').filter({ hasText: 'Sincronizar e estudar' });
   await expect(syncFold).toBeVisible({ timeout: 15_000 });
@@ -104,6 +107,9 @@ test('M2a: sync Lichess sem token OAuth não promove banda (best-effort)', async
   await configureAccounts({ page, lichessUsername: 'm2anooauth', band: '400-800', minutes: '15' });
   await approvePlanWhenVisible(page);
   await saveScreenshot(page, testInfo, 'hoje-sem-oauth');
+
+  await page.getByRole('button', { name: 'Progresso' }).click();
+  await expect(page.getByRole('heading', { name: 'Progresso' })).toBeVisible({ timeout: 30_000 });
 
   const syncFold = page.locator('summary').filter({ hasText: 'Sincronizar e estudar' });
   await expect(syncFold).toBeVisible({ timeout: 15_000 });

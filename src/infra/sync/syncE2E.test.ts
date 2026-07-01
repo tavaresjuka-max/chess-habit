@@ -181,8 +181,25 @@ describe('syncE2E — roundtrip real worker + fakeD1', () => {
     expect(weaknessesB.length).toBe(0);
   });
 
+  it('cenario 4: delete remoto impede ressurreicao apos apagar dados locais', async () => {
+    const sharedD1 = createFakeD1();
+    const syncEnv: SyncEnv = { DB: sharedD1, SYNC_AUTH_MODE: 'local', SYNC_LOCAL_ALLOWED: 'true' };
+    const userId = 'user-delete-remote';
+
+    await db.weaknesses.put(makeWeakness('fork', '2026-06-28T10:00:00.000Z'));
+    const client = makeClient(syncEnv, userId);
+    await syncCollectionOnce({ collection: 'weaknesses', client });
+
+    expect(await client.deleteAllBlobs()).toBeGreaterThan(0);
+    await clearAll();
+    expect(await db.weaknesses.count()).toBe(0);
+
+    await syncCollectionOnce({ collection: 'weaknesses', client });
+    expect(await db.weaknesses.count()).toBe(0);
+  });
+
   /**
-   * Cenário 4 — Registro realista (profile) sobrevive push→pull intacto
+   * Cenário 5 — Registro realista (profile) sobrevive push→pull intacto
    *
    * Profile com campos reais é empurrado por aparelho A e recuperado por
    * aparelho B identicamente — sem corrupção, sem campos perdidos.

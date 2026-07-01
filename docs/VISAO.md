@@ -40,8 +40,7 @@ ativo por decisão explícita do dono registrada em `memory/decisions.md`.
   oficiais, sem tabuleiro próprio, sem ajuda em partida ao vivo, sem engine, privacidade
   local-first, sem PGN persistido e grátis.
 - "Metas de horas, não de rating" CONFIRMA a política existente de não prometer rating.
-- P4 (sync) e P5 (comunidade) continuam congeladas até decisão explícita do dono; a visão
-  sinaliza a direção, não descongela fases.
+- P4 (sync) e P5 (comunidade) foram descongeladas por decisão explícita do dono em 2026-06-16; esta visão continua sendo direção de produto, não lista exaustiva de escopo ativo.
 
 ## Decisões tomadas em 2026-06-10 (após leitura do relatório de análise)
 
@@ -54,13 +53,11 @@ ativo por decisão explícita do dono registrada em `memory/decisions.md`.
   "30 mil horas".
 - **Gamificação**: aprovada como incentivo positivo (esforço/hábito) — nunca gerando
   ansiedade ou tristeza. Sem streak punitivo. Spec detalhada antes de implementar.
-- **Sync multi-dispositivo**: intenção declarada para P4. Mitigações locais de dados
-  (storage.persist + export automático) têm prioridade máxima AGORA, antes de qualquer
-  feature nova. P4 permanece congelada mas é a próxima grande fase.
+- **Sync multi-dispositivo**: P4 foi descongelada e adotou modelo opt-in de conta normal: login Lichess, Cloudflare Workers + D1 e progresso legível no servidor para sincronizar aparelhos.
 
 ## Tensões ainda abertas (para rodada de debate)
 
-- C-4: visão de plataforma colaborativa vs P4/P5 congeladas (sequenciamento sem data).
+- C-4: visão de plataforma comunitária vs beta ainda pessoal/anti-indexado (sequenciamento e divulgação pública).
 - C-5: tom "adulto" vs microcopy "adequado a iniciante" — harmonizar como "simples ≠ infantil".
 - C-6: bandas de rating para ORGANIZAR conteúdo vs metas do aluno (devem ser separadas na UI).
 - G-1..G-11: gaps entre visão e estado atual — ver relatório de análise.

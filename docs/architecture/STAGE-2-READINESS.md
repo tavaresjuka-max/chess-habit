@@ -35,16 +35,15 @@ mostrar efeito no Stage 1.
 RTM/AR(1) (Beaven–Hutson) + decisão de tier (Tier 1 honesto / Tier 1.5 / Tier 2 escalonado
 Callaway–Sant'Anna). Ver `docs/specs/e2e4-efficacy-methodology-DECISION.md` e o pré-registro
 `docs/specs/e3-preregistration-DRAFT.md` (congelar antes de ver dado). **Não implementar antes do OK de
-tier do dono** (non-goal vigente). Lembrar dos riscos achados pelo council 2026-06-27: E2EE → só quem
-exporta é analisável (N baixo); **SUTVA** (early vs not-yet jogam no mesmo pool Lichess → DiD viesado).
+tier do dono** (non-goal vigente). Lembrar riscos vigentes: sync conta-normal deixa progresso legivel no servidor quando opt-in; analise de eficacia depende de consentimento/researchOptIn, N suficiente, escalonamento e **SUTVA** (early vs not-yet jogam no mesmo pool Lichess → DiD viesado).
 
 ## O que DESTRAVA o Stage 2 (critérios objetivos)
 1. Stage 1 no ar (ferramenta) + coorte recrutada de forma **escalonada** (timing = instrumento do DiD).
 2. Dados suficientes: N de adoção em datas diferentes + taxa de export que torne o estimador
-   identificável (validar com o dogfood N=1 do pipeline export→decripta→slope antes de investir).
+   identificável (validar com o dogfood N=1 do pipeline consentimento→dados sincronizados/exportados→slope antes de investir).
 3. Decisão de tier do dono fechada + pré-registro E3 congelado (hash).
 4. Sinal de eficácia positivo no formato primário (rapid) acima do limiar pré-registrado → só então S2.3.
 
 ## Pré-requisitos operacionais (fora de código, do dono)
 - D8: canal/critério de recrutamento escalonado. Deploy. (D11 AGPL removido — app é proprietário/fechado desde 2026-06-30.)
-- Antes de ligar sync multi-dispositivo: itens A–F de `docs/architecture/SYNC-HARDENING.md`.
+- Antes de ampliar sync multi-dispositivo alem do beta pessoal: itens A–F de `docs/architecture/SYNC-HARDENING.md`, E2E real dois-aparelhos, dogfood, retencao/compactacao e privacidade/suporte.

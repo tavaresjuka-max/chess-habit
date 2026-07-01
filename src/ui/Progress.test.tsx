@@ -332,6 +332,28 @@ describe('Progress — seções migradas do Hoje (Metas/Trilha/Sincronizar)', ()
     );
   });
 
+  it('não renderiza link de Study com URL fora do Lichess', () => {
+    render(
+      <Progress
+        {...makeProps({
+          lichessConnected: true,
+          lichessStudyLink: {
+            id: 'study-1',
+            date: TODAY,
+            studyId: 'abc',
+            url: 'https://evil.example/phish',
+            visibility: 'unlisted',
+            imported: false,
+            createdAt: '2026-06-15T10:00:00.000Z',
+            updatedAt: '2026-06-15T10:00:00.000Z',
+          },
+        })}
+      />,
+    );
+
+    expect(screen.queryByRole('link', { name: /Abrir Study do dia/i })).not.toBeInTheDocument();
+  });
+
   it('dispara onConnectLichess ao clicar em "Conectar Lichess"', () => {
     const onConnectLichess = vi.fn(() => Promise.resolve());
     render(<Progress {...makeProps({ onConnectLichess })} />);

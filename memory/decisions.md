@@ -16,7 +16,7 @@ O app sera construido ao redor do Lichess por ser aberto, gratuito, documentado 
 
 ## 2026-06-06: Gratuito E Aberto
 
-Modelo definido: gratuito, open-source, AGPL-3.0 planejada, doacao externa e sem recurso pago funcional. **Mantido.**
+Modelo definido: gratuito. Open-source/AGPL era o plano original; SUPERSEDIDO em 2026-06-30 por app proprietario/codigo fechado, doacao externa e sem recurso pago funcional.
 
 ## 2026-06-06: Sem Tabuleiro Proprio No MVP
 
@@ -97,7 +97,7 @@ unificado anterior: superseded.
 - O dono joga no Chess.com (amigos la). Decisao: **Chess.com promovido a fonte primaria de
   diagnostico e antecipado para P1**, com uso mais completo da API publica (`/stats` + arquivos
   mensais recentes de partidas), nao so o snapshot `/stats`. Parse de PGN transiente; guardar so
-  sinais derivados; nunca PGN completo; sem PII de perfil; bound de recencia (~3 meses/~100 jogos).
+  sinais derivados; nunca PGN completo; sem PII de perfil; historico completo serial/cacheado. Recencia e peso/utilitario opt-in, nao cutoff fixo.
   Destinos de treino seguem no Lichess. Lichess vira fonte de diagnostico secundaria (P2). Ver ADR-008.
 - Rodada 2 de revisao (Codex, Antigravity, DeepSeek): convergiu, aprovado com correcoes ja aplicadas
   no spec (Adendo 22). Plano P0 atomico escrito. Nao e necessaria nova rodada de debates para iniciar.
@@ -544,7 +544,7 @@ Na mesma passada, a auditoria Codex de 2026-06-13 realinhou documentacao e gate:
 ## 2026-06-26: Governanca Fugu, Chess Habit E Professor Tavarez
 
 - O dono aprovou que fugu-ultra assuma o papel de diretor operacional do projeto: sintetiza, decide e revisa; **GLM 5.2 executa tudo por padrao**; GLM + DeepSeek formam o council; gates objetivos continuam sendo o arbitro final.
-- Nome publico aprovado: `APP_NAME='Chess Habit'`, com `SOURCE_CODE_URL` e `FEEDBACK_URL` apontando para `https://github.com/tavaresjuka-max/chess-habit` e issues do mesmo repositorio.
+- Nome publico aprovado: `APP_NAME='Chess Habit'`. Decisao posterior de 2026-06-30 removeu `SOURCE_CODE_URL` e manteve `FEEDBACK_URL` pendente ate canal oficial/dominio proprio.
 - Persona/voz aprovada: **Professor Tavarez**. O nome interno da pasta/repo local pode continuar `lichess-tutor`; nomes de formato/DB de backup podem permanecer internos para compatibilidade.
 - Antes de P4 sync real, integridade de dados continua bloqueante: backup/restore, migrações, reconciliação restore↔sync e testes locais precisam estar verdes. Nenhum deploy/provisionamento/secrets pelo agente.
 
@@ -611,8 +611,7 @@ Implementado o cliente E2EE local-only sem ativar sync de produto e sem decidir 
 - `Chess Habit` e o nome publico aprovado. `Rotina` e `Lichess Tutor` ficam rejeitados como nomes
   publicos em entry points; `lichess-tutor` pode permanecer como nome interno de pasta/repo e artefatos
   historicos.
-- `docs/privacy/privacy-and-data.md` deve refletir o estado beta publico: app nao oficial, AGPL,
-  codigo-fonte/feedback visiveis, tokens locais, PGN transiente, P4 sync E2EE por passphrase independente.
+- `docs/privacy/privacy-and-data.md` deve refletir o estado beta publico: app nao oficial, proprietario/codigo fechado, disclaimer/copyright visiveis, feedback pendente, tokens locais, PGN transiente, P4 sync opt-in conta-normal com progresso legivel no servidor, sem E2EE/passphrase.
 - Teste `appIdentity.test.ts` e o gate que bloqueia regressao de nomes publicos; qualquer mudanca de nome
   publico deve atualizar `APP_NAME` e o teste em conjunto.
 - Flaky `preserveProgress.test.tsx` foi estabilizado sem mudar produto: Config e lazy/Suspense agora usam
@@ -625,5 +624,12 @@ Implementado o cliente E2EE local-only sem ativar sync de produto e sem decidir 
   `vercel deploy --prebuilt --prod --yes`.
 - URL estavel verificada: `https://rotina-pied.vercel.app` retorna HTTP 200, titulo
   `Chess Habit - treino de xadrez`, `X-Robots-Tag: noindex, nofollow` e CSP esperada.
-- O deploy e apenas do PWA estatico/local-first; P4 sync Cloudflare/D1 real continua bloqueado por
-  provisionamento, secrets, OAuth de sync, merge Dexie/fila offline e E2E dois-dispositivos.
+- O deploy inicial era apenas do PWA estatico/local-first; esta leitura foi supersedida pelo flip posterior do sync opt-in.
+
+## 2026-06-30: Sync Conta-Normal, Licenca Proprietaria E CSP Do Worker
+
+- Decisao vigente do dono: sync P4 usa modelo conta-normal, sem E2EE/passphrase. O progresso sincronizado fica legivel no Worker/D1 para operar o app; isso e declarado na UI/docs de privacidade. Tokens OAuth continuam so no aparelho e nao sao sincronizados como blob.
+- `SYNC_UI_ENABLED=true` e `SYNC_BACKEND_URL='https://rotina-sync.chesshabit.workers.dev'`. Portanto Vite/Vercel precisam permitir esse host em `connect-src`; a CSP foi alinhada e os testes passaram a exigir o Worker.
+- App vigente e proprietario/codigo fechado: `LICENSE` proprietaria, `package.json` `UNLICENSED`, rodape com copyright. Decisoes antigas de AGPL/open-source ficam historicas/superseded.
+- Runbook do backend passa a refletir producao OAuth (`SYNC_AUTH_MODE='oauth'`) e o campo legado `ciphertext` como JSON legivel, nao cifra.
+- Proximos gates: lint, testes, build, typecheck/test worker, smoke PWA e dogfood de sync real em dois aparelhos.

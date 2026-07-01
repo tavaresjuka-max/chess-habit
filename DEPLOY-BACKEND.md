@@ -1,49 +1,51 @@
-# Runbook do backend de sync (P4) - operado pelo DONO
+# Runbook do backend de sync (P4) - operado pelo dono
 
-> O agente constroi e testa **localmente** (wrangler/miniflare). **Quem provisiona a nuvem, cria contas
-> e administra secrets e o dono.** Este arquivo e o checklist do dono quando a fase P4 comecar.
+## Estado vigente
 
-## Pre-requisitos
+Backend Cloudflare Workers + D1 para sync multi-dispositivo opt-in em modelo conta-normal:
 
-- Conta Cloudflare (criada pelo dono).
-- `wrangler` autenticado pelo dono (`wrangler login`) - nunca pelo agente.
+- Worker: `rotina-sync`.
+- URL pública configurada no app: `https://rotina-sync.chesshabit.workers.dev`.
+- Banco: D1 `rotina-sync`.
+- Auth de produção: `SYNC_AUTH_MODE='oauth'`, validando `Authorization: Bearer <token>` no Lichess.
+- Dados sincronizados: progresso JSON legível pelo operador, armazenado no campo legado `ciphertext`.
+- Sem E2EE/passphrase por decisão de produto; tokens OAuth continuam só no aparelho e não são armazenados como blob.
 
-## Passos (quando P4 estiver implementado)
+## Regras invioláveis
 
-1. `wrangler d1 create rotina-sync` -> copiar o `database_id` para `wrangler.toml`.
-2. Aplicar schema: `wrangler d1 execute rotina-sync --file=./backend/schema.sql`.
-3. Definir secrets do dono (ex.: `wrangler secret put ...`) - nunca commitar.
-4. `wrangler deploy`.
-5. Apontar `connect-src` da CSP para a URL do Worker.
+- Não commitar secrets.
+- Não salvar token OAuth como dado de sync.
+- Não sincronizar PGN completo, soluções de puzzle, cache Chess.com bruto, backups locais ou handles de auto-backup.
+- Manter CSP `connect-src` apontando para a URL pública do Worker enquanto `SYNC_UI_ENABLED=true`.
+- Manter política de privacidade honesta: progresso sincronizado fica legível no servidor.
 
-## Regras inviolaveis
+## Provisionamento
 
-- Servidor nunca recebe token, passphrase, chave nem plaintext (ver contrato E2EE em
-  `docs/architecture/sync.md`).
-- Sem PGN completo, sem PII.
+1. Criar/confirmar D1: `wrangler d1 create rotina-sync`.
+2. Copiar o `database_id` para `backend/wrangler.toml`.
+3. Aplicar schema: `wrangler d1 execute rotina-sync --file=./backend/schema.sql`.
+4. Conferir `SYNC_AUTH_MODE='oauth'` em `backend/wrangler.toml`.
+5. Deploy: `wrangler deploy -c backend/wrangler.toml` ou `npm run deploy:worker`.
+6. Confirmar `GET /health` na URL pública.
+7. Confirmar que Vite/Vercel CSP incluem `https://rotina-sync.chesshabit.workers.dev` em `connect-src`.
 
-## Estado M12 (local-only, key-agnostic)
+## API
 
-O worker existe e e testado **sem nuvem e sem wrangler/miniflare**: o handler `fetch`
-(`backend/worker.ts`) e puro e os testes (`npm run test:worker`) injetam um fake D1 em
-memoria (`backend/fakeD1.ts`) com a mesma forma da API D1. Isso mantem M12 isolado da
-decisao de KDF/passphrase (M13).
+- `GET /health` — healthcheck público.
+- `POST /blobs` — push/upsert de mutação.
+- `GET /blobs?collection=<nome>` — pull por coleção.
+- `GET /snapshot` — pull de todas as coleções sincronizáveis.
+- `DELETE /blobs` — exclusão de todos os blobs do usuário autenticado.
 
-- Schema: `backend/schema.sql` (tabela `blobs`, PK `(userId, collection, clientMutationId)`,
-  coluna unica de conteudo = `ciphertext`, opaca).
-- API: `GET /health` (publico), `POST /blobs` (push), `GET /blobs?collection=X` (pull por
-  colecao), `GET /snapshot` (pull de todas as colecoes). Servidor jamais decodifica
-  `ciphertext`; `userId` vem do auth, nunca do payload.
-- Auth: **modo local apenas**. `SYNC_AUTH_MODE='local'` confia no header `X-Sync-User`
-  (exclusivo para teste/dev). Qualquer outro valor (ou ausente) recusa com **501** apontando
-  para M13 - o worker nunca confia em header por padrao. **Producao exige validacao OAuth
-  Lichess (M13), ainda nao implementada.**
-- Gates locais: `npm run typecheck:worker && npm run test:worker`.
+## Gates
 
-### Quando o dono quiser rodar com wrangler/miniflare (opcional, local)
+- Worker: `npm run typecheck:worker && npm run test:worker`.
+- App: `npm run lint && npm test && npm run build`.
+- Smoke recomendado: `npm run smoke:pwa`.
+- Validação manual crítica: sync real em dois aparelhos/dispositivos antes de divulgar uso amplo.
 
-1. Instalar `wrangler` (devDependency, a cargo do dono): `npm i -D wrangler`.
-2. `cp backend/wrangler.toml ./wrangler.toml` (ou rodar dentro de `backend/`) e substituir
-   `database_id` apos `wrangler d1 create rotina-sync`.
-3. Aplicar schema: `wrangler d1 execute rotina-sync --local --file=./backend/schema.sql`.
-4. `wrangler dev` (local). Ainda assim, OAuth real fica para M13.
+## Riscos pendentes
+
+- Retenção/compactação de blobs antigos ainda precisa política segura.
+- Conflitos complexos seguem LWW por registro; coleções path-dependent devem ser revisadas antes de escala.
+- Canal de suporte/feedback e domínio próprio ainda dependem do dono.

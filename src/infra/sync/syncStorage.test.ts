@@ -32,6 +32,11 @@ function makeClient(): SyncClient & { stored: StoredBlob[] } {
     snapshot() {
       return Promise.resolve([...stored]);
     },
+    deleteAllBlobs() {
+      const deleted = stored.length;
+      stored.splice(0, stored.length);
+      return Promise.resolve(deleted);
+    },
   };
 }
 
@@ -90,6 +95,36 @@ describe('syncStorage', () => {
       { id: 'fork', score: 0.8, evidence: 'remote novo' },
       { id: 'pin', score: 0.9, evidence: 'local novo' },
     ]);
+  });
+
+  it('ignora Study remoto com URL fora do Lichess', async () => {
+    const client = makeClient();
+    client.stored.push({
+      collection: 'lichessStudies',
+      clientMutationId: 'malicious-study',
+      updatedAt: Date.parse('2099-01-01T00:00:00.000Z'),
+      ciphertext: JSON.stringify({
+        v: 1,
+        collection: 'lichessStudies',
+        entityId: '2026-07-01',
+        updatedAt: '2099-01-01T00:00:00.000Z',
+        record: {
+          id: '2026-07-01',
+          date: '2026-07-01',
+          studyId: 'abc',
+          url: 'https://evil.example/phish',
+          visibility: 'private',
+          imported: true,
+          createdAt: '2099-01-01T00:00:00.000Z',
+          updatedAt: '2099-01-01T00:00:00.000Z',
+        },
+      }),
+    });
+
+    const result = await syncCollectionOnce({ client, collection: 'lichessStudies' });
+
+    expect(result).toMatchObject({ ok: true, applied: 0 });
+    expect(await db.lichessStudies.count()).toBe(0);
   });
 
   it('syncCollectionOnce faz pull-merge-push sem perder entidades de outro aparelho', async () => {
@@ -315,6 +350,7 @@ describe('syncAllCollections', () => {
       pushBlob: () => Promise.reject(new SyncUnauthorizedError('token inválido')),
       listBlobs: () => Promise.reject(new SyncUnauthorizedError('token inválido')),
       snapshot: () => Promise.reject(new SyncUnauthorizedError('token inválido')),
+      deleteAllBlobs: () => Promise.reject(new SyncUnauthorizedError('token inválido')),
     };
 
     const result = await syncAllCollections({ client: unauthorizedClient });

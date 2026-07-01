@@ -10,7 +10,7 @@ declare const process: {
 };
 
 export const CONTENT_SECURITY_POLICY =
-  "default-src 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://lichess.org https://api.chess.com https://api.lichess.org; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests";
+  "default-src 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://lichess.org https://api.chess.com https://api.lichess.org https://rotina-sync.chesshabit.workers.dev; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests";
 
 export const pwaOptions = {
   injectRegister: 'script-defer',

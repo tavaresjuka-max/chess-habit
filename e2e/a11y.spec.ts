@@ -41,7 +41,7 @@ test('a11y: Hoje, Config e Progresso sem violações sérias', async ({ page }) 
   await completeQuickStartForAudit(page);
   await expectNoSeriousViolations(page, 'Hoje');
 
-  await page.getByRole('button', { name: 'Config' }).click();
+  await page.getByRole('button', { name: 'Ajustes' }).click();
   await expect(page.getByRole('heading', { name: 'Configuração' })).toBeVisible({ timeout: 30_000 });
   await expectNoSeriousViolations(page, 'Config');
 

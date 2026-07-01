@@ -16,6 +16,7 @@ import {
   clearAutoBackupConfig,
   exportAllAsJson,
   loadBackupMeta,
+  loadLichessOAuthToken,
   saveAutoBackupConfig,
 } from '../infra/storage/appData';
 import {
@@ -25,6 +26,8 @@ import {
   type AutoBackupStatus,
 } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
+import { SYNC_BACKEND_URL } from '../config/syncConfig';
+import { createSyncClient } from '../infra/sync/syncClient';
 import { bumpOperationEpoch } from './operationEpoch';
 import type { AppView, DiagnosisState, LichessConnectionState } from './state';
 
@@ -52,6 +55,29 @@ export type UseBackupActionsInput = {
   setTrainingLogs: Dispatch<SetStateAction<TrainingLog[]>>;
   setWeaknesses: Dispatch<SetStateAction<Weakness[]>>;
 };
+
+export interface ClearRemoteSyncDataOptions {
+  readonly backendUrl?: string;
+  readonly loadToken?: () => Promise<string | LichessOAuthToken | undefined>;
+  readonly deleteAllBlobs?: (backendUrl: string, bearerToken: string) => Promise<number>;
+}
+
+export async function clearRemoteSyncData(options: ClearRemoteSyncDataOptions = {}): Promise<number> {
+  const backendUrl = options.backendUrl ?? SYNC_BACKEND_URL;
+  if (backendUrl === undefined || backendUrl.trim() === '') {
+    return 0;
+  }
+  const token = await (options.loadToken ?? loadLichessOAuthToken)();
+  const bearerToken = typeof token === 'string' ? token : token?.accessToken;
+  if (bearerToken === undefined) {
+    return 0;
+  }
+  if (options.deleteAllBlobs !== undefined) {
+    return options.deleteAllBlobs(backendUrl, bearerToken);
+  }
+  const client = createSyncClient({ mode: 'oauth', baseUrl: backendUrl, bearerToken });
+  return client.deleteAllBlobs();
+}
 
 export function useBackupActions(input: UseBackupActionsInput) {
   const {
@@ -115,6 +141,12 @@ export function useBackupActions(input: UseBackupActionsInput) {
 
   const clearAllData = useCallback(async () => {
     bumpOperationEpoch();
+    let remoteDeleteFailed = false;
+    try {
+      await clearRemoteSyncData();
+    } catch {
+      remoteDeleteFailed = true;
+    }
     await clearAll();
     setBackupMeta(undefined);
     setAutoBackupFileName(undefined);
@@ -132,7 +164,11 @@ export function useBackupActions(input: UseBackupActionsInput) {
     setLichessToken(undefined);
     setLichessStudyLink(undefined);
     setLichessConnectionState('disconnected');
-    setLichessMessage(undefined);
+    setLichessMessage(
+      remoteDeleteFailed
+        ? 'Não foi possível apagar os dados do servidor agora; os dados locais foram apagados.'
+        : undefined,
+    );
     setDiagnosisState('idle');
     setDiagnosisMessage(undefined);
     setActiveView('config');

@@ -15,6 +15,7 @@ import {
   type SyncStateRecord,
   type WeaknessRecord,
 } from '../storage/db';
+import { isAllowedLichessUrl } from '../lichess/urlPolicy';
 import {
   mergeSyncRecords,
   pullRecordMutations,
@@ -184,7 +185,8 @@ export async function mergeRemoteMutationsIntoStorage(
   remoteMutations: readonly SyncRecordMutation[],
 ): Promise<{ readonly applied: number; readonly skipped: number; readonly records: readonly SyncRecord[] }> {
   const local = await loadSyncRecords(collection);
-  const merged = mergeSyncRecords(collection, local, remoteMutations);
+  const safeRemoteMutations = remoteMutations.filter((mutation) => isSafeRemoteMutation(collection, mutation));
+  const merged = mergeSyncRecords(collection, local, safeRemoteMutations);
   await replaceSyncRecords(collection, merged.records);
   return merged;
 }
@@ -328,6 +330,14 @@ async function replaceTable(table: SyncRecordTable, records: readonly SyncRecord
       await syncTable.bulkPut([...records]);
     }
   });
+}
+
+function isSafeRemoteMutation(collection: SyncableCollection, mutation: SyncRecordMutation): boolean {
+  if (collection === 'lichessStudies') {
+    const url = mutation.record['url'];
+    return typeof url === 'string' && isAllowedLichessUrl(url);
+  }
+  return true;
 }
 
 function toSyncRecords(records: readonly object[]): SyncRecord[] {

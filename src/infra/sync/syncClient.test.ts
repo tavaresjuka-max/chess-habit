@@ -174,6 +174,17 @@ describe('sync client (P4 M13 local-only)', () => {
     });
   });
 
+  describe('deleteAllBlobs', () => {
+    it('DELETE /blobs apaga blobs remotos do usuario autenticado', async () => {
+      const { fetcher, calls } = mockFetch(() => jsonResponse(200, { ok: true, deleted: 3 }));
+      const client = makeClient(fetcher);
+      await expect(client.deleteAllBlobs()).resolves.toBe(3);
+      expect(calls[0]?.method).toBe('DELETE');
+      expect(calls[0]?.url.pathname).toBe('/blobs');
+      expect(calls[0]?.headers.get('x-sync-user')).toBe('userA');
+    });
+  });
+
   describe('tratamento de erros HTTP', () => {
     it('lancam SyncHttpError com status e mensagem do backend em nao-2xx', async () => {
       const { fetcher } = mockFetch(() =>

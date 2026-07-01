@@ -2,8 +2,7 @@
 
 ## Decisao Atual
 
-Construir a ferramenta atual como **PWA local-first**; P4 foi descongelada pelo dono em 2026-06-16,
-mas o agente so constroi/testa backend localmente, sem deploy, contas ou secrets de producao:
+Construir a ferramenta atual como **PWA local-first por padrao**, com sync multi-dispositivo opt-in:
 
 - Frontend: React + Vite + TypeScript.
 - PWA: instalavel em desktop e mobile.
@@ -11,8 +10,7 @@ mas o agente so constroi/testa backend localmente, sem deploy, contas ou secrets
   conquistas, backups e metadados locais.
 - Integracoes externas: Chess.com PubAPI publica read-only; Lichess via endpoints oficiais e OAuth
   PKCE opt-in somente para `puzzle:read` e `study:write`.
-- Backend/D1/Worker: autorizado para P4 local-only com Cloudflare Workers + D1, E2EE por passphrase
-  e tokens OAuth sempre locais. Producao/provisionamento ficam com o dono.
+- Backend/D1/Worker: P4 usa Cloudflare Workers + D1 em modelo conta-normal. O sync e opcional, valida identidade por Lichess e envia progresso legivel ao servidor; tokens OAuth continuam so no aparelho.
 
 ## Principio
 
@@ -35,21 +33,15 @@ Frontend:
 - OAuth Lichess opt-in com token local fora do export.
 - PWA/offline shell.
 
-Sem backend de producao na fase atual:
+Backend/sync na fase atual:
 
-- Sem sessao propria do app.
-- Sem sync multi-dispositivo em producao ate o dono provisionar a nuvem.
-- Sem conta propria.
-- Sem proxy.
-- Sem log centralizado.
-
-Autorizado para P4/P5, ainda pendente de implementacao completa:
-
-- Sync PC<->celular opt-in.
-- Worker/D1 local-only.
-- Exclusao de conta/servidor, se houver conta futura.
+- Sem sessao propria do app: identidade de sync vem do login Lichess.
+- Sync multi-dispositivo opt-in via Worker/D1 publicado.
+- Sem conta propria, senha propria ou proxy geral.
+- Sem log centralizado automatico de uso.
+- Exclusao de dados do servidor via endpoint `DELETE /blobs`.
 - Proxy apenas se uma fase futura justificar por privacidade/CORS/rate limit e o dono aprovar.
-- Renomeacao publica via `APP_NAME`, disclaimers publicos, aviso de copyright (proprietario) e docs de privacidade.
+- Nome publico via `APP_NAME`, disclaimers publicos, aviso de copyright proprietario e docs de privacidade.
 
 Fora da ferramenta pessoal atual:
 
@@ -82,20 +74,19 @@ Evitar por padrao:
 
 ## Sync
 
-Sync P4 esta descongelado para desenvolvimento local: Workers + D1, login "Entrar com Lichess" apenas
-como identidade, blobs cifrados ponta-a-ponta por passphrase do dono, merge por `updatedAt`/tombstone e
-tokens OAuth nunca enviados ao servidor. Producao, secrets e provisionamento continuam fora do agente.
-Atualizacao de dados Lichess/Chess.com continua por APIs oficiais e com minimo armazenamento.
+Sync P4 esta em modelo opt-in de conta normal: Workers + D1, login "Entrar com Lichess" apenas
+como identidade, progresso legivel no servidor para sincronizar aparelhos, merge por `updatedAt`/tombstone e
+tokens OAuth nunca enviados ao servidor como dado salvo. Atualizacao de dados Lichess/Chess.com continua por APIs oficiais e com minimo armazenamento.
 
 ## Pendencias De Arquitetura Registradas Em 2026-06-13
 
 - Criar uma fila/cooldown central por provedor para reforcar as regras oficiais de rate limit:
   uma requisicao por vez no Lichess e pausa minima de 1 minuto apos HTTP 429; acesso serial no
   Chess.com para evitar 429.
-- Adicionar smoke test de PWA em producao: `npm run build`, `npm run preview`, registro do service
+- Manter smoke test de PWA em producao: `npm run build`, `npm run preview`, registro do service
   worker, reload offline e prompt de update.
 - Registrar a escolha atual por `vite-plugin-pwa` como decisao implementada/testada, ja que contratos
   antigos mencionavam `manifest.webmanifest`/`sw.js` manuais.
 - Endurecer a validacao de shape do import de backup alem de checksum e presenca de tabelas.
-- Criar ledger de assets gerados antes de qualquer preparo P5: arquivo, fonte/ferramenta, prompt,
+- Criar ledger de assets gerados antes de divulgacao publica ampla: arquivo, fonte/ferramenta, prompt,
   data, licenca/termos e status de aprovacao.

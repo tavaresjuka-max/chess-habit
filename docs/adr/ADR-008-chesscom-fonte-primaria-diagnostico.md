@@ -16,7 +16,7 @@ se possivel, usar a API publica para informacoes mais completas.
 
 - **Chess.com vira a fonte primaria de diagnostico**, antecipada de P4 para **P1**.
 - Usar a Chess.com Published Data API (read-only, sem login): `/pub/player/{username}/stats` +
-  arquivos mensais recentes `/pub/player/{username}/games/{YYYY}/{MM}` (via `/games/archives`).
+  historico completo de arquivos mensais `/pub/player/{username}/games/{YYYY}/{MM}` (via `/games/archives`).
 - **Privacidade preservada (regra inquebravel mantida):** parse de PGN **transiente** (extrair sinais
   e descartar); **nunca persistir PGN completo**; guardar so `Signal[]` derivados; sem PII de perfil
   (nome/avatar/localizacao).
@@ -34,8 +34,8 @@ se possivel, usar a API publica para informacoes mais completas.
 
 - P1 implementa `services/chesscom.ts` (coletor + parser transiente) em vez do coletor Lichess.
 - `services/lichess.ts` move-se para P2.
-- Custo/limite: arquivos mensais podem ser grandes; mitigar com bound de recencia, cache de arquivos
-  passados (imutaveis) e requisicao serial. `User-Agent` identificavel so com proxy/backend (browser
+- Custo/limite: arquivos mensais podem ser grandes; mitigar com cache de arquivos passados
+  (imutaveis), requisicao serial e recencia como peso no score, nao cutoff. `User-Agent` identificavel so com proxy/backend (browser
   proibe via JS); nao criar backend so para UA na ferramenta pessoal sem avaliar necessidade.
 - Username Chess.com do dono: **jukatavares**. Profundidade: **historico completo**.
 - Import adicional do onboarding: nivel/temas que o dono ja conhece (inclusive observados no ChessKing)

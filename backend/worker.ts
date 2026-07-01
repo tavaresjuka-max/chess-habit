@@ -10,10 +10,40 @@ const MAX_REQUEST_BYTES = 2 * 1024 * 1024;
 const COLLECTION_RE = /^[a-zA-Z0-9_-]{1,64}$/;
 const MUTATION_ID_RE = /^[\s\S]{1,128}$/;
 
-function json(status: number, body: unknown): Response {
+function corsHeaders(request?: Request): Record<string, string> {
+  const origin = request?.headers.get('Origin');
+  return {
+    'Access-Control-Allow-Origin': origin ?? '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, content-type, x-sync-user',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
+  };
+}
+
+function json(status: number, body: unknown, request?: Request): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    headers: { 'content-type': 'application/json; charset=utf-8', ...corsHeaders(request) },
+  });
+}
+
+function preflight(request: Request): Response {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders(request),
+  });
+}
+
+function withCors(response: Response, request: Request): Response {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeaders(request))) {
+    headers.set(key, value);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
   });
 }
 
@@ -123,8 +153,13 @@ export default {
       const method = request.method.toUpperCase();
       const path = url.pathname.replace(/\/+$/, '') || '/';
 
+      if (method === 'OPTIONS') {
+        return preflight(request);
+      }
+
       if (method === 'GET' && path === '/health') {
-        return await handleHealth(env);
+        const response = await handleHealth(env);
+        return withCors(response, request);
       }
 
       // Defense-in-depth: o modo 'local' confia no header x-sync-user sem segredo e
@@ -134,31 +169,31 @@ export default {
       if (env.SYNC_AUTH_MODE === 'local' && env.SYNC_LOCAL_ALLOWED !== 'true') {
         return json(403, {
           error: 'modo local desabilitado (defina SYNC_LOCAL_ALLOWED=true só em dev).',
-        });
+        }, request);
       }
 
       const auth = await authenticate(request, env);
       if (!auth.ok) {
-        return json(auth.status, { error: auth.error });
+        return json(auth.status, { error: auth.error }, request);
       }
       const userId = auth.userId;
 
       if (method === 'POST' && path === '/blobs') {
-        return await handlePush(request, env, userId);
+        return withCors(await handlePush(request, env, userId), request);
       }
       if (method === 'GET' && path === '/blobs') {
-        return await handleList(request, env, userId);
+        return withCors(await handleList(request, env, userId), request);
       }
       if (method === 'DELETE' && path === '/blobs') {
-        return await handleDelete(env, userId);
+        return withCors(await handleDelete(env, userId), request);
       }
       if (method === 'GET' && path === '/snapshot') {
-        return await handleSnapshot(env, userId);
+        return withCors(await handleSnapshot(env, userId), request);
       }
-      return json(404, { error: 'not found.' });
+      return json(404, { error: 'not found.' }, request);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'internal error';
-      return json(500, { error: message });
+      return json(500, { error: message }, request);
     }
   },
 };

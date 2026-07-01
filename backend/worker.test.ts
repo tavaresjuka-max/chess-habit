@@ -99,6 +99,25 @@ describe('rotina-sync worker (P4 M12 local + M13 oauth)', () => {
     expect(res.status).toBe(200);
   });
 
+  it('responde preflight CORS sem exigir Bearer token', async () => {
+    const res = await worker.fetch(
+      new Request('https://rotina-sync.chesshabit.workers.dev/blobs', {
+        method: 'OPTIONS',
+        headers: {
+          Origin: 'https://rotina-pied.vercel.app',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'authorization,content-type',
+        },
+      }),
+      oauthEnv('http://fake-lichess.local/api/account'),
+    );
+
+    expect(res.status).toBe(204);
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('https://rotina-pied.vercel.app');
+    expect(res.headers.get('Access-Control-Allow-Methods')).toContain('POST');
+    expect(res.headers.get('Access-Control-Allow-Headers')?.toLowerCase()).toContain('authorization');
+  });
+
   it('rejeita push sem header de auth em modo local (401)', async () => {
     const res = await worker.fetch(
       req('/blobs', { method: 'POST', body: '{}' }),

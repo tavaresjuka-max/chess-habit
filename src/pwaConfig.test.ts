@@ -42,11 +42,13 @@ describe('PWA config', () => {
     ]);
   });
 
-  it('locks connect-src to the hosts the app fetches (lichess.org + api.chess.com)', () => {
+  it('locks connect-src to the hosts the app fetches', () => {
     const connectSrc = CONTENT_SECURITY_POLICY.split(';').find((d) => d.trim().startsWith('connect-src')) ?? '';
     expect(connectSrc).toContain("'self'");
     expect(connectSrc).toContain('https://lichess.org');
     expect(connectSrc).toContain('https://api.chess.com');
+    expect(connectSrc).toContain('https://api.lichess.org');
+    expect(connectSrc).toContain('https://rotina-sync.chesshabit.workers.dev');
     expect(connectSrc).not.toContain('*');
     expect(connectSrc).not.toContain('http:');
   });

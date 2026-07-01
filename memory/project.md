@@ -1,6 +1,6 @@
 # Memoria Do Projeto
 
-Lichess Tutor e uma proposta de PWA gratuita, open-source e Lichess-first para orientar estudo de xadrez em plataformas externas, principalmente Lichess.
+Chess Habit (`lichess-tutor` internamente) e uma PWA gratuita, proprietaria/codigo fechado e Lichess-first para orientar estudo de xadrez em plataformas externas, principalmente Lichess.
 
 ## Promessa
 
