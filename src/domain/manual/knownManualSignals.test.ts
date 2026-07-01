@@ -23,6 +23,6 @@ describe('createKnownManualSignals', () => {
         tag: 'hanging-piece',
       },
     });
-    expect(signal.value.kind === 'manual' ? signal.value.note : undefined).toContain('peca solta');
+    expect(signal.value.kind === 'manual' ? signal.value.note : undefined).toContain('peça solta');
   });
 });

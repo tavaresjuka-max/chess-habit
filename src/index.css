@@ -1387,6 +1387,9 @@ textarea {
   font-size: var(--fs-lg);
   border-left: 3px solid var(--hero-accent);
   padding-left: 10px;
+  line-height: 1.5;
+  text-align: justify;
+  hyphens: auto;
 }
 
 /* Ações empilhadas: "Treinar agora" domina a linha; "Trocar o foco" fica ABAIXO,
@@ -1570,6 +1573,8 @@ textarea {
   color: var(--ink-600);
   margin: -8px 0 12px;
   line-height: 1.45;
+  text-align: justify;
+  hyphens: auto;
 }
 
 /* Teto explícito (FM 2200-2400): nota honesta de "organizador", sóbria, sem alarme. */
@@ -1582,6 +1587,8 @@ textarea {
   padding: 12px 14px;
   margin: 0 0 12px;
   line-height: 1.5;
+  text-align: justify;
+  hyphens: auto;
 }
 
 /* ---------- Hero "Agora": uma ação clara visível ---------- */
@@ -1709,6 +1716,9 @@ textarea {
 .tutor-diagnosis {
   border-left: 3px solid var(--green-300);
   padding-left: 10px;
+  line-height: 1.5;
+  text-align: justify;
+  hyphens: auto;
 }
 
 .learning-plan-card {
@@ -2502,6 +2512,7 @@ li.diploma-row {
   font-size: 0.85em;
   color: var(--ink-700);
   opacity: 0.75;
+  text-align: center;
 }
 
 .self-explanation-row {
@@ -3213,6 +3224,8 @@ button:not(.secondary-button):not(.danger-button):not(.link-button):not(.nav-but
 .block-line.coach-note {
   border-left: none;
   padding-left: 0;
+  text-align: justify;
+  hyphens: auto;
 }
 
 .block-line.coach-note > svg {

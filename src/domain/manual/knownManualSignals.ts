@@ -34,7 +34,7 @@ export function createTutorQuestionSignal(answer: TutorQuestionAnswer, observedA
 
 const manualNoteByTag = {
   fork: 'Sinal manual: vale testar garfos e ganho de material em treino curto.',
-  'hanging-piece': 'Sinal manual: vale testar seguranca de pecas e capturas simples.',
+  'hanging-piece': 'Sinal manual: vale testar segurança de peças e capturas simples.',
   discovered: 'Sinal manual: vale testar ataques descobertos e cheque duplo.',
   'mate-in-2': 'Sinal manual: vale testar mates em 2 antes de subir volume.',
   'endgame-pawn': 'Sinal manual: vale testar finais de peões com revisão curta.',
@@ -43,7 +43,7 @@ const manualNoteByTag = {
 const tutorQuestionAnswerByValue = {
   time: {
     tag: 'time-trouble',
-    note: 'Resposta ao Professor Tavarez: tempo pesou mais hoje; vale testar decisao mais simples antes de calcular.',
+    note: 'Resposta ao Professor Tavarez: tempo pesou mais hoje; vale testar decisão mais simples antes de calcular.',
   },
   calculation: {
     tag: 'fork',
@@ -51,6 +51,6 @@ const tutorQuestionAnswerByValue = {
   },
   'loose-piece': {
     tag: 'hanging-piece',
-    note: 'Resposta ao Professor Tavarez: peca solta pesou mais hoje; priorizar checagem de defensores.',
+    note: 'Resposta ao Professor Tavarez: peça solta pesou mais hoje; priorizar checagem de defensores.',
   },
 } satisfies Record<TutorQuestionAnswer, { tag: WeaknessTag; note: string }>;

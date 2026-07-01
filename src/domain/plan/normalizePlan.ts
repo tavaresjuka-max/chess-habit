@@ -146,21 +146,21 @@ function getNormalizedTaskForDestinationUrl(url: string | undefined): string | u
     case 'https://lichess.org/video/gpsZAim-mYc':
       return 'Assista uma aula curta de abertura e anote uma regra para testar na próxima partida: centro, desenvolvimento ou rei seguro.';
     case 'https://lichess.org/video/wod7uXzkrTc':
-      return 'Assista uma aula curta de pecas penduradas e anote uma checagem para usar antes de jogar.';
+      return 'Assista uma aula curta de peças penduradas e anote uma checagem para usar antes de jogar.';
     case 'https://lichess.org/video/mbiR0tcdqBY':
       return 'Assista uma aula curta de garfos e anote como confirmar dois alvos antes do lance.';
     case 'https://lichess.org/video/VjwSudAqLn8':
-      return 'Assista uma aula curta de cravadas e anote como reconhecer a peca presa.';
+      return 'Assista uma aula curta de cravadas e anote como reconhecer a peça presa.';
     case 'https://lichess.org/video/ZexQ1kow1MM':
       return 'Assista uma aula curta de espetos e anote como reconhecer o alinhamento.';
     case 'https://lichess.org/video/nMADfn1scbI':
-      return 'Assista uma aula curta de ataque descoberto e anote qual linha abre quando a peca sai.';
+      return 'Assista uma aula curta de ataque descoberto e anote qual linha abre quando a peça sai.';
     case 'https://lichess.org/video/uhQhasudq9M':
-      return 'Assista uma aula curta de padroes de mate e anote uma ameaca tipica para procurar nos puzzles.';
+      return 'Assista uma aula curta de padrões de mate e anote uma ameaça típica para procurar nos puzzles.';
     case 'https://lichess.org/video/QUqq7wSLE78':
       return 'Assista uma aula curta de finais de peões e anote uma regra prática antes de treinar.';
     case 'https://lichess.org/video/0-ouahZH8X4':
-      return 'Assista uma aula curta de conversao de vantagem e anote um plano simples para testar.';
+      return 'Assista uma aula curta de conversão de vantagem e anote um plano simples para testar.';
     default:
       return undefined;
   }

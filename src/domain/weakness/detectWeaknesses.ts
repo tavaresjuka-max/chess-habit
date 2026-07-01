@@ -233,7 +233,7 @@ function signalToCandidates(
             minContribution: 1,
             confidence: 'low',
             evidence:
-              'O rating rapid atual no Chess.com ainda esta na faixa de iniciante; uso isso como hipotese conservadora para testar uma rotina anti-blunder.',
+              'O rating rapid atual no Chess.com ainda está na faixa de iniciante; uso isso como hipótese conservadora para testar uma rotina de segurança.',
           },
         ];
       }
@@ -251,7 +251,7 @@ function signalToCandidates(
             contribution: signal.value.games,
             minContribution: 10,
             confidence: 'low',
-            evidence: `No Chess.com, partidas ${signal.value.speed} tiveram uma taxa alta de derrotas; trato isso como hipotese conservadora de seguranca anti-blunder.`,
+            evidence: `No Chess.com, partidas ${signal.value.speed} tiveram uma taxa alta de derrotas; trato isso como hipótese conservadora de segurança.`,
           },
         ];
       }

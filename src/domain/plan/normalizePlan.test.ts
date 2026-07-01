@@ -457,7 +457,7 @@ describe('normalizePlanDestinations', () => {
       ['https://lichess.org/video/nMADfn1scbI', 'descoberto'],
       ['https://lichess.org/video/uhQhasudq9M', 'mate'],
       ['https://lichess.org/video/QUqq7wSLE78', 'peões'],
-      ['https://lichess.org/video/0-ouahZH8X4', 'conversao'],
+      ['https://lichess.org/video/0-ouahZH8X4', 'conversão'],
     ];
 
     for (const [url, expectedFragment] of videoTasks) {
