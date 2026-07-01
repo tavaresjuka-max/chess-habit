@@ -16,7 +16,7 @@ import {
   type Weakness,
   type WeaknessTag,
 } from '../domain';
-import { DIPLOMAS, getDiplomaProgress } from '../domain/method/diplomas';
+import { DIPLOMAS, getDiplomaProgress, type DiplomaSectionProgress } from '../domain/method/diplomas';
 import { isDueToday } from '../domain/method/pendingItems';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
 import type { DiagnosisState, LichessConnectionState } from '../app/state';
@@ -27,6 +27,7 @@ import { MedalhaIcon } from './art/MedalhaIcon';
 import { CurriculumCard } from './CurriculumCard';
 import { Fold } from './Fold';
 import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
+import { isAllowedLichessUrl } from '../infra/lichess/urlPolicy';
 
 type ProgressProps = {
   today: string;
@@ -69,6 +70,22 @@ function SkillMapBar({ percent }: { percent: number }) {
 
 function clampPercent(percent: number): number {
   return Math.max(0, Math.min(100, percent));
+}
+
+function formatBlindEvidence(sections: DiplomaSectionProgress[] | undefined): string {
+  const totals = (sections ?? []).reduce(
+    (acc, section) => ({
+      current: acc.current + (section.blindEvidenceItems ?? 0),
+      target: acc.target + (section.blindEvidenceTarget ?? 0),
+    }),
+    { current: 0, target: 0 },
+  );
+
+  if (totals.target === 0) {
+    return 'Evidência cega: ainda sem dados suficientes.';
+  }
+
+  return `Evidência cega: ${String(totals.current)}/${String(totals.target)} tentativas sem dica.`;
 }
 
 function getNextDiplomaSummary(attempts: DiplomaAttempt[]): NextDiplomaSummary | undefined {
@@ -290,6 +307,7 @@ export function Progress({
                     </span>
                   </div>
                   <p className="config-hint">{diploma.description}</p>
+                  <p className="config-hint">{formatBlindEvidence(progress?.sections)}</p>
                 </div>
               </li>
             );
@@ -439,7 +457,7 @@ export function Progress({
               >
                 Gerar Study do dia
               </button>
-              {lichessStudyLink !== undefined ? (
+              {lichessStudyLink !== undefined && isAllowedLichessUrl(lichessStudyLink.url) ? (
                 <a
                   className="button-link secondary-link"
                   href={lichessStudyLink.url}

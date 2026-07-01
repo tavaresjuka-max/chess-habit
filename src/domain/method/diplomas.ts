@@ -37,6 +37,8 @@ export type DiplomaSectionProgress = DiplomaSection & {
   scorePercent: number;
   passed: boolean;
   attempted: boolean;
+  blindEvidenceItems?: number;
+  blindEvidenceTarget?: number;
 };
 
 export type DiplomaProgress = {
@@ -183,6 +185,8 @@ export function getDiplomaProgress(attempts: DiplomaAttempt[], diplomaId: Diplom
         scorePercent,
         passed: latest?.passed ?? false,
         attempted: latest !== undefined,
+        ...(latest?.blindEvidenceItems === undefined ? {} : { blindEvidenceItems: latest.blindEvidenceItems }),
+        ...(latest?.blindEvidenceTarget === undefined ? {} : { blindEvidenceTarget: latest.blindEvidenceTarget }),
       };
     }),
     overallPassed: isDiplomaPassed(attempts, diplomaId),

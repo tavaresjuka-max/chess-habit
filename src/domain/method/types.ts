@@ -65,6 +65,8 @@ export type DiplomaAttempt = {
   totalItems: number;
   passed: boolean;
   source: 'local' | 'lichess';
+  blindEvidenceItems?: number;
+  blindEvidenceTarget?: number;
   createdAt: string;
   updatedAt: string;
 };

@@ -185,6 +185,57 @@ describe('generatePlan', () => {
     expect(tema?.resourceStage).toBe('guided');
   });
 
+  it('marca explain/guided como tentativa com dica visível e sem evidência cega forte', () => {
+    const plan = generatePlan(baseProfile, [], 15, '2026-06-06');
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(tema?.resourceStage).toBe('guided');
+    expect(tema?.conceptContractId).toBe('fork');
+    expect(tema?.hintWasVisible).toBe(true);
+    expect(tema?.isBlindAttempt).toBe(false);
+    expect(tema?.platformThemeLeakRisk).toBe(false);
+  });
+
+  it('marca retrieval em URL temática do Lichess como risco de vazamento e não conta como blind forte', () => {
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      band: '1000-1200',
+      themeStages: { fork: 'guided' },
+    };
+    const plan = generatePlan(profile, [], 15, '2026-06-06', {
+      recentThemeStats: { since: '2026-06-01', until: '2026-06-06', themes: [{ theme: 'fork', attempts: 30, losses: 0 }] },
+    });
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(tema?.resourceStage).toBe('retrieval');
+    expect(tema?.destination.url).toBe('https://lichess.org/training/fork');
+    expect(tema?.conceptContractId).toBe('fork');
+    expect(tema?.hintWasVisible).toBe(false);
+    expect(tema?.platformThemeLeakRisk).toBe(true);
+    expect(tema?.isBlindAttempt).toBe(false);
+  });
+
+  it('marca destino genérico do Lichess como blind elegível quando não há vazamento temático', () => {
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      themeStages: { 'time-trouble': 'retrieval' },
+    };
+    const plan = generatePlan(
+      profile,
+      [{ tag: 'time-trouble', score: 0.9, confidence: 'high', evidence: 'perdas por tempo recentes' }],
+      15,
+      '2026-06-06',
+    );
+    const tema = plan.blocks.find((block) => block.id.endsWith('-tema'));
+
+    expect(tema?.resourceStage).toBe('retrieval');
+    expect(tema?.destination.url).toBe('https://lichess.org/streak');
+    expect(tema?.conceptContractId).toBe('time-trouble');
+    expect(tema?.hintWasVisible).toBe(false);
+    expect(tema?.platformThemeLeakRisk).toBe(false);
+    expect(tema?.isBlindAttempt).toBe(true);
+  });
+
   it('extractThemeStages lê o estágio do bloco de tema do plano (PED-3)', () => {
     const profile: LearnerProfile = { ...baseProfile, band: '1000-1200' };
     const plan = generatePlan(profile, [], 15, '2026-06-06');
@@ -658,7 +709,8 @@ describe('generatePlan', () => {
       url: 'https://lichess.org/training/fork',
     });
     expect(plan.blocks[0]?.task).toContain('Resolva puzzles de garfos');
-    expect(plan.blocks[0]?.coachNote).toContain('Garfo é uma peça sua atacando dois alvos');
+    expect(plan.blocks[0]?.coachNote).not.toContain('Garfo é uma peça sua atacando dois alvos');
+    expect(plan.blocks[0]?.hintWasVisible).toBe(false);
   });
 
   it('repairs a same-day guided Practice lesson after the block has been opened', () => {

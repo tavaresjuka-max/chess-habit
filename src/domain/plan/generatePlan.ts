@@ -5,6 +5,7 @@ import { computeMastery } from '../method/mastery';
 import { isOrganizerCeilingBand } from '../bands';
 import { getRecentlyEarnedDiploma } from '../method/diplomas';
 import { getErrorRoutingCoach, getErrorRoutingEmphasis, type ErrorRoutingCoach } from '../method/errorRouting';
+import { getConceptContract } from '../pedagogy/conceptContracts';
 import { INTERLEAVE_STAGES } from './schedulerConstants';
 import { getMethodTrackTitle } from '../method/methodTracks';
 import { isDueToday } from '../method/pendingItems';
@@ -345,6 +346,8 @@ function createPlanBlock(input: {
     weaknessTag: copy.weaknessTag,
     resourceStage,
   });
+  const blindMetadata = getBlindAttemptMetadata(resourceStage, destination.url);
+  const conceptContract = getConceptContract(copy.weaknessTag);
 
   return {
     id: createPlanBlockId(input.date, input.sessionNumber, input.index, input.kind),
@@ -364,6 +367,8 @@ function createPlanBlock(input: {
     methodTrackId: input.activeTrack,
     guidingQuestion:
       themeErrorCoach?.guidingQuestion ?? getGuidingQuestion(input.activeTrack, copy.weaknessTag),
+    conceptContractId: conceptContract.id,
+    ...blindMetadata,
     ...(isDiscrimination ? { isDiscrimination: true } : {}),
     updatedAt: input.updatedAt,
   };
@@ -388,6 +393,8 @@ function createPendingPlanBlock(input: {
       : 'Pendência Lichess',
     ...(input.pendingItem.lichessUrl === undefined ? {} : { url: input.pendingItem.lichessUrl }),
   };
+  const conceptContract = getConceptContract(input.pendingItem.weaknessTag);
+  const blindMetadata = getBlindAttemptMetadata('review', destination.url);
 
   return {
     id: createPlanBlockId(input.date, input.sessionNumber, input.index, 'revisao'),
@@ -409,6 +416,8 @@ function createPendingPlanBlock(input: {
     masteryTarget: 'review',
     drillFormatId: 'pendency-treatment',
     guidingQuestion: input.pendingItem.prompt,
+    conceptContractId: conceptContract.id,
+    ...blindMetadata,
     updatedAt: input.updatedAt,
   };
 }
@@ -601,6 +610,34 @@ function getFinalBlockCopy(theme: FinalWeaknessTag): BlockCopy {
       };
     default:
       return assertNever(theme);
+  }
+}
+
+function getBlindAttemptMetadata(
+  resourceStage: PlanResourceStage,
+  destinationUrl: string | undefined,
+): Pick<PlanBlock, 'isBlindAttempt' | 'hintWasVisible' | 'platformThemeLeakRisk'> {
+  const isBlindStage = resourceStage === 'retrieval' || resourceStage === 'review' || resourceStage === 'transfer';
+  const platformThemeLeakRisk = isBlindStage && isThemeSpecificLichessDestination(destinationUrl);
+
+  return {
+    isBlindAttempt: isBlindStage && !platformThemeLeakRisk,
+    hintWasVisible: !isBlindStage,
+    platformThemeLeakRisk,
+  };
+}
+
+function isThemeSpecificLichessDestination(url: string | undefined): boolean {
+  if (url === undefined) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(url);
+
+    return parsed.hostname === 'lichess.org' && /^\/training\/[A-Za-z0-9]+$/.test(parsed.pathname);
+  } catch {
+    return /^https:\/\/lichess\.org\/training\/[A-Za-z0-9]+$/.test(url);
   }
 }
 

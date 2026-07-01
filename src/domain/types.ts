@@ -82,6 +82,8 @@ export type PlanResourceStage = 'explain' | 'guided' | 'retrieval' | 'transfer' 
 
 export type PlanBlockFeedback = 'easy' | 'good' | 'hard';
 
+export type PatternRecognition = 'yes' | 'partial' | 'no';
+
 export type LearningPlanResponseStatus = 'approved' | 'revision-requested';
 
 export type LearningPlanResponse = {
@@ -186,6 +188,10 @@ export type PlanBlock = {
   masteryTarget?: 'advance' | 'review' | 'regress';
   drillFormatId?: DrillFormatId;
   guidingQuestion?: string;
+  conceptContractId?: WeaknessTag;
+  isBlindAttempt?: boolean;
+  hintWasVisible?: boolean;
+  platformThemeLeakRisk?: boolean;
   // D6 (scheduler híbrido 2026-06-22): bloco de transferência misto (âncora +
   // pool sem rótulo). Persiste o dado de discriminação agora; exibição no
   // Progresso vem depois. Derivável também pelo sufixo do blockId.
@@ -309,6 +315,11 @@ export type TrainingLog = {
   errorType?: ErrorType;
   // Autoexplicação de 1 frase ("Por que esse lance?"). Convite, nunca obrigatório.
   selfExplanation?: string;
+  patternRecognition?: PatternRecognition;
+  conceptContractId?: WeaknessTag;
+  isBlindAttempt?: boolean;
+  hintWasVisible?: boolean;
+  platformThemeLeakRisk?: boolean;
   result?: TrainingResult;
   methodTrackId?: MethodTrackId;
   updatedAt: string;

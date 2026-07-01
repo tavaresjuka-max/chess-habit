@@ -1,4 +1,4 @@
-import type { Destination, ErrorType, PlanBlock, PlanBlockFeedback, TrainingLog, TrainingLogKind, TrainingResult } from '../types';
+import type { Destination, ErrorType, PatternRecognition, PlanBlock, PlanBlockFeedback, TrainingLog, TrainingLogKind, TrainingResult } from '../types';
 
 export function createTrainingLog(input: { block: PlanBlock; date: string; startedAt: string }): TrainingLog {
   return {
@@ -14,6 +14,12 @@ export function createTrainingLog(input: { block: PlanBlock; date: string; start
     timeLimitReached: false,
     status: 'active',
     ...(input.block.methodTrackId === undefined ? {} : { methodTrackId: input.block.methodTrackId }),
+    ...(input.block.conceptContractId === undefined ? {} : { conceptContractId: input.block.conceptContractId }),
+    ...(input.block.isBlindAttempt === undefined ? {} : { isBlindAttempt: input.block.isBlindAttempt }),
+    ...(input.block.hintWasVisible === undefined ? {} : { hintWasVisible: input.block.hintWasVisible }),
+    ...(input.block.platformThemeLeakRisk === undefined
+      ? {}
+      : { platformThemeLeakRisk: input.block.platformThemeLeakRisk }),
     updatedAt: input.startedAt,
   };
 }
@@ -38,6 +44,7 @@ export function completeTrainingLog(input: {
   errorType?: ErrorType;
   // Autoexplicação de 1 frase. Convite — nunca obrigatório.
   selfExplanation?: string;
+  patternRecognition?: PatternRecognition;
 }): TrainingLog {
   const elapsedSeconds = elapsedSecondsBetween(input.log.startedAt, input.completedAt);
 
@@ -53,6 +60,7 @@ export function completeTrainingLog(input: {
     ...(input.selfExplanation !== undefined && input.feedback === 'hard'
       ? { selfExplanation: input.selfExplanation }
       : {}),
+    ...(input.patternRecognition === undefined ? {} : { patternRecognition: input.patternRecognition }),
     updatedAt: input.completedAt,
   };
 }

@@ -44,6 +44,27 @@ describe('trainingSession', () => {
     });
   });
 
+  it('copies blind attempt metadata from the plan block into the log', () => {
+    const log = createTrainingLog({
+      block: {
+        ...block,
+        conceptContractId: 'fork',
+        isBlindAttempt: true,
+        hintWasVisible: false,
+        platformThemeLeakRisk: false,
+      },
+      date: '2026-06-06',
+      startedAt: '2026-06-06T10:00:00.000Z',
+    });
+
+    expect(log).toMatchObject({
+      conceptContractId: 'fork',
+      isBlindAttempt: true,
+      hintWasVisible: false,
+      platformThemeLeakRisk: false,
+    });
+  });
+
   it('classifies non-training Lichess destinations as standard logs', () => {
     const log = createTrainingLog({
       block: {
@@ -93,6 +114,24 @@ describe('trainingSession', () => {
 
     expect(completed.feedback).toBe('hard');
     expect(completed.elapsedSeconds).toBe(180);
+  });
+
+  it('stores optional pattern recognition without blocking completion', () => {
+    const log = createTrainingLog({
+      block,
+      date: '2026-06-06',
+      startedAt: '2026-06-06T10:00:00.000Z',
+    });
+
+    const completed = completeTrainingLog({
+      log,
+      completedAt: '2026-06-06T10:03:00.000Z',
+      feedback: 'good',
+      patternRecognition: 'yes',
+    });
+
+    expect(completed.patternRecognition).toBe('yes');
+    expect(completed.status).toBe('done');
   });
 
   it('formats sub-minute completion as one minute', () => {

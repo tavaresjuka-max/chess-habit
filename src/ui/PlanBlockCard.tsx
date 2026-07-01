@@ -15,7 +15,9 @@ import { TacticDiagram } from './art/TacticDiagram';
 import {
   elapsedSecondsBetween,
   formatElapsedMinutes,
+  getConceptContract,
   type ErrorType,
+  type PatternRecognition,
   type PlanBlock,
   type PlanBlockFeedback,
   type TrainingLog,
@@ -29,7 +31,13 @@ type PlanBlockCardProps = {
   hasSavedPending: boolean;
   onSavePendingFromHardFeedback: (blockId: string) => Promise<void>;
   onStartBlockTraining: (block: PlanBlock) => Promise<void>;
-  onCompleteBlockTraining: (blockId: string, feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) => Promise<void>;
+  onCompleteBlockTraining: (
+    blockId: string,
+    feedback?: PlanBlockFeedback,
+    errorType?: ErrorType,
+    selfExplanation?: string,
+    patternRecognition?: PatternRecognition,
+  ) => Promise<void>;
   onSkipBlockTraining: (blockId: string) => Promise<void>;
   // Progresso do tema do bloco rumo ao diploma (PROD-5); ausente = bloco sem tema mensurável.
   diplomaProgress?: { label: string; attempts: number; target: number };
@@ -58,6 +66,7 @@ export function PlanBlockCard({
   const [isConfirmingSkip, setIsConfirmingSkip] = useState(false);
   // Fase 1 — seletor de errorType: aparece SÓ após feedback='hard', não bloqueia
   const [pendingHardFeedback, setPendingHardFeedback] = useState(false);
+  const [pendingFeedback, setPendingFeedback] = useState<PlanBlockFeedback | undefined>(undefined);
   const [selectedErrorType, setSelectedErrorType] = useState<ErrorType | undefined>(undefined);
   const [selfExplanation, setSelfExplanation] = useState('');
   const skipTriggerRef = useRef<HTMLButtonElement>(null);
@@ -99,6 +108,7 @@ export function PlanBlockCard({
     setOpenWarning(undefined);
     setIsConfirmingSkip(false);
     setPendingHardFeedback(false);
+    setPendingFeedback(undefined);
     setSelectedErrorType(undefined);
     setSelfExplanation('');
   }, [block.id]);
@@ -133,7 +143,13 @@ export function PlanBlockCard({
     // Fase 1: para 'hard', mostra o seletor de errorType antes de completar.
     // Não bloqueia — o aluno pode pular com "Registrar assim" e completar sem errorType.
     if (feedback === 'hard') {
+      setPendingFeedback(feedback);
       setPendingHardFeedback(true);
+      return;
+    }
+
+    if (block.isBlindAttempt === true) {
+      setPendingFeedback(feedback);
       return;
     }
 
@@ -143,19 +159,21 @@ export function PlanBlockCard({
     });
   }
 
-  // Confirma o treino 'hard' (com ou sem errorType selecionado).
-  function confirmHardFeedback(errorType?: ErrorType): void {
-    if (isSubmittingFeedback) return;
+  function confirmFeedback(patternRecognition?: PatternRecognition, errorType?: ErrorType): void {
+    if (isSubmittingFeedback || pendingFeedback === undefined) return;
+    const feedback = pendingFeedback;
+    const explanation = feedback === 'hard' && selfExplanation.trim().length > 0 ? selfExplanation.trim() : undefined;
     setPendingHardFeedback(false);
     setIsRating(false);
-    setSubmittingFeedback('hard');
-    void onCompleteBlockTraining(
-      block.id,
-      'hard',
-      errorType,
-      selfExplanation.trim().length > 0 ? selfExplanation.trim() : undefined,
-    ).finally(() => {
+    setSubmittingFeedback(feedback);
+    const completion =
+      patternRecognition === undefined
+        ? onCompleteBlockTraining(block.id, feedback, errorType, explanation)
+        : onCompleteBlockTraining(block.id, feedback, errorType, explanation, patternRecognition);
+
+    void completion.finally(() => {
       setSubmittingFeedback(undefined);
+      setPendingFeedback(undefined);
     });
   }
 
@@ -303,7 +321,7 @@ export function PlanBlockCard({
                   aria-pressed={selectedErrorType === type}
                   onClick={() => {
                     setSelectedErrorType(type);
-                    confirmHardFeedback(type);
+                    confirmFeedback(undefined, type);
                   }}
                 >
                   {label}
@@ -316,7 +334,7 @@ export function PlanBlockCard({
                   type="button"
                   className="link-button"
                   onClick={() => {
-                    confirmHardFeedback(undefined);
+                    confirmFeedback(undefined, undefined);
                   }}
                 >
                   Registrar assim
@@ -324,6 +342,17 @@ export function PlanBlockCard({
               </div>
             ) : null}
           </div>
+        ) : pendingFeedback !== undefined ? (
+          <PatternRecognitionPrompt
+            block={block}
+            isSubmitting={isSubmittingFeedback}
+            onAnswer={(answer) => {
+              confirmFeedback(answer);
+            }}
+            onSkip={() => {
+              confirmFeedback(undefined);
+            }}
+          />
         ) : (
           <div className="rating-row" role="group" aria-label="Como foi o treino?">
             <p className="rating-prompt" role="status" aria-live="polite">
@@ -454,6 +483,52 @@ export function PlanBlockCard({
         </div>
       )}
     </article>
+  );
+}
+
+function PatternRecognitionPrompt({
+  block,
+  isSubmitting,
+  onAnswer,
+  onSkip,
+}: {
+  block: PlanBlock;
+  isSubmitting: boolean;
+  onAnswer: (answer: PatternRecognition) => void;
+  onSkip: () => void;
+}) {
+  const question =
+    block.conceptContractId === undefined
+      ? 'Você reconheceu o padrão antes de calcular?'
+      : getConceptContract(block.conceptContractId).postAttemptReflection;
+
+  return (
+    <div className="rating-row" role="group" aria-label="Reconhecimento do padrão">
+      <p className="rating-prompt" role="status" aria-live="polite">
+        {isSubmitting ? (
+          <>
+            <Loader2 className="rating-spinner" aria-hidden="true" size={15} /> Anotando seu resultado…
+          </>
+        ) : (
+          question
+        )}
+      </p>
+      {!isSubmitting ? <p className="rating-subprompt">Opcional. Isso ajuda o professor a calibrar a revisão.</p> : null}
+      <div className="button-row" aria-busy={isSubmitting}>
+        <button type="button" className="secondary-button" disabled={isSubmitting} onClick={() => { onAnswer('yes'); }}>
+          Sim
+        </button>
+        <button type="button" className="secondary-button" disabled={isSubmitting} onClick={() => { onAnswer('partial'); }}>
+          Mais ou menos
+        </button>
+        <button type="button" className="secondary-button" disabled={isSubmitting} onClick={() => { onAnswer('no'); }}>
+          Não
+        </button>
+        <button type="button" className="link-button" disabled={isSubmitting} onClick={onSkip}>
+          Pular
+        </button>
+      </div>
+    </div>
   );
 }
 

@@ -167,6 +167,45 @@ describe('PlanBlockCard', () => {
       expect(onCompleteBlockTraining).toHaveBeenCalledWith('block-1', 'good');
     });
 
+    it('em tentativa cega, pergunta reconhecimento do padrão antes de concluir e permite pular', () => {
+      const onCompleteBlockTraining = vi.fn(() => Promise.resolve());
+      render(
+        <PlanBlockCard
+          {...makeProps({
+            block: makeBlock({ id: 'blind-block', isBlindAttempt: true, conceptContractId: 'fork' }),
+            onCompleteBlockTraining,
+          })}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /Concluir/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Bom' }));
+
+      expect(screen.getByRole('group', { name: 'Reconhecimento do padrão' })).toBeInTheDocument();
+      expect(onCompleteBlockTraining).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Sim' }));
+      expect(onCompleteBlockTraining).toHaveBeenCalledWith('blind-block', 'good', undefined, undefined, 'yes');
+    });
+
+    it('em tentativa cega, Pular reflexão conclui sem patternRecognition', () => {
+      const onCompleteBlockTraining = vi.fn(() => Promise.resolve());
+      render(
+        <PlanBlockCard
+          {...makeProps({
+            block: makeBlock({ id: 'blind-skip', isBlindAttempt: true, conceptContractId: 'fork' }),
+            onCompleteBlockTraining,
+          })}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /Concluir/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Fácil' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Pular' }));
+
+      expect(onCompleteBlockTraining).toHaveBeenCalledWith('blind-skip', 'easy', undefined, undefined);
+    });
+
     it('clicar em NÃO VI completa o bloco com errorType=nao-vi (1 toque)', () => {
       const onCompleteBlockTraining = vi.fn(() => Promise.resolve());
       render(<PlanBlockCard {...makeProps({ onCompleteBlockTraining })} />);

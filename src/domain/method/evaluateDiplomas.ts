@@ -1,5 +1,8 @@
+import { weaknessTagFromPuzzleTheme } from '../coach/puzzleThemeStats';
 import type { SkillMapEntry } from '../metrics/progressOverview';
-import type { LearnerBand } from '../types';
+import type { BlindConceptEvidence } from '../pedagogy/blindEvidence';
+import { getConceptContract } from '../pedagogy/conceptContracts';
+import type { LearnerBand, WeaknessTag } from '../types';
 import { promoteBandForDiplomas } from './bandProgression';
 import { DIPLOMAS } from './diplomas';
 import type { DiplomaAttempt } from './types';
@@ -13,8 +16,10 @@ export function evaluateDiplomaSections(
   skillMap: SkillMapEntry[],
   existing: DiplomaAttempt[],
   nowIso: string,
+  blindEvidence: BlindConceptEvidence[] = [],
 ): DiplomaAttempt[] {
   const byTheme = new Map(skillMap.map((entry) => [entry.theme, entry]));
+  const blindEvidenceByConcept = new Map(blindEvidence.map((entry) => [entry.conceptId, entry]));
   const evaluated: DiplomaAttempt[] = [];
 
   for (const diploma of DIPLOMAS) {
@@ -53,6 +58,7 @@ export function evaluateDiplomaSections(
 
       const scorePercent = Math.round((wins / attempts) * 100);
       const passed = attempts >= (section.minAttempts ?? 0) && scorePercent >= (section.accuracyTarget ?? 0);
+      const blindEvidenceSummary = getSectionBlindEvidence(section.lichessThemes, blindEvidenceByConcept);
 
       evaluated.push({
         id,
@@ -62,6 +68,12 @@ export function evaluateDiplomaSections(
         totalItems: attempts,
         passed,
         source: 'lichess',
+        ...(blindEvidenceSummary.blindEvidenceItems === 0
+          ? {}
+          : { blindEvidenceItems: blindEvidenceSummary.blindEvidenceItems }),
+        ...(blindEvidenceSummary.blindEvidenceTarget === 0
+          ? {}
+          : { blindEvidenceTarget: blindEvidenceSummary.blindEvidenceTarget }),
         createdAt: prior?.createdAt ?? nowIso,
         updatedAt: nowIso,
       });
@@ -69,6 +81,31 @@ export function evaluateDiplomaSections(
   }
 
   return evaluated;
+}
+
+function getSectionBlindEvidence(
+  themes: readonly string[],
+  blindEvidenceByConcept: ReadonlyMap<WeaknessTag, BlindConceptEvidence>,
+): { blindEvidenceItems: number; blindEvidenceTarget: number } {
+  const conceptIds = new Set<WeaknessTag>();
+
+  for (const theme of themes) {
+    const conceptId = weaknessTagFromPuzzleTheme(theme);
+
+    if (conceptId !== undefined) {
+      conceptIds.add(conceptId);
+    }
+  }
+
+  let blindEvidenceItems = 0;
+  let blindEvidenceTarget = 0;
+
+  for (const conceptId of conceptIds) {
+    blindEvidenceItems += blindEvidenceByConcept.get(conceptId)?.eligibleAttempts ?? 0;
+    blindEvidenceTarget += getConceptContract(conceptId).mastery.blindCorrectStreak;
+  }
+
+  return { blindEvidenceItems, blindEvidenceTarget };
 }
 
 export function mergeDiplomaAttempts(existing: DiplomaAttempt[], evaluated: DiplomaAttempt[]): DiplomaAttempt[] {
@@ -93,8 +130,9 @@ export function applyDiplomaProgress(
   existing: DiplomaAttempt[],
   currentBand: LearnerBand,
   nowIso: string,
+  blindEvidence: BlindConceptEvidence[] = [],
 ): DiplomaProgressOutcome {
-  const evaluated = evaluateDiplomaSections(skillMap, existing, nowIso);
+  const evaluated = evaluateDiplomaSections(skillMap, existing, nowIso, blindEvidence);
   const nextAttempts = mergeDiplomaAttempts(existing, evaluated);
   const promotedBand = promoteBandForDiplomas(currentBand, nextAttempts);
 

@@ -108,6 +108,18 @@ describe('evaluateDiplomaSections', () => {
     expect(valor?.createdAt).toBe('2026-06-01T00:00:00.000Z');
     expect(valor?.updatedAt).toBe(NOW);
   });
+
+  it('anexa evidência cega por seção sem torná-la gate bloqueante', () => {
+    const [valor] = evaluateDiplomaSections([entry('hangingPiece', 30, 27)], [], NOW, [
+      { conceptId: 'hanging-piece', eligibleAttempts: 3, blindCorrectStreak: 3 },
+    ]).filter((attempt) => attempt.sectionId === 'valor-pecas');
+
+    expect(valor).toMatchObject({
+      passed: true,
+      blindEvidenceItems: 3,
+      blindEvidenceTarget: 5,
+    });
+  });
 });
 
 describe('mergeDiplomaAttempts', () => {

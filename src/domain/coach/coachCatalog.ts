@@ -20,7 +20,11 @@ export function getCoachNote(
   kind: PlanBlockKind,
   context: { weaknessTag?: WeaknessTag; resourceStage?: PlanResourceStage } = {},
 ): string {
-  if (kind === 'tema' && context.weaknessTag === 'fork') {
+  if (
+    kind === 'tema' &&
+    context.weaknessTag === 'fork' &&
+    (context.resourceStage === 'explain' || context.resourceStage === 'guided')
+  ) {
     return 'Garfo é uma peça sua atacando dois alvos ao mesmo tempo. Hoje: garfos com cavalo, bispo, peão e dama. O rival salva um alvo, mas o outro pode cair. No começo você vê o desenho; com treino, prepara o garfo alguns lances antes.';
   }
 

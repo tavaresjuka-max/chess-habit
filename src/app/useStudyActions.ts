@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import {
   buildDiagnosticThemeStats,
   buildSkillMap,
+  buildBlindConceptEvidence,
   generatePlan,
   type Achievement,
   type DailyPlan,
@@ -138,11 +139,13 @@ export function useStudyActions(input: UseStudyActionsInput) {
         // ANTES de gravar diplomas/perfil para não atrasar a durabilidade do sync.
         const nowIso = new Date().toISOString();
         const skillMap = buildSkillMap(nextAllTrainingLogs);
+        const blindEvidence = buildBlindConceptEvidence(nextAllTrainingLogs);
         const { evaluated, nextAttempts, promotedBand, bandChanged } = applyDiplomaProgress(
           skillMap,
           diplomaAttempts,
           currentProfile.band,
           nowIso,
+          blindEvidence,
         );
 
         const effectiveProfile = bandChanged ? { ...currentProfile, band: promotedBand } : currentProfile;

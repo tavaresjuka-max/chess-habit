@@ -11,6 +11,7 @@ import {
   type DailyPlan,
   type ErrorType,
   type LearnerProfile,
+  type PatternRecognition,
   type PlanBlock,
   type PlanBlockFeedback,
   type TrainingLog,
@@ -93,7 +94,14 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
   );
 
   const updateBlockStatusWithTrainingLog = useCallback(
-    async (blockId: string, status: PlanBlock['status'], feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) => {
+    async (
+      blockId: string,
+      status: PlanBlock['status'],
+      feedback?: PlanBlockFeedback,
+      errorType?: ErrorType,
+      selfExplanation?: string,
+      patternRecognition?: PatternRecognition,
+    ) => {
       if (todayPlan === undefined) {
         return;
       }
@@ -133,6 +141,7 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
             feedback,
             errorType,
             selfExplanation,
+            patternRecognition,
           });
           const reconcileOutcome = await reconcileLogIfPossible(completedLog);
           const nextTrainingLogs = upsertTrainingLog(trainingLogs, reconcileOutcome.log);
@@ -274,8 +283,13 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
     [updateBlockStatusWithTrainingLog],
   );
 
-  const completeBlockTraining = (blockId: string, feedback?: PlanBlockFeedback, errorType?: ErrorType, selfExplanation?: string) =>
-    updateBlockStatusWithTrainingLog(blockId, 'done', feedback, errorType, selfExplanation);
+  const completeBlockTraining = (
+    blockId: string,
+    feedback?: PlanBlockFeedback,
+    errorType?: ErrorType,
+    selfExplanation?: string,
+    patternRecognition?: PatternRecognition,
+  ) => updateBlockStatusWithTrainingLog(blockId, 'done', feedback, errorType, selfExplanation, patternRecognition);
 
   return {
     startBlockTraining,

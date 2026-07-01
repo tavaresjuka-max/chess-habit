@@ -3,6 +3,7 @@ import {
   buildDiagnosticThemeStats,
   buildPuzzleThemeStats,
   buildSkillMap,
+  buildBlindConceptEvidence,
   createWeaknessFromPuzzleStats,
   createKnownManualSignals,
   createTutorQuestionSignal,
@@ -204,7 +205,8 @@ export function useDiagnosisActions(input: UseDiagnosisActionsInput) {
       // attempts; empilha sobre o M2a (rating) já aplicado acima, sem refetch.
       const allTrainingLogs = await loadTrainingLogs();
       const skillMap = buildSkillMap(allTrainingLogs);
-      const diplomaOutcome = applyDiplomaProgress(skillMap, diplomaAttempts, ratingProfile.band, nowIso);
+      const blindEvidence = buildBlindConceptEvidence(allTrainingLogs);
+      const diplomaOutcome = applyDiplomaProgress(skillMap, diplomaAttempts, ratingProfile.band, nowIso, blindEvidence);
       const effectiveProfile: LearnerProfile =
         diplomaOutcome.bandChanged ? { ...ratingProfile, band: diplomaOutcome.promotedBand } : ratingProfile;
       await saveDiplomaAttempts(diplomaOutcome.evaluated);
