@@ -2,7 +2,7 @@
 
 **Decisão:** Council Fugu (maestro, seat=fugu, 2026-06-30).
 **Executor:** Fugu via opencode.
-**Árbitro final:** gates (`npm run typecheck && npm test && npm run build`).
+**Árbitro final:** gates (`npm run lint && npm test && npm run build`).
 
 ---
 
@@ -228,7 +228,7 @@ src/
 ## 6. Gate objetivo
 
 ```bash
-npm run typecheck
+npm run lint
 npm test
 npm run build
 ```

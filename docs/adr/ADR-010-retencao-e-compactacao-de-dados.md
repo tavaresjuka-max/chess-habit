@@ -22,7 +22,7 @@ e como isso interage com o merge por registro do sync.
   marca os antigos com `deletedAt` em vez de apagar; registros com `deletedAt` mais velho que 90 dias
   sao apagados fisicamente. Preserva janela de historico para o merge por registro do sync.
   `src/infra/storage/appData.ts:121-164` (`getPurgeCutoff`, UTC-safe via `setUTCDate`).
-- **Retencao de diagnostico por fonte** (`filterSignalsForDiagnosis`, `useDiagnosisActions.ts:640-668`):
+- **Retencao de diagnostico por fonte** (`filterSignalsForDiagnosis`, `diagnosisHelpers.ts:26-49`):
   - Lichess / `outro`: **90 dias** (janela padrao).
   - Chess.com `accuracy`/`opening`: **365 dias** (derivam da data real do jogo; 90d matava dado valido → fraqueza-fantasma).
   - Chess.com `rating`: **90 dias** (rating e retrato do momento; rating velho gera fraqueza-fantasma).
@@ -58,7 +58,7 @@ Isso e um **gate pre-divulgacao ampla**, nao um bloqueio do beta pessoal.
 ## Fontes
 
 - `src/infra/storage/appData.ts:121-164` (`getPurgeCutoff`, `replaceSignalsForSource`)
-- `src/app/useDiagnosisActions.ts:640-668` (`filterSignalsForDiagnosis`, janelas 90d/365d)
+- `src/app/diagnosisHelpers.ts:26-49` (`filterSignalsForDiagnosis` + `CHESSCOM_SIGNAL_MAX_AGE_DAYS`, janelas 90d/365d)
 - `src/infra/storage/db.ts` (schema Dexie v14), `src/infra/storage/backup.ts` (export)
 - `docs/architecture/FASE-5-SYNC-PLAN.md:23-32` (gate de compactacao/retencao; E2EE descartado)
 - Relacionado: ADR-007 (sync depois do valor por registro), ADR-008 (Chess.com fonte primaria)
