@@ -10,7 +10,7 @@ import {
   type StoragePersistenceStatus,
 } from '../app/backupStatus';
 import { Fold } from './Fold';
-import { formatBackupMeta } from './configHelpers';
+import { downloadJsonFile, formatBackupMeta } from './configHelpers';
 
 const maxBackupImportBytes = 5 * 1024 * 1024;
 
@@ -51,14 +51,7 @@ export function ConfigDataFold({
 
   async function handleExport() {
     const content = await onExport();
-    const blob = new Blob([content], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = `rotina-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadJsonFile(content, `rotina-backup-${new Date().toISOString().slice(0, 10)}.json`);
     toast.success('Backup exportado.');
   }
 
@@ -116,14 +109,7 @@ export function ConfigDataFold({
     }
     try {
       const content = await onExportErrorLog();
-      const blob = new Blob([content], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-
-      link.href = url;
-      link.download = `rotina-erros-${new Date().toISOString().slice(0, 10)}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
+      downloadJsonFile(content, `rotina-erros-${new Date().toISOString().slice(0, 10)}.json`);
       toast.success('Erros exportados.');
     } catch {
       toast.error('Não foi possível exportar os erros.');

@@ -1,9 +1,5 @@
 import type { DayCompletionSummary, TrainingRoadmapItem } from '../domain';
-import { clampPercent, formatRoadmapStatus } from './todayHelpers';
-
-export function DayProgressFill({ percent }: { percent: number }) {
-  return <progress aria-hidden="true" className="day-progress-fill" max={100} value={clampPercent(percent)} />;
-}
+import { formatRoadmapStatus } from './todayHelpers';
 
 export function DayCompletionCard({ summary }: { summary: DayCompletionSummary | undefined }) {
   if (summary === undefined) {

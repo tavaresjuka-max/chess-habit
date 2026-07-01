@@ -4,7 +4,7 @@ import { buildRoutingWhy } from '../domain/method/errorRouting';
 import { buildSupportBaseLine } from '../domain/coach/retentionCopy';
 import { ORGANIZER_CEILING_MESSAGE } from '../domain/curriculum/curriculum';
 import { AccumulationStrip } from './AccumulationStrip';
-import { DayProgressFill } from './TodayParts';
+import { clampPercent } from './todayHelpers';
 
 type TodayDayStatusProps = {
   doneBlockCount: number;
@@ -17,6 +17,10 @@ type TodayDayStatusProps = {
   routingEmphasis: DailyPlan['routingEmphasis'];
   backupReminder: string | undefined;
 };
+
+function DayProgressFill({ percent }: { percent: number }) {
+  return <progress aria-hidden="true" className="day-progress-fill" max={100} value={clampPercent(percent)} />;
+}
 
 // Faixa de status do dia: progresso, números de hoje, acúmulo recente e as notas
 // sóbrias (reforço de base, teto de organizador, porquê do roteamento, backup).
