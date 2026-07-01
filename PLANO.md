@@ -71,7 +71,7 @@ slugs Lichess por allowlist oficial/manual; erro/offline especificados; linguage
 
 Relatorio: `docs/review/relatorio-codex-auditoria-geral-2026-06-13.md`.
 
-Resolvido naquela passada historica: spec de badges marcada como aprovada, arquitetura entao realinhada e lint vermelho em `Fold` corrigido. Estado vigente supersede esse paragrafo: P4/P5 beta estao ativos, com sync opt-in Worker/D1 conta-normal. Backlog remanescente: politica de retencao/compactacao, dogfood dois-aparelhos, ADR curta sobre `vite-plugin-pwa`, ledger de assets gerados e reducao gradual de estado/componente grande.
+Resolvido naquela passada historica: spec de badges marcada como aprovada, arquitetura entao realinhada e lint vermelho em `Fold` corrigido. Estado vigente supersede esse paragrafo: P4/P5 beta estao ativos, com sync opt-in Worker/D1 conta-normal. Documentado em 2026-07-01: politica de retencao/compactacao (`docs/adr/ADR-010`), ADR do `vite-plugin-pwa` (`docs/adr/ADR-009`) e ledger de assets gerados (`docs/design/asset-ledger.md`). Backlog remanescente: dogfood dois-aparelhos (teste manual do dono) e reducao gradual de estado/componente grande (refactor, com risco de regressao — nao e housekeeping puro).
 
 ## Criterio De Pronto Por Fase
 
