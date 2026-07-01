@@ -167,7 +167,7 @@ export function TodayHero({
                     {isOpening ? 'Abrindo…' : 'Treinar agora'}
                   </button>
                 )}
-                <button type="button" className="link-button today-hero-change" onClick={onChangeFocus}>
+                <button type="button" className="secondary-button today-hero-change" onClick={onChangeFocus}>
                   Trocar o foco de hoje
                 </button>
               </div>

@@ -36,11 +36,11 @@ export function CalibrationInvite({ show, onStartCalibration }: CalibrationInvit
             onStartCalibration?.();
           }}
         >
-          Ajustar meu nível
+          Ajustar nível
         </button>
         <button
           type="button"
-          className="link-button"
+          className="secondary-button"
           onClick={() => {
             setDismissed(true);
             try {
@@ -51,7 +51,7 @@ export function CalibrationInvite({ show, onStartCalibration }: CalibrationInvit
             toast('Quando quiser ajustar seu nível, é só ir em Configurações.');
           }}
         >
-          Agora não
+          Depois
         </button>
       </div>
     </div>

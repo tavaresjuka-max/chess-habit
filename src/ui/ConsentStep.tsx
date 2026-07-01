@@ -26,7 +26,7 @@ export function ConsentStep({ onAccept }: ConsentStepProps) {
   }
 
   return (
-    <section className="panel" aria-labelledby="consent-title">
+    <section className="panel consent-panel" aria-labelledby="consent-title">
       <h1 id="consent-title">Seus dados e sua privacidade</h1>
 
       <ul className="privacy-list">

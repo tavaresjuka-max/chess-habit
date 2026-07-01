@@ -792,6 +792,47 @@ button[aria-disabled='true'] {
   color: var(--ink-600);
 }
 
+/* Lista de privacidade (tela de consentimento + fold de Ajustes): marcador
+   losango sobrio no lugar do bullet cru, texto justificado com hifenizacao
+   (html lang=pt-BR) e largura de leitura confortavel — fim da "cara de Word". */
+.privacy-list {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  max-width: 62ch;
+  text-align: justify;
+  hyphens: auto;
+  color: var(--ink-700);
+}
+
+.privacy-list li {
+  position: relative;
+  padding-left: 18px;
+  line-height: 1.55;
+}
+
+.privacy-list li::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--green-300);
+  transform: rotate(45deg);
+}
+
+/* Texto corrido da tela de consentimento: justificado, com respiro de leitura. */
+.consent-panel p {
+  max-width: 62ch;
+  line-height: 1.55;
+  text-align: justify;
+  hyphens: auto;
+}
+
 .config-version {
   margin-top: 18px;
   color: var(--ink-500);
@@ -1359,7 +1400,7 @@ textarea {
 }
 
 .today-hero-change {
-  align-self: center;
+  align-self: stretch;
 }
 
 /* CTA primária do herói: herda o botão verde global; aqui só cresce para dominar a linha. */
@@ -1374,19 +1415,22 @@ textarea {
 }
 
 .today-hero-chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   list-style: none;
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   padding: 0;
 }
 
 .today-hero-chips li {
   display: grid;
-  gap: 1px;
+  gap: 2px;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
   min-width: 0;
-  padding: 5px 10px;
+  padding: 8px 6px;
   border-radius: var(--radius-sm);
   background: var(--paper-deep);
   border: 1px solid var(--line-soft);

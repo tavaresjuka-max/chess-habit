@@ -219,16 +219,16 @@ describe('Today — convite de calibração', () => {
     const onStartCalibration = vi.fn();
     renderToday({ blocks: [makeBlock({ id: 'b1' })], showCalibrationInvite: true, onStartCalibration });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ajustar meu nível' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar nível' }));
     expect(onStartCalibration).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Agora não' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Depois' }));
     expect(screen.queryByText(/Quer ajustar seu nível/)).not.toBeInTheDocument();
   });
 
   it('o dispensar PERSISTE: o convite não volta após remontar a tela', () => {
     renderToday({ blocks: [makeBlock({ id: 'b1' })], showCalibrationInvite: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Agora não' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Depois' }));
     expect(screen.queryByText(/Quer ajustar seu nível/)).not.toBeInTheDocument();
 
     // Remonta (como um reload/troca de aba): antes voltava; agora persiste.
