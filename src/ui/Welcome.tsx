@@ -53,7 +53,7 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
         </button>
         <button
           type="button"
-          className="link-button"
+          className="secondary-button"
           onClick={() => {
             void onStart();
           }}
