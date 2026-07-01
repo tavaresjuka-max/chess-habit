@@ -363,7 +363,7 @@ export function PlanBlockCard({
                 'Como foi o treino?'
               )}
             </p>
-            <div className="button-row" aria-busy={isSubmittingFeedback}>
+            <div className="rating-choices" aria-busy={isSubmittingFeedback}>
               <button
                 type="button"
                 className="secondary-button"
@@ -394,17 +394,17 @@ export function PlanBlockCard({
               >
                 Difícil
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsRating(false);
-                }}
-                className="link-button"
-                disabled={isSubmittingFeedback}
-              >
-                Voltar
-              </button>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setIsRating(false);
+              }}
+              className="link-button rating-back"
+              disabled={isSubmittingFeedback}
+            >
+              Voltar
+            </button>
           </div>
         )
       ) : (

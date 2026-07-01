@@ -2466,6 +2466,27 @@ li.diploma-row {
   margin-top: 12px;
 }
 
+/* Fácil / Bom / Difícil sempre na MESMA linha, em 3 colunas EXATAMENTE iguais
+   (minmax(0,1fr) impede que o texto mais largo — "Difícil" — estique a coluna);
+   o "Voltar" (escape) desce para uma linha própria, centralizado e discreto. */
+.rating-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rating-choices button {
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  padding-inline: 8px;
+  white-space: nowrap;
+}
+
+.rating-back {
+  justify-self: center;
+}
+
 .plan-block .rating-prompt {
   margin: 0;
   font-weight: 650;
