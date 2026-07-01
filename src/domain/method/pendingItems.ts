@@ -1,19 +1,23 @@
 import { createId } from '../ids';
+import {
+  DEFAULT_EASE_FACTOR,
+  EF_DELTA_EASY,
+  EF_DELTA_GOOD,
+  EF_DELTA_HARD,
+  MAX_EASE_FACTOR,
+  MIN_EASE_FACTOR,
+  RETENTION_GATE_DAYS,
+  SPACING_DAYS,
+} from '../pedagogyConstants';
 import type { PlanBlockFeedback, TrainingLog, WeaknessTag } from '../types';
 import { classifyDifficultyFit, decideMismatchAction, type ObservedResult } from './difficultyFit';
 import type { MasteryResult } from './mastery';
 import type { MethodTrackId, PendingTrainingItem } from './types';
 
-const SPACING_DAYS = [1, 3, 7, 14] as const;
-
-// SR adaptativo (SM-2, council 2026-06-24). Intervalo = SPACING_DAYS[attempts] ×
-// (easeFactor / DEFAULT). Default 2.5 => escala 1 => idêntico à escada fixa
-// (retrocompatível). 'easy'/'good' sobem o EF (intervalos maiores), 'hard' desce.
-const DEFAULT_EASE_FACTOR = 2.5;
-const MIN_EASE_FACTOR = 1.3;
-const MAX_EASE_FACTOR = 2.8;
-// Gate de retenção: resgate CEGO de longo prazo antes da graduação final.
-const RETENTION_GATE_DAYS = 30;
+// SR adaptativo (SM-2, council 2026-06-24). Constantes vêm da fonte única
+// pedagogyConstants.ts (evita divergência — MAX_EASE_FACTOR só existia aqui antes).
+// Intervalo = SPACING_DAYS[attempts] × (easeFactor / DEFAULT); default 2.5 => escala 1
+// => idêntico à escada fixa. 'easy'/'good' sobem o EF, 'hard' desce.
 
 function clampEaseFactor(ease: number): number {
   return Math.max(MIN_EASE_FACTOR, Math.min(MAX_EASE_FACTOR, ease));
@@ -23,7 +27,14 @@ function clampEaseFactor(ease: number): number {
 // 'hard' -0.20, sem feedback mantém. Clamp [1.3, 2.8].
 export function nextEaseFactor(current: number | undefined, feedback?: PlanBlockFeedback): number {
   const ease = current ?? DEFAULT_EASE_FACTOR;
-  const delta = feedback === 'easy' ? 0.15 : feedback === 'good' ? 0.05 : feedback === 'hard' ? -0.2 : 0;
+  const delta =
+    feedback === 'easy'
+      ? EF_DELTA_EASY
+      : feedback === 'good'
+        ? EF_DELTA_GOOD
+        : feedback === 'hard'
+          ? EF_DELTA_HARD
+          : 0;
 
   return clampEaseFactor(ease + delta);
 }

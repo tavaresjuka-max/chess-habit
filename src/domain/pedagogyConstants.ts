@@ -85,6 +85,15 @@ export const DEFAULT_EASE_FACTOR = 2.5;
 export const MIN_EASE_FACTOR = 1.3;
 
 /**
+ * Ease factor máximo (teto do clamp).
+ * INTENÇÃO: o EF não sobe indefinidamente — evita intervalos que estouram a
+ * janela de retenção. 2.8 dá folga sobre o default 2.5 sem descolar da escada.
+ * Sensibilidade: aumentar => 'easy' repetido estica demais (risco de esquecer);
+ * diminuir => teto quase colado no default, feedback positivo perde efeito.
+ */
+export const MAX_EASE_FACTOR = 2.8;
+
+/**
  * Gate de retenção: dias até o resgate CEGO de longo prazo antes da graduação.
  * INTENÇÃO: só forma um item se ele reter o padrão ~1 mês sem ver — prova de
  * retenção real, não de memória de curto prazo.
