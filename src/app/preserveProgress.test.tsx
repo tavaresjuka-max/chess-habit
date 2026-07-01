@@ -44,7 +44,7 @@ describe('preserve progress across regeneration', () => {
     );
 
     // Salvar a config regenera o plano (mesmos minutos => mesmos ids de bloco).
-    fireEvent.click(screen.getByRole('button', { name: 'Config' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustes' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Salvar' }, { timeout: 5000 }));
 
     // saveProfile volta para a tela Hoje; o bloco deve continuar "Feito".

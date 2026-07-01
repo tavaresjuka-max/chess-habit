@@ -342,7 +342,7 @@ export function App() {
           }}
         >
           <Settings aria-hidden="true" size={16} />
-          Config
+          Ajustes
         </button>
       </nav>
 

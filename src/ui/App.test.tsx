@@ -434,11 +434,11 @@ describe('App — app principal com onboarding resolvido', () => {
     expect(hojeBtn).toHaveAttribute('aria-current', 'page');
   });
 
-  it('botões Progresso e Config não têm aria-current quando activeView é today', async () => {
+  it('botões Progresso e Ajustes não têm aria-current quando activeView é today', async () => {
     const { App } = await import('./App');
     render(<App />);
     expect(screen.getByRole('button', { name: /progresso/i })).not.toHaveAttribute('aria-current');
-    expect(screen.getByRole('button', { name: /config/i })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: /ajustes/i })).not.toHaveAttribute('aria-current');
   });
 });
 
@@ -473,10 +473,10 @@ describe('App — activeView config', () => {
     });
   });
 
-  it('botão "Config" tem aria-current=page quando activeView é config', async () => {
+  it('botão "Ajustes" tem aria-current=page quando activeView é config', async () => {
     const { App } = await import('./App');
     render(<App />);
-    expect(screen.getByRole('button', { name: /config/i })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: /ajustes/i })).toHaveAttribute('aria-current', 'page');
   });
 });
 
