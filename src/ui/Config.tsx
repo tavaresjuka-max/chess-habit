@@ -1,11 +1,9 @@
-import { ArrowLeft, Trash2 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { SYNC_UI_ENABLED } from '../config/syncConfig';
 import { createDefaultProfile, type LichessConnectionState } from '../app/state';
 import {
-  describeAutoBackupStatus,
-  describePersistenceStatus,
   type AutoBackupStatus,
   type BackupImportResult,
   type BackupMeta,
@@ -17,7 +15,9 @@ import { BandaIcon } from './art/BandaIcon';
 import { Fold } from './Fold';
 import { PlacementCard } from './PlacementCard';
 import { SyncPanel } from './SyncPanel';
-import { PRIVACY_SUMMARY } from '../config/appIdentity';
+import { ConfigDataFold } from './ConfigDataFold';
+import { ConfigPrivacyFold } from './ConfigPrivacyFold';
+import { formatLichessConnection } from './configHelpers';
 
 type ConfigProps = {
   profile: LearnerProfile | undefined;
@@ -53,7 +53,6 @@ type ConfigProps = {
 };
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
-const maxBackupImportBytes = 5 * 1024 * 1024;
 
 export function Config({
   profile,
@@ -83,9 +82,6 @@ export function Config({
   onToggleResearchOptIn,
   onBack,
 }: ConfigProps) {
-  const restoreInputRef = useRef<HTMLInputElement>(null);
-  const [confirmingClear, setConfirmingClear] = useState(false);
-  const [pendingRestoreFile, setPendingRestoreFile] = useState<File | null>(null);
   const initialProfile = profile ?? createDefaultProfile();
   const [lichessUsername, setLichessUsername] = useState(initialProfile.lichessUsername ?? '');
   const [chesscomUsername, setChesscomUsername] = useState(initialProfile.chesscomUsername ?? '');
@@ -106,107 +102,6 @@ export function Config({
       updatedAt: new Date().toISOString(),
     });
     toast.success('Configuração salva.');
-  }
-
-  async function handleExport() {
-    const content = await onExport();
-    const blob = new Blob([content], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = `rotina-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success('Backup exportado.');
-  }
-
-  function handleRestoreFile(file: File) {
-    // Confirmação inline (não window.confirm): acessível para leitor de tela e
-    // consistente com "Apagar tudo". O arquivo fica pendente até o usuário confirmar.
-    setPendingRestoreFile(file);
-  }
-
-  async function confirmRestore() {
-    if (pendingRestoreFile === null) {
-      return;
-    }
-
-    if (pendingRestoreFile.size > maxBackupImportBytes) {
-      setPendingRestoreFile(null);
-      toast.error('Backup muito grande para restaurar no navegador.');
-      return;
-    }
-
-    const result = await onImportBackup(await pendingRestoreFile.text());
-    setPendingRestoreFile(null);
-
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-
-    toast.success(`Backup de ${new Date(result.exportedAt).toLocaleString('pt-BR')} restaurado. Recarregando…`);
-    window.setTimeout(() => {
-      window.location.reload();
-    }, 1200);
-  }
-
-  async function handleImportKnownManualSignals() {
-    const count = await onImportKnownManualSignals();
-    toast.success(`${String(count)} sinais manuais salvos.`);
-  }
-
-  async function handleToggleErrorCapture(nextEnabled: boolean) {
-    if (onToggleErrorCapture === undefined) {
-      return;
-    }
-    try {
-      await onToggleErrorCapture(nextEnabled);
-      toast.success(nextEnabled ? 'Registro de erros ativado.' : 'Registro de erros desligado.');
-    } catch {
-      toast.error('Não foi possível mudar o registro de erros.');
-    }
-  }
-
-  async function handleExportErrors() {
-    if (onExportErrorLog === undefined) {
-      return;
-    }
-    try {
-      const content = await onExportErrorLog();
-      const blob = new Blob([content], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-
-      link.href = url;
-      link.download = `rotina-erros-${new Date().toISOString().slice(0, 10)}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-      toast.success('Erros exportados.');
-    } catch {
-      toast.error('Não foi possível exportar os erros.');
-    }
-  }
-
-  async function handleToggleResearchOptIn(nextEnabled: boolean) {
-    if (onToggleResearchOptIn === undefined) {
-      return;
-    }
-    try {
-      await onToggleResearchOptIn(nextEnabled);
-      toast.success(
-        nextEnabled ? 'Participação na pesquisa ativada.' : 'Participação na pesquisa desligada.',
-      );
-    } catch {
-      toast.error('Não foi possível mudar a participação na pesquisa.');
-    }
-  }
-
-  async function confirmClear() {
-    setConfirmingClear(false);
-    await onClear();
-    toast.success('Dados locais apagados.');
   }
 
   return (
@@ -355,194 +250,28 @@ export function Config({
         </div>
       </Fold>
 
-      <Fold concept="dados" title="Dados locais">
-        <div className="data-zone">
-        {storagePersistence !== undefined ? (
-          <p aria-live="polite">{describePersistenceStatus(storagePersistence)}</p>
-        ) : null}
-        <p>{formatBackupMeta(backupMeta)}</p>
-        <p aria-live="polite">{describeAutoBackupStatus(autoBackupStatus, autoBackupFileName)}</p>
-        {autoBackupStatus !== 'unsupported' ? (
-          <div className="button-row">
-            {autoBackupStatus === 'disabled' ? (
-              <button type="button" className="secondary-button" onClick={() => void onEnableAutoBackup()}>
-                Ativar backup automático
-              </button>
-            ) : (
-              <>
-                {autoBackupStatus !== 'enabled' ? (
-                  <button type="button" className="secondary-button" onClick={() => void onEnableAutoBackup()}>
-                    Reativar backup automático
-                  </button>
-                ) : null}
-                <button type="button" className="secondary-button" onClick={() => void onDisableAutoBackup()}>
-                  Desligar backup automático
-                </button>
-              </>
-            )}
-          </div>
-        ) : null}
+      <ConfigDataFold
+        storagePersistence={storagePersistence}
+        backupMeta={backupMeta}
+        autoBackupStatus={autoBackupStatus}
+        autoBackupFileName={autoBackupFileName}
+        onEnableAutoBackup={onEnableAutoBackup}
+        onDisableAutoBackup={onDisableAutoBackup}
+        onExport={onExport}
+        onImportBackup={onImportBackup}
+        onClear={onClear}
+        onImportKnownManualSignals={onImportKnownManualSignals}
+        errorCaptureEnabled={errorCaptureEnabled}
+        onToggleErrorCapture={onToggleErrorCapture}
+        onExportErrorLog={onExportErrorLog}
+      />
 
-        <input
-          ref={restoreInputRef}
-          type="file"
-          accept="application/json,.json"
-          hidden
-          aria-label="Selecionar arquivo de backup para restaurar"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-
-            event.target.value = '';
-
-            if (file !== undefined) {
-              handleRestoreFile(file);
-            }
-          }}
-        />
-        <div className="button-row">
-          <button type="button" className="secondary-button" onClick={() => void handleExport()}>
-            Exportar backup JSON
-          </button>
-          {pendingRestoreFile !== null ? (
-            <div className="button-row" role="group" aria-label="Confirmar restaurar backup">
-              <span className="rating-prompt">Restaurar substitui todos os dados atuais. Continuar?</span>
-              <button type="button" className="danger-button" onClick={() => void confirmRestore()}>
-                Restaurar e recarregar
-              </button>
-              <button
-                type="button"
-                className="link-button"
-                onClick={() => {
-                  setPendingRestoreFile(null);
-                }}
-              >
-                Cancelar
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => {
-                restoreInputRef.current?.click();
-              }}
-            >
-              Restaurar backup
-            </button>
-          )}
-          <button type="button" className="secondary-button" onClick={() => void handleImportKnownManualSignals()}>
-            Adicionar sinais manuais
-          </button>
-          <div className="error-capture-zone">
-            <label className="field field-inline">
-              <input
-                type="checkbox"
-                checked={errorCaptureEnabled}
-                onChange={(event) => {
-                  void handleToggleErrorCapture(event.target.checked);
-                }}
-              />
-              <span>Registrar relatórios de erro (ajuda a melhorar o app)</span>
-            </label>
-            <p className="config-hint">
-              Quando ligado, erros do app ficam só neste aparelho. Você pode exportar e enviar se
-              quiser — nada é enviado automaticamente.
-            </p>
-            {errorCaptureEnabled ? (
-              <button type="button" className="secondary-button" onClick={() => void handleExportErrors()}>
-                Exportar erros
-              </button>
-            ) : null}
-          </div>
-          {confirmingClear ? (
-            <div className="button-row" role="group" aria-label="Confirmar apagar tudo">
-              <span className="rating-prompt">Apagar todos os dados locais?</span>
-              <button type="button" className="danger-button" onClick={() => void confirmClear()}>
-                <Trash2 aria-hidden="true" size={16} />
-                Apagar definitivamente
-              </button>
-              <button
-                type="button"
-                className="link-button"
-                onClick={() => {
-                  setConfirmingClear(false);
-                }}
-              >
-                Cancelar
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="danger-button"
-              onClick={() => {
-                setConfirmingClear(true);
-              }}
-            >
-              <Trash2 aria-hidden="true" size={16} />
-              Apagar tudo
-            </button>
-          )}
-        </div>
-        </div>
-      </Fold>
-
-      <Fold concept="dados" title="Privacidade e consentimento">
-        <div className="data-zone">
-          <ul className="privacy-list">
-            {PRIVACY_SUMMARY.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          {consentedAt !== undefined ? (
-            <p className="config-hint">
-              Consentimento registrado em:{' '}
-              {new Date(consentedAt).toLocaleString('pt-BR')}.
-            </p>
-          ) : (
-            <p className="config-hint">
-              Consentimento ainda não registrado — concluiu o onboarding em um
-              app anterior a esta versão.
-            </p>
-          )}
-          {adoptedAt !== undefined ? (
-            <p className="config-hint">
-              Usuário desde: {new Date(adoptedAt).toLocaleString('pt-BR')}.
-            </p>
-          ) : null}
-          <div className="error-capture-zone">
-            <label className="field field-inline">
-              <input
-                type="checkbox"
-                checked={researchOptIn === true}
-                disabled={onToggleResearchOptIn === undefined}
-                onChange={(event) => {
-                  void handleToggleResearchOptIn(event.target.checked);
-                }}
-              />
-              <span>Participar da medição de eficácia em agregado (anônimo)</span>
-            </label>
-            <p className="config-hint">
-              Seus dados continuam só no seu aparelho. Só uma contagem agregada anônima sai —
-              nunca identificação pessoal. Você pode mudar esta opção a qualquer momento.
-            </p>
-          </div>
-          <p>
-            <a
-              href="/docs/privacy/privacy-and-data.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link-button"
-            >
-              Política de privacidade completa
-            </a>
-          </p>
-          <p className="config-hint">
-            Para apagar todos os dados locais (incluindo histórico de consentimento) use o
-            botão &ldquo;Apagar tudo&rdquo; na seção &ldquo;Dados locais&rdquo; acima.
-          </p>
-        </div>
-      </Fold>
+      <ConfigPrivacyFold
+        consentedAt={consentedAt}
+        adoptedAt={adoptedAt}
+        researchOptIn={researchOptIn}
+        onToggleResearchOptIn={onToggleResearchOptIn}
+      />
 
       {SYNC_UI_ENABLED ? (
         <Fold concept="dados" title="Sincronização" meta="experimental">
@@ -552,37 +281,4 @@ export function Config({
       <p className="config-version">versão {__APP_VERSION__}</p>
     </section>
   );
-}
-
-function formatBackupMeta(meta: BackupMeta | undefined): string {
-  if (meta === undefined) {
-    return 'Nenhum backup exportado ainda.';
-  }
-
-  const date = new Date(meta.exportedAt);
-  const formatted = Number.isNaN(date.getTime())
-    ? meta.exportedAt
-    : date.toLocaleString('pt-BR');
-
-  return `Último backup: ${formatted} (${String(meta.recordCount)} registros).`;
-}
-
-function formatLichessConnection(
-  token: LichessOAuthToken | undefined,
-  state: LichessConnectionState,
-): string {
-  if (state === 'syncing') {
-    return 'Sincronizando com o Lichess.';
-  }
-
-  if (state === 'error') {
-    return 'Conexão Lichess precisa de atenção.';
-  }
-
-  // O benefício de conectar já está no hint da seção — aqui só o estado.
-  if (token === undefined) {
-    return 'Desconectado.';
-  }
-
-  return `Conectado com escopos: ${token.scopes.join(', ')}.`;
 }
