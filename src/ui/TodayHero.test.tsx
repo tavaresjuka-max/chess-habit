@@ -163,15 +163,15 @@ describe('TodayHero — botões de ação', () => {
 });
 
 describe('TodayHero — chips glanceable (sempre visíveis)', () => {
-  it('mostra os três chips: a recuperar, checkpoint, sessões restantes', () => {
+  it('mostra os três chips: recuperar, checkpoint, sessões', () => {
     renderHero({ dueCount: 2, checkpointLabel: 'Ciclo 6h', remainingSessions: 3 });
 
     const chips = screen.getByRole('list', { name: /sinais de hoje/i });
-    expect(chips).toHaveTextContent('A recuperar');
+    expect(chips).toHaveTextContent('Recuperar');
     expect(chips).toHaveTextContent('2');
     expect(chips).toHaveTextContent('Checkpoint');
     expect(chips).toHaveTextContent('Ciclo 6h');
-    expect(chips).toHaveTextContent('Sessões restantes');
+    expect(chips).toHaveTextContent('Sessões');
     expect(chips).toHaveTextContent('3');
   });
 });

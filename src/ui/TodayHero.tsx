@@ -180,7 +180,7 @@ export function TodayHero({
           )}
           <ul className="today-hero-chips" role="list" aria-label="Sinais de hoje">
             <li>
-              <span>A recuperar</span>
+              <span>Recuperar</span>
               <strong>{String(dueCount)}</strong>
             </li>
             <li>
@@ -188,7 +188,7 @@ export function TodayHero({
               <strong>{checkpointLabel}</strong>
             </li>
             <li>
-              <span>Sessões restantes</span>
+              <span>Sessões</span>
               <strong>{String(remainingSessions)}</strong>
             </li>
           </ul>
