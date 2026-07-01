@@ -1,6 +1,5 @@
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import {
   buildLearningPlanProposal,
   buildDayCompletionSummary,
@@ -26,8 +25,7 @@ import {
   type Weakness,
 } from '../domain';
 import { computeRecentActivity } from '../domain/metrics/recentActivity';
-import { buildMilestoneLine, buildFactualFooter, buildSupportBaseLine } from '../domain/coach/retentionCopy';
-import { AccumulationStrip } from './AccumulationStrip';
+import { buildMilestoneLine, buildFactualFooter } from '../domain/coach/retentionCopy';
 import {
   findDiplomaSectionForTheme,
   SECTION_MIN_ATTEMPTS,
@@ -37,8 +35,6 @@ import { getMethodTrackTitle } from '../domain/method/methodTracks';
 import type { PendingTrainingItem } from '../domain/method/types';
 import type { BackupMeta } from '../app/backupStatus';
 import type { LichessConnectionState } from '../app/state';
-import { ORGANIZER_CEILING_MESSAGE } from '../domain/curriculum/curriculum';
-import { buildRoutingWhy } from '../domain/method/errorRouting';
 import { isDueToday } from '../domain/method/pendingItems';
 import { Fold } from './Fold';
 import { BlockCarousel } from './BlockCarousel';
@@ -54,7 +50,9 @@ import {
   playTimerBeep,
   themeFromTrainingUrl,
 } from './todayHelpers';
-import { DayCompletionCard, DayProgressFill, RoadmapList } from './TodayParts';
+import { DayCompletionCard, RoadmapList } from './TodayParts';
+import { CalibrationInvite } from './CalibrationInvite';
+import { TodayDayStatus } from './TodayDayStatus';
 
 type TodayProps = {
   plan: DailyPlan | undefined;
@@ -88,11 +86,6 @@ type TodayProps = {
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
 
-// O convite de calibração é opcional. Quando o usuário escolhe "Agora não", o
-// dispensar PERSISTE neste aparelho (antes era estado de componente e voltava a
-// cada reload/troca de aba). Pode recalibrar quando quiser em Configurações.
-const CALIBRATION_INVITE_DISMISSED_KEY = 'chesshabit:calibration-invite-dismissed';
-
 export function Today({
   plan,
   roadmap,
@@ -123,14 +116,6 @@ export function Today({
 }: TodayProps) {
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
-  const [calibrationInviteDismissed, setCalibrationInviteDismissed] = useState(() => {
-    try {
-      return localStorage.getItem(CALIBRATION_INVITE_DISMISSED_KEY) === 'true';
-    } catch {
-      // Sem localStorage (modo privado/iframe): o convite só não persiste o dispensar.
-      return false;
-    }
-  });
   const alertedLogs = useRef<Set<string>>(new Set());
   const hasActiveTraining = trainingLogs.some((log) => log.status === 'active');
 
@@ -323,95 +308,19 @@ export function Today({
         onChangeFocus={revealFocusCarousel}
       />
 
-      {showCalibrationInvite && !calibrationInviteDismissed ? (
-        <div className="calibration-invite" role="note" aria-label="Convite para calibrar o nível">
-          <p>Quer ajustar seu nível? Uma calibração rápida (≈2 min) deixa o plano no ponto certo.</p>
-          <div className="calibration-invite-actions">
-            <button
-              type="button"
-              onClick={() => {
-                onStartCalibration?.();
-              }}
-            >
-              Ajustar meu nível
-            </button>
-            <button
-              type="button"
-              className="link-button"
-              onClick={() => {
-                setCalibrationInviteDismissed(true);
-                try {
-                  localStorage.setItem(CALIBRATION_INVITE_DISMISSED_KEY, 'true');
-                } catch {
-                  // Sem localStorage o dispensar vale só nesta sessão; não quebra nada.
-                }
-                toast('Quando quiser ajustar seu nível, é só ir em Configurações.');
-              }}
-            >
-              Agora não
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <CalibrationInvite show={showCalibrationInvite} onStartCalibration={onStartCalibration} />
 
-      <div
-        className="day-progress"
-        role="progressbar"
-        aria-label="Progresso do dia"
-        aria-valuemin={0}
-        aria-valuemax={allBlocksOrdered.length}
-        aria-valuenow={doneBlockCount}
-        aria-valuetext={
-          allBlocksOrdered.length === 0
-            ? 'Sem blocos planejados'
-            : `${String(doneBlockCount)} de ${String(allBlocksOrdered.length)} blocos`
-        }
-      >
-        <DayProgressFill
-          percent={allBlocksOrdered.length === 0 ? 0 : Math.round((doneBlockCount / allBlocksOrdered.length) * 100)}
-        />
-      </div>
-
-      <ul className="day-stats" role="list" aria-label="Números de hoje">
-        <li>
-          <strong>
-            {doneBlockCount}/{allBlocksOrdered.length}
-          </strong>
-          <span>{allBlocksOrdered.length === 1 ? 'bloco' : 'blocos'}</span>
-        </li>
-        <li>
-          <strong>{minutesTrainedToday}</strong>
-          <span>min hoje</span>
-        </li>
-      </ul>
-      <AccumulationStrip recentDays={recentActivity.recentDays} />
-      <p className="accumulation-footer">{factualFooter}</p>
-      {plan.chronicSupportSuggested === true ? (
-        // R2b: oferta sóbria de reforçar a base (enquadrada como acúmulo, não
-        // remediação). Decoplada do estágio exibido — não regride nada.
-        <p className="support-base-note">{buildSupportBaseLine()}</p>
-      ) : null}
-      {plan.organizerCeiling === true ? (
-        // Teto explícito (council 2026-06-24): no topo (FM 2200-2400) o app assume
-        // honestamente o papel de organizador de autoestudo — não finge um tier de
-        // ensino novo. Mensagem sem promessa de rating.
-        <p className="organizer-ceiling-note" role="note">
-          {ORGANIZER_CEILING_MESSAGE}
-        </p>
-      ) : null}
-      {plan.routingEmphasis !== undefined ? (
-        // A1' transparência (council 2026-06-24): mostra ao aluno POR QUE o coaching
-        // de hoje foi roteado pelo padrão de erro recente. Nota sóbria, sem tap extra.
-        <p className="routing-why-note" role="note">
-          {buildRoutingWhy(plan.routingEmphasis)}
-        </p>
-      ) : null}
-
-      {backupReminder !== undefined ? (
-        <p className="backup-reminder" role="status">
-          {backupReminder}
-        </p>
-      ) : null}
+      <TodayDayStatus
+        doneBlockCount={doneBlockCount}
+        totalBlocks={allBlocksOrdered.length}
+        minutesTrainedToday={minutesTrainedToday}
+        recentDays={recentActivity.recentDays}
+        factualFooter={factualFooter}
+        chronicSupportSuggested={plan.chronicSupportSuggested === true}
+        organizerCeiling={plan.organizerCeiling === true}
+        routingEmphasis={plan.routingEmphasis}
+        backupReminder={backupReminder}
+      />
 
       {/* A ação (próximo passo / "treinando agora") — carrossel em modo foco,
           um bloco grande por vez. O TodayHero já abre a missão de agora acima;
