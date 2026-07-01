@@ -357,7 +357,6 @@ export function useAppState(): AppState {
     todayPlan,
     latestPlanRef,
     trainingLogs,
-    weaknesses,
     setAchievements,
     setAllTrainingLogs,
     setDiplomaAttempts,

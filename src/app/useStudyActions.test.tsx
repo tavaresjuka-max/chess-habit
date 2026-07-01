@@ -8,6 +8,7 @@ import {
   loadProfile,
   loadTrainingLogs,
   loadTrainingLogsForDate,
+  loadWeaknesses,
   saveProfile,
   saveTrainingLog,
   saveTrainingLogsAndPlan,
@@ -25,6 +26,7 @@ vi.mock('../infra/storage/appData', () => ({
   loadProfile: vi.fn(),
   loadTrainingLogs: vi.fn(),
   loadTrainingLogsForDate: vi.fn(),
+  loadWeaknesses: vi.fn(),
   saveDiplomaAttempt: vi.fn(),
   saveDiplomaAttempts: vi.fn(),
   saveLichessStudyLink: vi.fn(),
@@ -59,6 +61,7 @@ beforeEach(() => {
   // assume (allTrainingLogs = [existingLog]); o dia começa vazio.
   vi.mocked(loadTrainingLogs).mockResolvedValue([existingLog]);
   vi.mocked(loadTrainingLogsForDate).mockResolvedValue([]);
+  vi.mocked(loadWeaknesses).mockResolvedValue([]);
   vi.mocked(reconcileLichessPuzzleDiagnostics).mockResolvedValue([reconciledLog]);
   vi.mocked(syncAchievements).mockResolvedValue([unlockedAchievement]);
 });
@@ -79,6 +82,8 @@ describe('useStudyActions', () => {
     expect(reconcileLichessPuzzleDiagnostics).toHaveBeenCalledWith([], 'secret-token');
     expect(mergeTrainingLogs).toHaveBeenCalledWith([existingLog], [reconciledLog]);
     expect(syncAchievements).toHaveBeenCalledWith([existingLog, reconciledLog]);
+    // Gap 3: o reconcile relê weaknesses do storage (anti-race), não da closure.
+    expect(vi.mocked(loadWeaknesses)).toHaveBeenCalled();
     expect(input.setAchievements).toHaveBeenCalledWith([unlockedAchievement]);
     expect(input.setLichessConnectionState).toHaveBeenLastCalledWith('connected');
   });
@@ -173,7 +178,6 @@ function createInput(overrides: Partial<UseStudyActionsInput> = {}): UseStudyAct
     todayPlan: undefined,
     latestPlanRef: { current: undefined },
     trainingLogs: [],
-    weaknesses: [],
     setAchievements: vi.fn(),
     setAllTrainingLogs: vi.fn(),
     setDiplomaAttempts: vi.fn(),

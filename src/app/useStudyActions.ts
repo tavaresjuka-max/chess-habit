@@ -9,7 +9,6 @@ import {
   type LearnerProfile,
   type LichessStudyLink,
   type TrainingLog,
-  type Weakness,
 } from '../domain';
 import { applyDiplomaProgress } from '../domain/method/evaluateDiplomas';
 import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types';
@@ -20,6 +19,7 @@ import {
   loadProfile,
   loadTrainingLogs,
   loadTrainingLogsForDate,
+  loadWeaknesses,
   saveDiplomaAttempts,
   saveLichessStudyLink,
   saveProfile,
@@ -50,7 +50,6 @@ export type UseStudyActionsInput = {
   // durante o fetch (anti-race, achado do council).
   latestPlanRef: { current: DailyPlan | undefined };
   trainingLogs: TrainingLog[];
-  weaknesses: Weakness[];
   setAchievements: Dispatch<SetStateAction<Achievement[]>>;
   setAllTrainingLogs: Dispatch<SetStateAction<TrainingLog[]>>;
   setDiplomaAttempts: Dispatch<SetStateAction<DiplomaAttempt[]>>;
@@ -71,7 +70,6 @@ export function useStudyActions(input: UseStudyActionsInput) {
     todayPlan,
     latestPlanRef,
     trainingLogs,
-    weaknesses,
     setAchievements,
     setAllTrainingLogs,
     setDiplomaAttempts,
@@ -126,6 +124,10 @@ export function useStudyActions(input: UseStudyActionsInput) {
         currentPlan === undefined ? trainingLogs : await loadTrainingLogsForDate(currentPlan.date);
       const nextTrainingLogs = mergeTrainingLogs(currentDayLogs, reconciledLogs);
       const nextAllTrainingLogs = mergeTrainingLogs(await loadTrainingLogs(), reconciledLogs);
+      // Anti-race (mesmo motivo de profile/logs acima): relê weaknesses do storage em vez
+      // da closure, senão o plano regenerado após "Atualizar diagnóstico" usaria as
+      // fraquezas antigas até o próximo boot.
+      const currentWeaknesses = await loadWeaknesses();
 
       let promotionMessage: string | undefined;
 
@@ -148,7 +150,7 @@ export function useStudyActions(input: UseStudyActionsInput) {
         const recentThemeStats = buildDiagnosticThemeStats(nextTrainingLogs);
         const nextPlan = generatePlan(
           effectiveProfile,
-          weaknesses,
+          currentWeaknesses,
           toSessionMinutes(currentPlan.sessionMinutes, effectiveProfile.defaultSessionMinutes),
           currentPlan.date,
           buildPlanContext({
@@ -201,7 +203,7 @@ export function useStudyActions(input: UseStudyActionsInput) {
         setLichessMessage(toLichessErrorMessage(error));
       }
     }
-  }, [allTrainingLogs, diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs, weaknesses]);
+  }, [allTrainingLogs, diplomaAttempts, pendingItems, profile, todayPlan, trainingLogs]);
 
   const importFreeActivity = useCallback(async () => {
     const token = await loadLichessOAuthToken();
