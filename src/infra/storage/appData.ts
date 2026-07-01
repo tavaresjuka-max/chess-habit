@@ -256,6 +256,15 @@ export async function loadOpenPendingItems(): Promise<PendingTrainingItem[]> {
   return db.pendingItems.where('status').equals('open').toArray();
 }
 
+/**
+ * Busca um pending item por id direto no storage. Fallback para quando o item não
+ * está no estado carregado no boot (que só traz os 'open') — evita pular o avanço
+ * do SR em silêncio quando um bloco referencia um item já concluído/deferido/restaurado.
+ */
+export async function loadPendingItemById(id: string): Promise<PendingTrainingItem | undefined> {
+  return db.pendingItems.get(id);
+}
+
 export async function loadDonePendingItems(): Promise<PendingTrainingItem[]> {
   return db.pendingItems.where('status').equals('done').toArray();
 }

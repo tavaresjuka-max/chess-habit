@@ -21,6 +21,7 @@ import type { DiplomaAttempt, PendingTrainingItem } from '../domain/method/types
 import { getCuratedStudyForWeakness } from '../domain/sources/resourceCatalog';
 import {
   getTrainingLog,
+  loadPendingItemById,
   savePendingItem,
   savePlan,
   saveTrainingLog,
@@ -147,7 +148,9 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
           let pendingDeferReason: string | undefined;
 
           if (block.pendingItemId !== undefined) {
-            const pendingItem = pendingItems.find((item) => item.id === block.pendingItemId);
+            const pendingItem =
+              pendingItems.find((item) => item.id === block.pendingItemId) ??
+              (await loadPendingItemById(block.pendingItemId));
 
             if (pendingItem !== undefined) {
               const masteryInput = {
@@ -216,6 +219,12 @@ export function useTrainingActions(input: UseTrainingActionsInput) {
                 );
                 await savePlan(finalPlan);
               }
+            } else {
+              // Item referenciado pelo bloco não existe nem no estado nem no storage
+              // (restore/deleção descasada): não trava, mas avisa que o SR não avançou —
+              // antes o ramo inteiro era pulado em silêncio (perda de progresso oculta).
+              pendingDeferReason =
+                'Pendência de revisão não encontrada — o progresso de revisão deste bloco não foi atualizado.';
             }
           }
 

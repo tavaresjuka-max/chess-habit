@@ -237,6 +237,42 @@ describe('validateBackupData', () => {
     expect(validateBackupData(data)).toBeNull();
   });
 
+  it('rejeita appMeta com researchOptIn não-booleano (integridade da coorte)', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      appMeta: [
+        {
+          id: 'app',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+          researchOptIn: 'sim' as unknown as boolean,
+        },
+      ],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('appMeta');
+    expect(error).toContain('researchOptIn');
+  });
+
+  it('rejeita appMeta com adoptedAt que não é data ISO', () => {
+    const data: BackupData = {
+      ...createEmptyData(),
+      appMeta: [
+        {
+          id: 'app',
+          updatedAt: '2026-06-06T00:00:00.000Z',
+          adoptedAt: 'ontem' as unknown as string,
+        },
+      ],
+    };
+    const error = validateBackupData(data);
+
+    expect(error).not.toBeNull();
+    expect(error).toContain('appMeta');
+    expect(error).toContain('adoptedAt');
+  });
+
   it('rejeita lichessStudies sem studyId', () => {
     const data: BackupData = {
       ...createEmptyData(),

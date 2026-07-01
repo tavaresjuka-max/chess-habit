@@ -636,6 +636,24 @@ export function validateBackupData(data: BackupData): string | null {
       if (!ifPresent(item.updatedAt, isIsoDate)) {
         return entityError('appMeta', i, 'updatedAt');
       }
+      // Integridade da coorte de pesquisa: campos de confiança não podem entrar com
+      // tipo inválido de um backup corrompido/forjado. adoptedAt/consentedAt ancoram
+      // o DiD (merge de sync usa min()); researchOptIn controla a coorte.
+      if (!ifPresent(item.adoptedAt, isIsoDate)) {
+        return entityError('appMeta', i, 'adoptedAt');
+      }
+      if (!ifPresent(item.consentedAt, isIsoDate)) {
+        return entityError('appMeta', i, 'consentedAt');
+      }
+      if (!ifPresent(item.onboardingCompletedAt, isIsoDate)) {
+        return entityError('appMeta', i, 'onboardingCompletedAt');
+      }
+      if (!ifPresent(item.researchOptIn, isBoolean)) {
+        return entityError('appMeta', i, 'researchOptIn');
+      }
+      if (!ifPresent(item.errorCaptureEnabled, isBoolean)) {
+        return entityError('appMeta', i, 'errorCaptureEnabled');
+      }
     }
   }
 
