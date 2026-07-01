@@ -187,7 +187,12 @@ export function App() {
       return;
     }
 
-    viewRef.current?.focus();
+    // Ao TROCAR de aba, a nova tela sempre abre no topo. O container de scroll é a
+    // página (top-nav é sticky), então rolamos a janela; sem isto, a rolagem da aba
+    // anterior "vazava" para a nova (ex.: descer no Hoje e abrir Ajustes já rolado).
+    // preventScroll no focus para o foco de acessibilidade não desfazer o scrollTo.
+    window.scrollTo(0, 0);
+    viewRef.current?.focus({ preventScroll: true });
   }, [activeView, onboardingResolved]);
 
   if (appState.loadState === 'loading') {
