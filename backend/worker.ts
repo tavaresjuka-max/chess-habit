@@ -32,6 +32,8 @@ function validatePush(
   const p = payload as Record<string, unknown>;
   const collection = p['collection'];
   const clientMutationId = p['clientMutationId'];
+  // Nome legado: payload opaco do cliente. HOJE é JSON plaintext — o sync NÃO é
+  // E2EE por decisão de produto (ver docs/privacy/privacy-and-data.md).
   const ciphertext = p['ciphertext'];
   const updatedAt = p['updatedAt'];
 
@@ -59,7 +61,6 @@ async function handleHealth(env: SyncEnv): Promise<Response> {
     ok: dbUp,
     service: SERVICE,
     version: VERSION,
-    mode: env.SYNC_AUTH_MODE ?? 'unset',
     db: dbUp ? 'up' : 'down',
     time: Date.now(),
   });
@@ -124,6 +125,16 @@ export default {
 
       if (method === 'GET' && path === '/health') {
         return await handleHealth(env);
+      }
+
+      // Defense-in-depth: o modo 'local' confia no header x-sync-user sem segredo e
+      // serve só a dev/testes. Exige opt-in explícito (SYNC_LOCAL_ALLOWED=true) para
+      // nunca virar takeover de conta se um deploy público subir com
+      // SYNC_AUTH_MODE=local por engano. Produção usa 'oauth' e não seta este flag.
+      if (env.SYNC_AUTH_MODE === 'local' && env.SYNC_LOCAL_ALLOWED !== 'true') {
+        return json(403, {
+          error: 'modo local desabilitado (defina SYNC_LOCAL_ALLOWED=true só em dev).',
+        });
       }
 
       const auth = await authenticate(request, env);

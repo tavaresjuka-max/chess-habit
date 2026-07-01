@@ -26,6 +26,10 @@ export interface PullBlobsResult {
 }
 
 export async function pushBlob(input: PushBlobEngineInput): Promise<void> {
+  // ATENÇÃO: `ciphertext` é nome legado — hoje é JSON PLAINTEXT, sem criptografia.
+  // O sync NÃO é E2EE por decisão de produto (dado de progresso, baixa sensibilidade;
+  // ver docs/privacy/privacy-and-data.md). Para E2EE real, cifrar aqui com
+  // crypto.subtle (AES-GCM + chave derivada de segredo do usuário) antes de enviar.
   const ciphertext = JSON.stringify(input.value);
   const pushInput: PushBlobInput = {
     collection: input.collection,

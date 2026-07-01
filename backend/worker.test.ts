@@ -28,7 +28,12 @@ interface BlobListBody {
 }
 
 function env(overrides: Partial<SyncEnv> = {}): SyncEnv {
-  return { DB: createFakeD1(), SYNC_AUTH_MODE: 'local', ...overrides };
+  return {
+    DB: createFakeD1(),
+    SYNC_AUTH_MODE: 'local',
+    SYNC_LOCAL_ALLOWED: 'true',
+    ...overrides,
+  };
 }
 
 /** Env em modo oauth com URL fake do Lichess (injetável, sem rede real) */
@@ -119,6 +124,14 @@ describe('rotina-sync worker (P4 M12 local + M13 oauth)', () => {
       env({ SYNC_AUTH_MODE: undefined }),
     );
     expect(res.status).toBe(501);
+  });
+
+  it('bloqueia (403) modo local sem SYNC_LOCAL_ALLOWED (guard anti-takeover)', async () => {
+    const res = await worker.fetch(
+      req('/blobs', { method: 'POST', body: '{}' }, 'userA'),
+      env({ SYNC_LOCAL_ALLOWED: undefined }),
+    );
+    expect(res.status).toBe(403);
   });
 
   it('rejeita header de userId com formato invalido (401)', async () => {

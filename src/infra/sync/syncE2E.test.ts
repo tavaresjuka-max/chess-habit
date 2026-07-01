@@ -81,7 +81,7 @@ describe('syncE2E — roundtrip real worker + fakeD1', () => {
    */
   it('cenario 1: aparelho B recebe registros de A via worker real (roundtrip)', async () => {
     const sharedD1 = createFakeD1();
-    const syncEnv: SyncEnv = { DB: sharedD1, SYNC_AUTH_MODE: 'local' };
+    const syncEnv: SyncEnv = { DB: sharedD1, SYNC_AUTH_MODE: 'local', SYNC_LOCAL_ALLOWED: 'true' };
     const userId = 'user-roundtrip';
 
     // --- Aparelho A: inserir dados locais e sincronizar ---
@@ -121,7 +121,7 @@ describe('syncE2E — roundtrip real worker + fakeD1', () => {
   it('cenario 2 (CRITICO): pull vazio nao apaga registros locais', async () => {
     // Backend completamente vazio — fakeD1 novo sem nada
     const emptyD1 = createFakeD1();
-    const syncEnv: SyncEnv = { DB: emptyD1, SYNC_AUTH_MODE: 'local' };
+    const syncEnv: SyncEnv = { DB: emptyD1, SYNC_AUTH_MODE: 'local', SYNC_LOCAL_ALLOWED: 'true' };
     const userId = 'user-pull-vazio';
 
     // Inserir dados locais
@@ -154,7 +154,7 @@ describe('syncE2E — roundtrip real worker + fakeD1', () => {
    */
   it('cenario 3: userB nao ve dados de userA (isolamento por userId)', async () => {
     const sharedD1 = createFakeD1();
-    const syncEnv: SyncEnv = { DB: sharedD1, SYNC_AUTH_MODE: 'local' };
+    const syncEnv: SyncEnv = { DB: sharedD1, SYNC_AUTH_MODE: 'local', SYNC_LOCAL_ALLOWED: 'true' };
 
     // --- userA: empurrar dados ---
     const weakA = makeWeakness('discovered', '2026-06-28T08:00:00.000Z');
@@ -189,7 +189,7 @@ describe('syncE2E — roundtrip real worker + fakeD1', () => {
    */
   it('cenario 4: profile realista sobrevive push→pull intacto via worker real', async () => {
     const sharedD1 = createFakeD1();
-    const syncEnv: SyncEnv = { DB: sharedD1, SYNC_AUTH_MODE: 'local' };
+    const syncEnv: SyncEnv = { DB: sharedD1, SYNC_AUTH_MODE: 'local', SYNC_LOCAL_ALLOWED: 'true' };
     const userId = 'user-profile-roundtrip';
 
     // Profile completo (band usa o tipo LearnerBand)
