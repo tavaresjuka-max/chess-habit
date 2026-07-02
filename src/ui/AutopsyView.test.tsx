@@ -34,23 +34,52 @@ vi.mock('../infra/storage/appData', async (importOriginal) => {
   };
 });
 
+vi.mock('../infra/chesscom/chesscomGames', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../infra/chesscom/chesscomGames')>();
+  return {
+    ...original,
+    fetchRecentChesscomGames: vi.fn(),
+  };
+});
+
+vi.mock('../infra/lichess/importClient', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../infra/lichess/importClient')>();
+  return {
+    ...original,
+    importPgnToLichess: vi.fn(),
+  };
+});
+
 async function importFreshView() {
   const clientModule = await import('../infra/lichess/autopsyClient');
   const appDataModule = await import('../infra/storage/appData');
+  const chesscomGamesModule = await import('../infra/chesscom/chesscomGames');
+  const importClientModule = await import('../infra/lichess/importClient');
   const { AutopsyView } = await import('./AutopsyView');
   const fetchGameForAutopsy = vi.mocked(clientModule.fetchGameForAutopsy);
   const loadAllPendingItems = vi.mocked(appDataModule.loadAllPendingItems);
   const savePendingItem = vi.mocked(appDataModule.savePendingItem);
+  const fetchRecentChesscomGames = vi.mocked(chesscomGamesModule.fetchRecentChesscomGames);
+  const importPgnToLichess = vi.mocked(importClientModule.importPgnToLichess);
   // `vi.resetModules()` no afterEach recarrega o módulo, mas o mock em si
   // (criado uma vez pela factory de `vi.mock`) persiste entre módulos
   // recarregados dentro do MESMO arquivo de teste — limpamos chamadas
   // manualmente para garantir isolamento entre `it`s.
-  fetchGameForAutopsy.mockClear();
+  fetchGameForAutopsy.mockReset();
   loadAllPendingItems.mockReset();
   loadAllPendingItems.mockResolvedValue([]);
   savePendingItem.mockReset();
   savePendingItem.mockResolvedValue(undefined);
-  return { AutopsyView, fetchGameForAutopsy, loadAllPendingItems, savePendingItem };
+  fetchRecentChesscomGames.mockClear();
+  importPgnToLichess.mockClear();
+  return {
+    AutopsyView,
+    fetchGameForAutopsy,
+    loadAllPendingItems,
+    savePendingItem,
+    fetchRecentChesscomGames,
+    importPgnToLichess,
+  };
 }
 
 function mockOk(exportJson: unknown, gameId: string) {
@@ -550,6 +579,334 @@ describe('AutopsyView', () => {
         expect(screen.getByText(/Lance 3 \(brancas\): d4/i)).toBeInTheDocument();
       });
       expect(screen.queryByText(/no relógio — parte do erro é gestão de tempo/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('ON-C: autópsia chess.com assistida (2026-07-02)', () => {
+    it('fold "outra forma de trazer a partida" está sempre presente no estado inicial', async () => {
+      const { AutopsyView } = await importFreshView();
+      render(<AutopsyView />);
+
+      expect(screen.getByText(/outra forma de trazer a partida/i)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Abrir lichess\.org\/paste/i })).toHaveAttribute(
+        'href',
+        'https://lichess.org/paste',
+      );
+    });
+
+    it('username digitado de chess.com mostra o picker de partidas', async () => {
+      const { AutopsyView, fetchRecentChesscomGames } = await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({
+        kind: 'ok',
+        games: [
+          {
+            endTime: 1_772_000_000,
+            white: 'jukatavares',
+            black: 'opponent',
+            result: 'win',
+            pgn: '[Event "Live Chess"]\n\n1. e4 e5 0-1',
+            url: 'https://www.chess.com/game/live/1',
+            userColor: 'white',
+          },
+        ],
+      });
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'jukatavares' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      await waitFor(() => {
+        expect(fetchRecentChesscomGames).toHaveBeenCalledWith('jukatavares');
+      });
+      expect(screen.getByText(/Escolha a partida/i)).toBeInTheDocument();
+      expect(screen.getByText(/Você jogou de brancas/i)).toBeInTheDocument();
+      expect(screen.getByText(/contra opponent/i)).toBeInTheDocument();
+      expect(screen.getByText(/Vitória/i)).toBeInTheDocument();
+    });
+
+    it('atalho "usar {username}" dispara o fluxo chess.com quando o perfil já tem username salvo', async () => {
+      const { AutopsyView, fetchRecentChesscomGames } = await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({ kind: 'no-recent-games' });
+
+      render(<AutopsyView chesscomUsername="jukatavares" />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Usar seu perfil do chess\.com jukatavares/i }));
+
+      await waitFor(() => {
+        expect(fetchRecentChesscomGames).toHaveBeenCalledWith('jukatavares');
+      });
+    });
+
+    it('escolher a partida mostra "Importando…" e depois a instrução de solicitar análise', async () => {
+      const { AutopsyView, fetchRecentChesscomGames, importPgnToLichess } = await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({
+        kind: 'ok',
+        games: [
+          {
+            endTime: 1_772_000_000,
+            white: 'jukatavares',
+            black: 'opponent',
+            result: 'win',
+            pgn: '[Event "Live Chess"]\n\n1. e4 e5 0-1',
+            url: 'https://www.chess.com/game/live/1',
+            userColor: 'white',
+          },
+        ],
+      });
+      importPgnToLichess.mockResolvedValue({
+        kind: 'ok',
+        gameId: 'nJQmQMRZ',
+        url: 'https://lichess.org/nJQmQMRZ',
+      });
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'jukatavares' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      const gameButton = await screen.findByRole('button', { name: /Você jogou de brancas/i });
+      fireEvent.click(gameButton);
+
+      await waitFor(() => {
+        expect(importPgnToLichess).toHaveBeenCalledWith('[Event "Live Chess"]\n\n1. e4 e5 0-1');
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Solicitar análise/i)).toBeInTheDocument();
+      });
+      expect(screen.getByText(/Importei sua partida para o Lichess/i)).toBeInTheDocument();
+      expect(screen.getByText(/é a deixa para criar sua conta grátis/i)).toBeInTheDocument();
+      const importedLink = screen.getByRole('link', { name: /Abrir a partida importada no Lichess/i });
+      expect(importedLink).toHaveAttribute('href', 'https://lichess.org/nJQmQMRZ');
+      expect(screen.getByRole('button', { name: /Já pedi a análise/i })).toBeInTheDocument();
+    });
+
+    it('"Já pedi a análise" com no-analysis mostra mensagem de paciência (sem tela de perspectiva)', async () => {
+      const { AutopsyView, fetchRecentChesscomGames, importPgnToLichess, fetchGameForAutopsy } =
+        await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({
+        kind: 'ok',
+        games: [
+          {
+            endTime: 1_772_000_000,
+            white: 'jukatavares',
+            black: 'opponent',
+            result: 'win',
+            pgn: '[Event "Live Chess"]\n\n1. e4 e5 0-1',
+            url: 'https://www.chess.com/game/live/1',
+            userColor: 'white',
+          },
+        ],
+      });
+      importPgnToLichess.mockResolvedValue({
+        kind: 'ok',
+        gameId: 'nJQmQMRZ',
+        url: 'https://lichess.org/nJQmQMRZ',
+      });
+      fetchGameForAutopsy.mockResolvedValue({ kind: 'no-analysis', gameId: 'nJQmQMRZ' });
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'jukatavares' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      const gameButton = await screen.findByRole('button', { name: /Você jogou de brancas/i });
+      fireEvent.click(gameButton);
+
+      fireEvent.click(await screen.findByRole('button', { name: /Já pedi a análise/i }));
+
+      await waitFor(() => {
+        expect(fetchGameForAutopsy).toHaveBeenCalledWith('nJQmQMRZ');
+      });
+      expect(screen.getByText(/ainda não tem análise do Lichess/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Às vezes o Lichess demora alguns segundos para processar/i),
+      ).toBeInTheDocument();
+    });
+
+    it('"Já pedi a análise" com análise pronta roda a autópsia direto (sem tela de perspectiva, perfil conhecido)', async () => {
+      const { AutopsyView, fetchRecentChesscomGames, importPgnToLichess, fetchGameForAutopsy } =
+        await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({
+        kind: 'ok',
+        games: [
+          {
+            endTime: 1_772_000_000,
+            white: 'AlunoBranco',
+            black: 'RivalPreto',
+            result: 'win',
+            pgn: '[Event "Live Chess"]\n\n1. e4 e5 0-1',
+            url: 'https://www.chess.com/game/live/1',
+            userColor: 'white',
+          },
+        ],
+      });
+      importPgnToLichess.mockResolvedValue({
+        kind: 'ok',
+        gameId: 'abcd1234',
+        url: 'https://lichess.org/abcd1234',
+      });
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      render(<AutopsyView lichessUsername="AlunoBranco" />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'jukatavares_chesscom' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      const gameButton = await screen.findByRole('button', { name: /Você jogou de brancas/i });
+      fireEvent.click(gameButton);
+
+      fireEvent.click(await screen.findByRole('button', { name: /Já pedi a análise/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Capote/i)).toBeInTheDocument();
+      });
+      expect(
+        screen.queryByRole('button', { name: /Eu joguei de brancas/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('perfil chess.com privado ou inexistente (403/404) mostra mensagem honesta não-retryable', async () => {
+      const { AutopsyView, fetchRecentChesscomGames } = await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({ kind: 'private-or-not-found' });
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'perfilprivado' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/perfil privado ou inexistente|Não encontrei esse perfil/i);
+      });
+      expect(screen.queryByText(/Pode tentar de novo/i)).not.toBeInTheDocument();
+    });
+
+    it('sem partidas recentes mostra mensagem honesta não-retryable', async () => {
+      const { AutopsyView, fetchRecentChesscomGames } = await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({ kind: 'no-recent-games' });
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'sem-jogos-recentes' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/Não achei partidas recentes/i);
+      });
+    });
+
+    it('rate-limit do chess.com mostra copy de espera com retry', async () => {
+      const { AutopsyView, fetchRecentChesscomGames } = await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({ kind: 'rate-limited' });
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'jukatavares' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/O chess\.com pediu para esperar um pouco/i);
+      });
+      expect(screen.getByRole('alert')).toHaveTextContent(/Pode tentar de novo/i);
+    });
+
+    it('PGN inválido na importação mostra erro honesto com o fallback manual já aberto', async () => {
+      const { AutopsyView, fetchRecentChesscomGames, importPgnToLichess } = await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({
+        kind: 'ok',
+        games: [
+          {
+            endTime: 1_772_000_000,
+            white: 'jukatavares',
+            black: 'opponent',
+            result: 'win',
+            pgn: 'pgn quebrado',
+            url: 'https://www.chess.com/game/live/1',
+            userColor: 'white',
+          },
+        ],
+      });
+      importPgnToLichess.mockResolvedValue({ kind: 'invalid-pgn' });
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'jukatavares' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      const gameButton = await screen.findByRole('button', { name: /Você jogou de brancas/i });
+      fireEvent.click(gameButton);
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/Não consegui importar essa partida/i);
+      });
+      const folds = screen.getAllByText(/outra forma de trazer a partida/i);
+      expect(folds.length).toBeGreaterThan(0);
+    });
+
+    it('link de partida do chess.com sem username salvo pede o username em vez de tratar como erro genérico', async () => {
+      const { AutopsyView, fetchRecentChesscomGames } = await importFreshView();
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'https://www.chess.com/game/live/123456789' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/preciso do seu nome de usuário/i);
+      });
+      expect(fetchRecentChesscomGames).not.toHaveBeenCalled();
+    });
+
+    it('link de partida do chess.com com username salvo no perfil usa direto o username', async () => {
+      const { AutopsyView, fetchRecentChesscomGames } = await importFreshView();
+      fetchRecentChesscomGames.mockResolvedValue({ kind: 'no-recent-games' });
+
+      render(<AutopsyView chesscomUsername="jukatavares" />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'https://www.chess.com/game/live/123456789' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      await waitFor(() => {
+        expect(fetchRecentChesscomGames).toHaveBeenCalledWith('jukatavares');
+      });
+    });
+
+    it('link do Lichess continua funcionando normalmente (não é tratado como chess.com)', async () => {
+      const { AutopsyView, fetchGameForAutopsy, fetchRecentChesscomGames } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'https://lichess.org/abcd1234' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      await waitFor(() => {
+        expect(fetchGameForAutopsy).toHaveBeenCalledWith('abcd1234');
+      });
+      expect(fetchRecentChesscomGames).not.toHaveBeenCalled();
     });
   });
 });

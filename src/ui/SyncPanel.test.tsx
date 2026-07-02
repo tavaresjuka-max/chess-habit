@@ -105,7 +105,7 @@ describe('SyncPanel — sem token Lichess', () => {
       expect(ops.loadToken).toHaveBeenCalledTimes(1);
     });
     expect(ops.pushBlob).not.toHaveBeenCalled();
-    expect(await screen.findByText(/faça login/i)).toBeInTheDocument();
+    expect(await screen.findByText(/conectar lichess/i)).toBeInTheDocument();
   });
 });
 
@@ -211,7 +211,8 @@ describe('SyncPanel — sync real chama syncAllCollections', () => {
       expect(ops.loadToken).toHaveBeenCalledTimes(1);
     });
     expect(syncAllSpy).not.toHaveBeenCalled();
-    expect(await screen.findByText(/faça login/i)).toBeInTheDocument();
+    expect(await screen.findByText(/conectar lichess/i)).toBeInTheDocument();
+    expect(await screen.findByText(/criar grátis/i)).toBeInTheDocument();
   });
 
   it('SyncUnauthorizedError → mensagem de re-login, NÃO trava a UI', async () => {

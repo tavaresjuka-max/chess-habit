@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { buildAutopsyReport, type AutopsyError, type AutopsyReport, type AutopsySeverity } from '../domain/autopsy/autopsyReport';
 import { buildAutopsyPendingItems, detectHighConfidenceThemeTag } from '../domain/method/pendingItems';
 import { weaknessTitleByTag } from '../domain/weakness/weaknessTitles';
-import { fetchGameForAutopsy, parseGameRef } from '../infra/lichess/autopsyClient';
+import { fetchGameForAutopsy, parseGameRef, type AutopsyFetchResult } from '../infra/lichess/autopsyClient';
+import { fetchRecentChesscomGames, type ChesscomGameSummary } from '../infra/chesscom/chesscomGames';
+import { detectChesscomRef } from '../infra/lichess/chesscomRefDetection';
+import { importPgnToLichess } from '../infra/lichess/importClient';
 import { isAllowedLichessUrl } from '../infra/lichess/urlPolicy';
 import { loadAllPendingItems, savePendingItem } from '../infra/storage/appData';
 import { TavarezAvatar } from './art/TavarezAvatar';
@@ -12,8 +15,19 @@ type ViewState =
   | { kind: 'loading' }
   | { kind: 'perspective'; exportJson: unknown; report: AutopsyReport }
   | { kind: 'cards'; report: AutopsyReport }
-  | { kind: 'no-analysis'; gameId: string }
-  | { kind: 'error'; message: string; retryable: boolean };
+  | { kind: 'no-analysis'; gameId: string; fromChesscom?: boolean }
+  | { kind: 'error'; message: string; retryable: boolean }
+  | { kind: 'chesscom-picking'; username: string; games: ChesscomGameSummary[] }
+  | { kind: 'chesscom-importing' }
+  | { kind: 'chesscom-request-analysis'; gameId: string; url: string }
+  | { kind: 'chesscom-error'; message: string; retryable: boolean; showManualFallback?: boolean };
+
+// Rótulos honestos para os resultados brutos do chess.com — só 'win' vira
+// "Vitória"; qualquer outro valor (checkmated, resigned, timeout, agreed,
+// ...) é mostrado cru em vez de arriscar uma tradução errada.
+function describeChesscomResult(result: string): string {
+  return result === 'win' ? 'Vitória' : `Resultado: ${result}`;
+}
 
 const SEVERITY_LABEL: Record<AutopsySeverity, string> = {
   blunder: 'Capote',
@@ -60,13 +74,17 @@ function autoDetectPerspective(
 
 type AutopsyViewProps = {
   lichessUsername?: string;
+  // ON-C: username público do chess.com salvo no perfil local — permite o
+  // atalho "usar {username}" e resolve o caso de link de partida do
+  // chess.com (a API pública não busca partida por ID, só por usuário).
+  chesscomUsername?: string;
   // GRUPO A3: navega para Ajustes → Dados quando o aluno clica no lembrete de
   // backup após agendar o treino. Opcional para não quebrar quem renderiza a
   // view isolada (ex.: testes existentes sem essa navegação).
   onNavigateToSettings?: () => void;
 };
 
-export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyViewProps) {
+export function AutopsyView({ lichessUsername, chesscomUsername, onNavigateToSettings }: AutopsyViewProps) {
   const [gameRefInput, setGameRefInput] = useState('');
   const [state, setState] = useState<ViewState>({ kind: 'idle' });
   const [revealedByPly, setRevealedByPly] = useState<Record<number, boolean>>({});
@@ -117,23 +135,11 @@ export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyVi
     }
   }
 
-  async function handleSubmit() {
-    const gameId = parseGameRef(gameRefInput);
-
-    if (gameId === null) {
-      setState({
-        kind: 'error',
-        message: 'Não reconheci esse link. Cole o endereço da partida no Lichess (ex.: lichess.org/abcd1234).',
-        retryable: false,
-      });
-      return;
-    }
-
-    setState({ kind: 'loading' });
-    setRevealedByPly({});
-
-    const result = await fetchGameForAutopsy(gameId);
-
+  // Extraído de handleSubmit para ser reaproveitado pelo fluxo chess.com
+  // (handleRequestAnalysisRecheck chama a MESMA lógica de finalização depois
+  // de reconsultar o export). `options.fromChesscom` só muda a copy do
+  // estado `no-analysis` (frase extra de paciência).
+  function applyAutopsyFetchResult(result: AutopsyFetchResult, options?: { fromChesscom?: boolean }) {
     if (result.kind === 'not-found') {
       setState({
         kind: 'error',
@@ -171,7 +177,7 @@ export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyVi
     }
 
     if (result.kind === 'no-analysis') {
-      setState({ kind: 'no-analysis', gameId: result.gameId });
+      setState({ kind: 'no-analysis', gameId: result.gameId, fromChesscom: options?.fromChesscom });
       return;
     }
 
@@ -181,7 +187,7 @@ export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyVi
     const reportWhite = buildAutopsyReport(result.exportJson, 'white');
 
     if (!reportWhite.analysisAvailable) {
-      setState({ kind: 'no-analysis', gameId: result.gameId });
+      setState({ kind: 'no-analysis', gameId: result.gameId, fromChesscom: options?.fromChesscom });
       return;
     }
 
@@ -194,6 +200,146 @@ export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyVi
     }
 
     setState({ kind: 'perspective', exportJson: result.exportJson, report: reportWhite });
+  }
+
+  async function handleSubmit() {
+    // ON-C: detecta chess.com ANTES do parseGameRef do Lichess — a
+    // ambiguidade de ids de 8 chars é resolvida por detectChesscomRef (que
+    // consulta parseGameRef primeiro e devolve null se for uma referência
+    // Lichess válida).
+    const chesscomRef = detectChesscomRef(gameRefInput);
+
+    if (chesscomRef !== null) {
+      if (chesscomRef.kind === 'chesscom-username') {
+        void startChesscomFlow(chesscomRef.username);
+        return;
+      }
+
+      // chesscom-game-url: a API pública do chess.com não busca partida por
+      // ID, só por username — usamos o username já salvo no perfil se
+      // houver; senão pedimos, sem tratar como falha genérica.
+      const savedUsername = (chesscomUsername ?? '').trim();
+      if (savedUsername !== '') {
+        void startChesscomFlow(savedUsername);
+        return;
+      }
+
+      setState({
+        kind: 'chesscom-error',
+        message:
+          'Para trazer uma partida do chess.com, preciso do seu nome de usuário (username) lá — cole o username em vez do link direto da partida.',
+        retryable: false,
+      });
+      return;
+    }
+
+    const gameId = parseGameRef(gameRefInput);
+
+    if (gameId === null) {
+      setState({
+        kind: 'error',
+        message: 'Não reconheci esse link. Cole o endereço da partida no Lichess (ex.: lichess.org/abcd1234).',
+        retryable: false,
+      });
+      return;
+    }
+
+    setState({ kind: 'loading' });
+    setRevealedByPly({});
+
+    const result = await fetchGameForAutopsy(gameId);
+    applyAutopsyFetchResult(result);
+  }
+
+  // ---- fluxo chess.com assistido (ON-C) ----
+
+  async function startChesscomFlow(username: string) {
+    const clean = username.trim();
+
+    setState({ kind: 'loading' });
+    setRevealedByPly({});
+
+    const result = await fetchRecentChesscomGames(clean);
+
+    if (result.kind === 'ok') {
+      setState({ kind: 'chesscom-picking', username: clean, games: result.games });
+      return;
+    }
+
+    if (result.kind === 'private-or-not-found') {
+      setState({
+        kind: 'chesscom-error',
+        message: 'Não encontrei esse perfil no chess.com — confira se o nome está certo e se o perfil é público.',
+        retryable: false,
+      });
+      return;
+    }
+
+    if (result.kind === 'no-recent-games') {
+      setState({
+        kind: 'chesscom-error',
+        message: 'Não achei partidas recentes nesse perfil do chess.com.',
+        retryable: false,
+      });
+      return;
+    }
+
+    if (result.kind === 'rate-limited') {
+      setState({
+        kind: 'chesscom-error',
+        message: 'O chess.com pediu para esperar um pouco. Tente de novo em alguns instantes.',
+        retryable: true,
+      });
+      return;
+    }
+
+    setState({
+      kind: 'chesscom-error',
+      message: 'Não consegui falar com o chess.com agora. Confira sua conexão e tente de novo.',
+      retryable: true,
+    });
+  }
+
+  async function handlePickChesscomGame(game: ChesscomGameSummary) {
+    setState({ kind: 'chesscom-importing' });
+
+    const result = await importPgnToLichess(game.pgn);
+
+    if (result.kind === 'ok') {
+      setState({ kind: 'chesscom-request-analysis', gameId: result.gameId, url: result.url });
+      return;
+    }
+
+    if (result.kind === 'rate-limited') {
+      setState({
+        kind: 'chesscom-error',
+        message: 'O Lichess pediu para esperar um pouco para importar. Tente de novo em alguns instantes.',
+        retryable: true,
+      });
+      return;
+    }
+
+    if (result.kind === 'invalid-pgn') {
+      setState({
+        kind: 'chesscom-error',
+        message: 'Não consegui importar essa partida (formato inesperado).',
+        retryable: false,
+        showManualFallback: true,
+      });
+      return;
+    }
+
+    setState({
+      kind: 'chesscom-error',
+      message: 'Não consegui falar com o Lichess para importar agora. Confira sua conexão e tente de novo.',
+      retryable: true,
+    });
+  }
+
+  async function handleRequestAnalysisRecheck(gameId: string) {
+    setState({ kind: 'loading' });
+    const result = await fetchGameForAutopsy(gameId);
+    applyAutopsyFetchResult(result, { fromChesscom: true });
   }
 
   function handleChoosePerspective(perspective: 'white' | 'black', exportJson: unknown, report: AutopsyReport) {
@@ -229,6 +375,10 @@ export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyVi
           }}
           errorMessage={state.kind === 'error' ? state.message : undefined}
           retryable={state.kind === 'error' ? state.retryable : false}
+          chesscomUsername={chesscomUsername}
+          onUseChesscomUsername={() => {
+            void startChesscomFlow(chesscomUsername ?? '');
+          }}
         />
       ) : null}
 
@@ -244,6 +394,11 @@ export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyVi
             Essa partida ainda não tem análise do Lichess. Abra a partida lá, peça a análise do
             computador e volte para colar o link de novo.
           </p>
+          {state.fromChesscom === true ? (
+            <p className="config-hint">
+              Às vezes o Lichess demora alguns segundos para processar — tente de novo em instantes.
+            </p>
+          ) : null}
           <div className="button-row">
             {isAllowedLichessUrl(`https://lichess.org/${state.gameId}`) ? (
               <a
@@ -260,6 +415,108 @@ export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyVi
               Colar outro link
             </button>
           </div>
+        </div>
+      ) : null}
+
+      {state.kind === 'chesscom-picking' ? (
+        <div className="autopsy-chesscom-picking">
+          <p>Escolha a partida:</p>
+          <ul className="autopsy-chesscom-game-list">
+            {state.games.map((game) => (
+              <li key={game.url}>
+                <button
+                  type="button"
+                  className="autopsy-chesscom-game-button"
+                  onClick={() => {
+                    void handlePickChesscomGame(game);
+                  }}
+                >
+                  <span>{new Date(game.endTime * 1000).toLocaleDateString('pt-BR')}</span>
+                  <span>Você jogou de {game.userColor === 'white' ? 'brancas' : 'pretas'}</span>
+                  <span>contra {game.userColor === 'white' ? game.black : game.white}</span>
+                  <span>{describeChesscomResult(game.result)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="button-row">
+            <button type="button" className="secondary-button" onClick={handleReset}>
+              Colar outro link
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {state.kind === 'chesscom-importing' ? (
+        <p role="status" aria-live="polite" className="autopsy-loading">
+          Importando sua partida para o Lichess…
+        </p>
+      ) : null}
+
+      {state.kind === 'chesscom-request-analysis' ? (
+        <div className="autopsy-chesscom-request-analysis">
+          <p>
+            Importei sua partida para o Lichess. Toque em <strong>Solicitar análise</strong> lá e
+            volte — eu continuo daqui.
+          </p>
+          {isAllowedLichessUrl(state.url) ? (
+            <a
+              className="button-link secondary-link"
+              href={state.url}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Abrir a partida importada no Lichess (abre em nova aba)"
+            >
+              Abrir a partida no Lichess
+            </a>
+          ) : null}
+          <p className="config-hint">
+            Se o Lichess pedir login para analisar, é a deixa para criar sua conta grátis — te
+            espero.
+          </p>
+          <div className="button-row">
+            <button
+              type="button"
+              onClick={() => {
+                void handleRequestAnalysisRecheck(state.gameId);
+              }}
+            >
+              Já pedi a análise
+            </button>
+            <button type="button" className="secondary-button" onClick={handleReset}>
+              Colar outro link
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {state.kind === 'chesscom-error' ? (
+        <div className="autopsy-chesscom-error">
+          <p role="alert" className="autopsy-error">
+            {state.message} {state.retryable ? 'Pode tentar de novo.' : null}
+          </p>
+          <div className="button-row">
+            <button type="button" className="secondary-button" onClick={handleReset}>
+              {state.retryable ? 'Tentar de novo' : 'Colar outro link'}
+            </button>
+          </div>
+          {state.showManualFallback === true ? (
+            <details className="autopsy-manual-fallback" open>
+              <summary>outra forma de trazer a partida</summary>
+              <p className="config-hint">
+                Se preferir, cole o PGN da sua partida em lichess.org/paste, importe lá, e depois
+                volte para colar o link da partida importada aqui.
+              </p>
+              <a
+                className="button-link secondary-link"
+                href="https://lichess.org/paste"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Abrir lichess.org/paste
+              </a>
+            </details>
+          ) : null}
         </div>
       ) : null}
 
@@ -311,13 +568,19 @@ function AutopsyIntake({
   onSubmit,
   errorMessage,
   retryable,
+  chesscomUsername,
+  onUseChesscomUsername,
 }: {
   gameRefInput: string;
   onChangeGameRefInput: (value: string) => void;
   onSubmit: () => void;
   errorMessage: string | undefined;
   retryable: boolean;
+  chesscomUsername?: string;
+  onUseChesscomUsername: () => void;
 }) {
+  const hasChesscomUsername = (chesscomUsername ?? '').trim() !== '';
+
   return (
     <div className="autopsy-intake">
       <p className="tutor-quote">
@@ -350,7 +613,33 @@ function AutopsyIntake({
         <button type="button" disabled={gameRefInput.trim() === ''} onClick={onSubmit}>
           Fazer autópsia
         </button>
+        {hasChesscomUsername ? (
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={onUseChesscomUsername}
+            aria-label={`Usar seu perfil do chess.com ${chesscomUsername ?? ''}`}
+          >
+            usar {chesscomUsername}
+          </button>
+        ) : null}
       </div>
+
+      <details className="autopsy-manual-fallback">
+        <summary>outra forma de trazer a partida</summary>
+        <p className="config-hint">
+          Se preferir, cole o PGN da sua partida em lichess.org/paste, importe lá, e depois volte
+          para colar o link da partida importada aqui.
+        </p>
+        <a
+          className="button-link secondary-link"
+          href="https://lichess.org/paste"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Abrir lichess.org/paste
+        </a>
+      </details>
     </div>
   );
 }

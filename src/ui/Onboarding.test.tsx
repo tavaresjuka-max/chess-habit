@@ -168,6 +168,18 @@ describe('Onboarding — welcome step', () => {
     render(<Onboarding {...makeProps({ step: 'welcome', notice: 'Seu perfil foi atualizado.' })} />);
     expect(screen.getByText('Seu perfil foi atualizado.')).toBeInTheDocument();
   });
+
+  it('renders the Lichess-is-the-school master line (ON-A)', () => {
+    render(<Onboarding {...makeProps({ step: 'welcome' })} />);
+    expect(
+      screen.getByText('Você treina no Lichess; eu organizo, corrijo e salvo seu plano.'),
+    ).toBeInTheDocument();
+  });
+
+  it('renders the no-account-yet bullet (ON-A)', () => {
+    render(<Onboarding {...makeProps({ step: 'welcome' })} />);
+    expect(screen.getByText('Não tem conta no Lichess? É grátis — te levo lá.')).toBeInTheDocument();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -228,6 +240,36 @@ describe('Onboarding — accounts step — fields', () => {
     fireEvent.change(inputs[0] as HTMLElement, { target: { value: 'jukaxadrez' } });
 
     expect(screen.getByRole('button', { name: /Conectar Lichess/ })).toBeInTheDocument();
+  });
+
+  it('renders the two role blocks with headings (ON-B)', () => {
+    render(<Onboarding {...makeProps()} />);
+    expect(
+      screen.getByRole('heading', { name: 'Lichess — sua escola e seu cofre' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Chess.com — só leitura (opcional)' }),
+    ).toBeInTheDocument();
+  });
+
+  it('always shows the "Criar conta grátis" link pointing to lichess.org/signup in a new tab (ON-B)', () => {
+    render(<Onboarding {...makeProps()} />);
+    const signupLink = screen.getByRole('link', { name: 'Criar conta grátis' });
+    expect(signupLink).toHaveAttribute('href', 'https://lichess.org/signup');
+    expect(signupLink).toHaveAttribute('target', '_blank');
+    expect(signupLink).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('explains that the funnel keeps progress while the learner is away creating a Lichess account', () => {
+    render(<Onboarding {...makeProps()} />);
+    expect(screen.getByText(/Crie sua conta lá e volte aqui/)).toBeInTheDocument();
+  });
+
+  it('updates the Chess.com hint to mention no-login diagnostics (ON-B)', () => {
+    render(<Onboarding {...makeProps()} />);
+    expect(
+      screen.getByText('Uso suas partidas públicas para o diagnóstico — sem login, sem senha.'),
+    ).toBeInTheDocument();
   });
 
   it('pre-fills usernames from defaults', () => {

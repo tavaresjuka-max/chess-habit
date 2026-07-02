@@ -180,6 +180,7 @@ function AccountsStep({
           void handleContinue();
         }}
       >
+        <h2 className="accounts-block-title">Lichess — sua escola e seu cofre</h2>
         <label className="field">
           <span>Usuário Lichess</span>
           <small className="field-hint">Buscamos suas partidas públicas. Conectar é opcional (melhora puzzles e Study).</small>
@@ -192,17 +193,24 @@ function AccountsStep({
           />
         </label>
 
-        {hasLichess ? (
-          <div className="button-row">
+        <div className="button-row">
+          {hasLichess ? (
             <button type="button" className="secondary-button" disabled={busy} onClick={() => void handleConnectLichess()}>
               Conectar Lichess (opcional)
             </button>
-          </div>
-        ) : null}
+          ) : null}
+          <a href="https://lichess.org/signup" target="_blank" rel="noopener noreferrer" className="secondary-button">
+            Criar conta grátis
+          </a>
+        </div>
+        <small className="field-hint">
+          Crie sua conta lá e volte aqui — o app guarda seu progresso enquanto você não está.
+        </small>
 
+        <h2 className="accounts-block-title">Chess.com — só leitura (opcional)</h2>
         <label className="field">
           <span>Usuário Chess.com</span>
-          <small className="field-hint">Só dados públicos, sem login.</small>
+          <small className="field-hint">Uso suas partidas públicas para o diagnóstico — sem login, sem senha.</small>
           <input
             autoComplete="username"
             value={chesscomUsername}

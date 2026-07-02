@@ -237,6 +237,11 @@ export function Config({
             >
               {lichessToken === undefined ? 'Conectar Lichess' : 'Reconectar Lichess'}
             </button>
+            {lichessToken === undefined ? (
+              <a href="https://lichess.org/signup" target="_blank" rel="noopener noreferrer" className="secondary-button">
+                Criar conta grátis
+              </a>
+            ) : null}
             <button
               type="button"
               className="secondary-button"
