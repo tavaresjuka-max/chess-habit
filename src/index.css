@@ -1102,6 +1102,9 @@ textarea {
   font-weight: 760;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  /* Rótulo da etapa centralizado em TODOS os passos do funil (decisão do dono
+     2026-07-02) — os títulos das telas do app principal seguem à esquerda. */
+  text-align: center;
 }
 
 .welcome-panel {

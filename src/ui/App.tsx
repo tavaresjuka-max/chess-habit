@@ -120,7 +120,7 @@ export function App() {
   const [funnelPhase, setFunnelPhaseState] = useState<FunnelPhase>(() => readStoredFunnelPhase() ?? 'welcome');
   const funnelRef = useRef<HTMLElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
-  // GRUPO A3: "Analisar minha última partida" no welcome pede o mesmo caminho
+  // GRUPO A3: "Ver onde errei na última partida" no welcome pede o mesmo caminho
   // rápido de "Começar rápido", só que pousando na Autópsia em vez do Hoje.
   // Ref (não state) porque só é lido uma vez, no efeito que fecha o funil.
   const postOnboardingDestinationRef = useRef<'today' | 'autopsy'>('today');
@@ -173,7 +173,7 @@ export function App() {
       } catch {
         // Ignorado: limpar a fase é só higiene, não muda o estado resolvido.
       }
-      // GRUPO A3: se o aluno entrou por "Analisar minha última partida", pousa
+      // GRUPO A3: se o aluno entrou por "Ver onde errei na última partida", pousa
       // na Autópsia em vez do Hoje (padrão). Aplica só neste fechamento do
       // funil — não afeta quem já navegou manualmente depois.
       if (postOnboardingDestinationRef.current === 'autopsy') {
@@ -183,10 +183,14 @@ export function App() {
     }
   }, [onboardingDone, planApproved, appState.profile, appState.completeOnboarding, appState.setActiveView]);
 
-  // Foco vai para a tela do passo a cada transição do funil (acessibilidade).
+  // Foco vai para a tela do passo a cada transição do funil (acessibilidade)
+  // e a nova etapa sempre abre no topo — mesma regra das abas do app principal
+  // (sem isto, a rolagem do passo anterior "vazava" para o seguinte, ex.:
+  // descer no Boas-vindas e cair em "Suas contas" já rolado para baixo).
   useEffect(() => {
     if (!onboardingResolved) {
-      funnelRef.current?.focus();
+      window.scrollTo(0, 0);
+      funnelRef.current?.focus({ preventScroll: true });
     }
   }, [onboardingStep, onboardingResolved]);
 
@@ -251,6 +255,7 @@ export function App() {
         ) : null}
         <Onboarding
           step={onboardingStep}
+          lichessConnected={appState.lichessConnectionState === 'connected'}
           {...(appState.lichessMessage === undefined ? {} : { notice: appState.lichessMessage })}
           defaults={appState.profile ?? createDefaultProfile()}
           plan={appState.todayPlan}
@@ -268,7 +273,7 @@ export function App() {
             setFunnelPhase('accounts');
           }}
           onQuickStart={async (destination) => {
-            // "Começar rápido" e "Analisar minha última partida" (GRUPO A3)
+            // "Começar rápido" e "Ver onde errei na última partida" (GRUPO A3)
             // seguem o MESMO caminho — mesmo consentimento opt-in por padrão,
             // mesmo perfil padrão — só o destino final muda (Hoje vs Autópsia).
             postOnboardingDestinationRef.current = destination ?? 'today';
@@ -290,9 +295,11 @@ export function App() {
           }}
           onConnectLichess={async (nextProfile) => {
             // Salva o usuário e fixa a fase ANTES do redirect: ao voltar do
-            // Lichess, o boot lê 'importing' do sessionStorage e retoma ali.
+            // Lichess, o boot lê 'accounts' do sessionStorage e VOLTA para
+            // "Suas contas" — o aluno termina de preencher (ex.: usuário do
+            // Chess.com) e só avança no Continuar explícito.
             await appState.saveProfile(nextProfile, { autoSync: false });
-            setFunnelPhase('importing');
+            setFunnelPhase('accounts');
             await appState.connectLichess();
           }}
           onRunImport={() => appState.runOnboardingImport(appState.profile ?? createDefaultProfile())}

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // GRUPO A3 (2026-07-02): porta de entrada autópsia-primeiro. Cobre o caminho
-// welcome → "Analisar minha última partida" → (mesmo funil de "Começar
+// welcome → "Ver onde errei na última partida" → (mesmo funil de "Começar
 // rápido") → aprova o plano → pousa direto na view Autópsia (não no Hoje).
 // Arquivo separado de App.test.tsx (781 linhas, mockeia useAppState pesado)
 // porque este teste precisa do funil REAL de ponta a ponta, como smoke.test.tsx.
@@ -25,18 +25,18 @@ afterEach(() => {
 });
 
 describe('App — entrada autópsia-primeiro (GRUPO A3)', () => {
-  it('welcome mostra a terceira via "Analisar minha última partida"', async () => {
+  it('welcome mostra a terceira via "Ver onde errei na última partida"', async () => {
     render(<App />);
 
     expect(await screen.findByText('A aula pode começar.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Começar rápido' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Analisar minha última partida' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Ver onde errei na última partida' })).toBeTruthy();
   });
 
-  it('"Analisar minha última partida" termina o onboarding e pousa na Autópsia', async () => {
+  it('"Ver onde errei na última partida" termina o onboarding e pousa na Autópsia', async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Analisar minha última partida' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Ver onde errei na última partida' }));
 
     // Mesmo caminho de "Começar rápido": cai na aprovação do plano (nenhum
     // passo novo, nenhum passo removido).
