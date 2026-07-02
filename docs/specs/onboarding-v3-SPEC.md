@@ -1,6 +1,6 @@
 # SPEC — Onboarding v3 (Lichess-é-a-escola + acolhimento chess.com)
 
-- **Status:** APROVADO pelo dono (2026-07-02, "siga implementação por glm"); executor: GLM 5.2 (texto) + aplicador barato + gates
+- **Status:** ✅ IMPLEMENTADO E MERGEADO em `master` (2026-07-02, merge commit `fe00ecc`). Gates: 1604/1604 testes, TS limpo, ESLint limpo, build+PWA ok. Bug crítico do header `Accept: application/json` no `/api/import` pego em teste ao vivo e corrigido antes do merge. Aprovado pelo dono (2026-07-02, "siga implementação por glm"); executor: GLM 5.2 (texto) + aplicador barato + gates. **Falta só validação de produto** (gate dos 30 iniciantes) e revisão humana do texto de ToS — não há trabalho de código pendente.
 - **Origem:** proposta Fable v1 → council VERIFICAR (GLM 4/10, DeepSeek 7/10) → **Fugu-maestro (rodízio) adjudicou 5/10 e reescreveu** → selo leve Fable com correção técnica (evals exigem análise no Lichess; automatizável = fetch+import, não a análise)
 - **Spike validado (2026-07-02):** `POST https://lichess.org/api/import` funciona ANÔNIMO (teste real → `lichess.org/nJQmQMRZ`). API pública do chess.com NÃO busca partida por ID — fluxo assistido usa username → arquivos mensais → escolha da partida.
 
