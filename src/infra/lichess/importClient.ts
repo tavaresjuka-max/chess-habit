@@ -29,7 +29,13 @@ export async function importPgnToLichess(
     form.set('pgn', pgn);
     response = await fetcher('https://lichess.org/api/import', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      // Accept é OBRIGATÓRIO: sem ele o Lichess segue o redirect e devolve a
+      // PÁGINA HTML do jogo importado (200 text/html), quebrando o parse do
+      // JSON — bug achado em verificação ao vivo no navegador (2026-07-02).
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+      },
       body: form.toString(),
       signal: controller.signal,
     });
