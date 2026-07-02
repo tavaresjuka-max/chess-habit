@@ -22,6 +22,12 @@ export type DiplomaSection = {
   lichessThemes?: string[];
   accuracyTarget?: number;
   minAttempts?: number;
+  // Fase 4 do SPEC blind-retrieval (docs/specs/pedagogical-concept-contracts-blind-retrieval-SPEC.md):
+  // quando true, além de acurácia/volume a seção só fecha (passed) com evidência
+  // cega suficiente (blindEvidenceItems >= blindEvidenceTarget). Sem a flag (ou
+  // false/undefined), comportamento idêntico ao atual — evidência cega fica só
+  // anexada, cosmética. Diploma já earned nunca é reavaliado (ver evaluateDiplomas.ts).
+  requiresBlindEvidence?: boolean;
 };
 
 export type DiplomaDefinition = {

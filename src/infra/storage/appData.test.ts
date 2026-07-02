@@ -76,7 +76,11 @@ type ExportPayload = {
 const profile: LearnerProfile = {
   lichessUsername: 'jukasparov',
   chesscomUsername: 'jukatavares',
-  band: '800-1000',
+  // '0-400' (piso do spine): o fixture diplomaAttempt abaixo não conquista o
+  // diploma peao (sectionId não bate com nenhuma seção real), então uma
+  // banda mais alta seria clampada pelo saneamento de restore (GRUPO D,
+  // dados-2) — testes aqui não são sobre progressão de banda.
+  band: '0-400',
   defaultSessionMinutes: 15,
   goals: ['rotina curta'],
   updatedAt: '2026-06-06T00:00:00.000Z',
@@ -735,7 +739,9 @@ const diplomaAttempt: DiplomaAttempt = {
   diplomaId: 'peao',
   sectionId: 'coordenadas',
   scorePercent: 95,
-  totalItems: 10,
+  // >= SECTION_MIN_ATTEMPTS (30): passed=true com amostra abaixo do piso é
+  // rejeitado pelo validador (GRUPO D, dados-4).
+  totalItems: 30,
   passed: true,
   source: 'local',
   createdAt: '2026-06-10T00:00:00.000Z',
@@ -826,7 +832,10 @@ describe('adoptedAt — carimbo de adoção write-once (Fase 1, classe de risco)
 
   it('adoptedAt sobrevive ao round-trip de backup (export -> clear -> import)', async () => {
     await saveProfile(profile);
-    await captureAdoption('2026-06-01T10:00:00.000Z');
+    // 2026-06-06T00:00:00.000Z é o piso plausível do saneamento de restore
+    // (APP_EPOCH_ISO, GRUPO D dados-2) — usa uma data dentro do intervalo
+    // válido [APP_EPOCH, now] para não ser clampada pelo import.
+    await captureAdoption('2026-06-06T10:00:00.000Z');
 
     const exported = await exportAllAsJson('2026-06-10T12:00:00.000Z');
 
@@ -836,7 +845,7 @@ describe('adoptedAt — carimbo de adoção write-once (Fase 1, classe de risco)
     const result = await importBackupFromJson(exported);
 
     expect(result).toMatchObject({ ok: true });
-    await expect(loadAdoptedAt()).resolves.toBe('2026-06-01T10:00:00.000Z');
+    await expect(loadAdoptedAt()).resolves.toBe('2026-06-06T10:00:00.000Z');
   });
 
   it('setErrorCaptureEnabled preserva adoptedAt e onboardingCompletedAt (read-merge-put)', async () => {

@@ -26,15 +26,19 @@ export interface PullBlobsResult {
 }
 
 export async function pushBlob(input: PushBlobEngineInput): Promise<void> {
-  // ATENÇÃO: `ciphertext` é nome legado — hoje é JSON PLAINTEXT, sem criptografia.
+  // ATENÇÃO: o campo "ciphertext" no WIRE (JSON enviado/recebido do backend) é
+  // nome HISTÓRICO/legado — hoje o conteúdo é JSON PLAINTEXT, sem criptografia.
   // O sync NÃO é E2EE por decisão de produto (dado de progresso, baixa sensibilidade;
   // ver docs/privacy/privacy-and-data.md). Para E2EE real, cifrar aqui com
   // crypto.subtle (AES-GCM + chave derivada de segredo do usuário) antes de enviar.
-  const ciphertext = JSON.stringify(input.value);
+  // O SÍMBOLO interno é `payload` (não "ciphertext") para não sugerir criptografia
+  // que não existe; a CHAVE JSON do wire continua "ciphertext" — contrato com o
+  // backend (backend/types.ts) intocado.
+  const payload = JSON.stringify(input.value);
   const pushInput: PushBlobInput = {
     collection: input.collection,
     clientMutationId: input.clientMutationId,
-    ciphertext,
+    ciphertext: payload,
     updatedAt: input.updatedAt,
   };
   await input.client.pushBlob(pushInput);

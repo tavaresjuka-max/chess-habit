@@ -127,6 +127,72 @@ describe('syncStorage', () => {
     expect(await db.lichessStudies.count()).toBe(0);
   });
 
+  // ── Saneamento pós-merge (GRUPO D — mesma superfície de ataque do restore
+  // de backup, ver src/domain/method/sanitizeRestoredState.ts) ─────────────
+
+  it('mergeRemoteMutationsIntoStorage clampa a banda de um profile remoto sem diplomaAttempts locais que a justifiquem', async () => {
+    const client = makeClient();
+    client.stored.push({
+      collection: 'profile',
+      clientMutationId: 'forged-profile',
+      updatedAt: Date.parse('2099-01-01T00:00:00.000Z'),
+      ciphertext: JSON.stringify({
+        v: 1,
+        collection: 'profile',
+        entityId: 'default',
+        updatedAt: '2099-01-01T00:00:00.000Z',
+        record: {
+          id: 'default',
+          band: '1200-1600',
+          defaultSessionMinutes: 15,
+          goals: [],
+          updatedAt: '2099-01-01T00:00:00.000Z',
+        },
+      }),
+    });
+    // Nenhum diplomaAttempts local: nenhuma banda acima do piso é justificada.
+    expect(await db.diplomaAttempts.count()).toBe(0);
+
+    const result = await syncCollectionOnce({ client, collection: 'profile' });
+
+    expect(result).toMatchObject({ ok: true });
+    const merged = await db.profile.get('default');
+    expect(merged?.band).toBe('0-400');
+  });
+
+  it('mergeRemoteMutationsIntoStorage clampa adoptedAt/consentedAt de um appMeta remoto no futuro', async () => {
+    const client = makeClient();
+    client.stored.push({
+      collection: 'appMeta',
+      clientMutationId: 'forged-appmeta',
+      updatedAt: Date.parse('2026-06-27T00:00:00.000Z'),
+      ciphertext: JSON.stringify({
+        v: 1,
+        collection: 'appMeta',
+        entityId: 'app',
+        updatedAt: '2026-06-27T00:00:00.000Z',
+        record: {
+          id: 'app',
+          adoptedAt: '2099-12-31T23:59:59.000Z',
+          consentedAt: '2099-12-31T23:59:59.000Z',
+          updatedAt: '2026-06-27T00:00:00.000Z',
+        },
+      }),
+    });
+
+    const beforeMs = Date.now();
+    const result = await syncCollectionOnce({ client, collection: 'appMeta' });
+    const afterMs = Date.now();
+
+    expect(result).toMatchObject({ ok: true });
+    const merged = await db.appMeta.get('app');
+    expect(merged?.adoptedAt).toBeDefined();
+    expect(Date.parse(merged?.adoptedAt as string)).toBeLessThanOrEqual(afterMs);
+    expect(Date.parse(merged?.adoptedAt as string)).toBeGreaterThanOrEqual(beforeMs - 1000);
+    expect(merged?.consentedAt).toBeDefined();
+    expect(Date.parse(merged?.consentedAt as string)).toBeLessThanOrEqual(afterMs);
+  });
+
   it('syncCollectionOnce faz pull-merge-push sem perder entidades de outro aparelho', async () => {
     const client = makeClient();
     await pushRecordMutations({

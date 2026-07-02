@@ -181,7 +181,8 @@ export const catalogSkillNodes = [
       'puzzle:pawnEndgame',
       'puzzle:promotion',
     ],
-    tavarezCue: 'Conte rei ativo, oposição e casa de promoção antes de calcular qualquer corrida.',
+    tavarezCue:
+      'Dois sinais antes de contar lances: seu rei chegou na frente do peão (não do lado) e você tem a oposição — é sua vez de esperar, não do rei adversário?',
   },
   {
     id: 'rook-endgame-core',
@@ -197,7 +198,8 @@ export const catalogSkillNodes = [
       'puzzle:queenRookEndgame',
       'study:noseknowsall:rook-endgames-you-must-know',
     ],
-    tavarezCue: 'Antes da linha, pergunte se a torre está ativa ou só defendendo passivamente.',
+    tavarezCue:
+      'Dois sinais concretos: sua torre está atrás do peão passado (seu ou do rival) e ela ataca por trás dos peões inimigos na sétima fileira, não presa defendendo um peão parado.',
   },
   {
     id: 'conversion-material',

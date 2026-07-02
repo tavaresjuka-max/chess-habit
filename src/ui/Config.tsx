@@ -12,6 +12,7 @@ import {
 } from '../app/backupStatus';
 import { learnerBands, type LearnerBand, type LearnerProfile, type LichessOAuthToken, type SessionMinutes } from '../domain';
 import { BandaIcon } from './art/BandaIcon';
+import { EpistemicStanceFold } from './EpistemicStanceFold';
 import { Fold } from './Fold';
 import { PlacementCard } from './PlacementCard';
 import { SyncPanel } from './SyncPanel';
@@ -272,6 +273,8 @@ export function Config({
         researchOptIn={researchOptIn}
         onToggleResearchOptIn={onToggleResearchOptIn}
       />
+
+      <EpistemicStanceFold />
 
       {SYNC_UI_ENABLED ? (
         <Fold concept="dados" title="Sincronização" meta="experimental">

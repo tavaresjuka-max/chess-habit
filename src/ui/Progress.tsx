@@ -25,6 +25,7 @@ import { DiplomaSeal } from './art/DiplomaSeal';
 import { formatWeaknessTag } from './formatWeakness';
 import { MedalhaIcon } from './art/MedalhaIcon';
 import { CurriculumCard } from './CurriculumCard';
+import { EpistemicBadge } from './EpistemicBadge';
 import { Fold } from './Fold';
 import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
 import { isAllowedLichessUrl } from '../infra/lichess/urlPolicy';
@@ -347,6 +348,7 @@ export function Progress({
       ) : null}
 
       <Fold concept="linha-base" title="Linha de base do método">
+        <EpistemicBadge />
         <div className="weekly-report-metrics">
           {baseline.overallPuzzleAccuracyPercent !== undefined ? (
             <span className="metric-chip">

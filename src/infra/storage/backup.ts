@@ -1,4 +1,5 @@
 import { learnerBands } from '../../domain/bands';
+import { SECTION_MIN_ATTEMPTS } from '../../domain/pedagogyConstants';
 import { isAllowedLichessUrl } from '../lichess/urlPolicy';
 
 export const backupFormatName = 'lichess-tutor-backup' as const;
@@ -568,6 +569,13 @@ export function validateBackupData(data: BackupData): string | null {
     }
     if (!ifPresent(item.passed, isBoolean)) {
       return entityError('diplomaAttempts', i, 'passed');
+    }
+    // Saneamento de amostra (GRUPO D, dados-4): "passed=true" com totalItems
+    // abaixo do piso de volume (SECTION_MIN_ATTEMPTS) é semanticamente
+    // impossível — nenhuma seção real fecha sobre amostra tão rala. Um
+    // backup/blob forjado que alegue isso não pode ser aceito como válido.
+    if (item.passed === true && typeof item.totalItems === 'number' && item.totalItems < SECTION_MIN_ATTEMPTS) {
+      return `diplomaAttempts[${String(i)}]: "passed" não pode ser verdadeiro com "totalItems" abaixo do piso mínimo de tentativas (${String(SECTION_MIN_ATTEMPTS)}).`;
     }
     if (!ifPresent(item.createdAt, isIsoDate)) {
       return entityError('diplomaAttempts', i, 'createdAt');

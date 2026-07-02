@@ -10,6 +10,7 @@ import type {
 } from '../../domain';
 import type { DiplomaAttempt, MethodTrack, PendingTrainingItem } from '../../domain/method/types';
 import type { Achievement, AchievementId, PlacementCompletion } from '../../domain/badges/evaluateAchievements';
+import { sanitizeProfileRecords, sanitizeAppMetaRecords } from '../../domain/method/sanitizeRestoredState';
 import type { ChesscomMonthCache } from '../chesscom/chesscomClient';
 import { countBackupRecords, createBackupFile, parseBackupFile, validateBackupData, type BackupData } from './backup';
 import {
@@ -640,6 +641,18 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
     return { ok: false, error: `O backup contém dados inválidos: ${shapeError}` };
   }
 
+  // Saneamento semântico (GRUPO D, dados-2): um backup tipado-válido ainda pode
+  // alegar coisas semanticamente impossíveis (banda sem diploma que a
+  // justifique, carimbos no futuro). O saneamento acontece AQUI, antes do
+  // clear+bulkPut — o import continua atômico (bloco único de transação),
+  // só o CONTEÚDO gravado é que passa a ser o saneado, não o cru do arquivo.
+  const nowIso = new Date().toISOString();
+  const sanitizedProfile = sanitizeProfileRecords(
+    data.profile as Record<string, unknown>[],
+    data.diplomaAttempts,
+  );
+  const sanitizedAppMeta = sanitizeAppMetaRecords(data.appMeta as Record<string, unknown>[] | undefined, nowIso);
+
   try {
     await db.transaction(
       'rw',
@@ -660,7 +673,7 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
       ],
       async () => {
         await db.profile.clear();
-        await db.profile.bulkPut(data.profile as ProfileRecord[]);
+        await db.profile.bulkPut(sanitizedProfile as ProfileRecord[]);
         await db.plans.clear();
         await db.plans.bulkPut(data.plans as PlanRecord[]);
         await db.logs.clear();
@@ -683,7 +696,7 @@ export async function importBackupFromJson(json: string): Promise<BackupImportRe
         await db.lichessStudies.clear();
         await db.lichessStudies.bulkPut((data.lichessStudies ?? []) as LichessStudyLinkRecord[]);
         await db.appMeta.clear();
-        await db.appMeta.bulkPut((data.appMeta ?? []) as AppMetaRecord[]);
+        await db.appMeta.bulkPut(sanitizedAppMeta as AppMetaRecord[]);
         // Os dados restaurados SAO o backup importado: o meta passa a refletir
         // esse arquivo, senao o lembrete de backup no Hoje mostra a data antiga
         // (de outro export/aparelho). autoBackup nao e tocado de proposito: e
