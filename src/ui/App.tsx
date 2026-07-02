@@ -1,4 +1,4 @@
-import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
+import { CalendarDays, ChartNoAxesColumn, Settings, Stethoscope } from 'lucide-react';
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
@@ -42,10 +42,13 @@ function readStoredFunnelPhase(): FunnelPhase | undefined {
   return undefined;
 }
 
-// Hoje é a tela padrão e fica no chunk principal; Config e Progresso chegam
-// sob demanda (code-split) para encurtar o carregamento inicial no celular.
+// Hoje é a tela padrão e fica no chunk principal; Config, Progresso e Autópsia
+// chegam sob demanda (code-split) para encurtar o carregamento inicial no
+// celular — Autópsia carrega `chessops` (parser SAN/FEN), que senão infla o
+// chunk principal para quem nunca usa a função.
 const Config = lazy(() => import('./Config').then((module) => ({ default: module.Config })));
 const Progress = lazy(() => import('./Progress').then((module) => ({ default: module.Progress })));
+const AutopsyView = lazy(() => import('./AutopsyView').then((module) => ({ default: module.AutopsyView })));
 
 // O app força o tema verde/escuro sempre (ver index.css, "@media all"), então o
 // toast também é sempre escuro — independe do prefers-color-scheme do SO.
@@ -172,6 +175,7 @@ export function App() {
   const activeView = appState.activeView;
   const shouldShowConfig = activeView === 'config';
   const shouldShowProgress = activeView === 'progress';
+  const shouldShowAutopsy = activeView === 'autopsy';
 
   const didMountFocusRef = useRef(false);
   useEffect(() => {
@@ -339,6 +343,17 @@ export function App() {
           Progresso
         </button>
         <button
+          className={shouldShowAutopsy ? 'nav-button nav-button-active' : 'nav-button'}
+          aria-current={shouldShowAutopsy ? 'page' : undefined}
+          type="button"
+          onClick={() => {
+            appState.setActiveView('autopsy');
+          }}
+        >
+          <Stethoscope aria-hidden="true" size={16} />
+          Autópsia
+        </button>
+        <button
           className={shouldShowConfig ? 'nav-button nav-button-active' : 'nav-button'}
           aria-current={shouldShowConfig ? 'page' : undefined}
           type="button"
@@ -422,6 +437,10 @@ export function App() {
               onSyncLichessDiagnosis={appState.syncLichessDiagnosis}
               onCreateLichessStudy={appState.createLichessStudy}
             />
+          </Suspense>
+        ) : shouldShowAutopsy ? (
+          <Suspense fallback={<ViewFallback />}>
+            <AutopsyView lichessUsername={appState.profile.lichessUsername} />
           </Suspense>
         ) : (
           <Today
