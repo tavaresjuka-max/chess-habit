@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { buildAutopsyReport, type AutopsyError, type AutopsyReport, type AutopsySeverity } from '../domain/autopsy/autopsyReport';
+import { buildAutopsyPendingItems } from '../domain/method/pendingItems';
 import { fetchGameForAutopsy, parseGameRef } from '../infra/lichess/autopsyClient';
 import { isAllowedLichessUrl } from '../infra/lichess/urlPolicy';
+import { loadAllPendingItems, savePendingItem } from '../infra/storage/appData';
 import { TavarezAvatar } from './art/TavarezAvatar';
 
 type ViewState =
@@ -51,6 +53,52 @@ export function AutopsyView({ lichessUsername }: AutopsyViewProps) {
   const [gameRefInput, setGameRefInput] = useState('');
   const [state, setState] = useState<ViewState>({ kind: 'idle' });
   const [revealedByPly, setRevealedByPly] = useState<Record<number, boolean>>({});
+  // Treinar estes erros (GRUPO A2, 2026-07-02): injeta os erros da autópsia como
+  // pending items na MESMA fila SM-2. scheduledGameIds rastreia quais gameId já
+  // têm pendência (nesta sessão OU de sessões anteriores, carregado do storage)
+  // para desabilitar o botão / mostrar "Já agendado" sem reinjetar.
+  const [scheduledGameIds, setScheduledGameIds] = useState<Set<string>>(new Set());
+  const [scheduling, setScheduling] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadScheduledGameIds() {
+      const items = await loadAllPendingItems();
+      if (cancelled) {
+        return;
+      }
+      const gameIds = items
+        .filter((item) => item.source === 'autopsy' && item.gameId !== undefined)
+        .map((item) => item.gameId)
+        .filter((gameId): gameId is string => gameId !== undefined);
+
+      setScheduledGameIds(new Set(gameIds));
+    }
+
+    void loadScheduledGameIds();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleTrainTheseErrors(report: AutopsyReport) {
+    setScheduling(true);
+
+    try {
+      const existingItems = await loadAllPendingItems();
+      const newItems = buildAutopsyPendingItems(report.errors, report.gameId, existingItems);
+
+      for (const item of newItems) {
+        await savePendingItem(item);
+      }
+
+      setScheduledGameIds((current) => new Set(current).add(report.gameId));
+    } finally {
+      setScheduling(false);
+    }
+  }
 
   async function handleSubmit() {
     const gameId = parseGameRef(gameRefInput);
@@ -228,6 +276,11 @@ export function AutopsyView({ lichessUsername }: AutopsyViewProps) {
           revealedByPly={revealedByPly}
           onReveal={toggleReveal}
           onReset={handleReset}
+          alreadyScheduled={scheduledGameIds.has(state.report.gameId)}
+          scheduling={scheduling}
+          onTrainTheseErrors={() => {
+            void handleTrainTheseErrors(state.report);
+          }}
         />
       ) : null}
     </section>
@@ -289,11 +342,17 @@ function AutopsyCards({
   revealedByPly,
   onReveal,
   onReset,
+  alreadyScheduled,
+  scheduling,
+  onTrainTheseErrors,
 }: {
   report: AutopsyReport;
   revealedByPly: Record<number, boolean>;
   onReveal: (ply: number) => void;
   onReset: () => void;
+  alreadyScheduled: boolean;
+  scheduling: boolean;
+  onTrainTheseErrors: () => void;
 }) {
   if (report.errors.length === 0) {
     return (
@@ -332,7 +391,16 @@ function AutopsyCards({
         ))}
       </ul>
 
+      {alreadyScheduled ? (
+        <p role="status" className="autopsy-scheduled-confirmation">
+          Agendei. Eles voltam em 1 dia — e eu pergunto de novo antes de mostrar a resposta.
+        </p>
+      ) : null}
+
       <div className="button-row">
+        <button type="button" disabled={alreadyScheduled || scheduling} onClick={onTrainTheseErrors}>
+          {alreadyScheduled ? 'Já agendado' : 'Treinar estes erros'}
+        </button>
         <button type="button" className="secondary-button" onClick={onReset}>
           Fazer outra autópsia
         </button>

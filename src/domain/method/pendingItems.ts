@@ -1,3 +1,4 @@
+import type { AutopsyError } from '../autopsy/autopsyReport';
 import { createId } from '../ids';
 import {
   DEFAULT_EASE_FACTOR,
@@ -165,6 +166,61 @@ export function createPendingItemFromTheme(
     createdAt: now,
     updatedAt: now,
   };
+}
+
+const AUTOPSY_SEVERITY_LABEL: Record<AutopsyError['severity'], string> = {
+  blunder: 'Capote',
+  mistake: 'Erro grave',
+  inaccuracy: 'Imprecisão',
+};
+
+/**
+ * Converte erros da Autópsia (partida REAL do usuário) em pending items —
+ * MESMA fila/escada SM-2 dos itens de puzzle (GRUPO A2, 2026-07-02). Função
+ * pura: não persiste, não consulta storage; o chamador decide o que gravar.
+ *
+ * Dedup por gameId+ply: reinjetar a mesma partida (ex.: usuário clica "Treinar
+ * estes erros" duas vezes) NÃO duplica — o erro já presente em `existingItems`
+ * (qualquer status: open/done/deferred) é filtrado antes de virar item novo.
+ */
+export function buildAutopsyPendingItems(
+  errors: AutopsyError[],
+  gameId: string,
+  existingItems: PendingTrainingItem[],
+): PendingTrainingItem[] {
+  const existingKeys = new Set(
+    existingItems
+      .filter((item) => item.source === 'autopsy' && item.gameId === gameId)
+      .map((item) => item.ply),
+  );
+
+  const now = new Date().toISOString();
+
+  return errors
+    .filter((error) => !existingKeys.has(error.ply))
+    .map((error) => {
+      const item: PendingTrainingItem = {
+        id: `pending-autopsy-${gameId}-${String(error.ply)}-${createId()}`,
+        origin: 'game-review',
+        title: `${AUTOPSY_SEVERITY_LABEL[error.severity]} no lance ${String(error.moveNumber)}: ${error.sanPlayed}`,
+        weaknessTag: 'blunder-rate',
+        methodTrackId: 'pending-review',
+        lichessUrl: error.lichessUrl,
+        source: 'autopsy',
+        fen: error.fenBefore,
+        sanPlayed: error.sanPlayed,
+        gameId,
+        ply: error.ply,
+        prompt: 'Antes de ver a resposta: o que você jogaria aqui?',
+        dueAt: getNextDueDate(0),
+        attempts: 0,
+        status: 'open',
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      return error.bestSan === undefined ? item : { ...item, bestSan: error.bestSan };
+    });
 }
 
 const GRADUATION_ATTEMPTS = SPACING_DAYS.length;

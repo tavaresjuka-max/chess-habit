@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { AutopsyError } from '../autopsy/autopsyReport';
 import type { MethodTrackId, PendingTrainingItem } from './types';
 import {
   advancePendingItem,
+  buildAutopsyPendingItems,
   buildGuidingPrompt,
   createPendingItemFromFeedback,
   getNextDueDate,
@@ -375,6 +377,117 @@ describe('advancePendingItem — gate por dificuldade observada (Pilar B, counci
       status: withoutRouting.status,
       retentionPending: withoutRouting.retentionPending,
     });
+  });
+});
+
+describe('buildAutopsyPendingItems (GRUPO A2, 2026-07-02)', () => {
+  const blunder: AutopsyError = {
+    ply: 5,
+    moveNumber: 3,
+    side: 'white',
+    sanPlayed: 'd4',
+    fenBefore: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 3',
+    bestSan: 'Nc3',
+    severity: 'blunder',
+    lichessUrl: 'https://lichess.org/abcd1234/white#5',
+  };
+  const mistake: AutopsyError = {
+    ply: 11,
+    moveNumber: 6,
+    side: 'white',
+    sanPlayed: 'Bxf7+',
+    fenBefore: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 2 4',
+    severity: 'mistake',
+    lichessUrl: 'https://lichess.org/abcd1234/white#11',
+  };
+
+  it('converte erros em pending items na mesma escada SM-2 (dueAt amanhã, attempts 0, pending-review)', () => {
+    const items = buildAutopsyPendingItems([blunder], 'abcd1234', []);
+
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      origin: 'game-review',
+      source: 'autopsy',
+      methodTrackId: 'pending-review',
+      weaknessTag: 'blunder-rate',
+      status: 'open',
+      attempts: 0,
+      dueAt: tomorrow,
+      gameId: 'abcd1234',
+      ply: 5,
+      sanPlayed: 'd4',
+      bestSan: 'Nc3',
+      fen: blunder.fenBefore,
+      lichessUrl: 'https://lichess.org/abcd1234/white#5',
+      prompt: 'Antes de ver a resposta: o que você jogaria aqui?',
+    });
+  });
+
+  it('omite bestSan quando o erro não trouxe (sem inventar dado)', () => {
+    const items = buildAutopsyPendingItems([mistake], 'abcd1234', []);
+
+    expect(items[0]?.bestSan).toBeUndefined();
+  });
+
+  it('cria um item por erro, preservando a ordem', () => {
+    const items = buildAutopsyPendingItems([blunder, mistake], 'abcd1234', []);
+
+    expect(items).toHaveLength(2);
+    expect(items.map((item) => item.ply)).toEqual([5, 11]);
+  });
+
+  it('dedup por gameId+ply: reinjetar a mesma partida não duplica', () => {
+    const firstBatch = buildAutopsyPendingItems([blunder, mistake], 'abcd1234', []);
+    const secondBatch = buildAutopsyPendingItems([blunder, mistake], 'abcd1234', firstBatch);
+
+    expect(secondBatch).toHaveLength(0);
+  });
+
+  it('dedup respeita status (done/deferred também contam — já foi tratado, não reinjeta)', () => {
+    const [generatedItem] = buildAutopsyPendingItems([blunder], 'abcd1234', []);
+    expect(generatedItem).toBeDefined();
+    if (generatedItem === undefined) {
+      return;
+    }
+
+    const doneItem = { ...generatedItem, status: 'done' as const };
+    const secondBatch = buildAutopsyPendingItems([blunder], 'abcd1234', [doneItem]);
+
+    expect(secondBatch).toHaveLength(0);
+  });
+
+  it('dedup é por gameId+ply: mesmo ply de OUTRA partida não conflita', () => {
+    const firstGameItems = buildAutopsyPendingItems([blunder], 'abcd1234', []);
+    const secondGameItems = buildAutopsyPendingItems([blunder], 'wxyz9999', firstGameItems);
+
+    expect(secondGameItems).toHaveLength(1);
+    expect(secondGameItems[0]?.gameId).toBe('wxyz9999');
+  });
+
+  it('não deduplica contra pending items de OUTRA origem (puzzle) mesmo com gameId coincidente por acaso', () => {
+    const puzzleItem = createItem({ id: 'pending-puzzle-1' });
+    const items = buildAutopsyPendingItems([blunder], 'abcd1234', [puzzleItem]);
+
+    expect(items).toHaveLength(1);
+  });
+
+  it('itens gerados entram na fila due e avançam pelo advancePendingItem normal (zero fork)', () => {
+    const [item] = buildAutopsyPendingItems([blunder], 'abcd1234', []);
+    expect(item).toBeDefined();
+    if (item === undefined) {
+      return;
+    }
+
+    expect(isDueToday({ ...item, dueAt: today })).toBe(true);
+
+    const advanced = advancePendingItem({ ...item, dueAt: today }, 'good');
+    expect(advanced.attempts).toBe(1);
+    expect(advanced.source).toBe('autopsy');
+    expect(advanced.gameId).toBe('abcd1234');
+  });
+
+  it('lista vazia de erros não gera itens', () => {
+    expect(buildAutopsyPendingItems([], 'abcd1234', [])).toEqual([]);
   });
 });
 

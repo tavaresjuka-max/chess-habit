@@ -85,6 +85,14 @@ export function LegalFooter() {
           ))}
         </ul>
       </details>
+      <a
+        href="/docs/legal/termos-de-servico.md"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Termos de serviço (abre em nova aba)"
+      >
+        Termos de serviço
+      </a>
       {FEEDBACK_URL === undefined ? null : (
         <a
           href={FEEDBACK_URL}

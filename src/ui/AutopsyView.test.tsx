@@ -7,6 +7,7 @@ import {
   GAME_WITH_JUDGMENTS,
 } from '../domain/autopsy/autopsyReport.fixtures';
 import type { AutopsyFetchResult } from '../infra/lichess/autopsyClient';
+import type { PendingTrainingItem } from '../domain/method/types';
 
 afterEach(() => {
   cleanup();
@@ -22,16 +23,32 @@ vi.mock('../infra/lichess/autopsyClient', async (importOriginal) => {
   };
 });
 
+vi.mock('../infra/storage/appData', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../infra/storage/appData')>();
+  return {
+    ...original,
+    loadAllPendingItems: vi.fn(),
+    savePendingItem: vi.fn(),
+  };
+});
+
 async function importFreshView() {
   const clientModule = await import('../infra/lichess/autopsyClient');
+  const appDataModule = await import('../infra/storage/appData');
   const { AutopsyView } = await import('./AutopsyView');
   const fetchGameForAutopsy = vi.mocked(clientModule.fetchGameForAutopsy);
+  const loadAllPendingItems = vi.mocked(appDataModule.loadAllPendingItems);
+  const savePendingItem = vi.mocked(appDataModule.savePendingItem);
   // `vi.resetModules()` no afterEach recarrega o módulo, mas o mock em si
   // (criado uma vez pela factory de `vi.mock`) persiste entre módulos
   // recarregados dentro do MESMO arquivo de teste — limpamos chamadas
   // manualmente para garantir isolamento entre `it`s.
   fetchGameForAutopsy.mockClear();
-  return { AutopsyView, fetchGameForAutopsy };
+  loadAllPendingItems.mockReset();
+  loadAllPendingItems.mockResolvedValue([]);
+  savePendingItem.mockReset();
+  savePendingItem.mockResolvedValue(undefined);
+  return { AutopsyView, fetchGameForAutopsy, loadAllPendingItems, savePendingItem };
 }
 
 function mockOk(exportJson: unknown, gameId: string) {
@@ -261,6 +278,85 @@ describe('AutopsyView', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(/Não consegui falar com o Lichess/i);
+    });
+  });
+
+  describe('Treinar estes erros (GRUPO A2, 2026-07-02)', () => {
+    async function renderWithCards(AutopsyView: typeof import('./AutopsyView').AutopsyView) {
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'abcd1234' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Treinar estes erros|Já agendado/i })).toBeInTheDocument();
+      });
+    }
+
+    it('clicar "Treinar estes erros" injeta os itens e mostra a confirmação honesta', async () => {
+      const { AutopsyView, fetchGameForAutopsy, savePendingItem } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      await renderWithCards(AutopsyView);
+
+      fireEvent.click(screen.getByRole('button', { name: /Treinar estes erros/i }));
+
+      await waitFor(() => {
+        expect(savePendingItem).toHaveBeenCalledTimes(1);
+      });
+
+      const savedItem = savePendingItem.mock.calls[0]?.[0] as PendingTrainingItem;
+      expect(savedItem).toMatchObject({
+        origin: 'game-review',
+        source: 'autopsy',
+        methodTrackId: 'pending-review',
+        gameId: 'abcd1234',
+        ply: 5,
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Agendei\. Eles voltam em 1 dia — e eu pergunto de novo antes de mostrar a resposta\./i),
+        ).toBeInTheDocument();
+      });
+      expect(screen.getByRole('button', { name: /Já agendado/i })).toBeDisabled();
+    });
+
+    it('reinjeção (mesma partida já agendada no storage) mostra "Já agendado" sem duplicar', async () => {
+      const { AutopsyView, fetchGameForAutopsy, loadAllPendingItems, savePendingItem } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+      loadAllPendingItems.mockResolvedValue([
+        {
+          id: 'pending-autopsy-abcd1234-5-existing',
+          origin: 'game-review',
+          title: 'Capote no lance 3: d4',
+          weaknessTag: 'blunder-rate',
+          methodTrackId: 'pending-review',
+          source: 'autopsy',
+          gameId: 'abcd1234',
+          ply: 5,
+          prompt: 'Antes de ver a resposta: o que você jogaria aqui?',
+          dueAt: '2026-07-03',
+          attempts: 0,
+          status: 'open',
+          createdAt: '2026-07-02T00:00:00.000Z',
+          updatedAt: '2026-07-02T00:00:00.000Z',
+        } satisfies PendingTrainingItem,
+      ]);
+
+      await renderWithCards(AutopsyView);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Já agendado/i })).toBeDisabled();
+      });
+      expect(
+        screen.getByText(/Agendei\. Eles voltam em 1 dia — e eu pergunto de novo antes de mostrar a resposta\./i),
+      ).toBeInTheDocument();
+      expect(savePendingItem).not.toHaveBeenCalled();
     });
   });
 });
