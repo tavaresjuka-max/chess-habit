@@ -47,9 +47,13 @@ function autoDetectPerspective(
 
 type AutopsyViewProps = {
   lichessUsername?: string;
+  // GRUPO A3: navega para Ajustes → Dados quando o aluno clica no lembrete de
+  // backup após agendar o treino. Opcional para não quebrar quem renderiza a
+  // view isolada (ex.: testes existentes sem essa navegação).
+  onNavigateToSettings?: () => void;
 };
 
-export function AutopsyView({ lichessUsername }: AutopsyViewProps) {
+export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyViewProps) {
   const [gameRefInput, setGameRefInput] = useState('');
   const [state, setState] = useState<ViewState>({ kind: 'idle' });
   const [revealedByPly, setRevealedByPly] = useState<Record<number, boolean>>({});
@@ -281,6 +285,7 @@ export function AutopsyView({ lichessUsername }: AutopsyViewProps) {
           onTrainTheseErrors={() => {
             void handleTrainTheseErrors(state.report);
           }}
+          {...(onNavigateToSettings === undefined ? {} : { onNavigateToSettings })}
         />
       ) : null}
     </section>
@@ -345,6 +350,7 @@ function AutopsyCards({
   alreadyScheduled,
   scheduling,
   onTrainTheseErrors,
+  onNavigateToSettings,
 }: {
   report: AutopsyReport;
   revealedByPly: Record<number, boolean>;
@@ -353,6 +359,7 @@ function AutopsyCards({
   alreadyScheduled: boolean;
   scheduling: boolean;
   onTrainTheseErrors: () => void;
+  onNavigateToSettings?: () => void;
 }) {
   if (report.errors.length === 0) {
     return (
@@ -392,9 +399,25 @@ function AutopsyCards({
       </ul>
 
       {alreadyScheduled ? (
-        <p role="status" className="autopsy-scheduled-confirmation">
-          Agendei. Eles voltam em 1 dia — e eu pergunto de novo antes de mostrar a resposta.
-        </p>
+        <>
+          <p role="status" className="autopsy-scheduled-confirmation">
+            Agendei. Eles voltam em 1 dia — e eu pergunto de novo antes de mostrar a resposta.
+          </p>
+          <p className="config-hint">
+            Seu progresso fica só neste aparelho.{' '}
+            {onNavigateToSettings === undefined ? (
+              'Faça um backup em Ajustes → Dados.'
+            ) : (
+              <>
+                Faça um backup em{' '}
+                <button type="button" className="link-button" onClick={onNavigateToSettings}>
+                  Ajustes → Dados
+                </button>
+                .
+              </>
+            )}
+          </p>
+        </>
       ) : null}
 
       <div className="button-row">

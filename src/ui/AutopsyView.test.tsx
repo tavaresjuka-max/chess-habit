@@ -359,4 +359,71 @@ describe('AutopsyView', () => {
       expect(savePendingItem).not.toHaveBeenCalled();
     });
   });
+
+  describe('lembrete de backup (GRUPO A3, 2026-07-02)', () => {
+    async function renderAndSchedule(AutopsyView: typeof import('./AutopsyView').AutopsyView, props = {}) {
+      render(<AutopsyView {...props} />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'abcd1234' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Treinar estes erros|Já agendado/i })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Treinar estes erros/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Já agendado/i })).toBeDisabled();
+      });
+    }
+
+    it('não mostra o lembrete de backup antes de agendar', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      render(<AutopsyView />);
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'abcd1234' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Treinar estes erros/i })).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/Seu progresso fica só neste aparelho/i)).not.toBeInTheDocument();
+    });
+
+    it('após agendar, mostra o lembrete de backup com link para Ajustes', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+      const onNavigateToSettings = vi.fn();
+
+      await renderAndSchedule(AutopsyView, { onNavigateToSettings });
+
+      expect(screen.getByText(/Seu progresso fica só neste aparelho/i)).toBeInTheDocument();
+      const settingsLink = screen.getByRole('button', { name: /Ajustes → Dados/i });
+      expect(settingsLink).toBeInTheDocument();
+
+      fireEvent.click(settingsLink);
+      expect(onNavigateToSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it('sem onNavigateToSettings, ainda mostra o texto do lembrete (sem link clicável)', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      await renderAndSchedule(AutopsyView);
+
+      expect(screen.getByText(/Seu progresso fica só neste aparelho/i)).toBeInTheDocument();
+      expect(screen.getByText(/Faça um backup em Ajustes → Dados\./i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Ajustes → Dados/i })).not.toBeInTheDocument();
+    });
+  });
 });

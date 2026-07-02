@@ -1,12 +1,13 @@
 // Passo 1 do funil: o professor recebe o aluno e convida a configurar.
-// "Vamos configurar" segue para o passo 2; "Começar rápido" pula com o
-// perfil padrão direto para a aprovação do plano.
+// "Vamos configurar" segue para o passo 2; "Começar rápido" e "Analisar minha
+// última partida" pulam com o perfil padrão direto para a aprovação do plano
+// (mesmo caminho, mesmo estado) — só o destino final muda: Hoje ou Autópsia.
 
 import { ConceptSeal } from './art/ConceptSeal';
 
 type WelcomeProps = {
   notice?: string;
-  onStart: () => Promise<void>;
+  onStart: (destination?: 'today' | 'autopsy') => Promise<void>;
   onConfigure: () => void;
 };
 
@@ -59,6 +60,15 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
           }}
         >
           Começar rápido
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            void onStart('autopsy');
+          }}
+        >
+          Analisar minha última partida
         </button>
       </div>
     </section>
