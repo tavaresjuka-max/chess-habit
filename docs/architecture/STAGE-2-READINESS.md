@@ -6,8 +6,10 @@ Stage 1 = beta da FERRAMENTA em 400-1200 (validado) + abrir a coorte; Stage 2 = 
 shovel-ready e registra o gate, em vez de código prematuro.
 
 ## Por que está gated (não é preguiça — é a decisão do dono)
-- O currículo denso 1200+ ("Corte 8") só destrava **com eficácia comprovada** (gate histórico do
-  projeto). Construir conteúdo alto antes da prova = investir no escuro.
+- O currículo denso 1200+ ("Corte 8") só destrava **quando a hipótese de eficácia sobreviver ao
+  protocolo de falsificação** (`docs/specs/falsification-protocol-DECISION.md`; postura: falsificar,
+  não provar — nunca rotular como "eficácia comprovada"). Construir conteúdo alto antes disso =
+  investir no escuro.
 - 0-400 discovery-mode completo e coaching de bandas altas foram explicitamente colocados em **Stage 2**
   (D3 = "B-lite agora + discovery-mode depois"; D2 = bandas altas dependem da prova de eficácia).
 - O onboarding do Stage 1 já **restringe a 400-1200** (filtro de banda, Fase 1) e já trata 0-400 com a
@@ -24,7 +26,8 @@ Custo estimado: 1-2 semanas.
 ### S2.2 — Coaching de bandas altas (1200-2200)
 NÃO é conteúdo oco/paráfrase de livro. É: diagnóstico + rotear pra fontes públicas/CC (Lichess Practice
 é CC; tablebases de final = factual; **jogos do próprio aluno = zero-IP**) + revisão espaçada dos erros.
-Label honesto ("a biblioteca cresce conforme a eficácia é comprovada"). Reusa o bridge de motif-tag
+Label honesto ("a biblioteca só cresce quando a medição sustenta — e quando não sustenta, a gente
+conta"). Reusa o bridge de motif-tag
 Chess.com→puzzles Lichess (lever `catalogSkillNodes`).
 
 ### S2.3 — Corte 8 (currículo denso 1200-2200)

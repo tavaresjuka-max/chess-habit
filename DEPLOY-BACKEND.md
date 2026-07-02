@@ -49,3 +49,12 @@ Backend Cloudflare Workers + D1 para sync multi-dispositivo opt-in em modelo con
 - Retenção/compactação de blobs antigos ainda precisa política segura.
 - Conflitos complexos seguem LWW por registro; coleções path-dependent devem ser revisadas antes de escala.
 - Canal de suporte/feedback e domínio próprio ainda dependem do dono.
+
+## Registro de deploys (processo — deploys manuais DEVEM ser registrados aqui)
+
+- **2026-06-30 (aprox., registrado retroativamente em 2026-07-02):** hardening de sync
+  deployado manualmente no Worker de produção — guard `SYNC_LOCAL_ALLOWED` (POST sem
+  Bearer → 401 em modo oauth) + `/health` sem o campo `mode`. Verificado por `curl` real
+  em 2026-07-02 (auditoria do plano 9.5). Lição de processo: o deploy aconteceu sem
+  registro no repo e uma auditoria posterior o tratou como "gap aberto" — todo deploy
+  manual do Worker deve ganhar uma linha nesta seção (data, o quê, como foi verificado).
