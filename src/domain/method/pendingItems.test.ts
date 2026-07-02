@@ -1,11 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AutopsyError } from '../autopsy/autopsyReport';
+import {
+  HANGING_PIECE_POSITIVE,
+  MATE_IN_1_POSITIVE,
+  PIN_POSITIVE,
+} from '../autopsy/themeClassifier.fixtures';
 import type { MethodTrackId, PendingTrainingItem } from './types';
 import {
   advancePendingItem,
   buildAutopsyPendingItems,
   buildGuidingPrompt,
   createPendingItemFromFeedback,
+  detectHighConfidenceThemeTag,
   getNextDueDate,
   isDueToday,
 } from './pendingItems';
@@ -488,6 +494,96 @@ describe('buildAutopsyPendingItems (GRUPO A2, 2026-07-02)', () => {
 
   it('lista vazia de erros não gera itens', () => {
     expect(buildAutopsyPendingItems([], 'abcd1234', [])).toEqual([]);
+  });
+});
+
+describe('detectHighConfidenceThemeTag / buildAutopsyPendingItems + classificador de temas (GRUPO TAGS, 2026-07-02)', () => {
+  const mateIn1Fixture = MATE_IN_1_POSITIVE[0];
+  const hangingPieceFixture = HANGING_PIECE_POSITIVE[0];
+  const pinFixture = PIN_POSITIVE[0]; // pin é sempre confidence 'low' — nunca deve virar weaknessTag.
+
+  if (mateIn1Fixture === undefined || hangingPieceFixture === undefined || pinFixture === undefined) {
+    throw new Error('fixtures do spike D1 ausentes');
+  }
+
+  const mateInOneError: AutopsyError = {
+    ply: 5,
+    moveNumber: 3,
+    side: 'white',
+    sanPlayed: 'Qxf7#',
+    fenBefore: mateIn1Fixture.fenBefore,
+    bestUci: mateIn1Fixture.bestUci,
+    severity: 'blunder',
+    lichessUrl: 'https://lichess.org/abcd1234/white#5',
+  };
+
+  const hangingPieceError: AutopsyError = {
+    ply: 7,
+    moveNumber: 4,
+    side: 'white',
+    sanPlayed: 'Rxd4',
+    fenBefore: hangingPieceFixture.fenBefore,
+    bestUci: hangingPieceFixture.bestUci,
+    severity: 'blunder',
+    lichessUrl: 'https://lichess.org/abcd1234/white#7',
+  };
+
+  const pinOnlyError: AutopsyError = {
+    ply: 9,
+    moveNumber: 5,
+    side: 'white',
+    sanPlayed: 'Ra5',
+    fenBefore: pinFixture.fenBefore,
+    bestUci: pinFixture.bestUci,
+    severity: 'mistake',
+    lichessUrl: 'https://lichess.org/abcd1234/white#9',
+  };
+
+  const noThemeError: AutopsyError = {
+    ply: 11,
+    moveNumber: 6,
+    side: 'white',
+    sanPlayed: 'a3',
+    fenBefore: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+    bestUci: undefined,
+    severity: 'mistake',
+    lichessUrl: 'https://lichess.org/abcd1234/white#11',
+  };
+
+  it('detectHighConfidenceThemeTag: mate-in-1 high vira a tag', () => {
+    expect(detectHighConfidenceThemeTag(mateInOneError)).toBe('mate-in-1');
+  });
+
+  it('detectHighConfidenceThemeTag: hanging-piece high vira a tag', () => {
+    expect(detectHighConfidenceThemeTag(hangingPieceError)).toBe('hanging-piece');
+  });
+
+  it('detectHighConfidenceThemeTag: pin (sempre low) NÃO vira tag — undefined', () => {
+    expect(detectHighConfidenceThemeTag(pinOnlyError)).toBeUndefined();
+  });
+
+  it('detectHighConfidenceThemeTag: nenhuma classificação (sem bestUci) → undefined', () => {
+    expect(detectHighConfidenceThemeTag(noThemeError)).toBeUndefined();
+  });
+
+  it('buildAutopsyPendingItems: erro com mate-in-1 high vira item com weaknessTag=mate-in-1 e themeTag=mate-in-1', () => {
+    const [item] = buildAutopsyPendingItems([mateInOneError], 'abcd1234', []);
+
+    expect(item).toMatchObject({ weaknessTag: 'mate-in-1', themeTag: 'mate-in-1' });
+  });
+
+  it('buildAutopsyPendingItems: erro ambíguo/sem high (pin) cai no fallback blunder-rate, sem themeTag', () => {
+    const [item] = buildAutopsyPendingItems([pinOnlyError], 'abcd1234', []);
+
+    expect(item?.weaknessTag).toBe('blunder-rate');
+    expect(item?.themeTag).toBeUndefined();
+  });
+
+  it('buildAutopsyPendingItems: erro sem nenhuma classificação também cai no fallback blunder-rate', () => {
+    const [item] = buildAutopsyPendingItems([noThemeError], 'abcd1234', []);
+
+    expect(item?.weaknessTag).toBe('blunder-rate');
+    expect(item?.themeTag).toBeUndefined();
   });
 });
 

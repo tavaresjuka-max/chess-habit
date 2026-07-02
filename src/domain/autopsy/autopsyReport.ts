@@ -25,7 +25,26 @@ export type AutopsyError = {
   evalAfterCp?: number;
   severity: AutopsySeverity;
   lichessUrl: string;
+  /**
+   * Relógio (centissegundos) de QUEM ERROU, no momento em que o lance
+   * errado foi jogado — ou seja, `clocks[ply - 1]` no export do Lichess.
+   * Ausente quando o export não trouxe `clocks` (partida sem relógio,
+   * correspondência, ou o Lichess simplesmente não devolveu o array).
+   */
+  clockCentisAtError?: number;
+  /**
+   * true quando `clockCentisAtError` está abaixo do limiar de pressão de
+   * tempo (`TIME_PRESSURE_THRESHOLD_CENTIS`). Ausente/false quando não há
+   * sinal de relógio — nunca inferimos pressão sem dado.
+   */
+  timePressure?: boolean;
 };
+
+/**
+ * Limiar de "pressão de tempo": relógio de quem errou abaixo de 20s (2000
+ * centissegundos) no momento do lance errado.
+ */
+export const TIME_PRESSURE_THRESHOLD_CENTIS = 2000;
 
 export type AutopsyReport = {
   gameId: string;
@@ -55,6 +74,17 @@ const MATE_SENTINEL_CP = 10_000;
 // oponente de quem acabou de jogar). Ao interpretar `eval` como "avaliação
 // depois do lance na perspectiva de quem jogou", precisamos negar o valor
 // bruto do Lichess (que é sempre da perspectiva de quem tem a vez a seguir).
+//
+// Convenção de índice para `clocks` (GRUPO CLOCKS): `clocks[i]` é o relógio
+// RESTANTE (centissegundos) de quem JOGOU o ply `i + 1`, medido logo após
+// esse lance ser jogado — mesma indexação 0-based de `analysis`, mas ao
+// contrário de `analysis` o valor de `clocks[i]` já está na perspectiva de
+// quem jogou o ply `i + 1` (não precisa negar). Para reportar "quanto tempo
+// tinha quem errou" no momento do lance ERRADO (ply `p`, 1-based), usamos
+// `clocks[p - 1]` diretamente — é o relógio de quem acabou de jogar aquele
+// lance. Índices pares (0, 2, 4, ...) são sempre brancas (ply ímpar);
+// índices ímpares (1, 3, 5, ...) são sempre pretas (ply par) — a alternância
+// segue `side` do mesmo jeito que `analysis`.
 
 type RawAnalysisEntry = {
   eval?: unknown;
@@ -75,6 +105,7 @@ type RawGameExport = {
   moves?: unknown;
   players?: { white?: unknown; black?: unknown } | undefined;
   analysis?: unknown;
+  clocks?: unknown;
 };
 
 const SEVERITY_BY_JUDGMENT: Record<string, AutopsySeverity> = {
@@ -90,6 +121,7 @@ export function buildAutopsyReport(exportJson: unknown, perspective: AutopsySide
   const black = extractPlayerName(raw.players?.black, 'Pretas');
   const sanMoves = extractSanMoves(raw.moves);
   const analysisEntries = extractAnalysisEntries(raw.analysis);
+  const clockCentis = extractClockCentis(raw.clocks);
 
   if (analysisEntries === undefined || sanMoves.length === 0) {
     return {
@@ -105,6 +137,7 @@ export function buildAutopsyReport(exportJson: unknown, perspective: AutopsySide
   const candidates = replayAndDetectErrors({
     sanMoves,
     analysisEntries,
+    clockCentis,
     perspective,
     gameId,
   });
@@ -127,10 +160,11 @@ export function buildAutopsyReport(exportJson: unknown, perspective: AutopsySide
 function replayAndDetectErrors(input: {
   sanMoves: string[];
   analysisEntries: (RawAnalysisEntry | undefined)[];
+  clockCentis: (number | undefined)[] | undefined;
   perspective: AutopsySide;
   gameId: string;
 }): AutopsyError[] {
-  const { sanMoves, analysisEntries, perspective, gameId } = input;
+  const { sanMoves, analysisEntries, clockCentis, perspective, gameId } = input;
   const errors: AutopsyError[] = [];
 
   const pos = Chess.default();
@@ -172,6 +206,13 @@ function replayAndDetectErrors(input: {
     if (severity !== undefined) {
       const bestUci = extractBestUci(entry);
       const bestSanValue = bestUci === undefined ? undefined : bestSanFromUci(fenBefore, bestUci);
+      // `clocks[index]` (index = ply - 1) é o relógio de quem JOGOU este
+      // ply, medido logo após o lance — exatamente "quanto tempo tinha
+      // quem errou" no momento do lance errado. Sem negação necessária
+      // (ao contrário de `analysis`, já vem na perspectiva de `side`).
+      const clockCentisAtError = clockCentis?.[index];
+      const timePressure =
+        clockCentisAtError === undefined ? undefined : clockCentisAtError < TIME_PRESSURE_THRESHOLD_CENTIS;
 
       errors.push({
         ply,
@@ -185,6 +226,8 @@ function replayAndDetectErrors(input: {
         evalAfterCp,
         severity,
         lichessUrl: buildLichessUrl(gameId, perspective, ply),
+        clockCentisAtError,
+        timePressure,
       });
     }
 
@@ -351,4 +394,18 @@ function extractAnalysisEntries(analysis: unknown): (RawAnalysisEntry | undefine
   }
 
   return analysis.map((entry) => (isRecord(entry) ? (entry as RawAnalysisEntry) : undefined));
+}
+
+/**
+ * Parseia `clocks` do export (array de centissegundos, 1 entrada por
+ * half-move — mesma indexação 0-based de `analysis`). Tolerante: campo
+ * ausente, não-array, ou entradas que não são number viram `undefined`
+ * naquele índice — nunca lançamos e nunca fabricamos um relógio.
+ */
+function extractClockCentis(clocks: unknown): (number | undefined)[] | undefined {
+  if (!Array.isArray(clocks)) {
+    return undefined;
+  }
+
+  return clocks.map((entry) => (typeof entry === 'number' ? entry : undefined));
 }

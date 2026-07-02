@@ -95,3 +95,89 @@ export const GAME_WITH_MATE_SCORE = {
     },
   ],
 };
+
+/**
+ * Partida com `clocks` e um blunder das BRANCAS (ply 5, mesma sequência de
+ * `GAME_WITH_JUDGMENTS`), com relógio de quem errou ABAIXO do limiar de
+ * pressão de tempo (20s = 2000 centis). `clocks[4]` (índice = ply - 1 = 4)
+ * é o relógio de quem jogou o ply 5 (brancas) logo após aquele lance —
+ * 1500 centis = 15s, portanto `timePressure: true`.
+ */
+export const GAME_WITH_CLOCKS_WHITE_TIME_PRESSURE = {
+  id: 'clok0001',
+  moves: 'e4 e5 Nf3 Nc6 d4 exd4',
+  players: {
+    white: { user: { name: 'AlunoBranco' } },
+    black: { user: { name: 'RivalPreto' } },
+  },
+  analysis: [
+    { eval: 20 },
+    { eval: 15 },
+    { eval: 25 },
+    { eval: 10 },
+    {
+      eval: -180,
+      judgment: { name: 'Blunder', comment: 'Perde um peão central sem compensação.' },
+    },
+    { eval: -190 },
+  ],
+  clocks: [9000, 8800, 6000, 5800, 1500, 5500],
+};
+
+/**
+ * Mesma sequência, mas o relógio de quem errou (brancas, ply 5) está ACIMA
+ * do limiar — `timePressure: false`, sinal presente mas sem pressão.
+ */
+export const GAME_WITH_CLOCKS_WHITE_NO_PRESSURE = {
+  id: 'clok0002',
+  moves: 'e4 e5 Nf3 Nc6 d4 exd4',
+  players: {
+    white: { user: { name: 'AlunoBranco' } },
+    black: { user: { name: 'RivalPreto' } },
+  },
+  analysis: [
+    { eval: 20 },
+    { eval: 15 },
+    { eval: 25 },
+    { eval: 10 },
+    {
+      eval: -180,
+      judgment: { name: 'Blunder', comment: 'Perde um peão central sem compensação.' },
+    },
+    { eval: -190 },
+  ],
+  clocks: [9000, 8800, 6000, 5800, 8000, 5500],
+};
+
+/**
+ * Partida com `clocks` e um blunder das PRETAS (ply 6, mesma sequência de
+ * `GAME_WITH_EVALS_ONLY`), com relógio de quem errou ABAIXO do limiar.
+ * `clocks[5]` (índice = ply - 1 = 5) é o relógio de pretas logo após o
+ * ply 6 — 800 centis = 8s, portanto `timePressure: true`. Cobre a
+ * alternância de índice para o lado das pretas (índice ímpar).
+ */
+export const GAME_WITH_CLOCKS_BLACK_TIME_PRESSURE = {
+  id: 'clok0003',
+  moves: 'd4 d5 c4 e6 Nc3 dxc4',
+  players: {
+    white: { user: { name: 'BrancoEval' } },
+    black: { user: { name: 'PretoEval' } },
+  },
+  analysis: [
+    { eval: 30 },
+    { eval: 35 },
+    { eval: 40 },
+    { eval: 45 },
+    { eval: 50 },
+    { eval: 400 },
+  ],
+  clocks: [9000, 8800, 7000, 6800, 6000, 800],
+};
+
+/**
+ * Mesma sequência de `GAME_WITH_JUDGMENTS` (blunder das brancas no ply 5),
+ * mas SEM `clocks` no export — simula partidas por correspondência ou
+ * exports antigos onde o Lichess não devolve relógios. `clockCentisAtError`
+ * e `timePressure` devem ficar `undefined`, nunca inferidos.
+ */
+export const GAME_WITHOUT_CLOCKS = GAME_WITH_JUDGMENTS;

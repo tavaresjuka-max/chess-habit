@@ -1,4 +1,5 @@
 import type { AutopsyError } from '../autopsy/autopsyReport';
+import { classifyTheme } from '../autopsy/themeClassifier';
 import { createId } from '../ids';
 import {
   DEFAULT_EASE_FACTOR,
@@ -174,6 +175,26 @@ const AUTOPSY_SEVERITY_LABEL: Record<AutopsyError['severity'], string> = {
   inaccuracy: 'Imprecisão',
 };
 
+// GRUPO TAGS (2026-07-02): liga o classificador heurístico de temas
+// (spike-d1-theme-classifier-RESULT.md) aos itens da autópsia. Veredito do
+// spike: só confidence 'high' é confiável o suficiente pra virar weaknessTag —
+// 'low' é ambíguo demais e não substitui o fallback. Se o classificador
+// retornar MAIS de uma tag 'high' (ambiguidade entre detectores) ou nenhuma,
+// mantemos o fallback 'blunder-rate' — nunca chutamos entre candidatos.
+// `ThemeClassifierTag` é um subconjunto literal de `WeaknessTag` (mesmos
+// nomes: mate-in-1, fork, hanging-piece, back-rank, pin), então a tag do
+// classificador é atribuível direto sem tabela de tradução.
+export function detectHighConfidenceThemeTag(error: AutopsyError): WeaknessTag | undefined {
+  const classifications = classifyTheme(error.fenBefore, error.bestUci, error.sanPlayed);
+  const highConfidence = classifications.filter((classification) => classification.confidence === 'high');
+
+  if (highConfidence.length !== 1) {
+    return undefined;
+  }
+
+  return highConfidence[0]?.tag;
+}
+
 /**
  * Converte erros da Autópsia (partida REAL do usuário) em pending items —
  * MESMA fila/escada SM-2 dos itens de puzzle (GRUPO A2, 2026-07-02). Função
@@ -199,11 +220,13 @@ export function buildAutopsyPendingItems(
   return errors
     .filter((error) => !existingKeys.has(error.ply))
     .map((error) => {
+      const themeTag = detectHighConfidenceThemeTag(error);
+
       const item: PendingTrainingItem = {
         id: `pending-autopsy-${gameId}-${String(error.ply)}-${createId()}`,
         origin: 'game-review',
         title: `${AUTOPSY_SEVERITY_LABEL[error.severity]} no lance ${String(error.moveNumber)}: ${error.sanPlayed}`,
-        weaknessTag: 'blunder-rate',
+        weaknessTag: themeTag ?? 'blunder-rate',
         methodTrackId: 'pending-review',
         lichessUrl: error.lichessUrl,
         source: 'autopsy',
@@ -219,7 +242,8 @@ export function buildAutopsyPendingItems(
         updatedAt: now,
       };
 
-      return error.bestSan === undefined ? item : { ...item, bestSan: error.bestSan };
+      const withBestSan = error.bestSan === undefined ? item : { ...item, bestSan: error.bestSan };
+      return themeTag === undefined ? withBestSan : { ...withBestSan, themeTag };
     });
 }
 

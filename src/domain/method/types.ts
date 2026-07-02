@@ -46,6 +46,12 @@ export type PendingTrainingItem = {
   bestSan?: string;
   gameId?: string;
   ply?: number;
+  // GRUPO TAGS (2026-07-02): tema tático detectado com confidence 'high' pelo
+  // classificador heurístico (themeClassifier.ts, ver
+  // spike-d1-theme-classifier-RESULT.md). Só presente quando exatamente uma
+  // tag 'high' foi encontrada — usado pela UI da autópsia para a linha do
+  // Tavarez ligando o erro ao currículo. Sugestão, não veredito.
+  themeTag?: WeaknessTag;
   prompt: string;
   dueAt: string;
   attempts: number;

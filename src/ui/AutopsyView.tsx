@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { buildAutopsyReport, type AutopsyError, type AutopsyReport, type AutopsySeverity } from '../domain/autopsy/autopsyReport';
-import { buildAutopsyPendingItems } from '../domain/method/pendingItems';
+import { buildAutopsyPendingItems, detectHighConfidenceThemeTag } from '../domain/method/pendingItems';
+import { weaknessTitleByTag } from '../domain/weakness/weaknessTitles';
 import { fetchGameForAutopsy, parseGameRef } from '../infra/lichess/autopsyClient';
 import { isAllowedLichessUrl } from '../infra/lichess/urlPolicy';
 import { loadAllPendingItems, savePendingItem } from '../infra/storage/appData';
@@ -19,6 +20,18 @@ const SEVERITY_LABEL: Record<AutopsySeverity, string> = {
   mistake: 'Erro grave',
   inaccuracy: 'Imprecisão',
 };
+
+/**
+ * Converte centissegundos (formato do `clocks` do Lichess) em segundos
+ * inteiros para exibição no badge de pressão de tempo (GRUPO CLOCKS).
+ * Arredonda para baixo — "9s" é mais honesto que "10s" quando sobravam 9.4s.
+ */
+function formatClockSeconds(clockCentis: number | undefined): string {
+  if (clockCentis === undefined) {
+    return '';
+  }
+  return String(Math.floor(clockCentis / 100));
+}
 
 /**
  * Pré-seleciona o lado do usuário quando o username do perfil local bate com
@@ -442,6 +455,10 @@ function AutopsyErrorCard({
   onReveal: () => void;
 }) {
   const sideLabel = error.side === 'white' ? 'brancas' : 'pretas';
+  // GRUPO TAGS (2026-07-02): classificador heurístico de temas (spike D1) — só
+  // confidence 'high' vira sugestão na UI (ver detectHighConfidenceThemeTag).
+  // Sugestão honesta, não veredito: sem estatística, sem "você é fraco em X".
+  const themeTag = detectHighConfidenceThemeTag(error);
 
   return (
     <li className="autopsy-error-card">
@@ -453,6 +470,20 @@ function AutopsyErrorCard({
           Lance {error.moveNumber} ({sideLabel}): {error.sanPlayed}
         </span>
       </div>
+
+      {themeTag === undefined ? null : (
+        <p className="autopsy-theme-hint">
+          Isso tem cara de {weaknessTitleByTag[themeTag]}. Eu conheço esse padrão — está no seu
+          currículo.
+        </p>
+      )}
+
+      {error.timePressure === true ? (
+        <p className="autopsy-time-pressure config-hint">
+          Você tinha {formatClockSeconds(error.clockCentisAtError)}s no relógio — parte do erro é
+          gestão de tempo, não só tática.
+        </p>
+      ) : null}
 
       <p className="autopsy-retrieval-prompt">Antes de ver a resposta: o que você jogaria aqui?</p>
 
