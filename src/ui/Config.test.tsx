@@ -477,6 +477,28 @@ describe('Config — Lichess OAuth', () => {
     expect(connectBtn).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Remover conexão' })).toBeDisabled();
   });
+
+  it('shows the "Criar conta grátis" link to lichess.org/signup when no token is present', () => {
+    render(<Config {...makeProps({ lichessToken: undefined })} />);
+    openFold('Lichess');
+    const signupLink = screen.getByRole('link', { name: 'Criar conta grátis' });
+    expect(signupLink).toHaveAttribute('href', 'https://lichess.org/signup');
+    expect(signupLink).toHaveAttribute('target', '_blank');
+    expect(signupLink).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('hides the "Criar conta grátis" link once a Lichess token is present', () => {
+    const lichessToken = {
+      accessToken: 'tok123',
+      tokenType: 'Bearer' as const,
+      scopes: ['puzzle:read' as const],
+      obtainedAt: '2026-06-15T00:00:00.000Z',
+      expiresAt: '2027-06-15T00:00:00.000Z',
+    };
+    render(<Config {...makeProps({ lichessToken })} />);
+    openFold('Lichess');
+    expect(screen.queryByRole('link', { name: 'Criar conta grátis' })).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

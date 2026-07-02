@@ -29,6 +29,9 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
         Sou o Professor Tavarez. Aqui o treino é curto e o foco é um só por vez.
         Melhor pouco bem feito que muito no automático.
       </p>
+      <p className="welcome-lede-secondary">
+        Você treina no Lichess; eu organizo, corrijo e salvo seu plano.
+      </p>
       <ul className="welcome-points">
         <li>
           <ConceptSeal concept="sessao" size={30} />
@@ -41,6 +44,10 @@ export function Welcome({ notice, onStart, onConfigure }: WelcomeProps) {
         <li>
           <ConceptSeal concept="dados" size={30} />
           Seu progresso fica neste aparelho. Exporte backups quando quiser.
+        </li>
+        <li>
+          <ConceptSeal concept="dados" size={30} />
+          Não tem conta no Lichess? É grátis — te levo lá.
         </li>
       </ul>
       {notice !== undefined ? (

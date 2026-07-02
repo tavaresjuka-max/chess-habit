@@ -47,18 +47,21 @@ export function SyncPanel({
   const [status, setStatus] = useState<string>('Pronto para sincronizar.');
   const [statusKind, setStatusKind] = useState<'idle' | 'ok' | 'warn' | 'error'>('idle');
   const [busy, setBusy] = useState(false);
+  const [needsLogin, setNeedsLogin] = useState(false);
 
   const backendReady = backendUrl.trim().length > 0;
 
   async function handleSync(): Promise<void> {
     if (!backendReady || busy) return;
     setBusy(true);
+    setNeedsLogin(false);
     try {
       const bearerToken = await operations.loadToken();
       if (bearerToken === undefined) {
         setStatusKind('error');
-        setStatus('Faça login com o Lichess antes de sincronizar.');
-        toast.error('Login Lichess necessário para sincronizar.');
+        setStatus('Conectar Lichess para sincronizar — não tem conta?');
+        setNeedsLogin(true);
+        toast.error('Conectar Lichess para sincronizar.');
         return;
       }
       const client = createClient(backendUrl, bearerToken);
@@ -144,6 +147,14 @@ export function SyncPanel({
           <AlertTriangle aria-hidden="true" size={14} />
         ) : null}
         {status}
+        {needsLogin ? (
+          <>
+            {' '}
+            <a href="https://lichess.org/signup" target="_blank" rel="noopener noreferrer">
+              Criar grátis (1 min)
+            </a>
+          </>
+        ) : null}
       </p>
     </div>
   );

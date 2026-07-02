@@ -462,6 +462,7 @@ export function App() {
           <Suspense fallback={<ViewFallback />}>
             <AutopsyView
               lichessUsername={appState.profile.lichessUsername}
+              chesscomUsername={appState.profile.chesscomUsername}
               onNavigateToSettings={() => {
                 appState.setActiveView('config');
               }}
