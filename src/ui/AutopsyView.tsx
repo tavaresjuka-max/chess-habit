@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { buildAutopsyReport, type AutopsyError, type AutopsyReport, type AutopsySeverity } from '../domain/autopsy/autopsyReport';
+import { buildAutopsyPendingItems, detectHighConfidenceThemeTag } from '../domain/method/pendingItems';
+import { weaknessTitleByTag } from '../domain/weakness/weaknessTitles';
 import { fetchGameForAutopsy, parseGameRef } from '../infra/lichess/autopsyClient';
 import { isAllowedLichessUrl } from '../infra/lichess/urlPolicy';
+import { loadAllPendingItems, savePendingItem } from '../infra/storage/appData';
 import { TavarezAvatar } from './art/TavarezAvatar';
 
 type ViewState =
@@ -17,6 +20,18 @@ const SEVERITY_LABEL: Record<AutopsySeverity, string> = {
   mistake: 'Erro grave',
   inaccuracy: 'Imprecisão',
 };
+
+/**
+ * Converte centissegundos (formato do `clocks` do Lichess) em segundos
+ * inteiros para exibição no badge de pressão de tempo (GRUPO CLOCKS).
+ * Arredonda para baixo — "9s" é mais honesto que "10s" quando sobravam 9.4s.
+ */
+function formatClockSeconds(clockCentis: number | undefined): string {
+  if (clockCentis === undefined) {
+    return '';
+  }
+  return String(Math.floor(clockCentis / 100));
+}
 
 /**
  * Pré-seleciona o lado do usuário quando o username do perfil local bate com
@@ -45,12 +60,62 @@ function autoDetectPerspective(
 
 type AutopsyViewProps = {
   lichessUsername?: string;
+  // GRUPO A3: navega para Ajustes → Dados quando o aluno clica no lembrete de
+  // backup após agendar o treino. Opcional para não quebrar quem renderiza a
+  // view isolada (ex.: testes existentes sem essa navegação).
+  onNavigateToSettings?: () => void;
 };
 
-export function AutopsyView({ lichessUsername }: AutopsyViewProps) {
+export function AutopsyView({ lichessUsername, onNavigateToSettings }: AutopsyViewProps) {
   const [gameRefInput, setGameRefInput] = useState('');
   const [state, setState] = useState<ViewState>({ kind: 'idle' });
   const [revealedByPly, setRevealedByPly] = useState<Record<number, boolean>>({});
+  // Treinar estes erros (GRUPO A2, 2026-07-02): injeta os erros da autópsia como
+  // pending items na MESMA fila SM-2. scheduledGameIds rastreia quais gameId já
+  // têm pendência (nesta sessão OU de sessões anteriores, carregado do storage)
+  // para desabilitar o botão / mostrar "Já agendado" sem reinjetar.
+  const [scheduledGameIds, setScheduledGameIds] = useState<Set<string>>(new Set());
+  const [scheduling, setScheduling] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadScheduledGameIds() {
+      const items = await loadAllPendingItems();
+      if (cancelled) {
+        return;
+      }
+      const gameIds = items
+        .filter((item) => item.source === 'autopsy' && item.gameId !== undefined)
+        .map((item) => item.gameId)
+        .filter((gameId): gameId is string => gameId !== undefined);
+
+      setScheduledGameIds(new Set(gameIds));
+    }
+
+    void loadScheduledGameIds();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleTrainTheseErrors(report: AutopsyReport) {
+    setScheduling(true);
+
+    try {
+      const existingItems = await loadAllPendingItems();
+      const newItems = buildAutopsyPendingItems(report.errors, report.gameId, existingItems);
+
+      for (const item of newItems) {
+        await savePendingItem(item);
+      }
+
+      setScheduledGameIds((current) => new Set(current).add(report.gameId));
+    } finally {
+      setScheduling(false);
+    }
+  }
 
   async function handleSubmit() {
     const gameId = parseGameRef(gameRefInput);
@@ -228,6 +293,12 @@ export function AutopsyView({ lichessUsername }: AutopsyViewProps) {
           revealedByPly={revealedByPly}
           onReveal={toggleReveal}
           onReset={handleReset}
+          alreadyScheduled={scheduledGameIds.has(state.report.gameId)}
+          scheduling={scheduling}
+          onTrainTheseErrors={() => {
+            void handleTrainTheseErrors(state.report);
+          }}
+          {...(onNavigateToSettings === undefined ? {} : { onNavigateToSettings })}
         />
       ) : null}
     </section>
@@ -289,11 +360,19 @@ function AutopsyCards({
   revealedByPly,
   onReveal,
   onReset,
+  alreadyScheduled,
+  scheduling,
+  onTrainTheseErrors,
+  onNavigateToSettings,
 }: {
   report: AutopsyReport;
   revealedByPly: Record<number, boolean>;
   onReveal: (ply: number) => void;
   onReset: () => void;
+  alreadyScheduled: boolean;
+  scheduling: boolean;
+  onTrainTheseErrors: () => void;
+  onNavigateToSettings?: () => void;
 }) {
   if (report.errors.length === 0) {
     return (
@@ -332,7 +411,32 @@ function AutopsyCards({
         ))}
       </ul>
 
+      {alreadyScheduled ? (
+        <>
+          <p role="status" className="autopsy-scheduled-confirmation">
+            Agendei. Eles voltam em 1 dia — e eu pergunto de novo antes de mostrar a resposta.
+          </p>
+          <p className="config-hint">
+            Seu progresso fica só neste aparelho.{' '}
+            {onNavigateToSettings === undefined ? (
+              'Faça um backup em Ajustes → Dados.'
+            ) : (
+              <>
+                Faça um backup em{' '}
+                <button type="button" className="link-button" onClick={onNavigateToSettings}>
+                  Ajustes → Dados
+                </button>
+                .
+              </>
+            )}
+          </p>
+        </>
+      ) : null}
+
       <div className="button-row">
+        <button type="button" disabled={alreadyScheduled || scheduling} onClick={onTrainTheseErrors}>
+          {alreadyScheduled ? 'Já agendado' : 'Treinar estes erros'}
+        </button>
         <button type="button" className="secondary-button" onClick={onReset}>
           Fazer outra autópsia
         </button>
@@ -351,6 +455,10 @@ function AutopsyErrorCard({
   onReveal: () => void;
 }) {
   const sideLabel = error.side === 'white' ? 'brancas' : 'pretas';
+  // GRUPO TAGS (2026-07-02): classificador heurístico de temas (spike D1) — só
+  // confidence 'high' vira sugestão na UI (ver detectHighConfidenceThemeTag).
+  // Sugestão honesta, não veredito: sem estatística, sem "você é fraco em X".
+  const themeTag = detectHighConfidenceThemeTag(error);
 
   return (
     <li className="autopsy-error-card">
@@ -362,6 +470,20 @@ function AutopsyErrorCard({
           Lance {error.moveNumber} ({sideLabel}): {error.sanPlayed}
         </span>
       </div>
+
+      {themeTag === undefined ? null : (
+        <p className="autopsy-theme-hint">
+          Isso tem cara de {weaknessTitleByTag[themeTag]}. Eu conheço esse padrão — está no seu
+          currículo.
+        </p>
+      )}
+
+      {error.timePressure === true ? (
+        <p className="autopsy-time-pressure config-hint">
+          Você tinha {formatClockSeconds(error.clockCentisAtError)}s no relógio — parte do erro é
+          gestão de tempo, não só tática.
+        </p>
+      ) : null}
 
       <p className="autopsy-retrieval-prompt">Antes de ver a resposta: o que você jogaria aqui?</p>
 

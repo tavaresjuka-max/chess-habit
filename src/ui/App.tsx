@@ -85,6 +85,14 @@ export function LegalFooter() {
           ))}
         </ul>
       </details>
+      <a
+        href="/docs/legal/termos-de-servico.md"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Termos de serviço (abre em nova aba)"
+      >
+        Termos de serviço
+      </a>
       {FEEDBACK_URL === undefined ? null : (
         <a
           href={FEEDBACK_URL}
@@ -112,6 +120,10 @@ export function App() {
   const [funnelPhase, setFunnelPhaseState] = useState<FunnelPhase>(() => readStoredFunnelPhase() ?? 'welcome');
   const funnelRef = useRef<HTMLElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
+  // GRUPO A3: "Analisar minha última partida" no welcome pede o mesmo caminho
+  // rápido de "Começar rápido", só que pousando na Autópsia em vez do Hoje.
+  // Ref (não state) porque só é lido uma vez, no efeito que fecha o funil.
+  const postOnboardingDestinationRef = useRef<'today' | 'autopsy'>('today');
 
   const setFunnelPhase = useCallback((phase: FunnelPhase) => {
     try {
@@ -161,9 +173,15 @@ export function App() {
       } catch {
         // Ignorado: limpar a fase é só higiene, não muda o estado resolvido.
       }
+      // GRUPO A3: se o aluno entrou por "Analisar minha última partida", pousa
+      // na Autópsia em vez do Hoje (padrão). Aplica só neste fechamento do
+      // funil — não afeta quem já navegou manualmente depois.
+      if (postOnboardingDestinationRef.current === 'autopsy') {
+        appState.setActiveView('autopsy');
+      }
       void appState.completeOnboarding();
     }
-  }, [onboardingDone, planApproved, appState.profile, appState.completeOnboarding]);
+  }, [onboardingDone, planApproved, appState.profile, appState.completeOnboarding, appState.setActiveView]);
 
   // Foco vai para a tela do passo a cada transição do funil (acessibilidade).
   useEffect(() => {
@@ -249,9 +267,11 @@ export function App() {
             await appState.acceptConsent(researchOptIn);
             setFunnelPhase('accounts');
           }}
-          onQuickStart={async () => {
-            // "Começar rápido" também registra consentimento (opt-in por padrão);
-            // o usuário ajusta depois no fold de Privacidade da Config.
+          onQuickStart={async (destination) => {
+            // "Começar rápido" e "Analisar minha última partida" (GRUPO A3)
+            // seguem o MESMO caminho — mesmo consentimento opt-in por padrão,
+            // mesmo perfil padrão — só o destino final muda (Hoje vs Autópsia).
+            postOnboardingDestinationRef.current = destination ?? 'today';
             if (appState.consentedAt === undefined) {
               await appState.acceptConsent(true);
             }
@@ -440,7 +460,12 @@ export function App() {
           </Suspense>
         ) : shouldShowAutopsy ? (
           <Suspense fallback={<ViewFallback />}>
-            <AutopsyView lichessUsername={appState.profile.lichessUsername} />
+            <AutopsyView
+              lichessUsername={appState.profile.lichessUsername}
+              onNavigateToSettings={() => {
+                appState.setActiveView('config');
+              }}
+            />
           </Suspense>
         ) : (
           <Today

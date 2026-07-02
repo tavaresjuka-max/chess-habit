@@ -4,9 +4,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   GAME_WITHOUT_ANALYSIS,
+  GAME_WITH_CLOCKS_WHITE_NO_PRESSURE,
+  GAME_WITH_CLOCKS_WHITE_TIME_PRESSURE,
   GAME_WITH_JUDGMENTS,
 } from '../domain/autopsy/autopsyReport.fixtures';
 import type { AutopsyFetchResult } from '../infra/lichess/autopsyClient';
+import type { PendingTrainingItem } from '../domain/method/types';
 
 afterEach(() => {
   cleanup();
@@ -22,16 +25,32 @@ vi.mock('../infra/lichess/autopsyClient', async (importOriginal) => {
   };
 });
 
+vi.mock('../infra/storage/appData', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../infra/storage/appData')>();
+  return {
+    ...original,
+    loadAllPendingItems: vi.fn(),
+    savePendingItem: vi.fn(),
+  };
+});
+
 async function importFreshView() {
   const clientModule = await import('../infra/lichess/autopsyClient');
+  const appDataModule = await import('../infra/storage/appData');
   const { AutopsyView } = await import('./AutopsyView');
   const fetchGameForAutopsy = vi.mocked(clientModule.fetchGameForAutopsy);
+  const loadAllPendingItems = vi.mocked(appDataModule.loadAllPendingItems);
+  const savePendingItem = vi.mocked(appDataModule.savePendingItem);
   // `vi.resetModules()` no afterEach recarrega o módulo, mas o mock em si
   // (criado uma vez pela factory de `vi.mock`) persiste entre módulos
   // recarregados dentro do MESMO arquivo de teste — limpamos chamadas
   // manualmente para garantir isolamento entre `it`s.
   fetchGameForAutopsy.mockClear();
-  return { AutopsyView, fetchGameForAutopsy };
+  loadAllPendingItems.mockReset();
+  loadAllPendingItems.mockResolvedValue([]);
+  savePendingItem.mockReset();
+  savePendingItem.mockResolvedValue(undefined);
+  return { AutopsyView, fetchGameForAutopsy, loadAllPendingItems, savePendingItem };
 }
 
 function mockOk(exportJson: unknown, gameId: string) {
@@ -159,6 +178,71 @@ describe('AutopsyView', () => {
     });
   });
 
+  it('GRUPO TAGS: mostra a linha do Tavarez ligando ao currículo quando o tema é detectado com confidence high (mate-in-1)', async () => {
+    const gameWithMateIn1Best = {
+      id: 'tag00001',
+      // 1.e4 e5 2.Qh5 Nc6 3.Bc4 Nf6 chega exatamente na posição do fixture
+      // MATE_IN_1_POSITIVE[0] (spike D1) com as brancas a jogar — fenBefore
+      // do ply 7 é 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w
+      // KQkq - 4 4'. As brancas jogam 4.d3?? (perdendo o mate) em vez do
+      // Qxf7# marcado como `best`/judgment — validado via chessops
+      // (isLegal + isCheckmate) antes de commitar.
+      moves: 'e4 e5 Qh5 Nc6 Bc4 Nf6 d3',
+      players: {
+        white: { user: { name: 'AlunoBranco' } },
+        black: { user: { name: 'RivalPreto' } },
+      },
+      analysis: [
+        { eval: 20 },
+        { eval: 15 },
+        { eval: 25 },
+        { eval: 10 },
+        { eval: 30 },
+        { eval: 40 },
+        {
+          eval: -900,
+          judgment: { name: 'Blunder', comment: 'Deixa passar o mate em Qxf7#.' },
+          best: 'h5f7',
+        },
+      ],
+    };
+    const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+    fetchGameForAutopsy.mockResolvedValue(mockOk(gameWithMateIn1Best, 'tag00001'));
+
+    render(<AutopsyView lichessUsername="AlunoBranco" />);
+
+    fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+      target: { value: 'tag00001' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Capote/i)).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText(/Isso tem cara de mate em 1\. Eu conheço esse padrão — está no seu currículo\./i),
+    ).toBeInTheDocument();
+  });
+
+  it('GRUPO TAGS: NÃO mostra a linha do Tavarez quando nenhum tema high foi detectado', async () => {
+    const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+    fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+    render(<AutopsyView lichessUsername="AlunoBranco" />);
+
+    fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+      target: { value: 'abcd1234' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Capote/i)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/Isso tem cara de/i)).not.toBeInTheDocument();
+  });
+
   it('pré-seleciona a perspectiva quando o username do perfil bate com um dos jogadores', async () => {
     const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
     fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
@@ -261,6 +345,211 @@ describe('AutopsyView', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(/Não consegui falar com o Lichess/i);
+    });
+  });
+
+  describe('Treinar estes erros (GRUPO A2, 2026-07-02)', () => {
+    async function renderWithCards(AutopsyView: typeof import('./AutopsyView').AutopsyView) {
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'abcd1234' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Treinar estes erros|Já agendado/i })).toBeInTheDocument();
+      });
+    }
+
+    it('clicar "Treinar estes erros" injeta os itens e mostra a confirmação honesta', async () => {
+      const { AutopsyView, fetchGameForAutopsy, savePendingItem } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      await renderWithCards(AutopsyView);
+
+      fireEvent.click(screen.getByRole('button', { name: /Treinar estes erros/i }));
+
+      await waitFor(() => {
+        expect(savePendingItem).toHaveBeenCalledTimes(1);
+      });
+
+      const savedItem = savePendingItem.mock.calls[0]?.[0] as PendingTrainingItem;
+      expect(savedItem).toMatchObject({
+        origin: 'game-review',
+        source: 'autopsy',
+        methodTrackId: 'pending-review',
+        gameId: 'abcd1234',
+        ply: 5,
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Agendei\. Eles voltam em 1 dia — e eu pergunto de novo antes de mostrar a resposta\./i),
+        ).toBeInTheDocument();
+      });
+      expect(screen.getByRole('button', { name: /Já agendado/i })).toBeDisabled();
+    });
+
+    it('reinjeção (mesma partida já agendada no storage) mostra "Já agendado" sem duplicar', async () => {
+      const { AutopsyView, fetchGameForAutopsy, loadAllPendingItems, savePendingItem } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+      loadAllPendingItems.mockResolvedValue([
+        {
+          id: 'pending-autopsy-abcd1234-5-existing',
+          origin: 'game-review',
+          title: 'Capote no lance 3: d4',
+          weaknessTag: 'blunder-rate',
+          methodTrackId: 'pending-review',
+          source: 'autopsy',
+          gameId: 'abcd1234',
+          ply: 5,
+          prompt: 'Antes de ver a resposta: o que você jogaria aqui?',
+          dueAt: '2026-07-03',
+          attempts: 0,
+          status: 'open',
+          createdAt: '2026-07-02T00:00:00.000Z',
+          updatedAt: '2026-07-02T00:00:00.000Z',
+        } satisfies PendingTrainingItem,
+      ]);
+
+      await renderWithCards(AutopsyView);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Já agendado/i })).toBeDisabled();
+      });
+      expect(
+        screen.getByText(/Agendei\. Eles voltam em 1 dia — e eu pergunto de novo antes de mostrar a resposta\./i),
+      ).toBeInTheDocument();
+      expect(savePendingItem).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('lembrete de backup (GRUPO A3, 2026-07-02)', () => {
+    async function renderAndSchedule(AutopsyView: typeof import('./AutopsyView').AutopsyView, props = {}) {
+      render(<AutopsyView {...props} />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'abcd1234' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Treinar estes erros|Já agendado/i })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Treinar estes erros/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Já agendado/i })).toBeDisabled();
+      });
+    }
+
+    it('não mostra o lembrete de backup antes de agendar', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      render(<AutopsyView />);
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'abcd1234' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Treinar estes erros/i })).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/Seu progresso fica só neste aparelho/i)).not.toBeInTheDocument();
+    });
+
+    it('após agendar, mostra o lembrete de backup com link para Ajustes', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+      const onNavigateToSettings = vi.fn();
+
+      await renderAndSchedule(AutopsyView, { onNavigateToSettings });
+
+      expect(screen.getByText(/Seu progresso fica só neste aparelho/i)).toBeInTheDocument();
+      const settingsLink = screen.getByRole('button', { name: /Ajustes → Dados/i });
+      expect(settingsLink).toBeInTheDocument();
+
+      fireEvent.click(settingsLink);
+      expect(onNavigateToSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it('sem onNavigateToSettings, ainda mostra o texto do lembrete (sem link clicável)', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      await renderAndSchedule(AutopsyView);
+
+      expect(screen.getByText(/Seu progresso fica só neste aparelho/i)).toBeInTheDocument();
+      expect(screen.getByText(/Faça um backup em Ajustes → Dados\./i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Ajustes → Dados/i })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('sinal de pressão de relógio (GRUPO CLOCKS, 2026-07-02)', () => {
+    it('mostra o badge de pressão de tempo quando o relógio de quem errou estava abaixo de 20s', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_CLOCKS_WHITE_TIME_PRESSURE, 'clok0001'));
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'clok0001' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Você tinha 15s no relógio/i)).toBeInTheDocument();
+      });
+      expect(screen.getByText(/parte do erro é gestão de tempo, não só tática/i)).toBeInTheDocument();
+    });
+
+    it('não mostra o badge quando o relógio de quem errou estava confortável (>= 20s)', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_CLOCKS_WHITE_NO_PRESSURE, 'clok0002'));
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'clok0002' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Lance 3 \(brancas\): d4/i)).toBeInTheDocument();
+      });
+      expect(screen.queryByText(/no relógio — parte do erro é gestão de tempo/i)).not.toBeInTheDocument();
+    });
+
+    it('sem clocks no export (GAME_WITH_JUDGMENTS), o badge não aparece', async () => {
+      const { AutopsyView, fetchGameForAutopsy } = await importFreshView();
+      fetchGameForAutopsy.mockResolvedValue(mockOk(GAME_WITH_JUDGMENTS, 'abcd1234'));
+
+      render(<AutopsyView />);
+
+      fireEvent.change(screen.getByLabelText(/Link ou ID da partida/i), {
+        target: { value: 'abcd1234' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Fazer autópsia/i }));
+
+      fireEvent.click(await screen.findByRole('button', { name: /Eu joguei de brancas/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Lance 3 \(brancas\): d4/i)).toBeInTheDocument();
+      });
+      expect(screen.queryByText(/no relógio — parte do erro é gestão de tempo/i)).not.toBeInTheDocument();
     });
   });
 });

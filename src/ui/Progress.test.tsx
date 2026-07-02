@@ -230,6 +230,16 @@ describe('Progress', () => {
     ).toBeInTheDocument();
   });
 
+  it('exibe a dobra "Protocolo de falsificação" com estado honesto de placar vazio', () => {
+    render(<Progress {...makeProps()} />);
+
+    expect(screen.getByText('Protocolo de falsificação')).toBeInTheDocument();
+    expect(screen.getByText('Em teste')).toBeInTheDocument();
+    expect(
+      screen.getByText(/ainda não há partidas ou sondas suficientes medidas — o placar começa vazio de propósito/i),
+    ).toBeInTheDocument();
+  });
+
   it('T7: exibe rótulo PT-BR do tema e não o slug camelCase cru', () => {
     // Monta um log com resultado puzzle-dashboard contendo tema "hangingPiece"
     const logWithDashboard = makeTrainingLog({

@@ -258,6 +258,16 @@ export async function loadOpenPendingItems(): Promise<PendingTrainingItem[]> {
 }
 
 /**
+ * Todos os pending items, qualquer status (GRUPO A2, 2026-07-02). Usado pelo dedup
+ * da Autópsia (buildAutopsyPendingItems): reinjetar erros de uma partida já
+ * processada não pode duplicar, mesmo que o item tenha graduado ('done') ou sido
+ * adiado ('deferred') — só 'open' não bastaria para essa checagem.
+ */
+export async function loadAllPendingItems(): Promise<PendingTrainingItem[]> {
+  return db.pendingItems.toArray();
+}
+
+/**
  * Busca um pending item por id direto no storage. Fallback para quando o item não
  * está no estado carregado no boot (que só traz os 'open') — evita pular o avanço
  * do SR em silêncio quando um bloco referencia um item já concluído/deferido/restaurado.

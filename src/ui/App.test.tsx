@@ -67,6 +67,16 @@ describe('LegalFooter privacidade', () => {
     render(<LegalFooter />);
     expect(screen.getByRole('link', { name: /apoiar/i })).toBeInTheDocument();
   });
+
+  it('exibe link de termos de serviço apontando para o documento local', async () => {
+    const { LegalFooter } = await import('./App');
+    render(<LegalFooter />);
+    const link = screen.getByRole('link', { name: /termos de serviço/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/docs/legal/termos-de-servico.md');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
 });
 
 // ---------------------------------------------------------------------------

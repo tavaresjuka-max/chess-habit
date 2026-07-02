@@ -21,6 +21,12 @@ export type MethodTrack = {
 
 export type PendingItemOrigin = 'puzzle' | 'game-review' | 'manual' | 'diploma';
 
+// Origem granular (GRUPO A2, 2026-07-02): 'autopsy' identifica itens nascidos da
+// Autópsia (erros REAIS de uma partida do usuário, não puzzles). Só metadado —
+// entra na MESMA escada SM-2 (attempts/easeFactor/dueAt/retentionPending) que
+// qualquer outro PendingTrainingItem; zero fork de agendamento.
+export type PendingItemSource = 'autopsy';
+
 export type PendingTrainingItem = {
   id: string;
   origin: PendingItemOrigin;
@@ -30,6 +36,22 @@ export type PendingTrainingItem = {
   lichessTheme?: string;
   lichessUrl?: string;
   sourceLogId?: string;
+  // Metadados da Autópsia (GRUPO A2): presentes só quando source === 'autopsy'.
+  // fenBefore/sanPlayed/bestSan alimentam a revisão cega ("o que você jogaria
+  // aqui?") antes de reexpor a partida; gameId+ply chaveiam o dedup (reinjetar
+  // a mesma partida não duplica pendências).
+  source?: PendingItemSource;
+  fen?: string;
+  sanPlayed?: string;
+  bestSan?: string;
+  gameId?: string;
+  ply?: number;
+  // GRUPO TAGS (2026-07-02): tema tático detectado com confidence 'high' pelo
+  // classificador heurístico (themeClassifier.ts, ver
+  // spike-d1-theme-classifier-RESULT.md). Só presente quando exatamente uma
+  // tag 'high' foi encontrada — usado pela UI da autópsia para a linha do
+  // Tavarez ligando o erro ao currículo. Sugestão, não veredito.
+  themeTag?: WeaknessTag;
   prompt: string;
   dueAt: string;
   attempts: number;

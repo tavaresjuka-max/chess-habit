@@ -2233,6 +2233,61 @@ li.diploma-row {
   flex: 1;
 }
 
+/* Painel do protocolo de falsificação n=1 (docs/specs/falsification-protocol-DECISION.md).
+   'aguardando' e 'sem-dados' precisam parecer visualmente DIFERENTES de 'falsificado' e
+   'passou' — importa para quem tem TDAH não confundir "ainda não chegou a hora" com um
+   resultado real. Paleta neutra para os estados de espera (nada aconteceu ainda), verde
+   para "não falsificado" e a cor de aviso (mesma dos badges de atraso) para "falsificado". */
+.falsification-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.falsification-status {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.falsification-status-title {
+  font-weight: 700;
+  font-size: var(--fs-md);
+}
+
+.falsification-reasons {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-600);
+  font-size: var(--fs-sm);
+  display: grid;
+  gap: 2px;
+}
+
+.falsification-tone-waiting,
+.falsification-tone-nodata {
+  background: var(--paper);
+  color: var(--ink-700);
+}
+
+.falsification-tone-pass {
+  background: var(--green-100);
+  border-color: var(--green-300);
+  color: var(--green-900);
+}
+
+.falsification-tone-fail {
+  background: var(--warn-bg);
+  border-color: var(--warn-fg);
+  color: var(--warn-fg);
+}
+
+.falsification-proxy {
+  border-top: 1px dashed var(--line-soft);
+  padding-top: 8px;
+}
+
 /* ---------- Pendências ---------- */
 
 .pending-review-card {

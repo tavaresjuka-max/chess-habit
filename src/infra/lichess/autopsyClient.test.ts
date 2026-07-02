@@ -95,7 +95,7 @@ describe('fetchGameForAutopsy', () => {
     expect(result).toEqual({ kind: 'ok', exportJson, gameId: 'abcd1234' });
     expect(fetcher).toHaveBeenCalledTimes(1);
     const call = fetcher.mock.calls[0];
-    expect(call?.[0]).toBe('https://lichess.org/game/export/abcd1234?evals=true');
+    expect(call?.[0]).toBe('https://lichess.org/game/export/abcd1234?evals=true&clocks=true');
     expect(call?.[1]?.headers).toMatchObject({ Accept: 'application/json' });
   });
 

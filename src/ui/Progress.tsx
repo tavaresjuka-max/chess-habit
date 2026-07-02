@@ -26,6 +26,7 @@ import { formatWeaknessTag } from './formatWeakness';
 import { MedalhaIcon } from './art/MedalhaIcon';
 import { CurriculumCard } from './CurriculumCard';
 import { EpistemicBadge } from './EpistemicBadge';
+import { FalsificationPanel } from './FalsificationPanel';
 import { Fold } from './Fold';
 import { SessionMilestonesCard, type NextDiplomaSummary } from './SessionMilestonesCard';
 import { isAllowedLichessUrl } from '../infra/lichess/urlPolicy';
@@ -366,6 +367,16 @@ export function Progress({
           ) : null}
         </div>
         <p className="config-hint">Medem o método, não você. Revisão em julho de 2026.</p>
+      </Fold>
+
+      {/* Placar do protocolo de falsificação n=1 (docs/specs/falsification-protocol-DECISION.md).
+          Hoje não há nó em janela de 30 dias com sonda/blunder medidos no estado do app —
+          gateInput vazio é honesto: o painel mostra 'aguardando'/'sem-dados', não simula
+          resultado. O sinal secundário (proxySignal, rating-slope corrigido por RTM) fica de
+          fora enquanto não houver série de rating disponível no estado do app (regra: omitir
+          quando não houver dado, nunca inventar). */}
+      <Fold concept="linha-base" title="Protocolo de falsificação">
+        <FalsificationPanel gateInput={{}} />
       </Fold>
 
       {weaknesses.length > 0 ? (

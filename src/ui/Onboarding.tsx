@@ -28,7 +28,10 @@ type OnboardingProps = {
   weaknesses: Weakness[];
   learningPlanResponse: LearningPlanResponse | undefined;
   onStartSetup: () => void;
-  onQuickStart: () => Promise<void>;
+  // destination opcional: 'autopsy' quando o aluno entrou por "Analisar minha
+  // última partida" (GRUPO A3) — mesmo caminho de "Começar rápido", só muda
+  // onde o funil pousa ao terminar.
+  onQuickStart: (destination?: 'today' | 'autopsy') => Promise<void>;
   onBackToWelcome: () => void;
   // Grava consentedAt + researchOptIn e avança para 'accounts'. Opcional:
   // quando ausente o passo 'consent' não é exibido (ex.: testes legados).

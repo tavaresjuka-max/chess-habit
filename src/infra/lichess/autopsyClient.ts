@@ -100,7 +100,12 @@ export async function fetchGameForAutopsy(
 }
 
 function autopsyExportUrl(gameId: string): string {
-  const params = new URLSearchParams({ evals: 'true' });
+  // `clocks=true` pede ao Lichess os relógios (centissegundos) por
+  // half-move quando disponíveis — usado no GRUPO CLOCKS para sinalizar
+  // pressão de tempo nos cartões de erro. Ausente na partida (ex.: sem
+  // relógio) => o Lichess simplesmente omite o campo `clocks`; o domínio
+  // trata isso como "sem sinal", não como erro.
+  const params = new URLSearchParams({ evals: 'true', clocks: 'true' });
   return `${lichessBaseUrl}/game/export/${gameId}?${params.toString()}`;
 }
 

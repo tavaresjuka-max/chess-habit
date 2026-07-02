@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { buildAutopsyReport } from './autopsyReport';
 import {
   GAME_WITHOUT_ANALYSIS,
+  GAME_WITHOUT_CLOCKS,
+  GAME_WITH_CLOCKS_BLACK_TIME_PRESSURE,
+  GAME_WITH_CLOCKS_WHITE_NO_PRESSURE,
+  GAME_WITH_CLOCKS_WHITE_TIME_PRESSURE,
   GAME_WITH_EVALS_ONLY,
   GAME_WITH_JUDGMENTS,
   GAME_WITH_MATE_SCORE,
@@ -142,5 +146,47 @@ describe('buildAutopsyReport', () => {
     expect(report.errors.length).toBeLessThanOrEqual(3);
     const plies = report.errors.map((error) => error.ply);
     expect(plies).toEqual([...plies].sort((left, right) => left - right));
+  });
+
+  describe('sinal de pressão de relógio (GRUPO CLOCKS)', () => {
+    it('marca timePressure=true para erro das BRANCAS com relógio < 20s no momento do erro', () => {
+      const report = buildAutopsyReport(GAME_WITH_CLOCKS_WHITE_TIME_PRESSURE, 'white');
+
+      expect(report.errors).toHaveLength(1);
+      const [error] = report.errors;
+      expect(error?.ply).toBe(5);
+      expect(error?.side).toBe('white');
+      expect(error?.clockCentisAtError).toBe(1500);
+      expect(error?.timePressure).toBe(true);
+    });
+
+    it('marca timePressure=false para erro das BRANCAS com relógio >= 20s no momento do erro', () => {
+      const report = buildAutopsyReport(GAME_WITH_CLOCKS_WHITE_NO_PRESSURE, 'white');
+
+      expect(report.errors).toHaveLength(1);
+      const [error] = report.errors;
+      expect(error?.clockCentisAtError).toBe(8000);
+      expect(error?.timePressure).toBe(false);
+    });
+
+    it('marca timePressure=true para erro das PRETAS com o índice correto de clocks (alternância)', () => {
+      const report = buildAutopsyReport(GAME_WITH_CLOCKS_BLACK_TIME_PRESSURE, 'black');
+
+      expect(report.errors).toHaveLength(1);
+      const [error] = report.errors;
+      expect(error?.ply).toBe(6);
+      expect(error?.side).toBe('black');
+      expect(error?.clockCentisAtError).toBe(800);
+      expect(error?.timePressure).toBe(true);
+    });
+
+    it('sem clocks no export: clockCentisAtError e timePressure ficam undefined (nunca inferidos)', () => {
+      const report = buildAutopsyReport(GAME_WITHOUT_CLOCKS, 'white');
+
+      expect(report.errors).toHaveLength(1);
+      const [error] = report.errors;
+      expect(error?.clockCentisAtError).toBeUndefined();
+      expect(error?.timePressure).toBeUndefined();
+    });
   });
 });
