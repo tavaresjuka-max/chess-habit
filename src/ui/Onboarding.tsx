@@ -27,9 +27,13 @@ type OnboardingProps = {
   sessionMinutes: SessionMinutes;
   weaknesses: Weakness[];
   learningPlanResponse: LearningPlanResponse | undefined;
+  // true quando já existe token OAuth do Lichess (ex.: o aluno acabou de
+  // voltar do redirect) — o AccountsStep troca o convite de conectar pela
+  // confirmação e o aluno segue no Continuar explícito.
+  lichessConnected: boolean;
   onStartSetup: () => void;
-  // destination opcional: 'autopsy' quando o aluno entrou por "Analisar minha
-  // última partida" (GRUPO A3) — mesmo caminho de "Começar rápido", só muda
+  // destination opcional: 'autopsy' quando o aluno entrou por "Ver onde errei
+  // na última partida" (GRUPO A3) — mesmo caminho de "Começar rápido", só muda
   // onde o funil pousa ao terminar.
   onQuickStart: (destination?: 'today' | 'autopsy') => Promise<void>;
   onBackToWelcome: () => void;
@@ -38,7 +42,8 @@ type OnboardingProps = {
   onAcceptConsent?: (researchOptIn: boolean) => Promise<void>;
   // Salva o perfil (sem auto-sync) e segue: com conta → Importando; sem conta → Avaliação.
   onContinueAccounts: (profile: LearnerProfile) => Promise<void>;
-  // Salva o perfil e dispara o OAuth do Lichess (redireciona; volta na tela Importando).
+  // Salva o perfil e dispara o OAuth do Lichess (redireciona; volta em "Suas
+  // contas" para o aluno terminar de preencher e seguir no Continuar).
   onConnectLichess: (profile: LearnerProfile) => Promise<void>;
   // Executa a importação awaitada e devolve a contagem de fraquezas (total e confiáveis).
   onRunImport: () => Promise<{ weaknessCount: number; confidentWeaknessCount: number }>;
@@ -80,6 +85,7 @@ export function Onboarding(props: OnboardingProps) {
       ) : props.step === 'accounts' ? (
         <AccountsStep
           defaults={props.defaults}
+          lichessConnected={props.lichessConnected}
           onBack={props.onBackToWelcome}
           onContinue={props.onContinueAccounts}
           onConnectLichess={props.onConnectLichess}
@@ -112,15 +118,19 @@ export function Onboarding(props: OnboardingProps) {
 }
 
 // Passo 2 — contas + faixa + tempo. O usuário pode informar Lichess e/ou
-// Chess.com (ou nenhum), opcionalmente conectar o Lichess (OAuth, melhora
-// puzzles/Study) e seguir. Conectar e Continuar salvam o perfil antes.
+// Chess.com (ou nenhum) e conectar o Lichess (OAuth, recomendado — sincroniza
+// o plano e melhora puzzles/Study). Ao voltar do OAuth ele CONTINUA aqui, com
+// a confirmação visível, e só avança no Continuar. Conectar e Continuar salvam
+// o perfil antes.
 function AccountsStep({
   defaults,
+  lichessConnected,
   onBack,
   onContinue,
   onConnectLichess,
 }: {
   defaults: LearnerProfile;
+  lichessConnected: boolean;
   onBack: () => void;
   onContinue: (profile: LearnerProfile) => Promise<void>;
   onConnectLichess: (profile: LearnerProfile) => Promise<void>;
@@ -180,10 +190,13 @@ function AccountsStep({
           void handleContinue();
         }}
       >
-        <h2 className="accounts-block-title">Lichess — sua escola e seu cofre</h2>
+        <h2 className="accounts-block-title">Lichess — sua escola e onde seu progresso fica salvo</h2>
         <label className="field">
           <span>Usuário Lichess</span>
-          <small className="field-hint">Buscamos suas partidas públicas. Conectar é opcional (melhora puzzles e Study).</small>
+          <small className="field-hint">
+            Buscamos suas partidas públicas. Conectar é recomendado — sincroniza seu plano e
+            melhora puzzles e Study.
+          </small>
           <input
             autoComplete="username"
             value={lichessUsername}
@@ -193,19 +206,35 @@ function AccountsStep({
           />
         </label>
 
-        <div className="button-row">
-          {hasLichess ? (
-            <button type="button" className="secondary-button" disabled={busy} onClick={() => void handleConnectLichess()}>
-              Conectar Lichess (opcional)
-            </button>
-          ) : null}
-          <a href="https://lichess.org/signup" target="_blank" rel="noopener noreferrer" className="secondary-button">
-            Criar conta grátis
-          </a>
-        </div>
-        <small className="field-hint">
-          Crie sua conta lá e volte aqui — o app guarda seu progresso enquanto você não está.
-        </small>
+        {lichessConnected ? (
+          // Voltou do OAuth: confirma e segura o aluno aqui — ele termina de
+          // preencher (ex.: Chess.com) e avança só no Continuar explícito.
+          <p className="field-hint accounts-connected" role="status">
+            ✓ Lichess conectado. Aproveite para informar seu usuário do Chess.com (opcional) e
+            toque em Continuar.
+          </p>
+        ) : (
+          <>
+            <div className="button-row">
+              {hasLichess ? (
+                <button
+                  type="button"
+                  className="secondary-button"
+                  disabled={busy}
+                  onClick={() => void handleConnectLichess()}
+                >
+                  Conectar Lichess (recomendado)
+                </button>
+              ) : null}
+              <a href="https://lichess.org/signup" target="_blank" rel="noopener noreferrer" className="secondary-button">
+                Criar conta grátis
+              </a>
+            </div>
+            <small className="field-hint">
+              Crie sua conta lá e volte aqui — o app guarda seu progresso enquanto você não está.
+            </small>
+          </>
+        )}
 
         <h2 className="accounts-block-title">Chess.com — só leitura (opcional)</h2>
         <label className="field">

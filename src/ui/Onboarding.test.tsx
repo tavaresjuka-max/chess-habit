@@ -30,6 +30,7 @@ function makeProps(overrides: Partial<Parameters<typeof Onboarding>[0]> = {}) {
     sessionMinutes: 15 as const,
     weaknesses,
     learningPlanResponse: undefined,
+    lichessConnected: false,
     onStartSetup: vi.fn(),
     onQuickStart: vi.fn<() => Promise<void>>(() => Promise.resolve()),
     onBackToWelcome: vi.fn(),
@@ -171,8 +172,9 @@ describe('Onboarding — welcome step', () => {
 
   it('renders the Lichess-is-the-school master line (ON-A)', () => {
     render(<Onboarding {...makeProps({ step: 'welcome' })} />);
+    // A frase-mestra abre o lede junto da apresentação do professor.
     expect(
-      screen.getByText('Você treina no Lichess; eu organizo, corrijo e salvo seu plano.'),
+      screen.getByText(/Você treina no Lichess; eu organizo, corrijo e salvo seu plano\./),
     ).toBeInTheDocument();
   });
 
@@ -245,11 +247,30 @@ describe('Onboarding — accounts step — fields', () => {
   it('renders the two role blocks with headings (ON-B)', () => {
     render(<Onboarding {...makeProps()} />);
     expect(
-      screen.getByRole('heading', { name: 'Lichess — sua escola e seu cofre' }),
+      screen.getByRole('heading', { name: 'Lichess — sua escola e onde seu progresso fica salvo' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Chess.com — só leitura (opcional)' }),
     ).toBeInTheDocument();
+  });
+
+  it('frames connecting Lichess as recommended, not optional', () => {
+    render(<Onboarding {...makeProps()} />);
+    expect(screen.getByText(/Conectar é recomendado/)).toBeInTheDocument();
+
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.change(inputs[0] as HTMLElement, { target: { value: 'jukaxadrez' } });
+    expect(screen.getByRole('button', { name: 'Conectar Lichess (recomendado)' })).toBeInTheDocument();
+  });
+
+  it('shows the connected confirmation (and hides connect/signup) after the OAuth return', () => {
+    render(<Onboarding {...makeProps({ lichessConnected: true })} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Lichess conectado');
+    expect(screen.queryByRole('button', { name: /Conectar Lichess/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Criar conta grátis' })).toBeNull();
+    // O aluno segue no fluxo: o Continuar explícito permanece disponível.
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeInTheDocument();
   });
 
   it('always shows the "Criar conta grátis" link pointing to lichess.org/signup in a new tab (ON-B)', () => {

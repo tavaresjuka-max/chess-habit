@@ -361,7 +361,7 @@ export function AutopsyView({ lichessUsername, chesscomUsername, onNavigateToSet
     <section aria-labelledby="autopsy-title" className="panel">
       <div className="section-heading">
         <div>
-          <h1 id="autopsy-title">Autópsia</h1>
+          <h2 id="autopsy-title">Autópsia</h2>
           <p>Cole o link da sua última partida; eu mostro o que treinar.</p>
         </div>
       </div>
