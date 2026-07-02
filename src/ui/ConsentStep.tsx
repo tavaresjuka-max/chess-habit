@@ -41,8 +41,8 @@ export function ConsentStep({ onAccept }: ConsentStepProps) {
         momento.
       </p>
       <p className="config-hint">
-        A biblioteca de conteúdo cresce conforme a eficácia é comprovada — esse é o acordo
-        honesto.
+        A biblioteca de conteúdo só cresce quando a medição sustenta — e quando não sustenta,
+        a gente conta. Esse é o acordo honesto: este app tenta se falsificar, não se provar.
       </p>
       <p>
         <a

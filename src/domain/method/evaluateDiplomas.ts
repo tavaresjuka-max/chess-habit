@@ -57,8 +57,14 @@ export function evaluateDiplomaSections(
       }
 
       const scorePercent = Math.round((wins / attempts) * 100);
-      const passed = attempts >= (section.minAttempts ?? 0) && scorePercent >= (section.accuracyTarget ?? 0);
       const blindEvidenceSummary = getSectionBlindEvidence(section.lichessThemes, blindEvidenceByConcept);
+      const passesAccuracy = attempts >= (section.minAttempts ?? 0) && scorePercent >= (section.accuracyTarget ?? 0);
+      // Fase 4 (SPEC blind-retrieval): com a flag, evidência cega vira gate ADICIONAL —
+      // sem ela, comportamento idêntico ao anterior (só acurácia + volume).
+      const passesBlindEvidence =
+        section.requiresBlindEvidence !== true ||
+        blindEvidenceSummary.blindEvidenceItems >= blindEvidenceSummary.blindEvidenceTarget;
+      const passed = passesAccuracy && passesBlindEvidence;
 
       evaluated.push({
         id,

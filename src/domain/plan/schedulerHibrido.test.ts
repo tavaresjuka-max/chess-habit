@@ -256,6 +256,33 @@ describe('D2 — mapeamento por bloco (pós-aquisição com pool)', () => {
     expect(transferencia?.isDiscrimination).toBe(true);
   });
 
+  // cont-3 (2026-07-02): prova de CONSUMO — não basta o campo discriminationCue
+  // existir em conceptContracts; o gerador de plano precisa efetivamente usá-lo
+  // no bloco de transferência-discriminação (D2), anexado ao coachNote.
+  it('cont-3: bloco de discriminação (isDiscrimination=true) recebe a dica de discriminationCue no coachNote', () => {
+    const profile: LearnerProfile = {
+      ...baseProfile,
+      themeStages: { fork: 'transfer' },
+      graduatedThemes: ['pin'],
+    };
+    const plan = generatePlan(
+      profile,
+      [{ tag: 'fork', score: 0.9, confidence: 'high', evidence: 'erros' }],
+      60,
+      '2026-06-22',
+    );
+
+    const transferencia = plan.blocks.find((b) => b.id.endsWith('-transferencia'));
+    expect(transferencia).toBeDefined();
+    expect(transferencia?.isDiscrimination).toBe(true);
+    // O pool intercalado tem só 'pin' graduado -> transferTag = pin; pin.discriminationCue
+    // (conceptContracts.ts) fala da diferença com skewer. A dica deve aparecer no coachNote.
+    expect(transferencia?.weaknessTag).toBe('pin');
+    expect(transferencia?.coachNote).toContain(
+      'Na cravada, a peça presa é a MENOS valiosa e fica na frente por obrigação',
+    );
+  });
+
   it('AC2: sem pool (nenhum tema graduado), -revisao usa primário mesmo em retrieval', () => {
     const profile: LearnerProfile = {
       ...baseProfile,

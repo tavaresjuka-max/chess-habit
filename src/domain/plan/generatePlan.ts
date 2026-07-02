@@ -348,6 +348,14 @@ function createPlanBlock(input: {
   });
   const blindMetadata = getBlindAttemptMetadata(resourceStage, destination.url);
   const conceptContract = getConceptContract(copy.weaknessTag);
+  // cont-3 (2026-07-02): em blocos de discriminação (transferência com pool
+  // intercalado, D2 do scheduler híbrido), anexa a dica que distingue o tema
+  // do bloco do tema classicamente confundível com ele — mesmo padrão aditivo
+  // do errorCoach acima: nunca substitui, só acrescenta ao coachNote base.
+  const discriminationCoachNote =
+    isDiscrimination && conceptContract.discriminationCue !== undefined
+      ? conceptContract.discriminationCue.cue
+      : undefined;
 
   return {
     id: createPlanBlockId(input.date, input.sessionNumber, input.index, input.kind),
@@ -361,8 +369,12 @@ function createPlanBlock(input: {
     task: copy.task,
     stopRule: copy.stopRule,
     reason: copy.reason,
-    coachNote:
+    coachNote: [
       themeErrorCoach !== undefined ? `${baseCoachNote} ${themeErrorCoach.coachNote}` : baseCoachNote,
+      discriminationCoachNote,
+    ]
+      .filter((note): note is string => note !== undefined)
+      .join(' '),
     status: 'pending',
     methodTrackId: input.activeTrack,
     guidingQuestion:

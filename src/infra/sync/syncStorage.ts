@@ -16,6 +16,7 @@ import {
   type WeaknessRecord,
 } from '../storage/db';
 import { isAllowedLichessUrl } from '../lichess/urlPolicy';
+import { sanitizeAppMetaRecords, sanitizeProfileRecords } from '../../domain/method/sanitizeRestoredState';
 import {
   mergeSyncRecords,
   pullRecordMutations,
@@ -180,6 +181,35 @@ export async function replaceSyncRecords(
   }
 }
 
+/**
+ * Saneamento semântico pós-merge (GRUPO D, mesma função de importBackupFromJson
+ * — ver src/domain/method/sanitizeRestoredState.ts). Mesma superfície de
+ * ataque do restore de backup: um blob remoto malicioso/corrompido, tipado-
+ * válido, pode alegar banda sem diploma que a justifique ou carimbos no
+ * futuro. Só as coleções afetadas (profile, appMeta) precisam de saneamento;
+ * as demais passam os registros mesclados adiante sem tocar.
+ *
+ * profile depende de diplomaAttempts JÁ persistido localmente: como cada
+ * coleção sincroniza de forma independente (syncCollectionOnce por
+ * coleção), lemos o estado atual de diplomaAttempts do storage — pode não
+ * refletir um pull de diplomaAttempts ainda não aplicado nesta mesma
+ * chamada de syncAllCollections, mas isso é conservador (nunca infla banda
+ * além do que JÁ está provado localmente) e converge no próximo ciclo.
+ */
+async function sanitizeMergedRecords(
+  collection: SyncableCollection,
+  records: readonly SyncRecord[],
+): Promise<readonly SyncRecord[]> {
+  if (collection === 'profile') {
+    const diplomaAttempts = await db.diplomaAttempts.toArray();
+    return sanitizeProfileRecords(records as Record<string, unknown>[], diplomaAttempts);
+  }
+  if (collection === 'appMeta') {
+    return sanitizeAppMetaRecords(records as Record<string, unknown>[], new Date().toISOString());
+  }
+  return records;
+}
+
 export async function mergeRemoteMutationsIntoStorage(
   collection: SyncableCollection,
   remoteMutations: readonly SyncRecordMutation[],
@@ -187,8 +217,9 @@ export async function mergeRemoteMutationsIntoStorage(
   const local = await loadSyncRecords(collection);
   const safeRemoteMutations = remoteMutations.filter((mutation) => isSafeRemoteMutation(collection, mutation));
   const merged = mergeSyncRecords(collection, local, safeRemoteMutations);
-  await replaceSyncRecords(collection, merged.records);
-  return merged;
+  const sanitizedRecords = await sanitizeMergedRecords(collection, merged.records);
+  await replaceSyncRecords(collection, sanitizedRecords);
+  return { ...merged, records: sanitizedRecords };
 }
 
 export async function syncCollectionOnce(input: SyncCollectionInput): Promise<SyncCollectionResult> {

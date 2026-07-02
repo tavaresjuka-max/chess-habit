@@ -646,7 +646,9 @@ describe('validateBackupData — integridade de restore (Corte F)', () => {
           diplomaId: 'peao',
           sectionId: 'tatico',
           scorePercent: 90,
-          totalItems: 10,
+          // >= SECTION_MIN_ATTEMPTS (30): passed=true com amostra abaixo do
+          // piso é rejeitado pelo validador (GRUPO D, dados-4).
+          totalItems: 30,
           passed: true,
           source: 'local',
           createdAt: '2026-06-01T00:00:00.000Z',

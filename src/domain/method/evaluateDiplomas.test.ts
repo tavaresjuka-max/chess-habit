@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import type { SkillMapEntry } from '../metrics/progressOverview';
+import { DIPLOMAS } from './diplomas';
 import { applyDiplomaProgress, evaluateDiplomaSections, mergeDiplomaAttempts } from './evaluateDiplomas';
 import type { DiplomaAttempt } from './types';
 
@@ -118,6 +119,94 @@ describe('evaluateDiplomaSections', () => {
       passed: true,
       blindEvidenceItems: 3,
       blindEvidenceTarget: 5,
+    });
+  });
+
+  describe('gate de evidência cega (Fase 4, requiresBlindEvidence)', () => {
+    // 'valor-pecas' (peao) usa o tema hangingPiece → conceito 'hanging-piece'.
+    const section = DIPLOMAS.find((diploma) => diploma.id === 'peao')?.sections.find(
+      (candidate) => candidate.id === 'valor-pecas',
+    );
+
+    afterEach(() => {
+      if (section !== undefined) {
+        delete section.requiresBlindEvidence;
+      }
+    });
+
+    it('flag=true + evidência insuficiente + acurácia alta => passed=false', () => {
+      if (section === undefined) throw new Error('seção valor-pecas não encontrada no catálogo');
+      section.requiresBlindEvidence = true;
+
+      const [valor] = evaluateDiplomaSections([entry('hangingPiece', 30, 30)], [], NOW, [
+        { conceptId: 'hanging-piece', eligibleAttempts: 2, blindCorrectStreak: 3 },
+      ]).filter((attempt) => attempt.sectionId === 'valor-pecas');
+
+      expect(valor).toMatchObject({
+        scorePercent: 100,
+        passed: false,
+        blindEvidenceItems: 2,
+        blindEvidenceTarget: 5,
+      });
+    });
+
+    it('flag=true + evidência suficiente + acurácia alta => passed=true', () => {
+      if (section === undefined) throw new Error('seção valor-pecas não encontrada no catálogo');
+      section.requiresBlindEvidence = true;
+
+      const [valor] = evaluateDiplomaSections([entry('hangingPiece', 30, 30)], [], NOW, [
+        { conceptId: 'hanging-piece', eligibleAttempts: 5, blindCorrectStreak: 3 },
+      ]).filter((attempt) => attempt.sectionId === 'valor-pecas');
+
+      expect(valor).toMatchObject({
+        scorePercent: 100,
+        passed: true,
+        blindEvidenceItems: 5,
+        blindEvidenceTarget: 5,
+      });
+    });
+
+    it('sem a flag, comportamento idêntico ao atual (evidência insuficiente não bloqueia)', () => {
+      if (section === undefined) throw new Error('seção valor-pecas não encontrada no catálogo');
+      // requiresBlindEvidence permanece undefined (não setado).
+
+      const [valor] = evaluateDiplomaSections([entry('hangingPiece', 30, 30)], [], NOW, [
+        { conceptId: 'hanging-piece', eligibleAttempts: 0, blindCorrectStreak: 3 },
+      ]).filter((attempt) => attempt.sectionId === 'valor-pecas');
+
+      expect(valor).toMatchObject({
+        scorePercent: 100,
+        passed: true,
+      });
+      expect(valor?.blindEvidenceItems).toBeUndefined();
+    });
+
+    it('diploma já earned não é reavaliado mesmo com requiresBlindEvidence=true e evidência insuficiente', () => {
+      if (section === undefined) throw new Error('seção valor-pecas não encontrada no catálogo');
+      section.requiresBlindEvidence = true;
+
+      const existing: DiplomaAttempt[] = [
+        {
+          id: 'peao:valor-pecas',
+          diplomaId: 'peao',
+          sectionId: 'valor-pecas',
+          scorePercent: 90,
+          totalItems: 30,
+          passed: true,
+          source: 'lichess',
+          createdAt: '2026-06-01T00:00:00.000Z',
+          updatedAt: '2026-06-01T00:00:00.000Z',
+        },
+      ];
+
+      const evaluated = evaluateDiplomaSections([entry('hangingPiece', 30, 30)], existing, NOW, [
+        { conceptId: 'hanging-piece', eligibleAttempts: 0, blindCorrectStreak: 3 },
+      ]);
+
+      expect(evaluated.find((item) => item.id === 'peao:valor-pecas')).toBeUndefined();
+      expect(mergeDiplomaAttempts(existing, evaluated).find((item) => item.id === 'peao:valor-pecas')?.passed).toBe(
+        true,
+      );
     });
   });
 });

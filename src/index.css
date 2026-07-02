@@ -2084,6 +2084,21 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 
+/* Selo epistêmico: lembrete curto de que a medição não é prova de eficácia.
+   Tom neutro (não é erro nem conquista) — mesma família visual do metric-chip,
+   sem cor de destaque. */
+.epistemic-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  color: var(--ink-600);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: 3px 10px;
+}
+
 /* ---------- Tela Progresso ---------- */
 
 /* Status compacto no topo: banda + vencidas hoje + próximo checkpoint, sempre

@@ -209,10 +209,13 @@ describe('syncE2E — roundtrip real worker + fakeD1', () => {
     const syncEnv: SyncEnv = { DB: sharedD1, SYNC_AUTH_MODE: 'local', SYNC_LOCAL_ALLOWED: 'true' };
     const userId = 'user-profile-roundtrip';
 
-    // Profile completo (band usa o tipo LearnerBand)
+    // Profile completo (band usa o tipo LearnerBand). '0-400' (piso do
+    // spine): sem diplomaAttempts no aparelho, o saneamento pós-merge (GRUPO
+    // D) clamparia qualquer banda mais alta — este teste é sobre fidelidade
+    // do round-trip do sync, não sobre progressão de banda.
     const profileFull = {
       id: 'default' as const,
-      band: '800-1000' as const,
+      band: '0-400' as const,
       lichessUsername: 'jukasparov',
       defaultSessionMinutes: 30 as const,
       goals: ['tactical', 'endgame'] as string[],
@@ -237,7 +240,7 @@ describe('syncE2E — roundtrip real worker + fakeD1', () => {
     // Verificar integridade dos dados
     const profileB = await db.profile.get('default');
     expect(profileB).toBeDefined();
-    expect(profileB?.band).toBe('800-1000');
+    expect(profileB?.band).toBe('0-400');
     expect(profileB?.lichessUsername).toBe('jukasparov');
     expect(profileB?.defaultSessionMinutes).toBe(30);
     expect(profileB?.updatedAt).toBe('2026-06-28T11:00:00.000Z');

@@ -18,6 +18,14 @@ export type ConceptContract = {
   };
   sourceInfluences: string[];
   cleanRoomNote: string;
+  // cont-3 (2026-07-02): dica de discriminação para pares classicamente
+  // confundíveis. confusedWith aponta para outro WeaknessTag; cue ensina a
+  // diferença em 1-2 frases, voz do Professor Tavarez. Opcional: só os pares
+  // com confusão documentada recebem o campo.
+  discriminationCue?: {
+    confusedWith: WeaknessTag;
+    cue: string;
+  };
 };
 
 const cleanRoomNote = 'Influência pedagógica abstrata; sem copiar texto, posições, diagramas ou problemas.';
@@ -36,6 +44,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Heisman/LPDO', 'Capablanca fundamentos'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'blunder-rate',
+      cue: 'Peça pendurada é o alvo parado no tabuleiro agora; segurança tática é o hábito de checar antes de cada lance, mesmo quando nada parece solto ainda.',
+    },
   },
   {
     id: 'blunder-rate',
@@ -50,6 +62,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Heisman/LPDO', 'DAMP como detecção tática'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'hanging-piece',
+      cue: 'Segurança tática é o hábito de checar antes de cada lance; peça pendurada é só um dos resultados que essa checagem pode revelar.',
+    },
   },
   {
     id: 'fork',
@@ -64,6 +80,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Seirawan tática básica', 'Polgar padrões', 'Neiman detectar antes de calcular'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'discovered',
+      cue: 'No garfo, uma peça sua ataca dois alvos ao mesmo tempo; no ataque descoberto, é o lance de uma peça que abre linha para OUTRA peça atacar por trás.',
+    },
   },
   {
     id: 'pin',
@@ -78,6 +98,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Seirawan tática básica', 'Heisman segurança'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'skewer',
+      cue: 'Na cravada, a peça presa é a MENOS valiosa e fica na frente por obrigação; no espeto, a peça na frente é a MAIS valiosa e é forçada a fugir, expondo a de trás.',
+    },
   },
   {
     id: 'skewer',
@@ -92,6 +116,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Seirawan tática básica', 'DAMP alinhamento'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'pin',
+      cue: 'No espeto, a peça mais valiosa está na frente e é forçada a se mexer; na cravada, a peça mais fraca está na frente e não pode se mexer porque expõe algo maior atrás.',
+    },
   },
   {
     id: 'discovered',
@@ -106,6 +134,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Hertan/CCT', 'Neiman detectar antes de calcular'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'fork',
+      cue: 'No ataque descoberto, a peça que se move não é quem ataca — ela só sai da frente para liberar outra peça; no garfo, quem se move É a peça que ataca os dois alvos.',
+    },
   },
   {
     id: 'mate-in-1',
@@ -120,6 +152,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Capablanca fundamentos', 'Fischer padrões básicos'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'mate-in-2',
+      cue: 'Mate em 1 é xeque-mate JÁ no seu próximo lance, sem resposta possível do rival; mate em 2 exige um lance intermediário que o rival ainda responde antes do mate final.',
+    },
   },
   {
     id: 'mate-in-2',
@@ -134,6 +170,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Hertan/CCT', 'Polgar padrões'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'mate-in-1',
+      cue: 'Mate em 2 tem uma etapa antes do golpe final: você dá um lance forçante, o rival responde de um jeito só possível, e aí sim vem o mate — não confunda com o mate direto em 1 lance.',
+    },
   },
   {
     id: 'back-rank',
@@ -148,6 +188,10 @@ export const conceptContracts = [
     transfer: { mixedBlindCorrectStreak: 3 },
     sourceInfluences: ['Padrões clássicos de mate', 'Capablanca fundamentos'],
     cleanRoomNote,
+    discriminationCue: {
+      confusedWith: 'mate-in-2',
+      cue: 'Mate na última fileira é um PADRÃO (rei preso pelos próprios peões, torre ou dama chega na fileira de trás); mate em 2 é uma PROFUNDIDADE de cálculo que pode ou não usar esse padrão.',
+    },
   },
   {
     id: 'opening-principles',

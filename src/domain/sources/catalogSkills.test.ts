@@ -94,6 +94,28 @@ describe('catalogSkillNodes — acoplamento SEMÂNTICO on-conceito (anti-drift; 
     }
   });
 
+  // cont-5 (2026-07-02): tavarezCue de endgame-pawn/endgame-rook era genérico
+  // demais ("conte rei ativo, oposição..."). Reescrito com sinais OBSERVÁVEIS
+  // concretos (visíveis no tabuleiro, não conceitos abstratos).
+  it('cont-5: endgame-pawn e endgame-rook têm tavarezCue com >= 2 sinais observáveis concretos', () => {
+    const pawnNode = catalogSkillNodes.find((node) => node.id === 'pawn-endgame-core');
+    const rookNode = catalogSkillNodes.find((node) => node.id === 'rook-endgame-core');
+
+    expect(pawnNode).toBeDefined();
+    expect(rookNode).toBeDefined();
+
+    // Sinal concreto = observável no tabuleiro sem precisar calcular linhas.
+    expect(pawnNode?.tavarezCue).toContain('frente do peão');
+    expect(pawnNode?.tavarezCue).toContain('oposição');
+
+    expect(rookNode?.tavarezCue).toContain('atrás do peão passado');
+    expect(rookNode?.tavarezCue).toContain('sétima fileira');
+
+    // Não é mais o cue genérico anterior.
+    expect(pawnNode?.tavarezCue).not.toBe('Conte rei ativo, oposição e casa de promoção antes de calcular qualquer corrida.');
+    expect(rookNode?.tavarezCue).not.toBe('Antes da linha, pergunte se a torre está ativa ou só defendendo passivamente.');
+  });
+
   it('time-trouble é EXCEÇÃO-proxy documentada (Lichess não tem tema de gestão de tempo)', () => {
     // Decisão de arquitetura (orquestrador): o Lichess NÃO tem puzzle theme de "gestão de tempo".
     // time-trouble roteia por PROXY ('short' = puzzles rápidos, 'mix' = sortido) — nenhum slug ENSINA

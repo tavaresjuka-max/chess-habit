@@ -43,6 +43,43 @@ App não oficial. Não é afiliado, endossado ou mantido pelo Lichess. O nome p�
 4. `docs/pedagogy/metodo-professor-tavarez.md` — método pedagógico canônico
 5. `memory/state.md` e `memory/decisions.md` — estado e decisões vivas
 
+## Como usar / Recuperação de acesso
+
+**Como instalar (PWA).** O Chess Habit é uma PWA: não precisa de loja de app, basta
+abrir a URL de produção no navegador do celular ou desktop. No Android/Chrome, use o
+menu do navegador e toque em "Instalar app" (ou "Adicionar à tela inicial"); no
+iOS/Safari, use o botão de compartilhar e "Adicionar à Tela de Início". O app passa a
+abrir em janela própria, como um app nativo, mas continua sendo o mesmo código
+servido pela web.
+
+**Como sincronizar 2 aparelhos.** O sync é opcional e feito via login com sua conta
+Lichess (OAuth) nos dois aparelhos — não existe conta própria do Chess Habit nem
+senha separada. Em cada aparelho, entre em Ajustes, conecte com o Lichess e habilite
+o sync; a partir daí o progresso sobe e desce automaticamente entre os dispositivos
+conectados à mesma conta Lichess.
+
+**Como trocar de aparelho sem perder dados.** Antes de trocar de celular/computador
+(ou se o sync estiver desligado), use **Ajustes → Dados → Exportar backup JSON** para
+baixar um arquivo com todo o seu progresso. No aparelho novo, instale o app (passo
+acima) e use **Ajustes → Dados → Restaurar backup** apontando para esse arquivo
+exportado. Se o sync já estiver ativo em ambos com a mesma conta Lichess, essa etapa
+manual é redundante, mas o export continua sendo a forma mais segura de garantir que
+nada se perde na troca.
+
+**O que fazer se o sync estiver fora do ar.** O app é local-first por desenho: todo o
+progresso, plano do dia e histórico continuam funcionando normalmente offline ou com
+o backend de sync indisponível, porque os dados vivem no IndexedDB do próprio
+aparelho. Nesse cenário, continue usando o app normalmente e, como precaução extra,
+exporte um backup manual (Ajustes → Dados → Exportar backup JSON) até o sync voltar,
+para não depender só da fila de sincronização pendente.
+
+**Como exportar/apagar tudo.** Para exportar todos os seus dados, use **Ajustes →
+Dados → Exportar backup JSON**, que gera um arquivo local legível (JSON) com todo o
+progresso salvo. Para apagar tudo, use **Ajustes → Dados → Apagar tudo**: essa ação
+tem confirmação inline (não é um popup do navegador) e remove os dados locais do
+aparelho; se o sync estiver habilitado, ela também aciona a exclusão dos dados
+remotos no Worker de sync, encerrando o rastro no servidor.
+
 ## Separação do workspace
 
 - `chessking-tutor` / `chessking-assets`: app pago anterior e seus materiais. **Nada** de lá

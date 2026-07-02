@@ -1,6 +1,11 @@
 export interface StoredBlob {
   readonly collection: string;
   readonly clientMutationId: string;
+  // NOME HISTÓRICO (GRUPO D, dados-5): "ciphertext" é o nome da chave no WIRE
+  // (contrato JSON com o backend, ver backend/types.ts) — INTOCÁVEL. O
+  // conteúdo real é JSON PLAINTEXT hoje (sync não é E2EE, ver comentário em
+  // syncEngine.pushBlob). Este campo espelha 1:1 a resposta do backend, por
+  // isso mantém o mesmo nome aqui (evita um passo de mapeamento redundante).
   readonly ciphertext: string;
   readonly updatedAt: number;
 }
@@ -40,6 +45,11 @@ export type SyncClientConfig =
 export interface PushBlobInput {
   readonly collection: string;
   readonly clientMutationId: string;
+  // NOME HISTÓRICO (GRUPO D, dados-5) — ver StoredBlob acima: nome do WIRE,
+  // não implica criptografia. syncEngine.pushBlob monta este objeto a partir
+  // de uma variável local chamada `payload` (o símbolo interno já não usa
+  // "ciphertext"); aqui o campo mantém o nome porque é serializado direto
+  // como a chave JSON "ciphertext" do corpo da requisição POST /blobs.
   readonly ciphertext: string;
   readonly updatedAt: number;
 }
@@ -201,8 +211,11 @@ export function createSyncClient(config: SyncClientConfig): SyncClient {
 
     async pushBlob(input: PushBlobInput): Promise<void> {
       requireCollection(input.collection);
-      if (typeof input.ciphertext !== 'string' || input.ciphertext.length === 0) {
-        throw new Error('ciphertext (blob opaco) e obrigatorio e nao pode ser vazio.');
+      // Símbolo local `payload` (não "ciphertext"): é o conteúdo opaco a
+      // enviar, hoje plaintext — ver nota em PushBlobInput acima.
+      const payload = input.ciphertext;
+      if (typeof payload !== 'string' || payload.length === 0) {
+        throw new Error('payload (blob opaco, campo "ciphertext" no wire) e obrigatorio e nao pode ser vazio.');
       }
       await request<{ ok: boolean }>({
         method: 'POST',
@@ -210,7 +223,7 @@ export function createSyncClient(config: SyncClientConfig): SyncClient {
         body: {
           collection: input.collection,
           clientMutationId: input.clientMutationId,
-          ciphertext: input.ciphertext,
+          ciphertext: payload,
           updatedAt: input.updatedAt,
         },
       });
