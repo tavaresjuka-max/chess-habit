@@ -6,6 +6,10 @@ type FoldProps = {
   title: string;
   meta?: string;
   defaultOpen?: boolean;
+  // Opcional: avisa quem chamou quando o estado aberto/fechado muda (toque
+  // OU defaultOpen na montagem). Usado por dobras que só montam os children
+  // pesados depois do primeiro open (ex.: a Autópsia dentro do Hoje).
+  onToggle?: (open: boolean) => void;
   children: ReactNode;
 };
 
@@ -13,7 +17,7 @@ type FoldProps = {
 // Expande no lugar (details nativo), sem carregar nada novo.
 // O estado aberto/fechado é do usuário: defaultOpen vale só na montagem,
 // e re-renders (ex.: tick do timer) não desfazem o toque.
-export function Fold({ concept, title, meta, defaultOpen = false, children }: FoldProps) {
+export function Fold({ concept, title, meta, defaultOpen = false, onToggle, children }: FoldProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -21,7 +25,9 @@ export function Fold({ concept, title, meta, defaultOpen = false, children }: Fo
       className="fold"
       open={open}
       onToggle={(event) => {
-        setOpen(event.currentTarget.open);
+        const nextOpen = event.currentTarget.open;
+        setOpen(nextOpen);
+        onToggle?.(nextOpen);
       }}
     >
       <summary className="fold-summary">

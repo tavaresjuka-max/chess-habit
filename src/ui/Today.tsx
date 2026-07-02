@@ -1,5 +1,5 @@
 import { ExternalLink } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import {
   buildLearningPlanProposal,
   buildDayCompletionSummary,
@@ -54,6 +54,12 @@ import { DayCompletionCard, RoadmapList } from './TodayParts';
 import { CalibrationInvite } from './CalibrationInvite';
 import { TodayDayStatus } from './TodayDayStatus';
 
+// A Autópsia virou uma dobra dentro do Hoje (antes era uma aba própria) — o
+// lazy import mora aqui agora. Ela carrega `chessops` (parser SAN/FEN), que
+// senão infla o chunk principal para quem nunca abre a dobra; o gate real é
+// o Fold só montar os children quando aberto (ver autopsyFoldOpened abaixo).
+const AutopsyView = lazy(() => import('./AutopsyView').then((module) => ({ default: module.AutopsyView })));
+
 type TodayProps = {
   plan: DailyPlan | undefined;
   roadmap: TrainingRoadmapItem[];
@@ -82,6 +88,14 @@ type TodayProps = {
   // PROD-3: convite não-bloqueante para calibrar (usuário sem contas e sem calibração).
   showCalibrationInvite?: boolean;
   onStartCalibration?: () => void;
+  // Autópsia embutida (dobra no fim do Hoje, ver GRUPO A3 em App.tsx):
+  // autopsyRequested pede abertura + scroll one-shot; onAutopsyRevealed
+  // devolve o pedido atendido para o App zerar o flag.
+  autopsyRequested?: boolean;
+  onAutopsyRevealed?: () => void;
+  lichessUsername?: string;
+  chesscomUsername?: string;
+  onNavigateToSettings?: () => void;
 };
 
 const sessionOptions = [5, 15, 30, 60] satisfies SessionMinutes[];
@@ -113,11 +127,43 @@ export function Today({
   onReconcileLichessResults,
   showCalibrationInvite = false,
   onStartCalibration,
+  autopsyRequested = false,
+  onAutopsyRevealed,
+  lichessUsername,
+  chesscomUsername,
+  onNavigateToSettings,
 }: TodayProps) {
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
   const alertedLogs = useRef<Set<string>>(new Set());
   const hasActiveTraining = trainingLogs.some((log) => log.status === 'active');
+  // Dobra da Autópsia: aberta explicitamente pelo toque OU pelo pedido
+  // one-shot do App (GRUPO A3). autopsyEverOpened é o gate que impede os
+  // children (e o chunk lazy da Autópsia) de montar enquanto a dobra nunca
+  // foi aberta — uma vez true, fica true (não desmonta ao fechar de novo).
+  const [autopsyFoldOpen, setAutopsyFoldOpen] = useState(false);
+  const [autopsyEverOpened, setAutopsyEverOpened] = useState(false);
+  const autopsyFoldId = 'autopsia-dobra';
+
+  useEffect(() => {
+    if (!autopsyRequested) {
+      return;
+    }
+    setAutopsyFoldOpen(true);
+    setAutopsyEverOpened(true);
+    try {
+      // jsdom (testes) não implementa scrollIntoView e lança "Not implemented" —
+      // mesmo risco que revealFocusCarousel corre no carrossel de foco, abaixo,
+      // só que ali o efeito é disparado por clique do usuário (nunca exercido em
+      // teste); aqui dispara sozinho na montagem, então a guarda é obrigatória.
+      document.getElementById(autopsyFoldId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch {
+      // Sem scrollIntoView o fold ainda abre; só não rola até ele.
+    }
+    onAutopsyRevealed?.();
+    // autopsyRequested é um pedido one-shot (o App zera via onAutopsyRevealed);
+    // só reage à transição para true, não a onAutopsyRevealed mudando de identidade.
+  }, [autopsyRequested]);
 
   useEffect(() => {
     if (!hasActiveTraining) {
@@ -516,6 +562,38 @@ export function Today({
           </div>
         ) : null}
       </Fold>
+
+      {/* Autópsia embutida (antes era uma aba própria): "colar o link de uma
+          derrota e ver o que treinar" fica perto de Plano e O que vem agora,
+          fechada por padrão. key força remontar com defaultOpen quando o
+          pedido one-shot do App (GRUPO A3) chega — Fold só lê defaultOpen na
+          montagem. onToggle marca autopsyEverOpened tanto no toque manual
+          quanto no reveal programático; os children só entram depois disso
+          para o chunk da Autópsia não baixar com a dobra fechada. */}
+      <div id={autopsyFoldId}>
+        <Fold
+          key={autopsyFoldOpen ? 'open' : 'closed'}
+          concept="diagnostico"
+          title="Autópsia"
+          meta="entenda uma derrota"
+          defaultOpen={autopsyFoldOpen}
+          onToggle={(open) => {
+            if (open) {
+              setAutopsyEverOpened(true);
+            }
+          }}
+        >
+          {autopsyEverOpened ? (
+            <Suspense fallback={<p>Carregando…</p>}>
+              <AutopsyView
+                {...(lichessUsername === undefined ? {} : { lichessUsername })}
+                {...(chesscomUsername === undefined ? {} : { chesscomUsername })}
+                {...(onNavigateToSettings === undefined ? {} : { onNavigateToSettings })}
+              />
+            </Suspense>
+          ) : null}
+        </Fold>
+      </div>
       </div>
       </div>
     </section>

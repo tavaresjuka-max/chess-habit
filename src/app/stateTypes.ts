@@ -20,7 +20,7 @@ import type { AutoBackupStatus } from '../infra/storage/autoBackup';
 import type { BackupMetaRecord } from '../infra/storage/db';
 import type { StoragePersistenceStatus } from '../infra/storage/persistence';
 
-export type AppView = 'today' | 'autopsy' | 'progress' | 'config';
+export type AppView = 'today' | 'progress' | 'config';
 
 export type LoadState = 'loading' | 'ready' | 'error';
 export type DiagnosisState = 'idle' | 'syncing' | 'success' | 'error';

@@ -1,4 +1,4 @@
-import { CalendarDays, ChartNoAxesColumn, Settings, Stethoscope } from 'lucide-react';
+import { CalendarDays, ChartNoAxesColumn, Settings } from 'lucide-react';
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 import { getTodayDate } from '../app/date';
@@ -13,6 +13,7 @@ import {
 } from '../config/appIdentity';
 import { TavarezAvatar } from './art/TavarezAvatar';
 import { DiplomaCelebration } from './DiplomaCelebration';
+import { InstallPrompt } from './InstallPrompt';
 import { Onboarding, type OnboardingStep } from './Onboarding';
 import { ReloadPrompt } from './ReloadPrompt';
 import { Today } from './Today';
@@ -42,13 +43,12 @@ function readStoredFunnelPhase(): FunnelPhase | undefined {
   return undefined;
 }
 
-// Hoje é a tela padrão e fica no chunk principal; Config, Progresso e Autópsia
-// chegam sob demanda (code-split) para encurtar o carregamento inicial no
-// celular — Autópsia carrega `chessops` (parser SAN/FEN), que senão infla o
-// chunk principal para quem nunca usa a função.
+// Hoje é a tela padrão e fica no chunk principal; Config e Progresso chegam
+// sob demanda (code-split) para encurtar o carregamento inicial no celular.
+// A Autópsia virou uma dobra dentro do Hoje (ver Today.tsx) — o lazy import
+// dela mora lá agora, não aqui.
 const Config = lazy(() => import('./Config').then((module) => ({ default: module.Config })));
 const Progress = lazy(() => import('./Progress').then((module) => ({ default: module.Progress })));
-const AutopsyView = lazy(() => import('./AutopsyView').then((module) => ({ default: module.AutopsyView })));
 
 // O app força o tema verde/escuro sempre (ver index.css, "@media all"), então o
 // toast também é sempre escuro — independe do prefers-color-scheme do SO.
@@ -121,9 +121,15 @@ export function App() {
   const funnelRef = useRef<HTMLElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
   // GRUPO A3: "Ver onde errei na última partida" no welcome pede o mesmo caminho
-  // rápido de "Começar rápido", só que pousando na Autópsia em vez do Hoje.
-  // Ref (não state) porque só é lido uma vez, no efeito que fecha o funil.
+  // rápido de "Começar rápido", só que abrindo a dobra da Autópsia dentro do
+  // Hoje em vez de deixá-la fechada. Ref (não state) porque só é lido uma vez,
+  // no efeito que fecha o funil.
   const postOnboardingDestinationRef = useRef<'today' | 'autopsy'>('today');
+  // Autópsia agora é uma dobra dentro do Hoje (não uma view própria). Este
+  // flag é um pedido one-shot: true = o Hoje deve abrir a dobra e rolar até
+  // ela; o Hoje devolve o flag para false via onAutopsyRevealed depois de
+  // atender (não pode reabrir sozinho em re-renders seguintes).
+  const [autopsyRequested, setAutopsyRequested] = useState(false);
 
   const setFunnelPhase = useCallback((phase: FunnelPhase) => {
     try {
@@ -173,15 +179,16 @@ export function App() {
       } catch {
         // Ignorado: limpar a fase é só higiene, não muda o estado resolvido.
       }
-      // GRUPO A3: se o aluno entrou por "Ver onde errei na última partida", pousa
-      // na Autópsia em vez do Hoje (padrão). Aplica só neste fechamento do
-      // funil — não afeta quem já navegou manualmente depois.
+      // GRUPO A3: se o aluno entrou por "Ver onde errei na última partida", pede
+      // que o Hoje abra a dobra da Autópsia (a view continua 'today', que já é o
+      // default). Aplica só neste fechamento do funil — não afeta quem já
+      // navegou manualmente depois.
       if (postOnboardingDestinationRef.current === 'autopsy') {
-        appState.setActiveView('autopsy');
+        setAutopsyRequested(true);
       }
       void appState.completeOnboarding();
     }
-  }, [onboardingDone, planApproved, appState.profile, appState.completeOnboarding, appState.setActiveView]);
+  }, [onboardingDone, planApproved, appState.profile, appState.completeOnboarding]);
 
   // Foco vai para a tela do passo a cada transição do funil (acessibilidade)
   // e a nova etapa sempre abre no topo — mesma regra das abas do app principal
@@ -197,7 +204,6 @@ export function App() {
   const activeView = appState.activeView;
   const shouldShowConfig = activeView === 'config';
   const shouldShowProgress = activeView === 'progress';
-  const shouldShowAutopsy = activeView === 'autopsy';
 
   const didMountFocusRef = useRef(false);
   useEffect(() => {
@@ -338,6 +344,9 @@ export function App() {
     <main className="app-shell">
       <Toaster richColors theme={getPreferredToastTheme()} position="bottom-right" />
       <ReloadPrompt />
+      {/* Só no app principal (não no funil): sugerir instalar depois que o
+          aluno já viu valor, sem interromper o onboarding. */}
+      <InstallPrompt />
       <DiplomaCelebration diplomaAttempts={appState.diplomaAttempts} />
       <a className="skip-link" href="#main-content">
         Pular para o conteúdo
@@ -368,17 +377,6 @@ export function App() {
         >
           <ChartNoAxesColumn aria-hidden="true" size={16} />
           Progresso
-        </button>
-        <button
-          className={shouldShowAutopsy ? 'nav-button nav-button-active' : 'nav-button'}
-          aria-current={shouldShowAutopsy ? 'page' : undefined}
-          type="button"
-          onClick={() => {
-            appState.setActiveView('autopsy');
-          }}
-        >
-          <Stethoscope aria-hidden="true" size={16} />
-          Autópsia
         </button>
         <button
           className={shouldShowConfig ? 'nav-button nav-button-active' : 'nav-button'}
@@ -465,16 +463,6 @@ export function App() {
               onCreateLichessStudy={appState.createLichessStudy}
             />
           </Suspense>
-        ) : shouldShowAutopsy ? (
-          <Suspense fallback={<ViewFallback />}>
-            <AutopsyView
-              lichessUsername={appState.profile.lichessUsername}
-              chesscomUsername={appState.profile.chesscomUsername}
-              onNavigateToSettings={() => {
-                appState.setActiveView('config');
-              }}
-            />
-          </Suspense>
         ) : (
           <Today
             plan={appState.todayPlan}
@@ -503,6 +491,15 @@ export function App() {
             onSkipBlockTraining={appState.skipBlockTraining}
             showCalibrationInvite={showCalibrationInvite}
             onStartCalibration={() => {
+              appState.setActiveView('config');
+            }}
+            autopsyRequested={autopsyRequested}
+            onAutopsyRevealed={() => {
+              setAutopsyRequested(false);
+            }}
+            lichessUsername={appState.profile.lichessUsername}
+            chesscomUsername={appState.profile.chesscomUsername}
+            onNavigateToSettings={() => {
               appState.setActiveView('config');
             }}
           />
